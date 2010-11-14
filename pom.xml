@@ -1,0 +1,115 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>ru.inhell.stock</groupId>
+    <artifactId>core</artifactId>
+    <version>1.0</version>
+    <name>stock - core</name>
+
+    <url>http://inhell.ru</url>
+
+    <repositories>
+        <repository>
+            <id>apache.org</id>
+            <url>http://repo2.maven.org/maven2/</url>
+        </repository>
+        <repository>
+            <id>nativelibs4java-repo</id>
+            <url>http://nativelibs4java.sourceforge.net/maven</url>
+        </repository>
+        <repository>
+            <id>jnaerator-repo</id>
+            <url>http://jnaerator.sourceforge.net/maven</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.ujmp</groupId>
+            <artifactId>complete</artifactId>
+            <version>0.2.5</version>
+            <scope>system</scope>
+            <systemPath>${pom.basedir}\lib\ujmp-complete-0.2.5.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>commons-math</groupId>
+            <artifactId>commons-math</artifactId>
+            <version>2.1</version>
+            <scope>system</scope>
+            <systemPath>${pom.basedir}\lib\commons-math-2.1.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>ejml</groupId>
+            <artifactId>ejml</artifactId>
+            <version>0.11</version>
+            <scope>system</scope>
+            <systemPath>${pom.basedir}\lib\ejml-0.11.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>ojalgo</groupId>
+            <artifactId>ojalgo</artifactId>
+            <version>29.8</version>
+            <scope>system</scope>
+            <systemPath>${pom.basedir}\lib\ojalgo-29.8.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>optimatika</groupId>
+            <artifactId>optimatika</artifactId>
+            <version>29.8</version>
+            <scope>system</scope>
+            <systemPath>${pom.basedir}\lib\optimatika-29.8.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>colt</groupId>
+            <artifactId>colt</artifactId>
+            <version>1.2.0</version>
+            <scope>system</scope>
+            <systemPath>${pom.basedir}\lib\colt.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>concurrent</groupId>
+            <artifactId>concurrent</artifactId>
+            <version>1.0.0</version>
+            <scope>system</scope>
+            <systemPath>${pom.basedir}\lib\concurrent.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>stt</groupId>
+            <artifactId>stt</artifactId>
+            <version>1.11</version>
+            <scope>system</scope>
+            <systemPath>${pom.basedir}\lib\sst_1.11.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.mahout</groupId>
+            <artifactId>mahout-math</artifactId>
+            <version>0.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.mahout</groupId>
+            <artifactId>mahout-core</artifactId>
+            <version>0.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>jmathplot</groupId>
+            <artifactId>jmathplot</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${pom.basedir}\lib\jmathplot.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>com.nativelibs4java</groupId>
+            <artifactId>javacl-blas</artifactId>
+            <version>1.0-beta-4</version>            
+        </dependency>
+
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>3.2.5</version>
+        </dependency>
+    </dependencies>
+</project>
