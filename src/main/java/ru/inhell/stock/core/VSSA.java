@@ -19,8 +19,6 @@ public class VSSA {
     private Matrix Z;
     private Matrix R, Rt;
 
-    private MatrixUtil matrixUtil;
-
     private BasicSSA basicSSA;
 
     public VSSA(int rangeLength, int windowLength, int eigenfunctionsCount, int predictionPointCount) {
@@ -33,8 +31,6 @@ public class VSSA {
 
         Z = MatrixFactory.dense(ValueType.DOUBLE, windowLength, rangeLength + predictionPointCount);
         R = MatrixFactory.dense(ValueType.DOUBLE, windowLength-1, 1);
-
-        matrixUtil = new MatrixUtil();
     }
 
     public double[] execute(double[] timeSeries) {

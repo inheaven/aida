@@ -1,14 +1,12 @@
 package ru.inhell.stock.core;
 
-import com.nativelibs4java.opencl.blas.ujmp.CLDenseDoubleMatrix2D;
-import com.nativelibs4java.opencl.blas.ujmp.CLDenseDoubleMatrix2DFactory;
 import org.ujmp.core.Matrix;
 import org.ujmp.core.MatrixFactory;
 import org.ujmp.core.calculation.Calculation;
 import org.ujmp.core.enums.FileFormat;
 import org.ujmp.core.enums.ValueType;
 import org.ujmp.gui.plot.MatrixPlot;
-import ru.inhell.stock.cuda.LinearAlgebraUtils;
+
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,7 +20,6 @@ import java.io.IOException;
  */
 public class MatrixTest {
     public static void main(String... args) throws Exception {
-        CLDenseDoubleMatrix2DFactory.LINEAR_ALGEBRA_KERNELS = new LinearAlgebraUtils();
 
 //        Matrix matrix = MatrixFactory.importFromFile(FileFormat.CSV, "I:\\Java\\Projects-2010\\ru.inhell.stock\\data\\GAZP_100126_100626.csv",";");
 //
@@ -80,19 +77,6 @@ public class MatrixTest {
 
         basicSSA.execute(x);
 
-    }
-
-    private static void test4() throws Exception{
-        CLDenseDoubleMatrix2D a = new CLDenseDoubleMatrix2D(50, 50);
-        CLDenseDoubleMatrix2D b = new CLDenseDoubleMatrix2D(50, 50);
-
-        a.rand(Calculation.Ret.ORIG);
-        b.rand(Calculation.Ret.ORIG);
-
-        a.showGUI();
-        b.showGUI();
-
-        a.mtimes(b).showGUI();        
     }
 
     private static void test3(double[] fullTS){
