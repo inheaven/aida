@@ -1,4 +1,11 @@
 #include "acml_wrapper.h"
+#include "acml.h"
+
+#ifndef _Included_ru_inhell_aida_acml_ACML
+#define _Included_ru_inhell_aida_acml_ACML
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 inline void check_memory(JNIEnv * env, void * arg) {
 	if (arg != NULL) {
@@ -74,4 +81,9 @@ Java_ru_inhell_aida_acml_ACML_dgemm (JNIEnv *env, jobject calling_obj, jstring t
 	(*env)->ReleasePrimitiveArrayCritical(env, b, jni_b, 0);
 	(*env)->ReleasePrimitiveArrayCritical(env, c, jni_c, 0);
 }
+
+#ifdef __cplusplus
+}
+#endif
+#endif
 
