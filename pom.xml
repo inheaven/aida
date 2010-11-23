@@ -17,6 +17,13 @@
             <scope>system</scope>
             <systemPath>${pom.basedir}\lib\ujmp-complete-0.2.5.jar</systemPath>
         </dependency>
+        <dependency>
+            <groupId>org.netlib</groupId>
+            <artifactId>arpack-combined</artifactId>
+            <version>0.1</version>
+            <scope>system</scope>
+            <systemPath>${pom.basedir}\lib\arpack_combined.jar</systemPath>
+        </dependency>
         <!--<dependency>
             <groupId>commons-math</groupId>
             <artifactId>commons-math</artifactId>

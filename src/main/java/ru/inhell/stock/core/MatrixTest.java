@@ -38,6 +38,7 @@ public class MatrixTest {
 //        test3(fullTS);
 
         test5();
+
     }
 
     private static void test5(){
