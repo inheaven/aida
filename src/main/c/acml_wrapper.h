@@ -25,6 +25,22 @@ JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_dgemm
 
 /*
  * Class:     ru_inhell_aida_acml_ACML
+ * Method:    sgesvd
+ * Signature: (Ljava/lang/String;Ljava/lang/String;II[FI[F[FI[FI[I)V
+ */
+JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_sgesvd
+  (JNIEnv *, jobject, jstring, jstring, jint, jint, jfloatArray, jint, jfloatArray, jfloatArray, jint, jfloatArray, jint, jintArray);
+
+/*
+ * Class:     ru_inhell_aida_acml_ACML
+ * Method:    sgemm
+ * Signature: (Ljava/lang/String;Ljava/lang/String;IIIF[FI[FIF[FI)V
+ */
+JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_sgemm
+  (JNIEnv *, jobject, jstring, jstring, jint, jint, jint, jfloat, jfloatArray, jint, jfloatArray, jint, jfloat, jfloatArray, jint);
+
+/*
+ * Class:     ru_inhell_aida_acml_ACML
  * Method:    test
  * Signature: (Ljava/lang/String;)V
  */
@@ -35,3 +51,4 @@ JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_test
 }
 #endif
 #endif
+

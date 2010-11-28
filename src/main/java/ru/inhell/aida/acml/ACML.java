@@ -26,13 +26,27 @@ public class ACML implements LAPACK, BLAS {
         Logger logger = Logger.getLogger("ru.inhell.aida");
 
         try {
-            System.loadLibrary("aida");
+            System.loadLibrary("acml_wrapper_gpu");
 
             loaded = true;
-            logger.config("ACML library loaded successfully.");
-        } catch (Exception e) {
+            logger.config("ACML GPU library loaded successfully.");
+            System.out.println("ACML GPU library loaded successfully.");
+        } catch (UnsatisfiedLinkError e) {
             loaded = false;
-            logger.config("ACML library is not found.");
+            logger.config("ACML GPU library is not found.");
+        }
+
+        if (!loaded){
+            try {
+                System.loadLibrary("acml_wrapper_mp");
+
+                loaded = true;
+                logger.config("ACML MP library loaded successfully.");
+                System.out.println("ACML MP library loaded successfully.");
+            } catch (UnsatisfiedLinkError e) {
+                loaded = false;
+                logger.config("ACML MP library is not found.");
+            }
         }
     }
 
@@ -43,4 +57,15 @@ public class ACML implements LAPACK, BLAS {
     @Override
     public native void dgemm(String transa, String transb, int m, int n, int k, double alpha, double[] a, int lda,
                              double[] b, int ldb, double beta, double[] c, int ldc);
+
+
+    @Override
+    public native void sgesvd(String jobu, String jobvt, int m, int n, float[] a, int lda, float[] s, float[] u,
+                              int ldu, float[] vt, int ldvt, int[] info);
+
+    @Override
+    public native void sgemm(String transa, String transb, int m, int n, int k, float alpha, float[] a, int lda,
+                             float[] b, int ldb, float beta, float[] c, int ldc);
+
+    public native void test(String test);
 }
