@@ -1,6 +1,7 @@
 package ru.inhell.aida.matrix;
 
 import org.ujmp.core.Matrix;
+import org.ujmp.core.calculation.Calculation;
 import org.ujmp.core.doublematrix.impl.DefaultDenseDoubleMatrix2D;
 import org.ujmp.core.exceptions.MatrixException;
 import org.ujmp.core.floatmatrix.impl.DefaultDenseFloatMatrix2D;
