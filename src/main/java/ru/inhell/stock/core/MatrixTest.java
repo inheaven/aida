@@ -5,7 +5,10 @@ import org.ujmp.core.MatrixFactory;
 import org.ujmp.core.calculation.Calculation;
 import org.ujmp.core.enums.FileFormat;
 import org.ujmp.core.enums.ValueType;
+import org.ujmp.core.util.UJMPSettings;
 import org.ujmp.gui.plot.MatrixPlot;
+import ru.inhell.aida.acml.ACML;
+import ru.inhell.aida.matrix.AcmlMatrix;
 
 
 import javax.swing.*;
@@ -37,7 +40,31 @@ public class MatrixTest {
 
 //        test3(fullTS);
 
-        test5();
+//        test5();
+//
+        AcmlMatrix m = new AcmlMatrix(5000, 5000);
+        m.rand(Calculation.Ret.ORIG);
+
+        AcmlMatrix m1 = new AcmlMatrix(5000, 5000);
+        m1.rand(Calculation.Ret.ORIG);
+
+        Long time = System.currentTimeMillis();
+
+        m.mtimes(m1);
+
+        System.out.println("ACML. The time is " + (System.currentTimeMillis() - time));
+
+        UJMPSettings.setNumberOfThreads(3);
+        Matrix m2 = MatrixFactory.rand(ValueType.DOUBLE, 5000, 5000);
+        Matrix m3 = MatrixFactory.rand(ValueType.DOUBLE, 5000, 5000);
+
+        time = System.currentTimeMillis();
+
+        m2.mtimes(m3);
+
+        System.out.println("UJMP. The time is " + (System.currentTimeMillis() - time));
+
+
 
     }
 

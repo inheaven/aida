@@ -1,19 +1,10 @@
 package ru.inhell.aida.ssa;
 
 import org.ujmp.core.Matrix;
-import org.ujmp.core.MatrixFactory;
-import org.ujmp.core.calculation.Calculation;
-import org.ujmp.core.enums.ValueType;
-import org.ujmp.core.floatmatrix.factory.AbstractFloatMatrix2DFactory;
-import org.ujmp.core.floatmatrix.factory.DefaultFloatMatrix2DFactory;
-import org.ujmp.core.floatmatrix.factory.FloatMatrix2DFactory;
-import org.ujmp.core.interfaces.HasColumnMajorDoubleArray1D;
 import org.ujmp.core.interfaces.HasFloatArray;
-import org.ujmp.core.matrix.factory.Matrix2DFactory;
-import ru.inhell.aida.matrix.AcmlMatrixFactory;
+import ru.inhell.aida.acml.ACML;
 
 import static org.ujmp.core.calculation.Calculation.Ret.LINK;
-import static org.ujmp.core.calculation.Calculation.Ret.NEW;
 import static org.ujmp.core.calculation.Calculation.Ret.ORIG;
 
 /**
@@ -21,106 +12,98 @@ import static org.ujmp.core.calculation.Calculation.Ret.ORIG;
  *         Date: 30.11.10 1:40
  */
 public class BasicAnalysis {
-    public static enum MATRIX_FACTORY{DEFAULT, ACML}
-
      public static class Result{
-        public Matrix U;
-        public Matrix S;
-        public Matrix V;
-        public Matrix X;
-        public Matrix XI;
-        public Matrix G;
+        public float[] U;
+        public float[] S;
+        public float[] V;
+        public float[] X;
+        public float[] XI;
+        public float[] G;
      }
 
-    private int rangeLength;
-    private int windowLength;
-    private int eigenfunctionsCount;
     private int N;
+    private int L;
+    private int P;
 
-    private Result result;
+    //
+    private int K;
 
-    private FloatMatrix2DFactory factory;
+    private Result r;
 
-    private BasicAnalysis(int rangeLength, int windowLength, int eigenfunctionsCount, MATRIX_FACTORY matrixFactory) {
-        this.rangeLength = rangeLength;
-        this.windowLength = windowLength;
-        this.eigenfunctionsCount = eigenfunctionsCount;
+    /**
+     *
+     * @param N - Длина временного ряда
+     * @param L - Длина окна L < N
+     * @param P - Количество главных компонент
+     */
+    public BasicAnalysis(int N, int L, int P) {
+        this.N = N;
+        this.L = L;
+        this.P = P;
 
-        this.N = rangeLength - windowLength + 1;
+        K = N - L + 1;
 
-        switch (matrixFactory){
-            case DEFAULT: factory =  new DefaultFloatMatrix2DFactory(); break;
-            case ACML: factory =  new AcmlMatrixFactory(); break;
-        }
+        r = new Result();
 
-        result = new Result();
-
-        result.X = newMatrix(windowLength, N);
-        result.XI = newMatrix(windowLength, N);
-        result.G = newMatrix(rangeLength, eigenfunctionsCount);
-    }
-
-    private Matrix newMatrix(int rows, int cols){
-        return factory.zeros(rows, cols);
+        r.X = new float[L * K];
+        r.XI = new float[L * K];
+        r.G = new float[N * P];
+        r.S = new float[Math.min(L, K)];
+        r.U = new float[L * L];
+        r.V = new float[K * K];
     }
 
     public Result execute(float[] timeSeries){
-        float[] values = ((HasFloatArray)result.X).getFloatArray();
-
-        for (int j = 0; j < N; j++){
-            System.arraycopy(timeSeries, j, values, j*windowLength, windowLength);
+        for (int j = 0; j < K; j++){
+            System.arraycopy(timeSeries, j, r.X, j* L, L);
         }
 
-        Matrix[] svd = result.X.svd();
+        ACML.jni().sgesvd("A", "A", L, K, r.X, L, r.S, r.U, L, r.V, K, new int[1]);
 
-        result.U = svd[0];
-        result.S = svd[1];
-        result.V = svd[2];
-
-        float[] valuesXI = ((HasFloatArray)result.XI).getFloatArray();
-        for (int i = 0; i < valuesXI.length; ++i){
-            valuesXI[i] = 0;
+        for (int i = 0; i < r.XI.length; ++i){
+            r.XI[i] = 0;
         }
 
-        for (int i = 0 ; i < eigenfunctionsCount ; ++i){
-            Matrix Xi = result.U.selectColumns(LINK, i).mtimes(result.V.selectColumns(LINK, i).transpose(LINK));
-//            Matrix Xi = newMatrix(windowLength, N); todo
+        //Восстановление по первым P компонентам
+        for (int i = 0 ; i < P; ++i){
+            float[] Ui = new float[L];
+            float[] Vi = new float[K];
+            float[] Xi = new float[L * K];
 
+            System.arraycopy(r.U, L*i, Ui, 0, L);
+            System.arraycopy(r.V, K*i, Vi, 0, K);
 
+            ACML.jni().sgemm("N", "T", L, K, 1, r.S[i], Ui, L, Vi, K, 0, Xi, L);
 
-
-            float[] valuesXi = ((HasFloatArray)Xi).getFloatArray();
-            float si = result.S.getAsFloat(i, i);
-            for (int j=0; j < valuesXi.length; ++j ){
-                valuesXi[j] = valuesXi[j] * si;
+            for (int j = 0; j < L * K; ++j){
+                r.XI[j] += Xi[j];
             }
 
-            result.XI.plus(ORIG, false, Xi);
-
-            int L1 = Math.min(windowLength, N);
-            int K1 = Math.max(windowLength, N);
+            int L1 = Math.min(L, K);
+            int K1 = Math.max(L, K);
 
             for (int k = 0; k < L1 - 1; ++k){
-                result.G.setAsFloat(getFloatSum(Xi, 1, k+1, k) / (k + 1), k, i);
+                r.G[k + i*N] = getSum(Xi, L, K, 1, k+1, k) / (k + 1);
             }
 
             for (int k = L1 - 1; k < K1; ++k){
-                result.G.setAsFloat(getFloatSum(Xi, 1, L1, k) / L1, k, i);
+                r.G[k + i*N] = getSum(Xi, L, K, 1, L1, k) / L1;
             }
 
-            for (int k = K1; k < rangeLength; ++k){
-                result.G.setAsFloat(getFloatSum(Xi, k - K1 + 2, rangeLength - K1 + 1, k) / (rangeLength - k), k, i);
+            for (int k = K1; k < N; ++k){
+                r.G[k + i*N] = getSum(Xi, L, K, k - K1 + 2, N - K1 + 1, k) / (N - k);
             }
         }
 
-        return result;
+        return r;
     }
 
-    private float getFloatSum(Matrix Y, int first, int last, int k){
+    private float getSum(float[] Y, int cols, int rows, int first, int last, int k){
         float sum = 0;
 
+
         for (int m = first; m <= last; ++m){
-            sum += Y.getSize(0) < Y.getSize(1) ? Y.getAsFloat(m - 1, k - m + 1) : Y.getAsFloat(k - m + 1, m - 1);
+            sum += cols < rows ? Y[m - 1 + rows*(k - m + 1)] : Y[k - m + 1 + rows*(m - 1)];
         }
 
         return sum;

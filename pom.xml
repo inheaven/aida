@@ -19,10 +19,17 @@
         </dependency>
         <dependency>
             <groupId>org.netlib</groupId>
-            <artifactId>arpack-combined</artifactId>
+            <artifactId>arpack-combo</artifactId>
             <version>0.1</version>
             <scope>system</scope>
-            <systemPath>${pom.basedir}\lib\arpack_combined.jar</systemPath>
+            <systemPath>${pom.basedir}\lib\arpack_combo-0.1.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.netlib</groupId>
+            <artifactId>netlib-java</artifactId>
+            <version>0.9.1</version>
+            <scope>system</scope>
+            <systemPath>${pom.basedir}\lib\netlib-java-0.9.1.jar</systemPath>
         </dependency>
         <!--<dependency>
             <groupId>commons-math</groupId>
@@ -37,7 +44,7 @@
             <version>0.11</version>
             <scope>system</scope>
             <systemPath>${pom.basedir}\lib\ejml-0.11.jar</systemPath>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>ojalgo</groupId>
             <artifactId>ojalgo</artifactId>
@@ -45,7 +52,14 @@
             <scope>system</scope>
             <systemPath>${pom.basedir}\lib\ojalgo-29.8.jar</systemPath>
         </dependency>
-        <dependency>
+         <dependency>
+            <groupId>mtj</groupId>
+            <artifactId>mtj</artifactId>
+            <version>0.9.13</version>
+            <scope>system</scope>
+            <systemPath>${pom.basedir}\lib\mtj-0.9.13.jar</systemPath>
+        </dependency>
+        <!--<dependency>
             <groupId>optimatika</groupId>
             <artifactId>optimatika</artifactId>
             <version>29.8</version>
@@ -104,5 +118,10 @@
             <artifactId>jna</artifactId>
             <version>3.2.5</version>
         </dependency>-->
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>5.14.2</version>
+        </dependency>
     </dependencies>
 </project>

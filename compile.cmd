@@ -1,4 +1,4 @@
-@ECHO off
+rem @ECHO off
 
 set INCLUDE=I:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include
 set LIB=I:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\lib\amd64;I:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Lib\x64;I:\Program Files\Intel\MKL\10.2.2.025\em64t\lib
@@ -8,7 +8,7 @@ set INCLUDE_JNI=/I "I:\Program Files\Java\jdk1.6.0_22\include" /I "I:\Program Fi
 
 
 rem MP
- cl %_OPT% %INCLUDE_JNI% /I "I:\AMD\acml4.4.0\win64_mp\include" src\main\c\acml_wrapper.cpp "I:\AMD\acml4.4.0\win64_mp\lib\libacml_mp_dll.lib" /LD /Fotarget\bin\acml_wrapper_mp.obj /Fetarget\bin\acml_wrapper_mp.dll 
+rem cl %C_OPT% %INCLUDE_JNI% /I "I:\AMD\acml4.4.0\win64_mp\include" src\main\c\acml_wrapper.cpp "I:\AMD\acml4.4.0\win64_mp\lib\libacml_mp_dll.lib" /LD /Fotarget\bin\acml_wrapper_mp.obj /Fetarget\bin\acml_wrapper_mp.dll 
 
 rem GPU
- cl %_OPT% %INCLUDE_JNI% /I "I:\AMD\acmlgpu1.1.1\win64\include" src\main\c\acml_wrapper.cpp "I:\AMD\acmlgpu1.1.1\win64\lib\libacml_dll.lib" /LD /Fotarget\bin\acml_wrapper_gpu.obj /Fetarget\bin\acml_wrapper_gpu.dll 
+ cl %C_OPT% %INCLUDE_JNI% /I "I:\AMD\acmlgpu1.1.1\win64\include" src\main\c\acml_wrapper.cpp "I:\AMD\acmlgpu1.1.1\win64\lib\libacml_dll.lib" /LD /Fotarget\bin\acml_wrapper_gpu.obj /Fetarget\bin\acml_wrapper_gpu.dll 

@@ -26,10 +26,10 @@ import java.util.logging.Logger;
  */
 public class AcmlMatrixTest {
     //Matrix M*N
-    private static final int M = 1024; //Row count
-    private static final int N = 1024; //Column count
+    private static final int M = 100; //Row count
+    private static final int N = 100; //Column count
 
-    private static final int DF = 1500; //Double factor for random matrix
+    private static final int DF = 1; //Double factor for random matrix
 
     private Matrix etalonSvd;
     private Matrix[] etalonSvdResult;
@@ -73,8 +73,9 @@ public class AcmlMatrixTest {
 
         long time = System.currentTimeMillis();
 
-        UJMPSettings.setUseMTJ(false);
-        etalonMtimesResult = etalonMtimes.mtimes(etalonMtimes2);
+        
+        etalonMtimesResult = etalonMtimes2;
+        //etalonMtimesResult = etalonMtimes.mtimes(etalonMtimes2);
 
         System.out.println("Etalon mtimes calculated: " + (System.currentTimeMillis() - time) + "ms");
     }
@@ -97,8 +98,10 @@ public class AcmlMatrixTest {
     }
 
     private void mtimes(FloatMatrix2DFactory factory){
-        Matrix matrix = factory.zeros(M, N);
-        matrix.plus(Calculation.Ret.ORIG, false, etalonMtimes);
+        //Matrix matrix = factory.zeros(M, N);
+        //matrix.plus(Calculation.Ret.ORIG, false, etalonMtimes);
+        Matrix matrix = factory.zeros(M,N);
+        matrix.plus(Calculation.Ret.ORIG, false, MatrixFactory.rand(ValueType.FLOAT, M, N));
 
         Matrix matrix2 = factory.zeros(N, M);
         matrix2.plus(Calculation.Ret.ORIG, false, etalonMtimes2);
@@ -112,8 +115,8 @@ public class AcmlMatrixTest {
         //Comparison of results
         System.out.printf("distance: %2.10f", mtimes.euklideanDistanceTo(etalonMtimesResult, false)).println();
 
-        System.out.println(mtimes);
-        System.out.println(etalonMtimesResult);
+//        System.out.println(mtimes) ;
+//        System.out.println(etalonMtimesResult);
     }
 
     //SVD Test
@@ -141,12 +144,12 @@ public class AcmlMatrixTest {
 //        mtimes(new MTJDenseDoubleMatrix2DFactory());
     }
 
-//    @Test(invocationCount = 5)
+    @Test(invocationCount = 1000)
     public void mtimesDefaultTest(){ //jrmc 1.41s, hotspot 1.63s
         mtimes(new DefaultFloatMatrix2DFactory());
     }
 
-    @Test(invocationCount = 10)
+//    @Test(invocationCount = 1000)
     public void mtimesACMLTest(){
         assert ACML.jni().isLoaded();
         mtimes(new AcmlMatrixFactory());
