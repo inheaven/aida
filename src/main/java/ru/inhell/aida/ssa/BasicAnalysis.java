@@ -12,23 +12,26 @@ import static org.ujmp.core.calculation.Calculation.Ret.ORIG;
  *         Date: 30.11.10 1:40
  */
 public class BasicAnalysis {
-     public static class Result{
+    public static class Result{
         public float[] U;
         public float[] S;
         public float[] V;
         public float[] X;
         public float[] XI;
         public float[] G;
-     }
+    }
 
     private int N;
     private int L;
     private int P;
 
-    //
     private int K;
 
     private Result r;
+
+    float[] Ui;
+    float[] Vi;
+    float[] Xi;
 
     /**
      *
@@ -51,6 +54,10 @@ public class BasicAnalysis {
         r.S = new float[Math.min(L, K)];
         r.U = new float[L * L];
         r.V = new float[K * K];
+
+        Ui = new float[L];
+        Vi = new float[K];
+        Xi = new float[L * K];
     }
 
     public Result execute(float[] timeSeries){
@@ -66,10 +73,6 @@ public class BasicAnalysis {
 
         //Восстановление по первым P компонентам
         for (int i = 0 ; i < P; ++i){
-            float[] Ui = new float[L];
-            float[] Vi = new float[K];
-            float[] Xi = new float[L * K];
-
             System.arraycopy(r.U, L*i, Ui, 0, L);
             System.arraycopy(r.V, K*i, Vi, 0, K);
 
