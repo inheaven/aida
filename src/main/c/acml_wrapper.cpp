@@ -113,7 +113,7 @@ Java_ru_inhell_aida_acml_ACML_sgemm
 	//MP
 	acmlsetnumthreads(acmlgetnumprocs());
 
-	sgemm(jni_transa[0], jni_transb[0], (long)m, (long)n, (long)k, (long)alpha, jni_a, (long)lda, jni_b, (long)ldb, (long)beta, jni_c, (long)ldc);
+	sgemm(jni_transa[0], jni_transb[0], (long)m, (long)n, (long)k, alpha, jni_a, (long)lda, jni_b, (long)ldb, beta, jni_c, (long)ldc);
 
 	env->ReleaseStringUTFChars(transa, jni_transa);
 	env->ReleaseStringUTFChars(transb, jni_transb);
@@ -141,7 +141,7 @@ Java_ru_inhell_aida_acml_ACML_dgemm
 	//MP
 	acmlsetnumthreads(acmlgetnumprocs());
 
-	dgemm(jni_transa[0], jni_transb[0], (long)m, (long)n, (long)k, (long)alpha, jni_a, (long)lda, jni_b, (long)ldb, (long)beta, jni_c, (long)ldc);
+	dgemm(jni_transa[0], jni_transb[0], (long)m, (long)n, (long)k, alpha, jni_a, (long)lda, jni_b, (long)ldb, beta, jni_c, (long)ldc);
 
 	env->ReleaseStringUTFChars(transa, jni_transa);
 	env->ReleaseStringUTFChars(transb, jni_transb);

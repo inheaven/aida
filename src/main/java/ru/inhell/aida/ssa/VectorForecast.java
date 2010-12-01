@@ -95,16 +95,16 @@ public class VectorForecast {
         }
 
         ACML.jni().sgemm("N", "T", Ld, Ld, M, 1, VD, Ld, VD, Ld, 0, VDxVDt, Ld);
-        ACML.jni().sgemm("N", "T", Ld, Ld, 1, 1, R, Ld, R, Ld, 0, RxRt, Ld);
+        ACML.jni().sgemm("N", "T", Ld, Ld, 1, 1-v2, R, Ld, R, Ld, 0, RxRt, Ld);
 
         for (int i = 0; i < Ld * Ld; ++i){
-            Pr[i] = VDxVDt[i] + RxRt[i]*(1-v2);
+            Pr[i] = VDxVDt[i] + RxRt[i];
         }
 
         System.arraycopy(ssa.XI, 0, Z, 0, L * K);
 
         for (int i = K; i < N + M; ++i){
-            System.arraycopy(Z, 1 + (i-1) * L, Yd, 0, L-1);
+            System.arraycopy(Z, 1 + (i-1)*L, Yd, 0, Ld);
 
             ACML.jni().sgemm("N", "N", Ld, 1, Ld, 1, Pr, Ld, Yd, Ld, 0, Zi, Ld);
 
@@ -115,8 +115,6 @@ public class VectorForecast {
 
             System.arraycopy(Zi, 0, Z, i * L, L);
         }
-
-        System.out.println("Z" + Arrays.toString(Z));
 
         diagonalAveraging(Z, L, N + M, g);
 

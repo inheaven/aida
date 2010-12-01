@@ -82,8 +82,6 @@ public class VSSA {
             }
         }
 
-        System.out.println(Z);
-
         return getDiagonalAveraging(Z);
     }
 

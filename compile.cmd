@@ -3,7 +3,7 @@ rem @ECHO off
 set INCLUDE=I:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include
 set LIB=I:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\lib\amd64;I:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Lib\x64;I:\Program Files\Intel\MKL\10.2.2.025\em64t\lib
 
-set C_OPT=/W3 /DIS_64BIT /DWIN64 /DWINDOWS /nologo /DUSE_OMP /O2 /MD /fp:fast /Ox /favor:AMD64
+set C_OPT=/W3 /DIS_64BIT /DWIN64 /DWINDOWS /nologo /DUSE_OMP /O2 /MD /fp:precise /Ox /favor:AMD64
 set INCLUDE_JNI=/I "I:\Program Files\Java\jdk1.6.0_22\include" /I "I:\Program Files\Java\jdk1.6.0_22\include\win32"
 
 
