@@ -1,8 +1,6 @@
 package ru.inhell.aida.ssa;
 
 import org.ujmp.core.Matrix;
-import org.ujmp.core.MatrixFactory;
-import org.ujmp.core.enums.ValueType;
 import ru.inhell.aida.acml.ACML;
 
 import java.util.Arrays;
@@ -16,8 +14,9 @@ import static org.ujmp.core.calculation.Calculation.*;
 public class VectorForecast {
     private final int N;
     private final int L;
-    private final int Lp;
+    private final int Ld;
     private final int M;
+    private final int K;
 
     private final float[] Z;
     private final float[] R;
@@ -28,6 +27,11 @@ public class VectorForecast {
     private final float[] VDxVDt;
     private final float[] RxRt;
     private final float[] Pr;
+
+    private final float[] Yd;
+    private final float[] Zi;
+
+    private final float[] g;
 
     private BasicAnalysis basicAnalysis;
 
@@ -42,29 +46,36 @@ public class VectorForecast {
         this.N = N;
         this.L = L;
         this.M = M;
-        Lp = L - 1;
+
+        Ld = L - 1;
+        K = N - L + 1;
 
         basicAnalysis = new BasicAnalysis(N, L, P);
 
         Z = new float[L * (N + M)];
-        R = new float[Lp];
+        R = new float[Ld];
 
-        VD = new float[Lp*M];
+        VD = new float[Ld * M];
         pi = new float[M];
 
-        VDxVDt = new float[Lp * Lp];
-        RxRt = new float[Lp * Lp];
-        Pr = new float[Lp * Lp];
+        VDxVDt = new float[Ld * Ld];
+        RxRt = new float[Ld * Ld];
+        Pr = new float[Ld * Ld];
+
+        Yd = new float[L-1];
+        Zi = new float[L];
+
+        g = new float[N + M + L - 1];
     }
 
-    public double[] execute(float[] timeSeries) {
+    public float[] execute(float[] timeSeries) {
         BasicAnalysis.Result ssa = basicAnalysis.execute(timeSeries);
 
         float v2 = 0;
 
         for (int i = 0; i < M; ++i){
-            System.arraycopy(ssa.U, i*L, VD, i*Lp, Lp);
-            pi[i] = ssa.U[i*L + L];
+            System.arraycopy(ssa.U, i*L, VD, i*Ld, Ld);
+            pi[i] = ssa.U[L-1 + i*L];
             v2 += Math.pow(pi[i], 2);
         }
 
@@ -73,51 +84,46 @@ public class VectorForecast {
 
         Arrays.fill(R, 0);
 
-        for (int i = 0; i < M; ++i){ //todo check
-            for (int j=0; j < Lp; ++j){
-                R[j] += VD[j + i*Lp] * pi[i];
+        for (int i = 0; i < M; ++i){
+            for (int j = 0; j < Ld; ++j){
+                R[j] += VD[j + i*Ld] * pi[i];
             }
         }
 
-        for (int j=0; j < Lp; ++j){
+        for (int j=0; j < Ld; ++j){
             R[j] /= (1-v2);
         }
 
-        ACML.jni().sgemm("N", "T", Lp, Lp, Lp, 1, VD, Lp, VD, Lp, 0, VDxVDt, Lp);
-        ACML.jni().sgemm("N", "T", Lp, Lp, 1, 1 - v2, R, Lp, R, Lp, 0, RxRt, Lp);
+        ACML.jni().sgemm("N", "T", Ld, Ld, M, 1, VD, Ld, VD, Ld, 0, VDxVDt, Ld);
+        ACML.jni().sgemm("N", "T", Ld, Ld, 1, 1, R, Ld, R, Ld, 0, RxRt, Ld);
 
-        for (int i = 0; i < Lp; ++i){
-            Pr[i] = VDxVDt[i] + RxRt[i];
+        for (int i = 0; i < Ld * Ld; ++i){
+            Pr[i] = VDxVDt[i] + RxRt[i]*(1-v2);
         }
 
-        Arrays.fill(Z, 0);
+        System.arraycopy(ssa.XI, 0, Z, 0, L * K);
 
-        for (int i = 0; i < N - L + 1; ++i){
-            System.arraycopy(ssa.XI, i * (N - L + 1), Z, i * (N - L + 1), L);
-        }
+        for (int i = K; i < N + M; ++i){
+            System.arraycopy(Z, 1 + (i-1) * L, Yd, 0, L-1);
 
-        for (int i = N - L + 1; i < N + M; ++i){
-            Matrix Zi = Pv(Pr, Rt, Z.selectColumns(Ret.LINK, i-1));
+            ACML.jni().sgemm("N", "N", Ld, 1, Ld, 1, Pr, Ld, Yd, Ld, 0, Zi, Ld);
 
-            for (int j = 0; j < L; ++j){
-                Z.setAsDouble(Zi.getAsDouble(j,0), j, i);
+            Zi[L-1] = 0;
+            for (int j = 0; j < Ld; ++j){
+                Zi[L-1] += R[j] * Yd[j];
             }
+
+            System.arraycopy(Zi, 0, Z, i * L, L);
         }
 
-//        return getDiagonalAveraging(Z);
-        return null;
+        System.out.println("Z" + Arrays.toString(Z));
+
+        diagonalAveraging(Z, L, N + M, g);
+
+        return g;
     }
 
-    private Matrix Pv(Matrix Pr, Matrix Rt, Matrix Y){
-        Matrix Yd = Y.select(Ret.LINK, "1-" + (Y.getSize(0)-1) + ";*");
-
-        Matrix m1 = Pr.mtimes(Ret.NEW, false, Yd);
-        Matrix m2 = Rt.mtimes(Ret.NEW, false, Yd);
-
-        return m1.append(0, m2);
-    }
-
-    public void diagonalAveraging(float[] Y, int rows, int cols, float[] g){
+    private void diagonalAveraging(float[] Y, int rows, int cols, float[] g){
         int L1 = Math.min(rows, cols);
         int K1 = Math.max(rows, cols);
 

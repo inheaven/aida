@@ -4,6 +4,9 @@ import org.ujmp.core.Matrix;
 import org.ujmp.core.interfaces.HasFloatArray;
 import ru.inhell.aida.acml.ACML;
 
+import java.sql.Array;
+import java.util.Arrays;
+
 import static org.ujmp.core.calculation.Calculation.Ret.LINK;
 import static org.ujmp.core.calculation.Calculation.Ret.ORIG;
 
@@ -15,7 +18,7 @@ public class BasicAnalysis {
     public static class Result{
         public float[] U;
         public float[] S;
-        public float[] V;
+        public float[] VT;
         public float[] X;
         public float[] XI;
         public float[] G;
@@ -53,7 +56,7 @@ public class BasicAnalysis {
         r.G = new float[N * P];
         r.S = new float[Math.min(L, K)];
         r.U = new float[L * L];
-        r.V = new float[K * K];
+        r.VT = new float[K * K];
 
         Ui = new float[L];
         Vi = new float[K];
@@ -65,16 +68,16 @@ public class BasicAnalysis {
             System.arraycopy(timeSeries, j, r.X, j* L, L);
         }
 
-        ACML.jni().sgesvd("A", "A", L, K, r.X, L, r.S, r.U, L, r.V, K, new int[1]);
+        ACML.jni().sgesvd("A", "A", L, K, r.X, L, r.S, r.U, L, r.VT, K, new int[1]);
 
-        for (int i = 0; i < r.XI.length; ++i){
-            r.XI[i] = 0;
-        }
+        Arrays.fill(r.XI, 0);
 
         //Восстановление по первым P компонентам
         for (int i = 0 ; i < P; ++i){
-            System.arraycopy(r.U, L*i, Ui, 0, L);
-            System.arraycopy(r.V, K*i, Vi, 0, K);
+            System.arraycopy(r.U, L *i, Ui, 0, L);
+            for (int j = 0; j < K; ++j){
+                Vi[j] = r.VT[i + j*K];
+            }
 
             ACML.jni().sgemm("N", "T", L, K, 1, r.S[i], Ui, L, Vi, K, 0, Xi, L);
 
@@ -101,12 +104,11 @@ public class BasicAnalysis {
         return r;
     }
 
-    private float getSum(float[] Y, int cols, int rows, int first, int last, int k){
+    private float getSum(float[] Y, int rows, int cols, int first, int last, int k){
         float sum = 0;
 
-
         for (int m = first; m <= last; ++m){
-            sum += cols < rows ? Y[m - 1 + rows*(k - m + 1)] : Y[k - m + 1 + rows*(m - 1)];
+            sum += rows < cols ? Y[m - 1 + rows*(k - m + 1)] : Y[k - m + 1 + rows*(m - 1)];
         }
 
         return sum;

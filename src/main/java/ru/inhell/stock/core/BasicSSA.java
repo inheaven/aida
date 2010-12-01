@@ -124,8 +124,6 @@ public class BasicSSA {
             }
         }
 
-        System.out.println(G.toString());
-
         return new Result(U, S, V, XI, G);
     }
 

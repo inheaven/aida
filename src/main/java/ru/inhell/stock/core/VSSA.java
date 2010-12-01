@@ -4,6 +4,8 @@ import org.ujmp.core.Matrix;
 import org.ujmp.core.MatrixFactory;
 import org.ujmp.core.enums.ValueType;
 
+import java.util.Arrays;
+
 import static org.ujmp.core.calculation.Calculation.Ret;
 
 /**
@@ -63,6 +65,7 @@ public class VSSA {
 //                .plus(Ret.ORIG, false, matrixUtil.multiply((DefaultDenseDoubleMatrix2D)R, (DefaultDenseDoubleMatrix2D)R.transpose(Ret.NEW))
 //                        .mtimes(Ret.ORIG, false, 1 - v2));
 
+
         Z.fill(Ret.ORIG, 0);
 
         for (int i = 0; i < rangeLength - windowLength + 1; ++i){
@@ -78,6 +81,8 @@ public class VSSA {
                 Z.setAsDouble(Zi.getAsDouble(j,0), j, i);
             }
         }
+
+        System.out.println(Z);
 
         return getDiagonalAveraging(Z);
     }
