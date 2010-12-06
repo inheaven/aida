@@ -26,8 +26,8 @@ import java.util.logging.Logger;
  */
 public class AcmlMatrixTest {
     //Matrix M*N
-    private static final int M = 100; //Row count
-    private static final int N = 100; //Column count
+    private static final int M = 1000; //Row count
+    private static final int N = 1000; //Column count
 
     private static final int DF = 1; //Double factor for random matrix
 
@@ -38,13 +38,13 @@ public class AcmlMatrixTest {
     private Matrix etalonMtimes2;
     private Matrix etalonMtimesResult;
 
-    @BeforeSuite
+//    @BeforeSuite
     private void initUJMP(){
         UJMPSettings.setUseMTJ(false);
         UJMPSettings.setNumberOfThreads(3);
     }
 
-//    @BeforeSuite
+  //  @BeforeSuite
     private void initSvd(){
         //SVD Etalon
         etalonSvd = MatrixFactory.rand(ValueType.FLOAT, M, N);
@@ -62,7 +62,7 @@ public class AcmlMatrixTest {
         etalonSvdResult[2].abs(Calculation.Ret.ORIG);
     }
 
-    @BeforeSuite
+//    @BeforeSuite
     private void initMTimes(){
         //Mtimes Etalon
         etalonMtimes = MatrixFactory.rand(ValueType.FLOAT, M, N);
@@ -144,7 +144,7 @@ public class AcmlMatrixTest {
 //        mtimes(new MTJDenseDoubleMatrix2DFactory());
     }
 
-    @Test(invocationCount = 1000)
+//    @Test(invocationCount = 1000)
     public void mtimesDefaultTest(){ //jrmc 1.41s, hotspot 1.63s
         mtimes(new DefaultFloatMatrix2DFactory());
     }

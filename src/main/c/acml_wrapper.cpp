@@ -55,6 +55,43 @@ JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_sgesvd
 	env->ReleasePrimitiveArrayCritical(info, jni_info, 0);
 }
 
+JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_sgesdd
+	(JNIEnv *env, jobject calling_obj, jstring jobz, jint m, jint n, jfloatArray a, jint lda, jfloatArray s, jfloatArray u, jint ldu, jfloatArray vt, jint ldvt, jintArray info)
+{
+	char * jni_jobz = (char *) env->GetStringUTFChars(jobz, JNI_FALSE);
+
+	jfloat *jni_a = (jfloat *)env->GetPrimitiveArrayCritical(a, JNI_FALSE);
+	check_memory(env, jni_a);
+
+	jfloat *jni_s = (jfloat *)env->GetPrimitiveArrayCritical(s, JNI_FALSE);
+	check_memory(env, jni_s);
+
+	jfloat *jni_u = (jfloat *)env->GetPrimitiveArrayCritical(u, JNI_FALSE);
+	check_memory(env, jni_u);
+
+	jfloat *jni_vt = (jfloat *)env->GetPrimitiveArrayCritical(vt, JNI_FALSE);
+	check_memory(env, jni_vt);
+
+    jint *jni_info = (jint *)env->GetPrimitiveArrayCritical(info, JNI_FALSE);
+	check_memory(env, jni_info);
+
+	//MP
+	acmlsetnumthreads(acmlgetnumprocs());
+
+	//env->MonitorEnter(calling_obj);
+	sgesdd(jni_jobz[0], (long)m, (long)n, jni_a, (long)lda, jni_s, jni_u, (long)ldu, jni_vt, (long)ldvt, (int *)&jni_info[0]);
+	//env->MonitorExit(calling_obj);
+
+
+	env->ReleaseStringUTFChars(jobz, jni_jobz);
+	env->ReleasePrimitiveArrayCritical(a, jni_a, 0);
+	env->ReleasePrimitiveArrayCritical(s, jni_s, 0);
+	env->ReleasePrimitiveArrayCritical(u, jni_u, 0);
+	env->ReleasePrimitiveArrayCritical(vt, jni_vt, 0);
+	env->ReleasePrimitiveArrayCritical(info, jni_info, 0);
+}
+
+
 JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_dgesvd 
 	(JNIEnv *env, jobject calling_obj, jstring jobu, jstring jobvt, jint m, jint n, jdoubleArray a, jint lda, jdoubleArray s, jdoubleArray u, jint ldu, jdoubleArray vt, jint ldvt, jintArray info)
 {	

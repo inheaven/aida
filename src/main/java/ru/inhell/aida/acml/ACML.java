@@ -64,6 +64,10 @@ public class ACML implements LAPACK, BLAS {
                               int ldu, float[] vt, int ldvt, int[] info);
 
     @Override
+    public native void sgesdd(String jobz, int m, int n, float[] a, int lda, float[] s, float[] u, int ldu, float[] vt,
+                              int ldvt, int[] info);
+
+    @Override
     public native void sgemm(String transa, String transb, int m, int n, int k, float alpha, float[] a, int lda,
                              float[] b, int ldb, float beta, float[] c, int ldc);
 

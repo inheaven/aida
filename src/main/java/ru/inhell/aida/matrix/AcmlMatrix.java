@@ -40,7 +40,8 @@ public class AcmlMatrix extends DefaultDenseFloatMatrix2D {
 
             int[] info = new int[1];
 
-            ACML.jni().sgesvd("A", "A", m, n, x, m, s, u, m, v, n, info);
+//            ACML.jni().sgesvd("A", "A", m, n, x, m, s, u, m, v, n, info);
+            ACML.jni().sgesdd("A", m, n, x, m, s, u, m, v, n, info);
 
             AcmlMatrix S = new AcmlMatrix(m >= n ? n : Math.min(m, n), n);
 

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ru.inhell.aida.oracle.AlphaOracle">
+    <insert id="insertVectorForecastEntity" parameterType="ru.inhell.aida.entity.VectorForecastEntity"
+            useGeneratedKeys="true" keyProperty="id">
+        insert into vector_forecast
+            (contract, period, start, end, N, L, P, M, created)
+        value
+            (#{contract}, #{period}, #{start}, #{end}, #{N}, #{L}, #{P}, #{M}, #{created})
+    </insert>
+
+    <insert id="insertVectorForecastData" parameterType="ru.inhell.aida.entity.VectorForecastData">
+        insert into vector_forecast_data
+            (`vector_forecast_id`, `now`, `index`, `date`, `close`)
+        value
+            (#{vectorForecastId}, #{now}, #{index}, #{date}, #{close})
+    </insert>
+</mapper>

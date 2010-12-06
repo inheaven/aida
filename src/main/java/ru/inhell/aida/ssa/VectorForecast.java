@@ -31,8 +31,6 @@ public class VectorForecast {
     private final float[] Yd;
     private final float[] Zi;
 
-    private final float[] g;
-
     private BasicAnalysis basicAnalysis;
 
     /**
@@ -64,11 +62,14 @@ public class VectorForecast {
 
         Yd = new float[L-1];
         Zi = new float[L];
-
-        g = new float[N + M + L - 1];
     }
 
-    public float[] execute(float[] timeSeries) {
+    /**
+     *
+     * @param timeSeries float[N]
+     * @param forecast float[N + M + L - 1]
+     */
+    public void execute(float[] timeSeries, float forecast[]) {
         BasicAnalysis.Result ssa = basicAnalysis.execute(timeSeries);
 
         float v2 = 0;
@@ -116,9 +117,7 @@ public class VectorForecast {
             System.arraycopy(Zi, 0, Z, i * L, L);
         }
 
-        diagonalAveraging(Z, L, N + M, g);
-
-        return g;
+        diagonalAveraging(Z, L, N + M, forecast);
     }
 
     private void diagonalAveraging(float[] Y, int rows, int cols, float[] g){

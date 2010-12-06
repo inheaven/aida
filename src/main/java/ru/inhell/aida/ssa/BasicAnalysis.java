@@ -68,7 +68,7 @@ public class BasicAnalysis {
             System.arraycopy(timeSeries, j, r.X, j* L, L);
         }
 
-        ACML.jni().sgesvd("A", "A", L, K, r.X, L, r.S, r.U, L, r.VT, K, new int[1]);
+        ACML.jni().sgesdd("A", L, K, r.X, L, r.S, r.U, L, r.VT, K, new int[1]);
 
         Arrays.fill(r.XI, 0);
 

@@ -31,97 +31,39 @@
             <scope>system</scope>
             <systemPath>${pom.basedir}\lib\netlib-java-0.9.1.jar</systemPath>
         </dependency>
-        <!--<dependency>
-            <groupId>commons-math</groupId>
-            <artifactId>commons-math</artifactId>
-            <version>2.1</version>
-            <scope>system</scope>
-            <systemPath>${pom.basedir}\lib\commons-math-2.1.jar</systemPath>
-        </dependency>
+
         <dependency>
-            <groupId>ejml</groupId>
-            <artifactId>ejml</artifactId>
-            <version>0.11</version>
-            <scope>system</scope>
-            <systemPath>${pom.basedir}\lib\ejml-0.11.jar</systemPath>
-        </dependency>-->
-        <dependency>
-            <groupId>ojalgo</groupId>
-            <artifactId>ojalgo</artifactId>
-            <version>29.8</version>
-            <scope>system</scope>
-            <systemPath>${pom.basedir}\lib\ojalgo-29.8.jar</systemPath>
-        </dependency>
-         <dependency>
-            <groupId>mtj</groupId>
-            <artifactId>mtj</artifactId>
-            <version>0.9.13</version>
-            <scope>system</scope>
-            <systemPath>${pom.basedir}\lib\mtj-0.9.13.jar</systemPath>
-        </dependency>
-        <!--<dependency>
-            <groupId>optimatika</groupId>
-            <artifactId>optimatika</artifactId>
-            <version>29.8</version>
-            <scope>system</scope>
-            <systemPath>${pom.basedir}\lib\optimatika-29.8.jar</systemPath>
-        </dependency>
-        <dependency>
-            <groupId>colt</groupId>
-            <artifactId>colt</artifactId>
-            <version>1.2.0</version>
-            <scope>system</scope>
-            <systemPath>${pom.basedir}\lib\colt.jar</systemPath>
-        </dependency>
-        <dependency>
-            <groupId>concurrent</groupId>
-            <artifactId>concurrent</artifactId>
-            <version>1.0.0</version>
-            <scope>system</scope>
-            <systemPath>${pom.basedir}\lib\concurrent.jar</systemPath>
-        </dependency>
-        <dependency>
-            <groupId>stt</groupId>
-            <artifactId>stt</artifactId>
-            <version>1.11</version>
-            <scope>system</scope>
-            <systemPath>${pom.basedir}\lib\sst_1.11.jar</systemPath>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis</artifactId>
+            <version>3.0.3</version>
         </dependency>
 
         <dependency>
-            <groupId>org.apache.mahout</groupId>
-            <artifactId>mahout-math</artifactId>
-            <version>0.3</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.mahout</groupId>
-            <artifactId>mahout-core</artifactId>
-            <version>0.3</version>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.9</version>
         </dependency>
 
-        <dependency>
-            <groupId>jmathplot</groupId>
-            <artifactId>jmathplot</artifactId>
-            <version>1.0</version>
-            <scope>system</scope>
-            <systemPath>${pom.basedir}\lib\jmathplot.jar</systemPath>
-        </dependency>
-
-        <dependency>
-            <groupId>com.nativelibs4java</groupId>
-            <artifactId>javacl-blas</artifactId>
-            <version>1.0-beta-4</version>
-        </dependency>
-
-        <dependency>
-            <groupId>net.java.dev.jna</groupId>
-            <artifactId>jna</artifactId>
-            <version>3.2.5</version>
-        </dependency>-->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <version>5.14.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.6.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.6.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jul-to-slf4j</artifactId>
+            <version>1.6.1</version>
         </dependency>
     </dependencies>
 </project>
