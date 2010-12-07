@@ -1,5 +1,7 @@
 package ru.inhell.aida.ssa;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.ujmp.core.Matrix;
 import ru.inhell.aida.acml.ACML;
 
@@ -12,6 +14,9 @@ import static org.ujmp.core.calculation.Calculation.*;
  *         Date: 30.11.10 16:57
  */
 public class VectorForecast {
+    private static final Logger log = LoggerFactory.getLogger(VectorForecast.class);
+    private int count = 0;
+
     private final int N;
     private final int L;
     private final int Ld;
@@ -70,7 +75,7 @@ public class VectorForecast {
      * @param forecast float[N + M + L - 1]
      */
     public void execute(float[] timeSeries, float forecast[]) {
-        BasicAnalysis.Result ssa = basicAnalysis.execute(timeSeries);
+        BasicAnalysis.Result ssa = basicAnalysis.execute(timeSeries, false);
 
         float v2 = 0;
 
@@ -79,9 +84,6 @@ public class VectorForecast {
             pi[i] = ssa.U[L-1 + i*L];
             v2 += Math.pow(pi[i], 2);
         }
-
-        //проверка вертикальности
-        assert v2 < 1;
 
         Arrays.fill(R, 0);
 

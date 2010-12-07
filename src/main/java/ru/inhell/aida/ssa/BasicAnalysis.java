@@ -1,5 +1,7 @@
 package ru.inhell.aida.ssa;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.ujmp.core.Matrix;
 import org.ujmp.core.interfaces.HasFloatArray;
 import ru.inhell.aida.acml.ACML;
@@ -15,6 +17,9 @@ import static org.ujmp.core.calculation.Calculation.Ret.ORIG;
  *         Date: 30.11.10 1:40
  */
 public class BasicAnalysis {
+    private static final Logger log = LoggerFactory.getLogger(BasicAnalysis.class);
+    private int count = 0;
+
     public static class Result{
         public float[] U;
         public float[] S;
@@ -63,7 +68,7 @@ public class BasicAnalysis {
         Xi = new float[L * K];
     }
 
-    public Result execute(float[] timeSeries){
+    public Result execute(float[] timeSeries, boolean diagonalAverage){
         for (int j = 0; j < K; j++){
             System.arraycopy(timeSeries, j, r.X, j* L, L);
         }
@@ -85,19 +90,21 @@ public class BasicAnalysis {
                 r.XI[j] += Xi[j];
             }
 
-            int L1 = Math.min(L, K);
-            int K1 = Math.max(L, K);
+            if (diagonalAverage){
+                int L1 = Math.min(L, K);
+                int K1 = Math.max(L, K);
 
-            for (int k = 0; k < L1 - 1; ++k){
-                r.G[k + i*N] = getSum(Xi, L, K, 1, k+1, k) / (k + 1);
-            }
+                for (int k = 0; k < L1 - 1; ++k){
+                    r.G[k + i*N] = getSum(Xi, L, K, 1, k+1, k) / (k + 1);
+                }
 
-            for (int k = L1 - 1; k < K1; ++k){
-                r.G[k + i*N] = getSum(Xi, L, K, 1, L1, k) / L1;
-            }
+                for (int k = L1 - 1; k < K1; ++k){
+                    r.G[k + i*N] = getSum(Xi, L, K, 1, L1, k) / L1;
+                }
 
-            for (int k = K1; k < N; ++k){
-                r.G[k + i*N] = getSum(Xi, L, K, k - K1 + 2, N - K1 + 1, k) / (N - k);
+                for (int k = K1; k < N; ++k){
+                    r.G[k + i*N] = getSum(Xi, L, K, k - K1 + 2, N - K1 + 1, k) / (N - k);
+                }
             }
         }
 

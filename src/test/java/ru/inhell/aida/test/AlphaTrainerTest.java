@@ -13,13 +13,22 @@ import java.text.ParseException;
 public class AlphaTrainerTest {
 
     @Test
-    public void train() throws IOException, ParseException {
+    public void train1() throws IOException, ParseException {
         AlphaOracle alphaOracle = new AlphaOracle();
-        for (int l=100; l <= 250; l+=25){
-            for (int p = 12; p <= 25; p++){
+        for (int l=100; l <= 150; l+=25){
+            for (int p = 21; p <= 25; p++){
                 alphaOracle.train(1000, l, p, 5);
             }
         }
     }
 
+    @Test
+    public void train2() throws IOException, ParseException {
+        AlphaOracle alphaOracle = new AlphaOracle();
+        for (int l=200; l <= 250; l+=25){
+            for (int p = 5; p <= 25; p++){
+                alphaOracle.train(1000, l, p, 5);
+            }
+        }
+    }
 }

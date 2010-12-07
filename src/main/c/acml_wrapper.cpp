@@ -44,7 +44,9 @@ JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_sgesvd
 	//MP
 	acmlsetnumthreads(acmlgetnumprocs());
 
+//    env->MonitorEnter(calling_obj);
 	sgesvd(jni_jobu[0], jni_jobvt[0], (long)m, (long)n, jni_a, (long)lda, jni_s, jni_u, (long)ldu, jni_vt, (long)ldvt, (int *)&jni_info[0]);
+//	env->MonitorExit(calling_obj);
 
 	env->ReleaseStringUTFChars(jobu, jni_jobu);
 	env->ReleaseStringUTFChars(jobvt, jni_jobvt);
@@ -82,7 +84,6 @@ JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_sgesdd
 	sgesdd(jni_jobz[0], (long)m, (long)n, jni_a, (long)lda, jni_s, jni_u, (long)ldu, jni_vt, (long)ldvt, (int *)&jni_info[0]);
 	//env->MonitorExit(calling_obj);
 
-
 	env->ReleaseStringUTFChars(jobz, jni_jobz);
 	env->ReleasePrimitiveArrayCritical(a, jni_a, 0);
 	env->ReleasePrimitiveArrayCritical(s, jni_s, 0);
@@ -117,7 +118,9 @@ JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_dgesvd
 	//MP
 	acmlsetnumthreads(acmlgetnumprocs());
 
+    //env->MonitorEnter(calling_obj);
 	dgesvd(jni_jobu[0], jni_jobvt[0], (long)m, (long)n, jni_a, (long)lda, jni_s, jni_u, (long)ldu, jni_vt, (long)ldvt, (int *)&jni_info[0]);
+	//env->MonitorExit(calling_obj);
 
 	env->ReleaseStringUTFChars(jobu, jni_jobu);
 	env->ReleaseStringUTFChars(jobvt, jni_jobvt);
@@ -150,7 +153,9 @@ Java_ru_inhell_aida_acml_ACML_sgemm
 	//MP
 	acmlsetnumthreads(acmlgetnumprocs());
 
+    //env->MonitorEnter(calling_obj);
 	sgemm(jni_transa[0], jni_transb[0], (long)m, (long)n, (long)k, alpha, jni_a, (long)lda, jni_b, (long)ldb, beta, jni_c, (long)ldc);
+	//env->MonitorExit(calling_obj);
 
 	env->ReleaseStringUTFChars(transa, jni_transa);
 	env->ReleaseStringUTFChars(transb, jni_transb);

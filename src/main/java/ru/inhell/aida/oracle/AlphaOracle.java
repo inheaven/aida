@@ -70,7 +70,7 @@ public class AlphaOracle {
                         f[N + index]));
             }
 
-            if (i % 250 == 0){
+            if (i % 500 == 0){
                 SqlSessionFactory.getSessionManager().commit();
                 log.info(i + ": " + importFromCsv.getAsString(now, 2));
             }
