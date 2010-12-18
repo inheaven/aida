@@ -1,5 +1,8 @@
 package ru.inhell.aida.oracle;
 
+import com.sun.org.apache.bcel.internal.generic.FLOAD;
+import org.apache.ibatis.session.ExecutorType;
+import org.apache.ibatis.session.SqlSessionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.ujmp.core.Matrix;
@@ -14,8 +17,10 @@ import ru.inhell.aida.ssa.VectorForecast;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author Anatoly A. Ivanov java@inhell.ru
@@ -23,6 +28,8 @@ import java.util.Date;
  */
 public class AlphaOracle {
     private static Logger log = LoggerFactory.getLogger(AlphaOracle.class);
+
+    private SqlSessionManager sm;
 
     public static void main(String... args) throws IOException, ParseException {
         AlphaOracle alphaOracle = new AlphaOracle();
@@ -49,12 +56,20 @@ public class AlphaOracle {
         final float[] ts = new float[N];
         final float[] f = new float[N+M+L-1];
 
-        SqlSessionFactory.getSessionManager().startManagedSession();
+        sm = SqlSessionFactory.getSessionManager();
 
         VectorForecastEntity entity = new VectorForecastEntity(contract, "minute", start.getTime(), end.getTime(), N, L, P, M, new Date());
         save(entity);
 
-        for (int i = 0; i < quotes.length - N - M; ++i){
+        sm.startManagedSession();
+
+        List<VectorForecastData> list = new ArrayList<VectorForecastData>(256);
+
+        int len = quotes.length - N - M;
+
+        long time = System.currentTimeMillis();
+
+        for (int i = 0; i < len; ++i){
             int now = i + N;
 
             System.arraycopy(quotes, i, ts, 0, N);
@@ -63,25 +78,48 @@ public class AlphaOracle {
 
             //store
             for (int index = -M; index < M; ++index){
-                save(new VectorForecastData(entity.getId(),
-                        sdf.parse(importFromCsv.getAsString(now, 2) + " " + importFromCsv.getAsString(now, 3)),
-                        index,
-                        sdf.parse(importFromCsv.getAsString(now + index, 2) + " " + importFromCsv.getAsString(now + index, 3)),
-                        f[N + index]));
+
+                if (f[N + index] != Float.NaN ) {
+                    list.add(new VectorForecastData(entity.getId(),
+                            sdf.parse(importFromCsv.getAsString(now, 2) + " " + importFromCsv.getAsString(now, 3)),
+                            index,
+                            sdf.parse(importFromCsv.getAsString(now + index, 2) + " " + importFromCsv.getAsString(now + index, 3)),
+                            f[N + index]));
+                }else{
+                    log.warn("NAN hit: " +  importFromCsv.getAsString(now, 2) + " " + importFromCsv.getAsString(now, 3));
+                }
             }
 
-            if (i % 500 == 0){
-                SqlSessionFactory.getSessionManager().commit();
-                log.info(i + ": " + importFromCsv.getAsString(now, 2));
+            if (i % 256 == 0){
+                save(list);
+
+                try {
+                    sm.commit();
+                } catch (Exception e) {
+                    log.error(e.getMessage());
+                }
+                list.clear();
+
+                log.info(i + ": " + importFromCsv.getAsString(now, 2) + " - " + (System.currentTimeMillis() - time) + "ms");
+
+                time = System.currentTimeMillis();
             }
         }
+
+        log.info("complete");
+        try {
+            sm.commit();
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+        sm.close();
     }
 
     private void save(VectorForecastEntity entity){
-        SqlSessionFactory.getSessionManager().insert(AlphaOracle.class.getName() + ".insertVectorForecastEntity", entity);
+        sm.insert(AlphaOracle.class.getName() + ".insertVectorForecastEntity", entity);
     }
 
-    private void save(VectorForecastData data){
-        SqlSessionFactory.getSessionManager().insert(AlphaOracle.class.getName() + ".insertVectorForecastData", data);
+    private void save(List<VectorForecastData> data){
+        sm.insert(AlphaOracle.class.getName() + ".insertVectorForecastData", data);
     }
 }

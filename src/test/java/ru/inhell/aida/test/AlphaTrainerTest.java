@@ -11,24 +11,27 @@ import java.text.ParseException;
  *         Date: 05.12.10 21:15
  */
 public class AlphaTrainerTest {
-
     @Test
     public void train1() throws IOException, ParseException {
         AlphaOracle alphaOracle = new AlphaOracle();
-        for (int l=100; l <= 150; l+=25){
-            for (int p = 21; p <= 25; p++){
-                alphaOracle.train(1000, l, p, 5);
-            }
-        }
+            for (int p = 13; p < 20; p++){
+                alphaOracle.train(1024, 512, p, 16);
+            }        
     }
 
     @Test
     public void train2() throws IOException, ParseException {
         AlphaOracle alphaOracle = new AlphaOracle();
-        for (int l=200; l <= 250; l+=25){
-            for (int p = 5; p <= 25; p++){
-                alphaOracle.train(1000, l, p, 5);
-            }
-        }
+            for (int p = 23; p < 30; p++){
+                alphaOracle.train(1024, 512, p, 16);
+            }        
+    }
+
+    //@Test
+    public void train3() throws IOException, ParseException {
+        AlphaOracle alphaOracle = new AlphaOracle();
+            for (int p = 31; p < 40; p++){
+                alphaOracle.train(1024, 512, p, 16);
+            }        
     }
 }

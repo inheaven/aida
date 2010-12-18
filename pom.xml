@@ -49,7 +49,7 @@
         <dependency>
             <groupId>org.mybatis</groupId>
             <artifactId>mybatis</artifactId>
-            <version>3.0.3</version>
+            <version>3.0.4-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -61,8 +61,15 @@
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>5.14.3-SNAPSHOT</version>
-        </dependency>
+            <version>5.13.1</version>
+        </dependency> 
+
+
+<!--        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.8.2</version>
+        </dependency>-->
 
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -82,12 +89,24 @@
     </dependencies>
 
     <build>
+
+<resources>
+       <resource>
+        <directory>src/main/java</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>**/*.xml</include>
+        </includes>
+      </resource>
+</resources>
+
         <pluginManagement>
             <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <configuration>
+		        <optimize>true</optimize>
                         <source>1.7</source>
                         <target>1.7</target>
                     </configuration>
@@ -98,9 +117,8 @@
                     <version>2.6</version>
                     <configuration>
                         <parallel>methods</parallel>
-                        <threadCount>2</threadCount>
-                        <argLine>-server -XX:+UseNUMA -XX:+UseParallelGC</argLine>
-
+                        <threadCount>2</threadCount>                        
+                        <argLine>-Xmx3g -server -XX:+UseNUMA -XX:+UseParallelGC  -XX:+AggressiveOpts </argLine> 
                     </configuration>
                 </plugin>
             </plugins>
