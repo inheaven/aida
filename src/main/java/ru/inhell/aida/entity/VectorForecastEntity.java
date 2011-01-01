@@ -12,25 +12,27 @@ public class VectorForecastEntity {
     private String period;
     private Date start;
     private Date end;
-    private int N;
-    private int L;
-    private int P;
-    private int M;
+    private int n;
+    private int l;
+    private int p;
+    private int m;
     private Date created;
+
+    private int first;
+    private int size;
 
     public VectorForecastEntity() {
     }
 
     public VectorForecastEntity(String contract, String period, Date start, Date end, int n, int l, int p, int m, Date created) {
-        this.id = id;
         this.contract = contract;
         this.period = period;
         this.start = start;
         this.end = end;
-        N = n;
-        L = l;
-        P = p;
-        M = m;
+        this.n = n;
+        this.l = l;
+        this.p = p;
+        this.m = m;
         this.created = created;
     }
 
@@ -75,35 +77,35 @@ public class VectorForecastEntity {
     }
 
     public int getN() {
-        return N;
+        return n;
     }
 
     public void setN(int n) {
-        N = n;
+        this.n = n;
     }
 
     public int getL() {
-        return L;
+        return l;
     }
 
     public void setL(int l) {
-        L = l;
+        this.l = l;
     }
 
     public int getP() {
-        return P;
+        return p;
     }
 
     public void setP(int p) {
-        P = p;
+        this.p = p;
     }
 
     public int getM() {
-        return M;
+        return m;
     }
 
     public void setM(int m) {
-        M = m;
+        this.m = m;
     }
 
     public Date getCreated() {
@@ -112,5 +114,21 @@ public class VectorForecastEntity {
 
     public void setCreated(Date created) {
         this.created = created;
+    }
+
+    public int getFirst() {
+        return first;
+    }
+
+    public void setFirst(int first) {
+        this.first = first;
+    }
+
+    public int getSize() {
+        return size;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
     }
 }

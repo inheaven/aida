@@ -72,4 +72,16 @@ public class VectorForecastData {
     public void setClose(float close) {
         this.close = close;
     }
+
+    @Override
+    public String toString() {
+        return "VectorForecastData{" +
+                "id=" + id +
+                ", close=" + close +
+                ", vectorForecastId=" + vectorForecastId +
+                ", now=" + now +
+                ", index=" + index +
+                ", date=" + date +
+                '}';
+    }
 }

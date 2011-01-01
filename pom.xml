@@ -31,7 +31,7 @@
             <scope>system</scope>
             <systemPath>${pom.basedir}\lib\ujmp-complete-0.2.5.jar</systemPath>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>org.netlib</groupId>
             <artifactId>arpack-combo</artifactId>
             <version>0.1</version>
@@ -44,12 +44,12 @@
             <version>0.9.1</version>
             <scope>system</scope>
             <systemPath>${pom.basedir}\lib\netlib-java-0.9.1.jar</systemPath>
-        </dependency>
+        </dependency>-->
 
         <dependency>
             <groupId>org.mybatis</groupId>
             <artifactId>mybatis</artifactId>
-            <version>3.0.4-SNAPSHOT</version>
+            <version>3.0.3</version>
         </dependency>
 
         <dependency>

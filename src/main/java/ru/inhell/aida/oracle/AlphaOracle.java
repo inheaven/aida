@@ -9,6 +9,7 @@ import org.ujmp.core.Matrix;
 import org.ujmp.core.MatrixFactory;
 import org.ujmp.core.calculation.Calculation;
 import org.ujmp.core.enums.FileFormat;
+import ru.inhell.aida.entity.VFDType;
 import ru.inhell.aida.entity.VectorForecastData;
 import ru.inhell.aida.entity.VectorForecastEntity;
 import ru.inhell.aida.mybatis.SqlSessionFactory;
@@ -29,12 +30,20 @@ import java.util.List;
 public class AlphaOracle {
     private static Logger log = LoggerFactory.getLogger(AlphaOracle.class);
 
+    private final static String NS = AlphaOracle.class.getName();
+
+    private static int BUFFER_SIZE;
+
     private SqlSessionManager sm;
 
     public static void main(String... args) throws IOException, ParseException {
-        AlphaOracle alphaOracle = new AlphaOracle();
+        AlphaOracle ao = new AlphaOracle();
 
-        alphaOracle.train(1000, 200, 10, 10);
+        BUFFER_SIZE = 64000;
+
+        ao.extremum(1000, 225);
+        ao.extremum(1000, 250);
+        ao.extremum(1000, 300);
     }
 
     public void train(int N, int L, int P, int M) throws IOException, ParseException {
@@ -115,11 +124,120 @@ public class AlphaOracle {
         sm.close();
     }
 
+    public void extremum(int n, int l){
+        sm = SqlSessionFactory.getSessionManager();
+
+        VectorForecastEntity example = new VectorForecastEntity();
+        example.setN(n);
+        example.setL(l);
+
+        List<VectorForecastEntity> entities = getVectorForecastEntities(example);
+
+        for (VectorForecastEntity entity : entities) {
+            long count = getCount(entity);
+            int m = entity.getM();
+
+            int pages = (int) (count/BUFFER_SIZE);
+
+            for (int i = 0; i < pages; ++i){
+                entity.setFirst(i*BUFFER_SIZE);
+                entity.setSize(BUFFER_SIZE);
+
+                List<VectorForecastData> data = getVectorForecastData(entity);
+
+                int len = data.size() - 20;
+
+                for (int j = 20; j < len; ++j){
+                    VectorForecastData d = data.get(j);
+
+                    if (d.getIndex() != 0){
+                        continue;
+                    }
+
+                    VFDType type = null;
+
+                    if (isMax(data, j, 5)){
+                        type = new VFDType(d.getId(), entity.getN(), entity.getL(), VFDType.TYPE.MAX5);
+
+                        if (isMax(data, j, 10) && m >= 10){
+                            type = new VFDType(d.getId(), entity.getN(), entity.getL(), VFDType.TYPE.MAX10);
+
+                            if (isMax(data, j, 15) && m >= 15){
+                                type = new VFDType(d.getId(), entity.getN(), entity.getL(), VFDType.TYPE.MAX15);
+
+                                if (isMax(data, j, 20) && m >= 20){
+                                    type = new VFDType(d.getId(), entity.getN(), entity.getL(), VFDType.TYPE.MAX20);
+                                }
+                            }
+                        }
+                    }
+
+                    if (isMin(data, j, 5)){
+                        type = new VFDType(d.getId(), entity.getN(), entity.getL(), VFDType.TYPE.MIN5);
+
+                        if (isMin(data, j, 10) && m >= 10){
+                            type = new VFDType(d.getId(), entity.getN(), entity.getL(), VFDType.TYPE.MIN10);
+
+                            if (isMin(data, j, 15) && m >= 15){
+                                type = new VFDType(d.getId(), entity.getN(), entity.getL(), VFDType.TYPE.MIN15);
+
+                                if (isMin(data, j, 20) && m >= 20){
+                                    type = new VFDType(d.getId(), entity.getN(), entity.getL(), VFDType.TYPE.MIN20);
+                                }
+                            }
+                        }
+                    }
+
+                    if (type != null) {
+                        update(type);
+                        log.info(type + ", " + d);
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean isMax(List<VectorForecastData> data, int index, int delta){
+        for (int i = 0; i < delta; ++i){
+            if (data.get(index + i).getClose() <= data.get(index + i + 1).getClose()) return false;
+            if (data.get(index - i).getClose() <= data.get(index - i - 1).getClose()) return false;
+        }
+
+        return true;
+    }
+
+    private boolean isMin(List<VectorForecastData> data, int index, int delta){
+        for (int i = 0; i < delta; ++i){
+            if (data.get(index + i).getClose() >= data.get(index + i + 1).getClose()) return false;
+            if (data.get(index - i).getClose() >= data.get(index - i - 1).getClose()) return false;
+        }
+
+        return true;
+    }
+
     private void save(VectorForecastEntity entity){
-        sm.insert(AlphaOracle.class.getName() + ".insertVectorForecastEntity", entity);
+        sm.insert(NS + ".insertVectorForecastEntity", entity);
     }
 
     private void save(List<VectorForecastData> data){
-        sm.insert(AlphaOracle.class.getName() + ".insertVectorForecastData", data);
+        sm.insert(NS + ".insertVectorForecastData", data);
+    }
+
+    @SuppressWarnings({"unchecked"})
+    private List<VectorForecastData> getVectorForecastData(VectorForecastEntity entity){
+        return sm.selectList(NS + ".selectVectorForecastData", entity);
+    }
+
+    @SuppressWarnings({"unchecked"})
+    private List<VectorForecastEntity> getVectorForecastEntities(VectorForecastEntity example){
+        return sm.selectList(NS + ".selectVectorForecastEntities", example);
+    }
+
+    private Long getCount(VectorForecastEntity entity){
+        return (Long) sm.selectOne(NS + ".selectVectorForecastDataCount", entity);
+    }
+
+    private void update(VFDType type){
+        sm.update(NS + ".updateVectorForecastData", type);
     }
 }
