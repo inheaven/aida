@@ -21,6 +21,7 @@
 
     <mappers>
         <mapper resource="ru/inhell/aida/oracle/AlphaOracle.xml"/>
+        <mapper resource="ru/inhell/aida/trader/AlphaTrader.xml"/>
     </mappers>
 
 
