@@ -25,6 +25,22 @@ create table `quotes`(
    `close` decimal(15,6) NOT NULL ,
    `volume` decimal(15,2) NOT NULL ,
    PRIMARY KEY (`id`),
-   KEY `key_date` (`date`),
-   KEY `key_symbol` (`symbol`)
+   UNIQUE KEY `key_symbol_date` (`symbol`, `date`),
  )  Engine=InnoDB DEFAULT charset=cp1251;
+
+
+DELIMITER $$
+    CREATE TRIGGER `create_quotes` AFTER INSERT
+    ON `all_trades`
+    FOR EACH ROW BEGIN
+	set @date = TIMESTAMP(STR_TO_DATE(new.date, '%e.%c.%Y'), DATE_FORMAT(new.time, '%H:%i:00'));	
+		
+	if (select count(*) > 0 from `quotes_1min` where `date` = @date and `symbol` = new.symbol) then
+	    update `quotes_1min`  set `low` = if(`low` < new.price,`low`, new.price), `high` = if(`high` > new.price, `high`, new.price), 
+	        `close` = new.price, `volume` = `volume` + new.volume where `date` = @date and `symbol` = new.symbol;		
+	else
+	    insert into `quotes_1min` (`symbol`, `date`, `open`, `low`, `high`, `close`, `volume`) 
+	        values (new.symbol, @date, new.price, new.price, new.price, new.price, new.volume);		
+	end if;
+    END$$
+DELIMITER ;
