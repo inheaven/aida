@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ru.inhell.aida.oracle.VectorForecastBean">
+    <resultMap id="VFDResultMap" type="ru.inhell.aida.entity.VectorForecastData">
+        <id column="id" property="id"/>
+        <result column="vector_forecast_id" property="vectorForecastId"/>
+        <result column="now" property="now"/>
+        <result column="index" property="index"/>
+        <result column="date" property="date"/>
+        <result column="close" property="close"/>
+    </resultMap>
+
+     <resultMap id="VFEResultMap" type="ru.inhell.aida.entity.VectorForecastEntity">
+         <id column="id" property="id"/>
+         <result column="contract" property="contract"/>
+         <result column="period" property="period"/>
+         <result column="start" property="start"/>
+         <result column="end" property="end"/>
+         <result column="n" property="n"/>
+         <result column="l" property="l"/>
+         <result column="p" property="p"/>
+         <result column="m" property="m"/>
+         <result column="created" property="created"/>
+    </resultMap>
+
+    <insert id="insertVectorForecastEntity" parameterType="ru.inhell.aida.entity.VectorForecastEntity"
+            useGeneratedKeys="true" keyProperty="id">
+        insert into vector_forecast
+            (contract, period, start, end, N, L, P, M, created)
+        value
+            (#{contract}, #{period}, #{start}, #{end}, #{N}, #{L}, #{P}, #{M}, #{created})
+    </insert>
+
+    <insert id="insertVectorForecastData" parameterType="list">
+        insert into vector_forecast_data
+            (`vector_forecast_id`, `now`, `index`, `date`, `close`)
+        values
+            <foreach collection="list" separator="," item="item">
+                 (#{item.vectorForecastId}, #{item.now}, #{item.index}, #{item.date}, #{item.close})
+            </foreach>
+    </insert>
+
+    <update id="updateVectorForecastData" parameterType="ru.inhell.aida.entity.VFDType">
+        update `vector_forecast_data_n${n}l${l}` set `type` = #{type} where `id` = #{id}
+    </update>
+
+    <select id="selectVectorForecastDataCount" parameterType="ru.inhell.aida.entity.VectorForecastEntity"
+            resultType="long">
+        select count(*) from `vector_forecast_data_n${n}l${l}` where `vector_forecast_id` = #{id}
+    </select>
+
+    <select id="selectVectorForecastData" parameterType="ru.inhell.aida.entity.VectorForecastEntity"
+            resultMap="VFDResultMap">
+        select * from `vector_forecast_data_n${n}l${l}` where `vector_forecast_id` = #{id} limit #{first}, #{size}
+    </select>
+
+    <select id="selectVectorForecastEntities" parameterType="ru.inhell.aida.entity.VectorForecastEntity"
+            resultMap="VFEResultMap">
+        select * from `vector_forecast` where `N` = #{n} and `L` = #{l}
+    </select>
+</mapper>
