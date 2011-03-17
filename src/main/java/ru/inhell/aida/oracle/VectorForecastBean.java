@@ -2,9 +2,9 @@ package ru.inhell.aida.oracle;
 
 import com.google.inject.Inject;
 import org.apache.ibatis.session.SqlSessionManager;
-import ru.inhell.aida.entity.VFDType;
+import ru.inhell.aida.entity.Quote;
+import ru.inhell.aida.entity.VectorForecast;
 import ru.inhell.aida.entity.VectorForecastData;
-import ru.inhell.aida.entity.VectorForecastEntity;
 
 import java.util.List;
 
@@ -18,25 +18,11 @@ public class VectorForecastBean {
 
     private final static String NS = VectorForecastBean.class.getName();
 
-    public boolean isMax(List<VectorForecastData> data, int index, int delta){
-        for (int i = 0; i < delta; ++i){
-            if (data.get(index + i).getClose() <= data.get(index + i + 1).getClose()) return false;
-            if (data.get(index - i).getClose() <= data.get(index - i - 1).getClose()) return false;
-        }
+    public void save(VectorForecast entity, List<Quote> quotes, float[] forecast){
 
-        return true;
     }
 
-    public boolean isMin(List<VectorForecastData> data, int index, int delta){
-        for (int i = 0; i < delta; ++i){
-            if (data.get(index + i).getClose() >= data.get(index + i + 1).getClose()) return false;
-            if (data.get(index - i).getClose() >= data.get(index - i - 1).getClose()) return false;
-        }
-
-        return true;
-    }
-
-    public void save(VectorForecastEntity entity){
+    public void save(VectorForecast entity){
         sm.insert(NS + ".insertVectorForecastEntity", entity);
     }
 
@@ -45,20 +31,20 @@ public class VectorForecastBean {
     }
 
     @SuppressWarnings({"unchecked"})
-    public List<VectorForecastData> getVectorForecastData(VectorForecastEntity entity){
+    public List<VectorForecastData> getVectorForecastData(VectorForecast entity){
         return sm.selectList(NS + ".selectVectorForecastData", entity);
     }
 
     @SuppressWarnings({"unchecked"})
-    public List<VectorForecastEntity> getVectorForecastEntities(VectorForecastEntity example){
+    public List<VectorForecast> getVectorForecastEntities(VectorForecast example){
         return sm.selectList(NS + ".selectVectorForecastEntities", example);
     }
 
-    public Long getCount(VectorForecastEntity entity){
+    public Long getCount(VectorForecast entity){
         return (Long) sm.selectOne(NS + ".selectVectorForecastDataCount", entity);
     }
 
-    public void update(VFDType type){
+    public void update(VectorForecastData type){
         sm.update(NS + ".updateVectorForecastData", type);
     }
 }

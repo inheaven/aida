@@ -106,7 +106,7 @@ public class AlphaProfitChart {
             collection.addSeries(at.timeSeries);
         }
 
-        JFreeChart chart = ChartFactory.createTimeSeriesChart("AlphaOracle", "Date", "Balance", collection, true,
+        JFreeChart chart = ChartFactory.createTimeSeriesChart("AlphaOracleTest", "Date", "Balance", collection, true,
                 true, true);
 
         JFrame frame = new JFrame();

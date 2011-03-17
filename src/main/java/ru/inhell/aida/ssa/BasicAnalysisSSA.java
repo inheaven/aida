@@ -2,22 +2,16 @@ package ru.inhell.aida.ssa;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.ujmp.core.Matrix;
-import org.ujmp.core.interfaces.HasFloatArray;
 import ru.inhell.aida.acml.ACML;
 
-import java.sql.Array;
 import java.util.Arrays;
-
-import static org.ujmp.core.calculation.Calculation.Ret.LINK;
-import static org.ujmp.core.calculation.Calculation.Ret.ORIG;
 
 /**
  * @author Anatoly A. Ivanov java@inhell.ru
  *         Date: 30.11.10 1:40
  */
-public class BasicAnalysis {
-    private static final Logger log = LoggerFactory.getLogger(BasicAnalysis.class);
+public class BasicAnalysisSSA {
+    private static final Logger log = LoggerFactory.getLogger(BasicAnalysisSSA.class);
     private int count = 0;
 
     public static class Result{
@@ -47,7 +41,7 @@ public class BasicAnalysis {
      * @param L - Длина окна L < N
      * @param P - Количество главных компонент
      */
-    public BasicAnalysis(int N, int L, int P) {
+    public BasicAnalysisSSA(int N, int L, int P) {
         this.N = N;
         this.L = L;
         this.P = P;

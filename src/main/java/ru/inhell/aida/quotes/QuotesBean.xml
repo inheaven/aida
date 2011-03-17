@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ru.inhell.aida.quotes.QuotesBean">
+    <resultMap id="quotesResultMap" type="ru.inhell.aida.entity.Quote">
+        <id column="id" property="id"/>
+        <result column="symbol" property="symbol"/>
+        <result column="date" property="date"/>
+        <result column="open" property="open"/>
+        <result column="low" property="low"/>
+        <result column="high" property="high"/>
+        <result column="close" property="close"/>
+        <result column="volume" property="volume"/>
+    </resultMap>
+
+    <select id="selectQuotes" parameterType="ru.inhell.aida.entity.QuoteFilter" resultMap="quotesResultMap">
+        select * from
+            (select * from `quotes_1min` where `symbol` = #{symbol} order by `date` desc limit #{count}) as q
+        order by q.`date` asc
+    </select>
+</mapper>

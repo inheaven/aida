@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="ru.inhell.aida.trader.AlphaTrader">
-    <select id="selectVectorForecastDataCount" parameterType="ru.inhell.aida.entity.VectorForecastEntity"
+    <select id="selectVectorForecastDataCount" parameterType="ru.inhell.aida.entity.VectorForecast"
             resultType="long">
         select count(*) from `vector_forecast_data_n${n}l${l}` where `vector_forecast_id` = #{id}
             and `index` = 0 and `type` is not null
     </select>
 
-    <select id="selectVectorForecastData" parameterType="ru.inhell.aida.entity.VectorForecastEntity"
+    <select id="selectVectorForecastData" parameterType="ru.inhell.aida.entity.VectorForecast"
             resultMap="VFDResultMap">
         select * from `vector_forecast_data_n${n}l${l}` where `vector_forecast_id` = #{id}
             and `index` = 0 and `type` is not null limit #{first}, #{size}
     </select>
 
-    <select id="selectVectorForecastEntities" parameterType="ru.inhell.aida.entity.VectorForecastEntity"
+    <select id="selectVectorForecastEntities" parameterType="ru.inhell.aida.entity.VectorForecast"
             resultMap="VFEResultMap">
         select * from `vector_forecast` where `N` = #{n} and `L` = #{l}
     </select>

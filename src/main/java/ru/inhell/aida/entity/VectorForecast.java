@@ -6,7 +6,7 @@ import java.util.Date;
  * @author Anatoly A. Ivanov java@inhell.ru
  *         Date: 05.12.10 19:04
  */
-public class VectorForecastEntity {
+public class VectorForecast {
     private Long id;
     private String contract;
     private String period;
@@ -21,10 +21,10 @@ public class VectorForecastEntity {
     private int first;
     private int size;
 
-    public VectorForecastEntity() {
+    public VectorForecast() {
     }
 
-    public VectorForecastEntity(String contract, String period, Date start, Date end, int n, int l, int p, int m, Date created) {
+    public VectorForecast(String contract, String period, Date start, Date end, int n, int l, int p, int m, Date created) {
         this.contract = contract;
         this.period = period;
         this.start = start;

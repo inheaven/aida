@@ -8,17 +8,28 @@ import java.util.Date;
  */
 public class Quote {
     private Long id;
+    private String symbol;
     private Date date;
     private float open;
     private float high;
     private float low;
     private float close;
-    private int volume;
+    private float volume;
 
     public Quote() {
     }
 
     public Quote(Date date, float open, float high, float low, float close, int volume) {
+        this.date = date;
+        this.open = open;
+        this.high = high;
+        this.low = low;
+        this.close = close;
+        this.volume = volume;
+    }
+
+    public Quote(String symbol, Date date, float open, float high, float low, float close, float volume) {
+        this.symbol = symbol;
         this.date = date;
         this.open = open;
         this.high = high;
@@ -33,6 +44,14 @@ public class Quote {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getSymbol() {
+        return symbol;
+    }
+
+    public void setSymbol(String symbol) {
+        this.symbol = symbol;
     }
 
     public Date getDate() {
@@ -75,11 +94,11 @@ public class Quote {
         this.close = close;
     }
 
-    public int getVolume() {
+    public float getVolume() {
         return volume;
     }
 
-    public void setVolume(int volume) {
+    public void setVolume(float volume) {
         this.volume = volume;
     }
 }

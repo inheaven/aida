@@ -2,23 +2,20 @@ package ru.inhell.aida.ssa;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.ujmp.core.Matrix;
 import ru.inhell.aida.acml.ACML;
 
 import java.util.Arrays;
-
-import static org.ujmp.core.calculation.Calculation.*;
 
 /**
  * @author Anatoly A. Ivanov java@inhell.ru
  *         Date: 30.11.10 16:57
  */
-public class VectorForecast {
-    private static final Logger log = LoggerFactory.getLogger(VectorForecast.class);
-    private int count = 0;
+public class VectorForecastSSA {
+    private static final Logger log = LoggerFactory.getLogger(VectorForecastSSA.class);
 
     private final int N;
     private final int L;
+    private final int P;
     private final int Ld;
     private final int M;
     private final int K;
@@ -36,7 +33,7 @@ public class VectorForecast {
     private final float[] Yd;
     private final float[] Zi;
 
-    private BasicAnalysis basicAnalysis;
+    private BasicAnalysisSSA basicAnalysis;
 
     /**
      *
@@ -45,15 +42,17 @@ public class VectorForecast {
      * @param P - количество главных компонент
      * @param M - длина прогноза
      */
-    public VectorForecast(int N, int L, int P, int M) {
+    public VectorForecastSSA(int N, int L, int P, int M) {
         this.N = N;
         this.L = L;
         this.M = M;
+        this.P = P;
+
 
         Ld = L - 1;
         K = N - L + 1;
 
-        basicAnalysis = new BasicAnalysis(N, L, P);
+        basicAnalysis = new BasicAnalysisSSA(N, L, P);
 
         Z = new float[L * (N + M)];
         R = new float[Ld];
@@ -69,13 +68,33 @@ public class VectorForecast {
         Zi = new float[L];
     }
 
+    public int getN() {
+        return N;
+    }
+
+    public int getL() {
+        return L;
+    }
+
+    public int getP() {
+        return P;
+    }
+
+    public int getM() {
+        return M;
+    }
+
+    public int forecastSize(){
+        return N + M + L - 1;
+    }
+
     /**
      *
      * @param timeSeries float[N]
      * @param forecast float[N + M + L - 1]
      */
     public void execute(float[] timeSeries, float forecast[]) {
-        BasicAnalysis.Result ssa = basicAnalysis.execute(timeSeries, false);
+        BasicAnalysisSSA.Result ssa = basicAnalysis.execute(timeSeries, false);
 
         float v2 = 0;
 

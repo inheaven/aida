@@ -10,7 +10,7 @@
         <result column="close" property="close"/>
     </resultMap>
 
-     <resultMap id="VFEResultMap" type="ru.inhell.aida.entity.VectorForecastEntity">
+     <resultMap id="VFEResultMap" type="ru.inhell.aida.entity.VectorForecast">
          <id column="id" property="id"/>
          <result column="contract" property="contract"/>
          <result column="period" property="period"/>
@@ -23,7 +23,7 @@
          <result column="created" property="created"/>
     </resultMap>
 
-    <insert id="insertVectorForecastEntity" parameterType="ru.inhell.aida.entity.VectorForecastEntity"
+    <insert id="insertVectorForecastEntity" parameterType="ru.inhell.aida.entity.VectorForecast"
             useGeneratedKeys="true" keyProperty="id">
         insert into vector_forecast
             (contract, period, start, end, N, L, P, M, created)
@@ -40,21 +40,21 @@
             </foreach>
     </insert>
 
-    <update id="updateVectorForecastData" parameterType="ru.inhell.aida.entity.VFDType">
+    <update id="updateVectorForecastData" parameterType="ru.inhell.aida.entity.VectorForecastData">
         update `vector_forecast_data_n${n}l${l}` set `type` = #{type} where `id` = #{id}
     </update>
 
-    <select id="selectVectorForecastDataCount" parameterType="ru.inhell.aida.entity.VectorForecastEntity"
+    <select id="selectVectorForecastDataCount" parameterType="ru.inhell.aida.entity.VectorForecast"
             resultType="long">
         select count(*) from `vector_forecast_data_n${n}l${l}` where `vector_forecast_id` = #{id}
     </select>
 
-    <select id="selectVectorForecastData" parameterType="ru.inhell.aida.entity.VectorForecastEntity"
+    <select id="selectVectorForecastData" parameterType="ru.inhell.aida.entity.VectorForecast"
             resultMap="VFDResultMap">
         select * from `vector_forecast_data_n${n}l${l}` where `vector_forecast_id` = #{id} limit #{first}, #{size}
     </select>
 
-    <select id="selectVectorForecastEntities" parameterType="ru.inhell.aida.entity.VectorForecastEntity"
+    <select id="selectVectorForecastEntities" parameterType="ru.inhell.aida.entity.VectorForecast"
             resultMap="VFEResultMap">
         select * from `vector_forecast` where `N` = #{n} and `L` = #{l}
     </select>

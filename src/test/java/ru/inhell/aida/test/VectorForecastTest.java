@@ -7,7 +7,7 @@ import org.ujmp.core.enums.FileFormat;
 import org.ujmp.core.enums.ValueType;
 import org.ujmp.gui.plot.MatrixPlot;
 import ru.inhell.aida.mybatis.SqlSessionFactory;
-import ru.inhell.aida.ssa.VectorForecast;
+import ru.inhell.aida.ssa.VectorForecastSSA;
 import ru.inhell.stock.core.VSSA;
 
 import javax.swing.*;
@@ -15,7 +15,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Random;
 
 /**
@@ -50,10 +49,10 @@ public class VectorForecastTest {
             tsD[i] = random.nextDouble()*180;
         }
 
-        //VectorForecast
-//        System.out.println(Arrays.toString(new VectorForecast(10, 5, 3, 2).execute(ts)));
+        //VectorForecastSSA
+//        System.out.println(Arrays.toString(new VectorForecastSSA(10, 5, 3, 2).execute(ts)));
         long time = System.currentTimeMillis();
-        VectorForecast v1 = new VectorForecast(N, L, P, M);
+        VectorForecastSSA v1 = new VectorForecastSSA(N, L, P, M);
         for (int i=0; i < R; ++i) {
             v1.execute(ts, new float[N+M+L-1]);
         }
@@ -108,7 +107,7 @@ public class VectorForecastTest {
                 new Thread(new Runnable(){
                     @Override
                     public void run() {
-                        VectorForecast vssa = new VectorForecast(N, L, P, M);
+                        VectorForecastSSA vssa = new VectorForecastSSA(N, L, P, M);
 
                         for (int k = index; k < fullTS.length-N; k++){
 

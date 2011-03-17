@@ -3,7 +3,10 @@ package ru.inhell.aida.oracle;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.apache.ibatis.session.SqlSessionManager;
-import ru.inhell.aida.ssa.VectorForecast;
+import ru.inhell.aida.entity.Quote;
+import ru.inhell.aida.quotes.QuotesBean;
+import ru.inhell.aida.ssa.VectorForecastSSA;
+import ru.inhell.aida.util.QuoteUtil;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -22,12 +25,18 @@ public class AlphaOracleBean {
     @Inject
     private SqlSessionManager session;
 
+    @Inject
+    private QuotesBean quotesBean;
+
+    @Inject
+    private VectorForecastBean vectorForecastBean;
+
     private ScheduledThreadPoolExecutor executor;
     private Map<String, ScheduledFuture> scheduledFutures;
 
     private List<IAlphaOracleListener> listeners = new ArrayList<IAlphaOracleListener>();
 
-    private VectorForecast vf1 = new VectorForecast(1000, 200, 14, 5);
+    private VectorForecastSSA vf1 = new VectorForecastSSA(1000, 200, 14, 5);
 
     public void process(String symbol){
         executor.scheduleAtFixedRate(getCommand(symbol), 0, 30, TimeUnit.SECONDS);
@@ -43,17 +52,23 @@ public class AlphaOracleBean {
         }
     }
 
-    private VectorForecast getVectorForecast(){
+    private VectorForecastSSA getVectorForecast(){
         return vf1;
     }
 
-    private Runnable getCommand(String symbol){
+    private Runnable getCommand(final String symbol){
         return new Runnable() {
+            VectorForecastSSA vectorForecast = getVectorForecast();
+            float[] forecast = new float[vectorForecast.forecastSize()];
+
             @Override
             public void run() {
                 //load quotes
+                List<Quote> quotes = quotesBean.getQuotes(symbol, vectorForecast.getN());
+                float[] prices = QuoteUtil.getAveragePrices(quotes);
 
                 //process vssa
+                vectorForecast.execute(prices, forecast);
 
                 //find max & min
 
@@ -61,6 +76,8 @@ public class AlphaOracleBean {
             }
         };
     }
+
+
 
 
 }

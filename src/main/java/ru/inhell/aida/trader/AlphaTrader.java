@@ -8,8 +8,8 @@ import org.ujmp.core.Matrix;
 import org.ujmp.core.MatrixFactory;
 import org.ujmp.core.enums.FileFormat;
 import ru.inhell.aida.entity.Quote;
+import ru.inhell.aida.entity.VectorForecast;
 import ru.inhell.aida.entity.VectorForecastData;
-import ru.inhell.aida.entity.VectorForecastEntity;
 import ru.inhell.aida.mybatis.SqlSessionFactory;
 
 import java.io.IOException;
@@ -57,13 +57,13 @@ public class AlphaTrader {
     }
 
     private void trade(int n, int l){
-        VectorForecastEntity example = new VectorForecastEntity();
+        VectorForecast example = new VectorForecast();
         example.setN(n);
         example.setL(l);
 
-        List<VectorForecastEntity> entities = getVectorForecastEntities(example);
+        List<VectorForecast> entities = getVectorForecastEntities(example);
 
-        for (VectorForecastEntity entity : entities) {
+        for (VectorForecast entity : entities) {
             long count = getCount(entity);
 
             int pages = (int) (count/BUFFER_SIZE);
@@ -86,16 +86,16 @@ public class AlphaTrader {
     }
 
     @SuppressWarnings({"unchecked"})
-    private List<VectorForecastData> getVectorForecastData(VectorForecastEntity entity){
+    private List<VectorForecastData> getVectorForecastData(VectorForecast entity){
         return sm.selectList(NS + ".selectVectorForecastData", entity);
     }
 
     @SuppressWarnings({"unchecked"})
-    private List<VectorForecastEntity> getVectorForecastEntities(VectorForecastEntity example){
+    private List<VectorForecast> getVectorForecastEntities(VectorForecast example){
         return sm.selectList(NS + ".selectVectorForecastEntities", example);
     }
 
-    private Long getCount(VectorForecastEntity entity){
+    private Long getCount(VectorForecast entity){
         return (Long) sm.selectOne(NS + ".selectVectorForecastDataCount", entity);
     }
 

@@ -1,7 +1,5 @@
-package ru.inhell.aida.oracle;
+package ru.inhell.aida.test;
 
-import com.sun.org.apache.bcel.internal.generic.FLOAD;
-import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSessionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,11 +7,10 @@ import org.ujmp.core.Matrix;
 import org.ujmp.core.MatrixFactory;
 import org.ujmp.core.calculation.Calculation;
 import org.ujmp.core.enums.FileFormat;
-import ru.inhell.aida.entity.VFDType;
+import ru.inhell.aida.entity.VectorForecast;
 import ru.inhell.aida.entity.VectorForecastData;
-import ru.inhell.aida.entity.VectorForecastEntity;
 import ru.inhell.aida.mybatis.SqlSessionFactory;
-import ru.inhell.aida.ssa.VectorForecast;
+import ru.inhell.aida.ssa.VectorForecastSSA;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -23,21 +20,47 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import static ru.inhell.aida.entity.VectorForecastData.TYPE.*;
+
 /**
  * @author Anatoly A. Ivanov java@inhell.ru
  *         Date: 05.12.10 17:21
  */
-public class AlphaOracle {
-    private static Logger log = LoggerFactory.getLogger(AlphaOracle.class);
+public class AlphaOracleTest {
+    private static Logger log = LoggerFactory.getLogger(AlphaOracleTest.class);
 
-    private final static String NS = AlphaOracle.class.getName();
+    private final static String NS = AlphaOracleTest.class.getName();
 
     private static int BUFFER_SIZE;
 
     private SqlSessionManager sm;
 
+     //@Test
+    public void train1() throws IOException, ParseException {
+        AlphaOracleTest alphaOracleTest = new AlphaOracleTest();
+            for (int p = 13; p < 20; p++){
+                alphaOracleTest.train(1024, 512, p, 16);
+            }
+    }
+
+    //@Test
+    public void train2() throws IOException, ParseException {
+        AlphaOracleTest alphaOracleTest = new AlphaOracleTest();
+            for (int p = 23; p < 30; p++){
+                alphaOracleTest.train(1024, 512, p, 16);
+            }
+    }
+
+    //@Test
+    public void train3() throws IOException, ParseException {
+        AlphaOracleTest alphaOracleTest = new AlphaOracleTest();
+            for (int p = 31; p < 40; p++){
+                alphaOracleTest.train(1024, 512, p, 16);
+            }
+    }
+
     public static void main(String... args) throws IOException, ParseException {
-        AlphaOracle ao = new AlphaOracle();
+        AlphaOracleTest ao = new AlphaOracleTest();
 
         BUFFER_SIZE = 64000;
 
@@ -60,14 +83,14 @@ public class AlphaOracle {
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd HHmmss");
 
-        VectorForecast vectorForecast = new VectorForecast(N, L, P, M);
+        VectorForecastSSA vectorForecast = new VectorForecastSSA(N, L, P, M);
 
         final float[] ts = new float[N];
         final float[] f = new float[N+M+L-1];
 
         sm = SqlSessionFactory.getSessionManager();
 
-        VectorForecastEntity entity = new VectorForecastEntity(contract, "minute", start.getTime(), end.getTime(), N, L, P, M, new Date());
+        VectorForecast entity = new VectorForecast(contract, "minute", start.getTime(), end.getTime(), N, L, P, M, new Date());
         save(entity);
 
         sm.startManagedSession();
@@ -127,13 +150,13 @@ public class AlphaOracle {
     public void extremum(int n, int l){
         sm = SqlSessionFactory.getSessionManager();
 
-        VectorForecastEntity example = new VectorForecastEntity();
+        VectorForecast example = new VectorForecast();
         example.setN(n);
         example.setL(l);
 
-        List<VectorForecastEntity> entities = getVectorForecastEntities(example);
+        List<VectorForecast> entities = getVectorForecastEntities(example);
 
-        for (VectorForecastEntity entity : entities) {
+        for (VectorForecast entity : entities) {
             long count = getCount(entity);
             int m = entity.getM();
 
@@ -154,43 +177,42 @@ public class AlphaOracle {
                         continue;
                     }
 
-                    VFDType type = null;
+                    d.setN(entity.getN());
+                    d.setL(entity.getL());
 
                     if (isMax(data, j, 5)){
-                        type = new VFDType(d.getId(), entity.getN(), entity.getL(), VFDType.TYPE.MAX5);
+                        d.setType(MAX5);
 
                         if (isMax(data, j, 10) && m >= 10){
-                            type = new VFDType(d.getId(), entity.getN(), entity.getL(), VFDType.TYPE.MAX10);
+                            d.setType(MAX10);
 
                             if (isMax(data, j, 15) && m >= 15){
-                                type = new VFDType(d.getId(), entity.getN(), entity.getL(), VFDType.TYPE.MAX15);
+                                d.setType(MAX15);
 
                                 if (isMax(data, j, 20) && m >= 20){
-                                    type = new VFDType(d.getId(), entity.getN(), entity.getL(), VFDType.TYPE.MAX20);
+                                    d.setType(MAX20);
                                 }
                             }
                         }
-                    }
-
-                    if (isMin(data, j, 5)){
-                        type = new VFDType(d.getId(), entity.getN(), entity.getL(), VFDType.TYPE.MIN5);
+                    }else if (isMin(data, j, 5)){
+                        d.setType(MIN5);
 
                         if (isMin(data, j, 10) && m >= 10){
-                            type = new VFDType(d.getId(), entity.getN(), entity.getL(), VFDType.TYPE.MIN10);
+                            d.setType(MIN10);
 
                             if (isMin(data, j, 15) && m >= 15){
-                                type = new VFDType(d.getId(), entity.getN(), entity.getL(), VFDType.TYPE.MIN15);
+                                d.setType(MIN15);
 
                                 if (isMin(data, j, 20) && m >= 20){
-                                    type = new VFDType(d.getId(), entity.getN(), entity.getL(), VFDType.TYPE.MIN20);
+                                    d.setType(MIN20);
                                 }
                             }
                         }
                     }
 
-                    if (type != null) {
-                        update(type);
-                        log.info(type + ", " + d);
+                    if (d.getType() != null) {
+                        update(d);
+                        log.info(d.toString());
                     }
                 }
             }
@@ -215,7 +237,7 @@ public class AlphaOracle {
         return true;
     }
 
-    private void save(VectorForecastEntity entity){
+    private void save(VectorForecast entity){
         sm.insert(NS + ".insertVectorForecastEntity", entity);
     }
 
@@ -224,20 +246,20 @@ public class AlphaOracle {
     }
 
     @SuppressWarnings({"unchecked"})
-    private List<VectorForecastData> getVectorForecastData(VectorForecastEntity entity){
+    private List<VectorForecastData> getVectorForecastData(VectorForecast entity){
         return sm.selectList(NS + ".selectVectorForecastData", entity);
     }
 
     @SuppressWarnings({"unchecked"})
-    private List<VectorForecastEntity> getVectorForecastEntities(VectorForecastEntity example){
+    private List<VectorForecast> getVectorForecastEntities(VectorForecast example){
         return sm.selectList(NS + ".selectVectorForecastEntities", example);
     }
 
-    private Long getCount(VectorForecastEntity entity){
+    private Long getCount(VectorForecast entity){
         return (Long) sm.selectOne(NS + ".selectVectorForecastDataCount", entity);
     }
 
-    private void update(VFDType type){
-        sm.update(NS + ".updateVectorForecastData", type);
+    private void update(VectorForecastData vectorForecastData){
+        sm.update(NS + ".updateVectorForecastData", vectorForecastData);
     }
 }

@@ -1,5 +1,6 @@
 package ru.inhell.aida.entity;
 
+import java.lang.reflect.Type;
 import java.util.Date;
 
 /**
@@ -7,11 +8,25 @@ import java.util.Date;
  *         Date: 05.12.10 19:06
  */
 public class VectorForecastData {
+    public static enum TYPE{
+        MIN5, MIN10, MIN15, MIN20, MIN30,
+        MAX5, MAX10, MAX15, MAX20, MAX30
+    }
+
     private Long id;
     private Long vectorForecastId;
+
+    private int n;
+    private int l;
+
     private Date now;
     private int index;
     private Date date;
+    private float price;
+
+    private TYPE type;
+
+    @Deprecated
     private float close;
 
     public VectorForecastData() {
@@ -39,6 +54,22 @@ public class VectorForecastData {
 
     public void setVectorForecastId(Long vectorForecastId) {
         this.vectorForecastId = vectorForecastId;
+    }
+
+    public int getN() {
+        return n;
+    }
+
+    public void setN(int n) {
+        this.n = n;
+    }
+
+    public int getL() {
+        return l;
+    }
+
+    public void setL(int l) {
+        this.l = l;
     }
 
     public Date getNow() {
@@ -73,15 +104,35 @@ public class VectorForecastData {
         this.close = close;
     }
 
+    public float getPrice() {
+        return price;
+    }
+
+    public void setPrice(float price) {
+        this.price = price;
+    }
+
+    public TYPE getType() {
+        return type;
+    }
+
+    public void setType(TYPE type) {
+        this.type = type;
+    }
+
     @Override
     public String toString() {
         return "VectorForecastData{" +
                 "id=" + id +
-                ", close=" + close +
                 ", vectorForecastId=" + vectorForecastId +
+                ", n=" + n +
+                ", l=" + l +
                 ", now=" + now +
                 ", index=" + index +
                 ", date=" + date +
+                ", price=" + price +
+                ", type=" + type +
+                ", close=" + close +
                 '}';
     }
 }
