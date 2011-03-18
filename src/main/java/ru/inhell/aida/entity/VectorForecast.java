@@ -8,7 +8,7 @@ import java.util.Date;
  */
 public class VectorForecast {
     private Long id;
-    private String contract;
+    private String symbol;
     private String period;
     private Date start;
     private Date end;
@@ -24,8 +24,8 @@ public class VectorForecast {
     public VectorForecast() {
     }
 
-    public VectorForecast(String contract, String period, Date start, Date end, int n, int l, int p, int m, Date created) {
-        this.contract = contract;
+    public VectorForecast(String symbol, String period, Date start, Date end, int n, int l, int p, int m, Date created) {
+        this.symbol = symbol;
         this.period = period;
         this.start = start;
         this.end = end;
@@ -44,12 +44,12 @@ public class VectorForecast {
         this.id = id;
     }
 
-    public String getContract() {
-        return contract;
+    public String getSymbol() {
+        return symbol;
     }
 
-    public void setContract(String contract) {
-        this.contract = contract;
+    public void setSymbol(String symbol) {
+        this.symbol = symbol;
     }
 
     public String getPeriod() {

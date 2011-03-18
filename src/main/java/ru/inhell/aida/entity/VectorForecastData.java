@@ -15,29 +15,19 @@ public class VectorForecastData {
 
     private Long id;
     private Long vectorForecastId;
-
-    private int n;
-    private int l;
-
-    private Date now;
-    private int index;
     private Date date;
+    private int index;
     private float price;
-
     private TYPE type;
-
-    @Deprecated
-    private float close;
 
     public VectorForecastData() {
     }
 
-    public VectorForecastData(Long vectorForecastId, Date now, int index, Date date, float close) {
+    public VectorForecastData(Long vectorForecastId,  Date date, int index, float price) {
         this.vectorForecastId = vectorForecastId;
-        this.now = now;
         this.index = index;
         this.date = date;
-        this.close = close;
+        this.price = price;
     }
 
     public Long getId() {
@@ -56,30 +46,6 @@ public class VectorForecastData {
         this.vectorForecastId = vectorForecastId;
     }
 
-    public int getN() {
-        return n;
-    }
-
-    public void setN(int n) {
-        this.n = n;
-    }
-
-    public int getL() {
-        return l;
-    }
-
-    public void setL(int l) {
-        this.l = l;
-    }
-
-    public Date getNow() {
-        return now;
-    }
-
-    public void setNow(Date now) {
-        this.now = now;
-    }
-
     public int getIndex() {
         return index;
     }
@@ -94,14 +60,6 @@ public class VectorForecastData {
 
     public void setDate(Date date) {
         this.date = date;
-    }
-
-    public float getClose() {
-        return close;
-    }
-
-    public void setClose(float close) {
-        this.close = close;
     }
 
     public float getPrice() {
@@ -125,14 +83,10 @@ public class VectorForecastData {
         return "VectorForecastData{" +
                 "id=" + id +
                 ", vectorForecastId=" + vectorForecastId +
-                ", n=" + n +
-                ", l=" + l +
-                ", now=" + now +
                 ", index=" + index +
                 ", date=" + date +
                 ", price=" + price +
                 ", type=" + type +
-                ", close=" + close +
                 '}';
     }
 }

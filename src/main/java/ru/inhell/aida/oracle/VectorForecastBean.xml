@@ -36,7 +36,7 @@
             (`vector_forecast_id`, `now`, `index`, `date`, `close`)
         values
             <foreach collection="list" separator="," item="item">
-                 (#{item.vectorForecastId}, #{item.now}, #{item.index}, #{item.date}, #{item.close})
+                 (#{item.vectorForecastId}, #{item.date}, #{item.index}, #{item.price})
             </foreach>
     </insert>
 

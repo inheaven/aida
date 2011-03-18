@@ -5,8 +5,15 @@ import org.apache.ibatis.session.SqlSessionManager;
 import ru.inhell.aida.entity.Quote;
 import ru.inhell.aida.entity.VectorForecast;
 import ru.inhell.aida.entity.VectorForecastData;
+import ru.inhell.aida.util.VectorForecastUtil;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+
+import static ru.inhell.aida.entity.VectorForecastData.TYPE.*;
+import static ru.inhell.aida.entity.VectorForecastData.TYPE.MIN20;
 
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
@@ -18,16 +25,70 @@ public class VectorForecastBean {
 
     private final static String NS = VectorForecastBean.class.getName();
 
-    public void save(VectorForecast entity, List<Quote> quotes, float[] forecast){
+    public void save(VectorForecast vectorForecast, List<Quote> quotes, float[] forecast){
+        List<VectorForecastData> dataList = new ArrayList<VectorForecastData>();
 
+        for (int index = -vectorForecast.getM(); index < vectorForecast.getM(); ++index){
+            //todo check +-1
+            dataList.add(new VectorForecastData(vectorForecast.getId(), quotes.get(vectorForecast.getN() - 1)
+                    .getDate(), index, forecast[vectorForecast.getN() + index]));
+        }
+
+        extremum(dataList);
+
+        save(dataList);
+    }
+
+    private void extremum(List<VectorForecastData> dataList){
+        for (int index = 5; index < dataList.size() - 5; ++index) {
+            VectorForecastData d = dataList.get(index);
+
+            if (VectorForecastUtil.isMax(dataList, index, 5)){
+                d.setType(MAX5);
+
+                if (VectorForecastUtil.isMax(dataList, index, 10)){
+                    d.setType(MAX10);
+
+                    if (VectorForecastUtil.isMax(dataList, index, 15)){
+                        d.setType(MAX15);
+
+                        if (VectorForecastUtil.isMax(dataList, index, 20)){
+                            d.setType(MAX20);
+
+                            if (VectorForecastUtil.isMax(dataList, index, 30)){
+                                d.setType(MAX30);
+                            }
+                        }
+                    }
+                }
+            }else if (VectorForecastUtil.isMin(dataList, index, 5)){
+                d.setType(MIN5);
+
+                if (VectorForecastUtil.isMin(dataList, index, 10)){
+                    d.setType(MIN10);
+
+                    if (VectorForecastUtil.isMin(dataList, index, 15)){
+                        d.setType(MIN15);
+
+                        if (VectorForecastUtil.isMin(dataList, index, 20)){
+                            d.setType(MIN20);
+
+                            if (VectorForecastUtil.isMin(dataList, index, 30)){
+                                d.setType(MIN30);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public void save(VectorForecast entity){
         sm.insert(NS + ".insertVectorForecastEntity", entity);
     }
 
-    public void save(List<VectorForecastData> data){
-        sm.insert(NS + ".insertVectorForecastData", data);
+    public void save(List<VectorForecastData> dataList){
+        sm.insert(NS + ".insertVectorForecastData", dataList);
     }
 
     @SuppressWarnings({"unchecked"})

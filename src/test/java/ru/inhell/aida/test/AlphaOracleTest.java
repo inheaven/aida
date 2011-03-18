@@ -115,7 +115,6 @@ public class AlphaOracleTest {
                     list.add(new VectorForecastData(entity.getId(),
                             sdf.parse(importFromCsv.getAsString(now, 2) + " " + importFromCsv.getAsString(now, 3)),
                             index,
-                            sdf.parse(importFromCsv.getAsString(now + index, 2) + " " + importFromCsv.getAsString(now + index, 3)),
                             f[N + index]));
                 }else{
                     log.warn("NAN hit: " +  importFromCsv.getAsString(now, 2) + " " + importFromCsv.getAsString(now, 3));
@@ -177,9 +176,6 @@ public class AlphaOracleTest {
                         continue;
                     }
 
-                    d.setN(entity.getN());
-                    d.setL(entity.getL());
-
                     if (isMax(data, j, 5)){
                         d.setType(MAX5);
 
@@ -221,8 +217,8 @@ public class AlphaOracleTest {
 
     private boolean isMax(List<VectorForecastData> data, int index, int delta){
         for (int i = 0; i < delta; ++i){
-            if (data.get(index + i).getClose() <= data.get(index + i + 1).getClose()) return false;
-            if (data.get(index - i).getClose() <= data.get(index - i - 1).getClose()) return false;
+            if (data.get(index + i).getPrice() <= data.get(index + i + 1).getPrice()) return false;
+            if (data.get(index - i).getPrice() <= data.get(index - i - 1).getPrice()) return false;
         }
 
         return true;
@@ -230,8 +226,8 @@ public class AlphaOracleTest {
 
     private boolean isMin(List<VectorForecastData> data, int index, int delta){
         for (int i = 0; i < delta; ++i){
-            if (data.get(index + i).getClose() >= data.get(index + i + 1).getClose()) return false;
-            if (data.get(index - i).getClose() >= data.get(index - i - 1).getClose()) return false;
+            if (data.get(index + i).getPrice() >= data.get(index + i + 1).getPrice()) return false;
+            if (data.get(index - i).getPrice() >= data.get(index - i - 1).getPrice()) return false;
         }
 
         return true;

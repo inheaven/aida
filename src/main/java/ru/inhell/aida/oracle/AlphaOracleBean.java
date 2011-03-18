@@ -3,10 +3,14 @@ package ru.inhell.aida.oracle;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.apache.ibatis.session.SqlSessionManager;
+import ru.inhell.aida.entity.Prediction;
 import ru.inhell.aida.entity.Quote;
+import ru.inhell.aida.entity.VectorForecast;
 import ru.inhell.aida.quotes.QuotesBean;
 import ru.inhell.aida.ssa.VectorForecastSSA;
+import ru.inhell.aida.util.DateUtil;
 import ru.inhell.aida.util.QuoteUtil;
+import ru.inhell.aida.util.VectorForecastUtil;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -39,45 +43,57 @@ public class AlphaOracleBean {
     private VectorForecastSSA vf1 = new VectorForecastSSA(1000, 200, 14, 5);
 
     public void process(String symbol){
-        executor.scheduleAtFixedRate(getCommand(symbol), 0, 30, TimeUnit.SECONDS);
+        executor.scheduleAtFixedRate(getCommand(new VectorForecast()), 0, 30, TimeUnit.SECONDS);
     }
 
     public void addListener(IAlphaOracleListener listener){
         listeners.add(listener);
     }
 
-    private void predicted(String symbol, AlphaOracleType type, Date date, float price){
+    private void predicted(String symbol, Prediction prediction, Date date, float price){
         for (IAlphaOracleListener listener : listeners){
-            listener.predicted(symbol, type, date, price);
+            listener.predicted(symbol, prediction, date, price);
         }
+
+        //todo store history
     }
 
-    private VectorForecastSSA getVectorForecast(){
+    private VectorForecastSSA getVectorForecastSSA(VectorForecast vectorForecast){
         return vf1;
     }
 
-    private Runnable getCommand(final String symbol){
+    private Runnable getCommand(final VectorForecast vectorForecast){
         return new Runnable() {
-            VectorForecastSSA vectorForecast = getVectorForecast();
-            float[] forecast = new float[vectorForecast.forecastSize()];
+            VectorForecastSSA vssa = getVectorForecastSSA(vectorForecast);
+            float[] forecast = new float[vssa.forecastSize()];
 
             @Override
             public void run() {
                 //load quotes
-                List<Quote> quotes = quotesBean.getQuotes(symbol, vectorForecast.getN());
+                List<Quote> quotes = quotesBean.getQuotes(vectorForecast.getSymbol(), vectorForecast.getN());
                 float[] prices = QuoteUtil.getAveragePrices(quotes);
 
                 //process vssa
-                vectorForecast.execute(prices, forecast);
+                vssa.execute(prices, forecast);
 
-                //find max & min
+                //save vector forecast history
+                vectorForecastBean.save(vectorForecast, quotes, forecast);
 
-                //store result
+                //predict
+                Prediction prediction = null;
+
+                if (VectorForecastUtil.isMin(forecast, vectorForecast.getN(), 5)){ //LONG
+                    prediction = Prediction.LONG;
+                }else if (VectorForecastUtil.isMax(forecast, vectorForecast.getN(), 5)){ //SHORT
+                    prediction = Prediction.SHORT;
+                }
+
+                if (prediction != null) {
+                    predicted(vectorForecast.getSymbol(), prediction,
+                            DateUtil.nextMinute(quotes.get(vectorForecast.getN() - 1).getDate()),
+                            forecast[vectorForecast.getN()]);
+                }
             }
         };
     }
-
-
-
-
 }

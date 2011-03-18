@@ -1,5 +1,6 @@
 package ru.inhell.aida.util;
 
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -9,5 +10,13 @@ import java.util.Date;
 public class DateUtil {
     public static Date now(){
         return new Date();
+    }
+
+    public static Date nextMinute(Date date){
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.add(Calendar.MINUTE, 1);
+
+        return calendar.getTime();
     }
 }
