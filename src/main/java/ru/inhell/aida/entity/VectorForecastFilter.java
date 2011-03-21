@@ -3,40 +3,31 @@ package ru.inhell.aida.entity;
 import java.util.Date;
 
 /**
- * @author Anatoly A. Ivanov java@inhell.ru
- *         Date: 05.12.10 19:04
+ * @author Anatoly A. Ivanov java@inheaven.ru
+ *         Date: 21.03.11 18:00
  */
-public class VectorForecast {
-    public static enum INTERVAL{ONE_MINUTE, FIVE_MINUTES, HALF_HOUR, ONE_HOUR}
-
-    private Long id;
+public class VectorForecastFilter {
     private String symbol;
-    private INTERVAL interval;
+    private VectorForecast.INTERVAL interval;
     private int n;
     private int l;
     private int p;
     private int m;
     private Date created;
 
-    public VectorForecast() {
+    private int first;
+    private int size;
+
+    public VectorForecastFilter() {
     }
 
-    public VectorForecast(String symbol, INTERVAL interval, int n, int l, int p, int m, Date created) {
+    public VectorForecastFilter(String symbol, VectorForecast.INTERVAL interval, int n, int l, int p, int m) {
         this.symbol = symbol;
         this.interval = interval;
         this.n = n;
         this.l = l;
         this.p = p;
         this.m = m;
-        this.created = created;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getSymbol() {
@@ -47,11 +38,11 @@ public class VectorForecast {
         this.symbol = symbol;
     }
 
-    public INTERVAL getInterval() {
+    public VectorForecast.INTERVAL getInterval() {
         return interval;
     }
 
-    public void setInterval(INTERVAL interval) {
+    public void setInterval(VectorForecast.INTERVAL interval) {
         this.interval = interval;
     }
 
@@ -93,5 +84,21 @@ public class VectorForecast {
 
     public void setCreated(Date created) {
         this.created = created;
+    }
+
+    public int getFirst() {
+        return first;
+    }
+
+    public void setFirst(int first) {
+        this.first = first;
+    }
+
+    public int getSize() {
+        return size;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
     }
 }

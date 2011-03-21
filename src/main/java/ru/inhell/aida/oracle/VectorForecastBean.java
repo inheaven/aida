@@ -5,11 +5,11 @@ import org.apache.ibatis.session.SqlSessionManager;
 import ru.inhell.aida.entity.Quote;
 import ru.inhell.aida.entity.VectorForecast;
 import ru.inhell.aida.entity.VectorForecastData;
+import ru.inhell.aida.entity.VectorForecastFilter;
+import ru.inhell.aida.util.DateUtil;
 import ru.inhell.aida.util.VectorForecastUtil;
 
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 
 import static ru.inhell.aida.entity.VectorForecastData.TYPE.*;
@@ -21,7 +21,7 @@ import static ru.inhell.aida.entity.VectorForecastData.TYPE.MIN20;
  */
 public class VectorForecastBean {
     @Inject
-    private SqlSessionManager sm;
+    private SqlSessionManager session;
 
     private final static String NS = VectorForecastBean.class.getName();
 
@@ -84,28 +84,41 @@ public class VectorForecastBean {
     }
 
     public void save(VectorForecast entity){
-        sm.insert(NS + ".insertVectorForecastEntity", entity);
+        session.insert(NS + ".insertVectorForecast", entity);
     }
 
     public void save(List<VectorForecastData> dataList){
-        sm.insert(NS + ".insertVectorForecastData", dataList);
+        session.insert(NS + ".insertVectorForecastData", dataList);
     }
 
     @SuppressWarnings({"unchecked"})
     public List<VectorForecastData> getVectorForecastData(VectorForecast entity){
-        return sm.selectList(NS + ".selectVectorForecastData", entity);
+        return session.selectList(NS + ".selectVectorForecastData", entity);
     }
 
     @SuppressWarnings({"unchecked"})
-    public List<VectorForecast> getVectorForecastEntities(VectorForecast example){
-        return sm.selectList(NS + ".selectVectorForecastEntities", example);
+    public List<VectorForecast> getVectorForecast(VectorForecastFilter filter){
+        return session.selectList(NS + ".selectVectorForecasts", filter);
     }
 
     public Long getCount(VectorForecast entity){
-        return (Long) sm.selectOne(NS + ".selectVectorForecastDataCount", entity);
+        return (Long) session.selectOne(NS + ".selectVectorForecastDataCount", entity);
     }
 
     public void update(VectorForecastData type){
-        sm.update(NS + ".updateVectorForecastData", type);
+        session.update(NS + ".updateVectorForecastData", type);
+    }
+
+    public VectorForecast getOrCreateVectorForecast(String symbol, VectorForecast.INTERVAL interval,
+                                                    int n, int l, int p, int m){
+        VectorForecast vectorForecast = (VectorForecast) session.selectOne(NS + ".selectVectorForecast",
+                new VectorForecastFilter(symbol, interval, n, l, p, m));
+
+        if (vectorForecast == null){
+            vectorForecast = new VectorForecast(symbol, interval, n, l, p, m, DateUtil.now());
+            save(vectorForecast);
+        }
+
+        return vectorForecast;
     }
 }
