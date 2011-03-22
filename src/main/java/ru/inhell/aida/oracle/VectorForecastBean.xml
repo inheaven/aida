@@ -15,10 +15,11 @@
     <resultMap id="vectorForecastDataResultMap" type="ru.inhell.aida.entity.VectorForecastData">
         <id column="id" property="id"/>
         <result column="vector_forecast_id" property="vectorForecastId"/>
-        <result column="now" property="now"/>
-        <result column="index" property="index"/>
         <result column="date" property="date"/>
-        <result column="close" property="close"/>
+        <result column="index" property="index"/>
+        <result column="index_date" property="indexDate"/>
+        <result column="price" property="price"/>
+        <result column="type" property="type"/>
     </resultMap>
 
     <select id="selectVectorForecast" parameterType="ru.inhell.aida.entity.VectorForecastFilter"
@@ -45,16 +46,15 @@
 
     <insert id="insertVectorForecast" parameterType="ru.inhell.aida.entity.VectorForecast" useGeneratedKeys="true"
             keyProperty="id">
-        insert into vector_forecast (`symbol`, `interval`, `n`, `l`, `p`, `m`, `created`)
+        insert into `vector_forecast` (`symbol`, `interval`, `n`, `l`, `p`, `m`, `created`)
             value (#{symbol}, #{interval}, #{n}, #{l}, #{p}, #{m}, #{created})
     </insert>
 
     <insert id="insertVectorForecastData" parameterType="list">
-        insert into vector_forecast_data
-        (`vector_forecast_id`, `now`, `index`, `date`, `close`)
+        insert into vector_forecast_data (`vector_forecast_id`, `date`, `index`, `index_date`, `price`)
         values
         <foreach collection="list" separator="," item="item">
-            (#{item.vectorForecastId}, #{item.date}, #{item.index}, #{item.price})
+            (#{item.vectorForecastId}, #{item.date}, #{item.index}, #{item.indexDate}, #{item.price})
         </foreach>
     </insert>
 

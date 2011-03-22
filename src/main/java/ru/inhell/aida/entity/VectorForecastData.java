@@ -1,6 +1,5 @@
 package ru.inhell.aida.entity;
 
-import java.lang.reflect.Type;
 import java.util.Date;
 
 /**
@@ -17,16 +16,18 @@ public class VectorForecastData {
     private Long vectorForecastId;
     private Date date;
     private int index;
+    private Date indexDate;
     private float price;
     private TYPE type;
 
     public VectorForecastData() {
     }
 
-    public VectorForecastData(Long vectorForecastId,  Date date, int index, float price) {
+    public VectorForecastData(Long vectorForecastId, Date date, Date indexDate, int index, float price) {
         this.vectorForecastId = vectorForecastId;
         this.index = index;
         this.date = date;
+        this.indexDate = indexDate;
         this.price = price;
     }
 
@@ -52,6 +53,14 @@ public class VectorForecastData {
 
     public void setIndex(int index) {
         this.index = index;
+    }
+
+    public Date getIndexDate() {
+        return indexDate;
+    }
+
+    public void setIndexDate(Date indexDate) {
+        this.indexDate = indexDate;
     }
 
     public Date getDate() {
@@ -83,8 +92,9 @@ public class VectorForecastData {
         return "VectorForecastData{" +
                 "id=" + id +
                 ", vectorForecastId=" + vectorForecastId +
-                ", index=" + index +
                 ", date=" + date +
+                ", index=" + index +
+                ", indexDate=" + indexDate +
                 ", price=" + price +
                 ", type=" + type +
                 '}';
