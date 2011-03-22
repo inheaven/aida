@@ -1,5 +1,7 @@
 package ru.inhell.aida.util;
 
+import ru.inhell.aida.entity.VectorForecast;
+
 import java.util.Calendar;
 import java.util.Date;
 
@@ -13,10 +15,15 @@ public class DateUtil {
     }
 
     public static Date nextMinute(Date date){
+        return getOneMinuteIndexDate(date, 1);
+    }
+
+    public static Date getOneMinuteIndexDate(Date date, int index){
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
-        calendar.add(Calendar.MINUTE, 1);
+        calendar.add(Calendar.MINUTE, index);
 
         return calendar.getTime();
     }
+
 }

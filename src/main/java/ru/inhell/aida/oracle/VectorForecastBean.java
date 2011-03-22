@@ -6,10 +6,13 @@ import ru.inhell.aida.entity.Quote;
 import ru.inhell.aida.entity.VectorForecast;
 import ru.inhell.aida.entity.VectorForecastData;
 import ru.inhell.aida.entity.VectorForecastFilter;
+import ru.inhell.aida.ssa.VectorForecastSSA;
+import ru.inhell.aida.ssa.VectorForecastSSAService;
 import ru.inhell.aida.util.DateUtil;
 import ru.inhell.aida.util.VectorForecastUtil;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static ru.inhell.aida.entity.VectorForecastData.TYPE.*;
@@ -23,15 +26,24 @@ public class VectorForecastBean {
     @Inject
     private SqlSessionManager session;
 
+    @Inject
+    private VectorForecastSSAService vectorForecastSSAService;
+
     private final static String NS = VectorForecastBean.class.getName();
+
+    public VectorForecastSSA getVectorForecastSSA(VectorForecast vf){
+        return vectorForecastSSAService.getVectorForecastSSA(vf.getN(), vf.getL(), vf.getP(), vf.getM());
+    }
 
     public void save(VectorForecast vectorForecast, List<Quote> quotes, float[] forecast){
         List<VectorForecastData> dataList = new ArrayList<VectorForecastData>();
 
         for (int index = -vectorForecast.getM(); index < vectorForecast.getM(); ++index){
+            Date date = quotes.get(vectorForecast.getN() - 1).getDate();
+            Date indexDate = DateUtil.getOneMinuteIndexDate(date, index);
+            float price = forecast[vectorForecast.getN() + index];
             //todo check +-1
-            dataList.add(new VectorForecastData(vectorForecast.getId(), quotes.get(vectorForecast.getN() - 1)
-                    .getDate(), index, forecast[vectorForecast.getN() + index]));
+            dataList.add(new VectorForecastData(vectorForecast.getId(), date, index, indexDate, price));
         }
 
         extremum(dataList);
@@ -97,7 +109,7 @@ public class VectorForecastBean {
     }
 
     @SuppressWarnings({"unchecked"})
-    public List<VectorForecast> getVectorForecast(VectorForecastFilter filter){
+    public List<VectorForecast> getVectorForecasts(VectorForecastFilter filter){
         return session.selectList(NS + ".selectVectorForecasts", filter);
     }
 

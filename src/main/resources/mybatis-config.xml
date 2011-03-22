@@ -20,8 +20,9 @@
     </environments>
 
     <mappers>
-        <mapper resource="ru/inhell/aida/oracle/AlphaOracle.xml"/>
-        <mapper resource="ru/inhell/aida/trader/AlphaTrader.xml"/>
+        <mapper resource="ru/inhell/aida/oracle/AlphaOracleBean.xml"/>
+        <mapper resource="ru/inhell/aida/oracle/VectorForecastBean.xml"/>
+        <mapper resource="ru/inhell/aida/quotes/QuotesBean.xml"/>
     </mappers>
 
 

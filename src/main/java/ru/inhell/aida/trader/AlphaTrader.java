@@ -56,35 +56,6 @@ public class AlphaTrader {
         }
     }
 
-    private void trade(int n, int l){
-        VectorForecast example = new VectorForecast();
-        example.setN(n);
-        example.setL(l);
-
-        List<VectorForecast> entities = getVectorForecastEntities(example);
-
-        for (VectorForecast entity : entities) {
-            long count = getCount(entity);
-
-            int pages = (int) (count/BUFFER_SIZE);
-
-            for (int i = 0; i < pages; ++i){
-                entity.setFirst(i*BUFFER_SIZE);
-                entity.setSize(BUFFER_SIZE);
-
-                List<VectorForecastData> data = getVectorForecastData(entity);
-
-                for (VectorForecastData d : data){
-
-
-
-                }
-            }
-        }
-
-
-    }
-
     @SuppressWarnings({"unchecked"})
     private List<VectorForecastData> getVectorForecastData(VectorForecast entity){
         return sm.selectList(NS + ".selectVectorForecastData", entity);

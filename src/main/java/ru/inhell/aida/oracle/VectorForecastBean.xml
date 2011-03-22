@@ -22,7 +22,11 @@
         <result column="type" property="type"/>
     </resultMap>
 
-    <select id="selectVectorForecast" parameterType="ru.inhell.aida.entity.VectorForecastFilter"
+    <select id="selectVectorForecast" parameterType="long" resultMap="vectorForecastResultMap">
+        select * from `vector_forecast` where `id` = #{id}
+    </select>
+
+    <select id="selectVectorForecasts" parameterType="ru.inhell.aida.entity.VectorForecastFilter"
             resultMap="vectorForecastResultMap">
         select * from `vector_forecast`
         <where>
@@ -35,7 +39,7 @@
         </where>
     </select>
 
-    <select id="selectVectorForecastData" parameterType="ru.inhell.aida.entity.VectorForecast"
+    <select id="selectVectorForecastData" parameterType="ru.inhell.aida.entity.VectorForecastFilter"
             resultMap="vectorForecastDataResultMap">
         select * from `vector_forecast_data` where `vector_forecast_id` = #{id} limit #{first}, #{size}
     </select>

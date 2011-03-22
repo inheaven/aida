@@ -23,7 +23,7 @@ public class VectorForecastData {
     public VectorForecastData() {
     }
 
-    public VectorForecastData(Long vectorForecastId, Date date, Date indexDate, int index, float price) {
+    public VectorForecastData(Long vectorForecastId, Date date, int index, Date indexDate, float price) {
         this.vectorForecastId = vectorForecastId;
         this.index = index;
         this.date = date;

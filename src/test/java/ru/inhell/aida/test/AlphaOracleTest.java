@@ -9,6 +9,7 @@ import org.ujmp.core.calculation.Calculation;
 import org.ujmp.core.enums.FileFormat;
 import ru.inhell.aida.entity.VectorForecast;
 import ru.inhell.aida.entity.VectorForecastData;
+import ru.inhell.aida.entity.VectorForecastFilter;
 import ru.inhell.aida.mybatis.SqlSessionFactory;
 import ru.inhell.aida.ssa.VectorForecastSSA;
 
@@ -90,7 +91,7 @@ public class AlphaOracleTest {
 
         sm = SqlSessionFactory.getSessionManager();
 
-        VectorForecast entity = new VectorForecast(contract, "minute", start.getTime(), end.getTime(), N, L, P, M, new Date());
+        VectorForecast entity = new VectorForecast(contract,VectorForecast.INTERVAL.ONE_MINUTE, N, L, P, M, new Date());
         save(entity);
 
         sm.startManagedSession();
@@ -115,6 +116,7 @@ public class AlphaOracleTest {
                     list.add(new VectorForecastData(entity.getId(),
                             sdf.parse(importFromCsv.getAsString(now, 2) + " " + importFromCsv.getAsString(now, 3)),
                             index,
+                            sdf.parse(importFromCsv.getAsString(now + index, 2) + " " + importFromCsv.getAsString(now + index, 3)),
                             f[N + index]));
                 }else{
                     log.warn("NAN hit: " +  importFromCsv.getAsString(now, 2) + " " + importFromCsv.getAsString(now, 3));
@@ -149,11 +151,11 @@ public class AlphaOracleTest {
     public void extremum(int n, int l){
         sm = SqlSessionFactory.getSessionManager();
 
-        VectorForecast example = new VectorForecast();
-        example.setN(n);
-        example.setL(l);
+        VectorForecastFilter filter = new VectorForecastFilter();
+        filter.setN(n);
+        filter.setL(l);
 
-        List<VectorForecast> entities = getVectorForecastEntities(example);
+        List<VectorForecast> entities = getVectorForecasts(filter);
 
         for (VectorForecast entity : entities) {
             long count = getCount(entity);
@@ -162,10 +164,13 @@ public class AlphaOracleTest {
             int pages = (int) (count/BUFFER_SIZE);
 
             for (int i = 0; i < pages; ++i){
-                entity.setFirst(i*BUFFER_SIZE);
-                entity.setSize(BUFFER_SIZE);
+                VectorForecastFilter filter1 = new VectorForecastFilter();
+                //todo add filter
 
-                List<VectorForecastData> data = getVectorForecastData(entity);
+//                entity.setFirst(i*BUFFER_SIZE);
+//                entity.setSize(BUFFER_SIZE);
+
+                List<VectorForecastData> data = getVectorForecastData(filter1);
 
                 int len = data.size() - 20;
 
@@ -242,13 +247,13 @@ public class AlphaOracleTest {
     }
 
     @SuppressWarnings({"unchecked"})
-    private List<VectorForecastData> getVectorForecastData(VectorForecast entity){
-        return sm.selectList(NS + ".selectVectorForecastData", entity);
+    private List<VectorForecastData> getVectorForecastData(VectorForecastFilter filter){
+        return sm.selectList(NS + ".selectVectorForecastData", filter);
     }
 
     @SuppressWarnings({"unchecked"})
-    private List<VectorForecast> getVectorForecastEntities(VectorForecast example){
-        return sm.selectList(NS + ".selectVectorForecastEntities", example);
+    private List<VectorForecast> getVectorForecasts(VectorForecastFilter filter){
+        return sm.selectList(NS + ".selectVectorForecasts", filter);
     }
 
     private Long getCount(VectorForecast entity){

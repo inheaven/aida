@@ -3,6 +3,7 @@ package ru.inhell.aida.oracle;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.apache.ibatis.session.SqlSessionManager;
+import ru.inhell.aida.entity.AlphaOracle;
 import ru.inhell.aida.entity.AlphaOracleData;
 import ru.inhell.aida.entity.Quote;
 import ru.inhell.aida.entity.VectorForecast;
@@ -12,10 +13,7 @@ import ru.inhell.aida.util.DateUtil;
 import ru.inhell.aida.util.QuoteUtil;
 import ru.inhell.aida.util.VectorForecastUtil;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -26,21 +24,35 @@ import java.util.concurrent.TimeUnit;
  */
 @Singleton
 public class AlphaOracleService {
+    private final static int CORE_POOL_SIZE = 2;
+    private final static int PERIOD = 30;
+
     @Inject
     private QuotesBean quotesBean;
 
     @Inject
     private VectorForecastBean vectorForecastBean;
 
-    private ScheduledThreadPoolExecutor executor;
-    private Map<String, ScheduledFuture> scheduledFutures;
+    @Inject
+    private AlphaOracleBean alphaOracleBean;
+
+    private ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(CORE_POOL_SIZE);
+    private Map<Long, ScheduledFuture> scheduledFutures = new LinkedHashMap<Long, ScheduledFuture>();
 
     private List<IAlphaOracleListener> listeners = new ArrayList<IAlphaOracleListener>();
 
-    private VectorForecastSSA vf1 = new VectorForecastSSA(1000, 200, 14, 5);
+    public ScheduledFuture process(Long alphaOracleId){
+        AlphaOracle alphaOracle = alphaOracleBean.getAlphaOracle(alphaOracleId);
 
-    public void process(String symbol){
-        executor.scheduleAtFixedRate(getCommand(new VectorForecast()), 0, 30, TimeUnit.SECONDS);
+        ScheduledFuture f = executor.scheduleAtFixedRate(getCommand(alphaOracle), 0, PERIOD, TimeUnit.SECONDS);
+
+        scheduledFutures.put(alphaOracleId, f);
+
+        return f;
+    }
+
+    public Collection<ScheduledFuture> getScheduledFutures(){
+        return scheduledFutures.values();
     }
 
     public void addListener(IAlphaOracleListener listener){
@@ -55,13 +67,11 @@ public class AlphaOracleService {
         //todo store history
     }
 
-    private VectorForecastSSA getVectorForecastSSA(VectorForecast vectorForecast){
-        return vf1;
-    }
-
-    private Runnable getCommand(final VectorForecast vectorForecast){
+    private Runnable getCommand(final AlphaOracle alphaOracle){
         return new Runnable() {
-            VectorForecastSSA vssa = getVectorForecastSSA(vectorForecast);
+            VectorForecast vectorForecast = alphaOracle.getVectorForecast();
+
+            VectorForecastSSA vssa = vectorForecastBean.getVectorForecastSSA(vectorForecast);
             float[] forecast = new float[vssa.forecastSize()];
 
             @Override
