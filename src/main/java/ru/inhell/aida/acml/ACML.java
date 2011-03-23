@@ -55,6 +55,19 @@ public class ACML implements LAPACK, BLAS {
                 logger.config("ACML MP library is not found.");
             }
         }
+
+        if (!loaded){
+            try {
+                System.loadLibrary("acml_wrapper");
+
+                loaded = true;
+                logger.config("ACML library loaded successfully.");
+                System.out.println("ACML library loaded successfully.");
+            } catch (UnsatisfiedLinkError e) {
+                loaded = false;
+                logger.config("ACML library is not found.");
+            }
+        }
     }
 
     @Override

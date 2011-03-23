@@ -14,7 +14,6 @@ public class VectorForecastUtil {
             return false;
         }
 
-
         for (int i = 0; i < delta; ++i){
             if (data.get(index + i).getPrice() <= data.get(index + i + 1).getPrice()) return false;
             if (data.get(index - i).getPrice() <= data.get(index - i - 1).getPrice()) return false;
@@ -27,7 +26,6 @@ public class VectorForecastUtil {
         if (index + delta >= forecast.length || index - delta < 0){
             return false;
         }
-
 
         for (int i = 0; i < delta; ++i){
             if (forecast[index + i] <= forecast[index + i + 1]) return false;

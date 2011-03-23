@@ -55,10 +55,10 @@
     </insert>
 
     <insert id="insertVectorForecastData" parameterType="list">
-        insert into vector_forecast_data (`vector_forecast_id`, `date`, `index`, `index_date`, `price`)
+        insert into vector_forecast_data (`vector_forecast_id`, `date`, `index`, `index_date`, `price`, `type`)
         values
         <foreach collection="list" separator="," item="item">
-            (#{item.vectorForecastId}, #{item.date}, #{item.index}, #{item.indexDate}, #{item.price})
+            (#{item.vectorForecastId}, #{item.date}, #{item.index}, #{item.indexDate}, #{item.price}, #{item.type})
         </foreach>
     </insert>
 

@@ -38,11 +38,10 @@ public class VectorForecastBean {
     public void save(VectorForecast vectorForecast, List<Quote> quotes, float[] forecast){
         List<VectorForecastData> dataList = new ArrayList<VectorForecastData>();
 
-        for (int index = -vectorForecast.getM(); index < vectorForecast.getM(); ++index){
+        for (int index = -vectorForecast.getM(); index <= vectorForecast.getM(); ++index){
             Date date = quotes.get(vectorForecast.getN() - 1).getDate();
             Date indexDate = DateUtil.getOneMinuteIndexDate(date, index);
             float price = forecast[vectorForecast.getN() + index];
-            //todo check +-1
             dataList.add(new VectorForecastData(vectorForecast.getId(), date, index, indexDate, price));
         }
 
@@ -52,7 +51,7 @@ public class VectorForecastBean {
     }
 
     private void extremum(List<VectorForecastData> dataList){
-        for (int index = 5; index < dataList.size() - 5; ++index) {
+        for (int index = 5; index <= dataList.size() - 5; ++index) {
             VectorForecastData d = dataList.get(index);
 
             if (VectorForecastUtil.isMax(dataList, index, 5)){

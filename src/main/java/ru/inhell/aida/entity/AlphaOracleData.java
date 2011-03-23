@@ -18,6 +18,17 @@ public class AlphaOracleData {
     private PREDICTION prediction;
     private Date predicted;
 
+    public AlphaOracleData() {
+    }
+
+    public AlphaOracleData(Long alphaOracleId, Date date, float price, PREDICTION prediction, Date predicted) {
+        this.alphaOracleId = alphaOracleId;
+        this.date = date;
+        this.price = price;
+        this.prediction = prediction;
+        this.predicted = predicted;
+    }
+
     public Long getId() {
         return id;
     }

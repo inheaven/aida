@@ -68,7 +68,7 @@ create table `vector_forecast_data`(
   `index` int(10) not null,
   `index_date` datetime not null,
   `price` decimal(15,6) not null,
-  `type` varchar(10) not null,
+  `type` varchar(10),
   primary key (`id`),
   unique key `key_unique` (`vector_forecast_id`, `date`, `index`)
 ) engine=innodb default charset=cp1251;

@@ -2,7 +2,6 @@ package ru.inhell.aida.oracle;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.apache.ibatis.session.SqlSessionManager;
 import ru.inhell.aida.entity.AlphaOracle;
 import ru.inhell.aida.entity.AlphaOracleData;
 import ru.inhell.aida.entity.Quote;
@@ -63,8 +62,6 @@ public class AlphaOracleService {
         for (IAlphaOracleListener listener : listeners){
             listener.predicted(symbol, prediction, date, price);
         }
-
-        //todo store history
     }
 
     private Runnable getCommand(final AlphaOracle alphaOracle){
@@ -76,31 +73,48 @@ public class AlphaOracleService {
 
             @Override
             public void run() {
-                //load quotes
-                List<Quote> quotes = quotesBean.getQuotes(vectorForecast.getSymbol(), vectorForecast.getN());
-                float[] prices = QuoteUtil.getAveragePrices(quotes);
-
-                //process vssa
-                vssa.execute(prices, forecast);
-
-                //save vector forecast history
-                vectorForecastBean.save(vectorForecast, quotes, forecast);
-
-                //predict
-                AlphaOracleData.PREDICTION prediction = null;
-
-                if (VectorForecastUtil.isMin(forecast, vectorForecast.getN(), 5)){ //LONG
-                    prediction = AlphaOracleData.PREDICTION.LONG;
-                }else if (VectorForecastUtil.isMax(forecast, vectorForecast.getN(), 5)){ //SHORT
-                    prediction = AlphaOracleData.PREDICTION.SHORT;
-                }
-
-                if (prediction != null) {
-                    predicted(vectorForecast.getSymbol(), prediction,
-                            DateUtil.nextMinute(quotes.get(vectorForecast.getN() - 1).getDate()),
-                            forecast[vectorForecast.getN()]);
-                }
+                predict(alphaOracle, 1);
             }
         };
+    }
+
+    public void predict(final AlphaOracle alphaOracle, int count){
+        VectorForecast vf = alphaOracle.getVectorForecast();
+
+        VectorForecastSSA vssa = vectorForecastBean.getVectorForecastSSA(vf);
+        float[] forecast = new float[vssa.forecastSize()];
+
+        List<Quote> allQuotes = quotesBean.getQuotes(vf.getSymbol(), vf.getN() + count);
+
+        for (int index = 0; index < count; ++index) {
+            //load quotes
+            List<Quote> quotes = allQuotes.subList(index, vf.getN() + index);
+
+            float[] prices = QuoteUtil.getAveragePrices(quotes);
+
+            //process vssa
+            vssa.execute(prices, forecast);
+
+            //save vector forecast history
+            vectorForecastBean.save(vf, quotes, forecast);
+
+            //predict
+            AlphaOracleData.PREDICTION prediction = null;
+
+            if (VectorForecastUtil.isMin(forecast, vf.getN(), vf.getM())){ //LONG
+                prediction = AlphaOracleData.PREDICTION.LONG;
+            }else if (VectorForecastUtil.isMax(forecast, vf.getN(), vf.getM())){ //SHORT
+                prediction = AlphaOracleData.PREDICTION.SHORT;
+            }
+
+            if (prediction != null) {
+                //save prediction
+                alphaOracleBean.save(new AlphaOracleData(alphaOracle.getId(), quotes.get(vf.getN()-1).getDate(),
+                        forecast[vf.getN()-1], prediction, DateUtil.now()));
+
+                //fire listeners
+                predicted(vf.getSymbol(), prediction, quotes.get(vf.getN() - 1).getDate(), forecast[vf.getN() - 1]);
+            }
+        }
     }
 }
