@@ -6,12 +6,25 @@
         <association column="vector_forecast_id" property="vectorForecast" select="selectVectorForecast"/>
     </resultMap>
 
+    <resultMap id="alphaOracleDataResultMap" type="ru.inhell.aida.entity.AlphaOracleData">
+        <id column="id" property="id"/>
+        <result column="alpha_oracle_id" property="alphaOracleId"/>
+        <result column="date" property="date"/>
+        <result column="price" property="price"/>
+        <result column="prediction" property="prediction"/>
+        <result column="predicted" property="predicted"/>
+    </resultMap>
+
     <select id="selectAlphaOracle" parameterType="long">
         select * from `alpha_oracle` where `id` = #{id}
     </select>
 
     <select id="selectAlphaOracles" resultMap="alphaOracleResultMap">
         select * from `alpha_oracle`
+    </select>
+
+    <select id="selectAlphaOracleDatas" resultMap="alphaOracleDataResultMap" parameterType="map">
+        select * from `alpha_oracle_data` where `alpha_oracle_id` = #{alphaOracleId} and `date` >= #{fromDate}
     </select>
 
     <insert id="insertAlphaOracle" parameterType="ru.inhell.aida.entity.AlphaOracle">

@@ -5,6 +5,9 @@ import org.apache.ibatis.session.SqlSessionManager;
 import ru.inhell.aida.entity.AlphaOracle;
 import ru.inhell.aida.entity.AlphaOracleData;
 
+import javax.management.monitor.StringMonitor;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -27,6 +30,14 @@ public class AlphaOracleBean {
     @SuppressWarnings({"unchecked"})
     public List<AlphaOracle> getAlphaOracles(){
         return session.selectList(NS + ".selectAlphaOracles");
+    }
+
+    @SuppressWarnings({"unchecked"})
+    public List<AlphaOracleData> getAlphaOracleDatas(final Long alphaOracleId, final Date fromDate){
+        return session.selectList(NS + ".selectAlphaOracleDatas", new HashMap<String, Object>(){{
+            put("alphaOracleId", alphaOracleId);
+            put("fromDate", fromDate);
+        }});
     }
 
     public void save(AlphaOracle alphaOracle){

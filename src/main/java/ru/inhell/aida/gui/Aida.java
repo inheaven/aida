@@ -10,7 +10,7 @@ import java.awt.*;
 public class Aida {
     public static void main(String... args){
         //Frame
-        JFrame frame = new JFrame();
+        JFrame frame = new JFrame("Aida");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         JPanel root = new JPanel(new BorderLayout());

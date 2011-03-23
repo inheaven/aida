@@ -96,7 +96,11 @@ public class AlphaOracleService {
             vssa.execute(prices, forecast);
 
             //save vector forecast history
-            vectorForecastBean.save(vf, quotes, forecast);
+            try {
+                vectorForecastBean.save(vf, quotes, forecast);
+            } catch (Exception e) {
+                //skip duplicates
+            }
 
             //predict
             AlphaOracleData.PREDICTION prediction = null;
@@ -109,8 +113,12 @@ public class AlphaOracleService {
 
             if (prediction != null) {
                 //save prediction
-                alphaOracleBean.save(new AlphaOracleData(alphaOracle.getId(), quotes.get(vf.getN()-1).getDate(),
-                        forecast[vf.getN()-1], prediction, DateUtil.now()));
+                try {
+                    alphaOracleBean.save(new AlphaOracleData(alphaOracle.getId(), quotes.get(vf.getN()-1).getDate(),
+                            forecast[vf.getN()-1], prediction, DateUtil.now()));
+                } catch (Exception e) {
+                    //skip duplicates
+                }
 
                 //fire listeners
                 predicted(vf.getSymbol(), prediction, quotes.get(vf.getN() - 1).getDate(), forecast[vf.getN() - 1]);

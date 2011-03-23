@@ -29,22 +29,24 @@ create table `quotes`(
    unique key `key_symbol_date` (`symbol`, `date`)
  )  engine=innodb default charset=cp1251;
 
-drop trigger if exists `create_quotes`;
-delimiter $$
-    create trigger `create_quotes` after insert
-    on `all_trades`
-    for each row begin
-	set @date = timestamp(str_to_date(new.date, '%e.%c.%y'), date_format(new.time, '%h:%i:00'));	
-		
+DELIMITER $$
+DROP TRIGGER /*!50032 IF EXISTS */ `create_quotes`$$
+CREATE
+    /*!50017 DEFINER = 'root'@'localhost' */
+    TRIGGER `create_quotes` AFTER INSERT ON `all_trades`
+    FOR EACH ROW begin
+	set @date = timestamp(str_to_date(new.date, '%d.%m.%Y'), date_format(new.time, '%h:%i:00'));
+
 	if (select count(*) > 0 from `quotes_1min` where `date` = @date and `symbol` = new.symbol) then
-	    update `quotes_1min`  set `low` = if(`low` < new.price,`low`, new.price), `high` = if(`high` > new.price, `high`, new.price), 
-	        `close` = new.price, `volume` = `volume` + new.volume where `date` = @date and `symbol` = new.symbol;		
+	    update `quotes_1min`  set `low` = if(`low` < new.price,`low`, new.price), `high` = if(`high` > new.price, `high`, new.price),
+	        `close` = new.price, `volume` = `volume` + new.volume where `date` = @date and `symbol` = new.symbol;
 	else
-	    insert into `quotes_1min` (`symbol`, `date`, `open`, `low`, `high`, `close`, `volume`) 
-	        values (new.symbol, @date, new.price, new.price, new.price, new.price, new.volume);		
+	    insert into `quotes_1min` (`symbol`, `date`, `open`, `low`, `high`, `close`, `volume`)
+	        values (new.symbol, @date, new.price, new.price, new.price, new.price, new.volume);
 	end if;
-    end$$
-delimiter ;
+    end;
+$$
+DELIMITER ;
 
 drop table if exists `vector_forecast`;
 create table `vector_forecast`(
