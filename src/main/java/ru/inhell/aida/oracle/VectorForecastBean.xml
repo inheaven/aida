@@ -65,4 +65,8 @@
     <update id="updateVectorForecastData" parameterType="ru.inhell.aida.entity.VectorForecastData">
         update `vector_forecast_data` set `type` = #{type} where `id` = #{id}
     </update>
+
+    <select id="selectLastVectorForecastDataDate" parameterType="long" resultType="date">
+        select max(`date`) from `vector_forecast_data` where `vector_forecast_id` = #{vectorForecastId}
+    </select>
 </mapper>

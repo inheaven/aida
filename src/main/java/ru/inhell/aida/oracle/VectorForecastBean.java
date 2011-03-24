@@ -24,7 +24,7 @@ import static ru.inhell.aida.entity.VectorForecastData.TYPE.MIN20;
  */
 public class VectorForecastBean {
     @Inject
-    private SqlSessionManager session;
+    private SqlSessionManager sm;
 
     @Inject
     private VectorForecastSSAService vectorForecastSSAService;
@@ -95,34 +95,34 @@ public class VectorForecastBean {
     }
 
     public void save(VectorForecast entity){
-        session.insert(NS + ".insertVectorForecast", entity);
+        sm.insert(NS + ".insertVectorForecast", entity);
     }
 
     public void save(List<VectorForecastData> dataList){
-        session.insert(NS + ".insertVectorForecastData", dataList);
+        sm.insert(NS + ".insertVectorForecastData", dataList);
     }
 
     @SuppressWarnings({"unchecked"})
     public List<VectorForecastData> getVectorForecastData(VectorForecast entity){
-        return session.selectList(NS + ".selectVectorForecastData", entity);
+        return sm.selectList(NS + ".selectVectorForecastData", entity);
     }
 
     @SuppressWarnings({"unchecked"})
     public List<VectorForecast> getVectorForecasts(VectorForecastFilter filter){
-        return session.selectList(NS + ".selectVectorForecasts", filter);
+        return sm.selectList(NS + ".selectVectorForecasts", filter);
     }
 
     public Long getCount(VectorForecast entity){
-        return (Long) session.selectOne(NS + ".selectVectorForecastDataCount", entity);
+        return (Long) sm.selectOne(NS + ".selectVectorForecastDataCount", entity);
     }
 
     public void update(VectorForecastData type){
-        session.update(NS + ".updateVectorForecastData", type);
+        sm.update(NS + ".updateVectorForecastData", type);
     }
 
     public VectorForecast getOrCreateVectorForecast(String symbol, VectorForecast.INTERVAL interval,
                                                     int n, int l, int p, int m){
-        VectorForecast vectorForecast = (VectorForecast) session.selectOne(NS + ".selectVectorForecast",
+        VectorForecast vectorForecast = (VectorForecast) sm.selectOne(NS + ".selectVectorForecast",
                 new VectorForecastFilter(symbol, interval, n, l, p, m));
 
         if (vectorForecast == null){
@@ -131,5 +131,9 @@ public class VectorForecastBean {
         }
 
         return vectorForecast;
+    }
+
+    public Date getLastVectorForecastDataDate(Long vectorForecastId){
+        return (Date) sm.selectOne(NS + ".selectLastVectorForecastDataDate", vectorForecastId);
     }
 }

@@ -6,6 +6,7 @@ import ru.inhell.aida.entity.Quote;
 import ru.inhell.aida.entity.QuoteFilter;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -21,5 +22,9 @@ public class QuotesBean {
     @SuppressWarnings({"unchecked"})
     public List<Quote> getQuotes(String symbol, int count){
         return sm.selectList(NS + ".selectQuotes", new QuoteFilter(symbol, count));
+    }
+
+    public Date getLastQuoteDate(String symbol){
+        return (Date) sm.selectOne(NS + ".selectLastQuoteDate", symbol);
     }
 }

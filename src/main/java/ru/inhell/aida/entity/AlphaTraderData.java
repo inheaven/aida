@@ -12,8 +12,8 @@ public class AlphaTraderData {
     private Long id;
     private Long alphaTraderId;
     private Date date;
-    private ORDER order;
     private float price;
+    private ORDER order;
 
     public Long getId() {
         return id;
@@ -39,19 +39,19 @@ public class AlphaTraderData {
         this.date = date;
     }
 
-    public ORDER getOrder() {
-        return order;
-    }
-
-    public void setOrder(ORDER order) {
-        this.order = order;
-    }
-
     public float getPrice() {
         return price;
     }
 
     public void setPrice(float price) {
         this.price = price;
+    }
+
+    public ORDER getOrder() {
+        return order;
+    }
+
+    public void setOrder(ORDER order) {
+        this.order = order;
     }
 }

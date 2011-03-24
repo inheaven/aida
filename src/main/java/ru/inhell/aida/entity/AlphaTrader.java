@@ -7,7 +7,8 @@ package ru.inhell.aida.entity;
 public class AlphaTrader {
     private Long id;
     private Long alphaOracleId;
-    private Long vectorForecastId;
+    private String symbol;
+    private int quantity;
     private float balance;
 
     public Long getId() {
@@ -26,12 +27,20 @@ public class AlphaTrader {
         this.alphaOracleId = alphaOracleId;
     }
 
-    public Long getVectorForecastId() {
-        return vectorForecastId;
+    public String getSymbol() {
+        return symbol;
     }
 
-    public void setVectorForecastId(Long vectorForecastId) {
-        this.vectorForecastId = vectorForecastId;
+    public void setSymbol(String symbol) {
+        this.symbol = symbol;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
     }
 
     public float getBalance() {

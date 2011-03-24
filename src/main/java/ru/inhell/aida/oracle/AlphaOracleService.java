@@ -66,14 +66,12 @@ public class AlphaOracleService {
 
     private Runnable getCommand(final AlphaOracle alphaOracle){
         return new Runnable() {
-            VectorForecast vectorForecast = alphaOracle.getVectorForecast();
-
-            VectorForecastSSA vssa = vectorForecastBean.getVectorForecastSSA(vectorForecast);
-            float[] forecast = new float[vssa.forecastSize()];
-
             @Override
             public void run() {
-                predict(alphaOracle, 1);
+                Date last = vectorForecastBean.getLastVectorForecastDataDate(alphaOracle.getVectorForecast().getId());
+                Date lastQuote = quotesBean.getLastQuoteDate(alphaOracle.getVectorForecast().getSymbol());
+
+                predict(alphaOracle, (int) DateUtil.getMinuteShift(lastQuote, last));
             }
         };
     }

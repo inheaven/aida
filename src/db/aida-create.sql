@@ -9,6 +9,7 @@ create table  `all_trades` (
   `quantity` int(10) unsigned not null,
   `volume` decimal(15,2) not null,
   `transaction` varchar(10) not null,
+  `created` timestamp default current_timestamp,
   primary key (`id`),
   key `key_transaction` (`transaction_id`),
   key `key_date_time` (`date`,`time`),
@@ -25,6 +26,7 @@ create table `quotes`(
    `low` decimal(15,6) not null,
    `close` decimal(15,6) not null,
    `volume` decimal(15,2) not null,
+   `created` timestamp default current_timestamp,
    primary key (`id`),
    unique key `key_symbol_date` (`symbol`, `date`)
  )  engine=innodb default charset=cp1251;
@@ -57,7 +59,7 @@ create table `vector_forecast`(
    `l` int(10) not null,
    `p` int(10) not null,
    `m` int(10) not null,
-   `created` datetime not null,
+   `created` timestamp default current_timestamp,
    primary key (`id`),
    unique key `key_unique` (`symbol`, `interval`, `n`, `l`, `p`, `m`)
 ) engine=innodb default charset=cp1251;
@@ -71,6 +73,7 @@ create table `vector_forecast_data`(
   `index_date` datetime not null,
   `price` decimal(15,6) not null,
   `type` varchar(10),
+  `created` timestamp default current_timestamp,
   primary key (`id`),
   unique key `key_unique` (`vector_forecast_id`, `date`, `index`)
 ) engine=innodb default charset=cp1251;
@@ -79,7 +82,7 @@ drop table if exists `alpha_oracle`;
 create table `alpha_oracle`(
   `id` bigint unsigned not null auto_increment,
   `vector_forecast_id` bigint unsigned not null,
-  `created` datetime not null,
+  `created` timestamp default current_timestamp,
   primary key (`id`)
 ) engine=innodb default charset=cp1251;
 
@@ -91,6 +94,7 @@ create table `alpha_oracle_data`(
   `price` decimal(15,6) not null,
   `prediction` varchar(10) not null,
   `predicted` datetime not null,
+  `created` timestamp default current_timestamp,
   primary key (`id`),
   unique key `key_unique` (`alpha_oracle_id`, `date`)
 ) engine=innodb default charset=cp1251;

@@ -26,4 +26,7 @@ public class DateUtil {
         return calendar.getTime();
     }
 
+    public static long getMinuteShift(Date from, Date to){
+        return (from.getTime() - to.getTime())/1000/60;
+    }
 }

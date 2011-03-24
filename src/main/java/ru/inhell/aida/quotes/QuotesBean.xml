@@ -17,4 +17,8 @@
             (select * from `quotes_1min` where `symbol` = #{symbol} order by `date` desc limit #{count}) as q
         order by q.`date` asc
     </select>
+
+    <select id="selectLastQuoteDate" parameterType="string" resultType="date">
+        select max(`date`) from `quotes_1min` where `symbol` = #{symbol}
+    </select>
 </mapper>
