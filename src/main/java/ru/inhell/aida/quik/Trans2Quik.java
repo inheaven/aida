@@ -1,6 +1,8 @@
 package ru.inhell.aida.quik;
 
 import com.sun.jna.*;
+import com.sun.jna.ptr.DoubleByReference;
+import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.LongByReference;
 import com.sun.jna.win32.StdCallLibrary;
 
@@ -69,7 +71,7 @@ public interface Trans2Quik extends Library{
      *         TRANS2QUIK_DLL_NOT_CONNECTED – попытка разорвать соединение при не установленной связи. В этом случае
      *             в pnExtendedErrorCode может передаваться дополнительный код ошибки
      */
-    NativeLong TRANS2QUIK_DISCONNECT(NativeLong pnExtendedErrorCode, String lpstrErrorMessage, int dwErrorMessageSize);
+    NativeLong TRANS2QUIK_DISCONNECT(LongByReference pnExtendedErrorCode, String lpstrErrorMessage, Integer dwErrorMessageSize);
 
     /**
      * Функция используется для проверки наличия соединения между терминалом QUIK и сервером
@@ -83,7 +85,7 @@ public interface Trans2Quik extends Library{
      *         TRANS2QUIK_DLL_NOT_CONNECTED – не установлена связь библиотеки Trans2QUIK.dll с терминалом QUIK.
      *             В этом случае проверить наличие или отсутствие связи терминала QUIK с сервером невозможно
      */
-    long TRANS2QUIK_IS_QUIK_CONNECTED(NativeLong pnExtendedErrorCode, String lpstrErrorMessage, NativeLong dwErrorMessageSize);
+    NativeLong TRANS2QUIK_IS_QUIK_CONNECTED(LongByReference pnExtendedErrorCode, String lpstrErrorMessage, Integer dwErrorMessageSize);
 
     /**
      * Функция используется для проверки наличия соединения между библиотекой Trans2QUIK.dll и терминалом QUIK.
@@ -95,7 +97,7 @@ public interface Trans2Quik extends Library{
      *         TRANS2QUIK_DLL_CONNECTED – соединение библиотеки Trans2QUIK.dll с терминалом QUIK установлено,
      *         TRANS2QUIK_DLL_NOT_CONNECTED – не установлена связь библиотеки Trans2QUIK.dll с терминалом QUIK
      */
-    NativeLong TRANS2QUIK_IS_DLL_CONNECTED(long pnExtendedErrorCode, String lpstrErrorMessage, long dwErrorMessageSize);
+    NativeLong TRANS2QUIK_IS_DLL_CONNECTED(LongByReference pnExtendedErrorCode, String lpstrErrorMessage, Integer dwErrorMessageSize);
 
     /**
      * Синхронная отправка транзакции. При синхронной отправке возврат из функции происходит только после получения
@@ -119,9 +121,11 @@ public interface Trans2Quik extends Library{
      *         TRANS2QUIK_QUIK_NOT_CONNECTED – отсутствует соединение между терминалом QUIK и сервером,
      *         TRANS2QUIK_FAILED – в pnExtendedErrorCode в этом случае может передаваться дополнительный код ошибки
      */
-    NativeLong TRANS2QUIK_SEND_SYNC_TRANSACTION(String lpstTransactionString, NativeLong pnReplyCode, int pdwTransId,
-                                                double pdOrderNum, String lpstrResultMessage, int dwResultMessageSize,
-                                                NativeLong pnExtendedErrorCode, String lpstErrorMessage, int dwErrorMessageSize);
+    NativeLong TRANS2QUIK_SEND_SYNC_TRANSACTION(String lpstTransactionString, LongByReference pnReplyCode,
+                                                IntByReference pdwTransId, DoubleByReference pdOrderNum,
+                                                String lpstrResultMessage, Integer dwResultMessageSize,
+                                                LongByReference pnExtendedErrorCode,
+                                                String lpstErrorMessage, Integer dwErrorMessageSize);
 
     /**
      * Асинхронная передача транзакции. При отправке асинхронной транзакции возврат из функции происходит сразу же,
@@ -140,7 +144,7 @@ public interface Trans2Quik extends Library{
      *         TRANS2QUIK_FAILED – транзакцию отправить не удалось. В этом случае в пере­менную pnExtendedErrorCode
      *             может передаваться дополнительный код ошибки
      */
-    NativeLong TRANS2QUIK_SEND_ASYNC_TRANSACTION(String lpstTransactionString, long pnExtendedErrorCode,
+    NativeLong TRANS2QUIK_SEND_ASYNC_TRANSACTION(String lpstTransactionString, LongByReference pnExtendedErrorCode,
                                                  String lpstErrorMessage, int dwErrorMessageSize);
 
     /**
@@ -157,7 +161,7 @@ public interface Trans2Quik extends Library{
          * @param nExtendedErrorCode В случае возникновения ошибки может содержать расширенный код ошибки
          * @param lpstrInfoMessage В случае возникновения ошибки может получать сообщение о возникшей ошибке
          */
-        void invoke(long nConnectionEvent, long nExtendedErrorCode, String lpstrInfoMessage);
+        void invoke(LongByReference nConnectionEvent, LongByReference nExtendedErrorCode, String lpstrInfoMessage);
     }
 
     /**
@@ -173,7 +177,7 @@ public interface Trans2Quik extends Library{
      *             pnExtendedErrorCode может передаваться дополнительный код ошибки
      */
     NativeLong TRANS2QUIK_SET_CONNECTION_STATUS_CALLBACK(TRANS2QUIK_CONNECTION_STATUS_CALLBACK pfConnectionStatusCallback,
-                                                         long pnExtendedErrorCode, String lpstrErrorMessage,
+                                                         LongByReference pnExtendedErrorCode, String lpstrErrorMessage,
                                                          int dwErrorMessageSize);
 
     /**

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ru.inhell.aida.trader.AlphaTraderBean">
+    <resultMap id="alphaTraderResultMap" type="ru.inhell.aida.entity.AlphaTrader">
+        <id column="id" property="id"/>
+        <result column="alpha_oracle_id" property="alphaOracleId"/>
+        <result column="symbol" property="symbol"/>
+        <result column="quantity" property="quantity"/>
+        <result column="balance" property="balance"/>
+    </resultMap>
+
+    <resultMap id="alphaTraderDataResultMap" type="ru.inhell.aida.entity.AlphaTraderData">
+        <id column="id" property="id"/>
+        <result column="alpha_trader_id" property="alphaTraderId"/>
+        <result column="date" property="date"/>
+        <result column="price" property="price"/>
+        <result column="order" property="order"/>
+    </resultMap>
+
+    <select id="selectAlphaTraders" resultMap="alphaTraderResultMap">
+        select * from `alpha_trader`
+    </select>
+
+    <select id="selectAlphaTraderDatas" resultMap="alphaTraderDataResultMap" parameterType="long">
+        select * from `alpha_trader_data` where `alpha_trader_id` = #{alphaTraderId}
+    </select>
+
+    <insert id="insertAlphaTraderData" parameterType="ru.inhell.aida.entity.AlphaTraderData">
+        insert into `alpha_trader_data` (`alpha_trader_id`, `date`, `price`, `order`)
+            values (#{alphaTraderId}, #{date}, #{price}, #{order})
+    </insert>
+
+    <update id="updateAlphaTrader" parameterType="ru.inhell.aida.entity.AlphaTrader">
+        update `alpha_trader` set `quantity` = #{quantity}, `balance` = #{balance} where `id` = #{id}
+    </update>
+</mapper>

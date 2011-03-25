@@ -1,4 +1,4 @@
-package ru.inhell.aida.trader;
+package ru.inhell.aida.test;
 
 import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSessionManager;
@@ -21,10 +21,10 @@ import java.util.List;
  * User: Anatoly A. Ivanov java@inhell.ru
  * Date: 03.01.11 14:52
  */
-public class AlphaTrader {
-    private static Logger log = LoggerFactory.getLogger(AlphaTrader.class);
+public class AlphaTraderTest {
+    private static Logger log = LoggerFactory.getLogger(AlphaTraderTest.class);
 
-    private final static String NS = AlphaTrader.class.getName();
+    private final static String NS = AlphaTraderTest.class.getName();
 
     private static int BUFFER_SIZE = 64000;
 
@@ -33,7 +33,7 @@ public class AlphaTrader {
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd HHmmss");
 
     public static void main(String... args) throws IOException, ParseException {
-         new AlphaTrader().importQuotes();
+         new AlphaTraderTest().importQuotes();
     }
 
     private void importQuotes() throws IOException, ParseException {

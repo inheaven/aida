@@ -43,9 +43,13 @@ public class AlphaOracleService {
     public ScheduledFuture process(Long alphaOracleId){
         AlphaOracle alphaOracle = alphaOracleBean.getAlphaOracle(alphaOracleId);
 
-        ScheduledFuture f = executor.scheduleAtFixedRate(getCommand(alphaOracle), 0, PERIOD, TimeUnit.SECONDS);
+        ScheduledFuture f = scheduledFutures.get(alphaOracleId);
 
-        scheduledFutures.put(alphaOracleId, f);
+        if (f == null){
+            f = executor.scheduleAtFixedRate(getCommand(alphaOracle), 0, PERIOD, TimeUnit.SECONDS);
+
+            scheduledFutures.put(alphaOracleId, f);
+        }
 
         return f;
     }
