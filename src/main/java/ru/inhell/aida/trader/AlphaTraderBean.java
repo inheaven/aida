@@ -28,10 +28,14 @@ public class AlphaTraderBean {
     }
 
     public void save(AlphaTraderData alphaTraderData){
-        sm.insert(NS + ".insertAlphaTraderData", alphaTraderData);
+        if (alphaTraderData.getId() == null){
+            sm.insert(NS + ".insertAlphaTraderData", alphaTraderData);
+        }else{
+            sm.update(NS + ".updateAlphaTraderData", alphaTraderData);
+        }
     }
 
     public void update(AlphaTrader alphaTrader){
-        sm.insert(NS + ".updateAlphaTrader", alphaTrader);
+        sm.update(NS + ".updateAlphaTrader", alphaTrader);
     }
 }

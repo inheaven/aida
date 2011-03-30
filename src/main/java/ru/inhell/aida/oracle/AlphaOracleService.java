@@ -62,9 +62,9 @@ public class AlphaOracleService {
         listeners.add(listener);
     }
 
-    private void predicted(String symbol, AlphaOracleData.PREDICTION prediction, Date date, float price){
+    private void predicted(AlphaOracle alphaOracle, String symbol, AlphaOracleData.PREDICTION prediction, Date date, float price){
         for (IAlphaOracleListener listener : listeners){
-            listener.predicted(symbol, prediction, date, price);
+            listener.predicted(alphaOracle, symbol, prediction, date, price);
         }
     }
 
@@ -123,7 +123,7 @@ public class AlphaOracleService {
                 }
 
                 //fire listeners
-                predicted(vf.getSymbol(), prediction, quotes.get(vf.getN() - 1).getDate(), forecast[vf.getN() - 1]);
+                predicted(alphaOracle, vf.getSymbol(), prediction, quotes.get(vf.getN() - 1).getDate(), forecast[vf.getN() - 1]);
             }
         }
     }

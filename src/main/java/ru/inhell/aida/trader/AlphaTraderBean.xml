@@ -29,6 +29,10 @@
         insert into `alpha_trader_data` (`alpha_trader_id`, `date`, `price`, `order`)
             values (#{alphaTraderId}, #{date}, #{price}, #{order})
     </insert>
+    
+    <update id="updateAlphaTraderData" parameterType="ru.inhell.aida.entity.AlphaTraderData">
+        update `alpha_trader_data` set ``
+    </update>
 
     <update id="updateAlphaTrader" parameterType="ru.inhell.aida.entity.AlphaTrader">
         update `alpha_trader` set `quantity` = #{quantity}, `balance` = #{balance} where `id` = #{id}

@@ -15,4 +15,8 @@ public class QuikTransactionException extends Exception{
     public String getMessage() {
         return quikTransaction.toString();
     }
+
+    public QuikTransaction getQuikTransaction() {
+        return quikTransaction;
+    }
 }

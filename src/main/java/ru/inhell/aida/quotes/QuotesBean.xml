@@ -21,4 +21,8 @@
     <select id="selectLastQuoteDate" parameterType="string" resultType="date">
         select max(`date`) from `quotes_1min` where `symbol` = #{symbol}
     </select>
-</mapper>
+
+    <select id="selectClosePrice" parameterType="string" resultType="float">
+        select `close` from `quotes_1min` where `symbol` = #{symbol} order by `date` desc limit 1
+    </select>
+ </mapper>

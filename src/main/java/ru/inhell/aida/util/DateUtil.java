@@ -4,6 +4,7 @@ import ru.inhell.aida.entity.VectorForecast;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
@@ -13,6 +14,11 @@ public class DateUtil {
     public static Date now(){
         return new Date();
     }
+
+    public static Date nowMsk(){
+        return Calendar.getInstance(TimeZone.getTimeZone("GMT+3:00")).getTime();
+    }
+
 
     public static Date nextMinute(Date date){
         return getOneMinuteIndexDate(date, 1);
@@ -29,4 +35,6 @@ public class DateUtil {
     public static long getMinuteShift(Date from, Date to){
         return (from.getTime() - to.getTime())/1000/60;
     }
+
+
 }

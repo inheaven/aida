@@ -16,8 +16,8 @@ create table  `all_trades` (
   key `key_symbol` (`symbol`)
 ) engine=innodb default charset=cp1251;
 
-drop table if exists `quotes`;
-create table `quotes`(
+drop table if exists `quotes_1min`;
+create table `quotes_1min`(
    `id` bigint unsigned not null auto_increment,
    `symbol` varchar(10) not null,
    `date` datetime not null,

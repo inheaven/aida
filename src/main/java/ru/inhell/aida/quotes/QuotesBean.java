@@ -27,4 +27,10 @@ public class QuotesBean {
     public Date getLastQuoteDate(String symbol){
         return (Date) sm.selectOne(NS + ".selectLastQuoteDate", symbol);
     }
+
+    public float getClosePrice(String symbol){
+        return (Float) sm.selectOne(NS + ".selectClosePrice", symbol);
+    }
+
+
 }
