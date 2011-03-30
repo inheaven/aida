@@ -7,11 +7,19 @@ package ru.inhell.aida.quik;
 public class QuikException extends Exception{
     private QuikMessage quikMessage;
 
+    public QuikException() {
+    }
+
     public QuikException(QuikMessage quikMessage) {
         this.quikMessage = quikMessage;
     }
 
     public QuikMessage getQuikMessage() {
         return quikMessage;
+    }
+
+    @Override
+    public String getMessage() {
+        return quikMessage.result.intValue() + ": " + quikMessage.code.getValue() + ": " +quikMessage.message;
     }
 }

@@ -13,7 +13,7 @@ import java.util.HashMap;
  *         Date: 04.03.11 11:57
  */
 public interface Trans2Quik extends Library{
-    Trans2Quik INSTANCE = (Trans2Quik) Native.loadLibrary("c:\\lib\\TRANS2QUIK", Trans2Quik.class,
+    Trans2Quik INSTANCE = (Trans2Quik) Native.loadLibrary("TRANS2QUIK", Trans2Quik.class,
             new HashMap<Object, Object>(){{
                 put(Library.OPTION_FUNCTION_MAPPER, StdCallLibrary.FUNCTION_MAPPER);
                 put(Library.OPTION_CALLING_CONVENTION, Function.C_CONVENTION);

@@ -4,6 +4,7 @@ import com.sun.jna.Function;
 import com.sun.jna.Library;
 import com.sun.jna.NativeLibrary;
 import com.sun.jna.NativeLong;
+import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.LongByReference;
 import com.sun.jna.win32.StdCallLibrary;
 import ru.inhell.aida.quik.Trans2Quik;
@@ -31,7 +32,7 @@ public class QuikTest {
             public void actionPerformed(ActionEvent e) {
                 LongByReference pnExtendedErrorCode = new LongByReference();
                 String lpstrErrorMessage = "";
-                Integer dwErrorMessageSize = 0;
+                Integer dwErrorMessageSize = 256;
 
                 NativeLong code = Trans2Quik.INSTANCE.TRANS2QUIK_CONNECT("C:\\Anatoly\\QUIK\\", pnExtendedErrorCode,
                         lpstrErrorMessage, dwErrorMessageSize);
