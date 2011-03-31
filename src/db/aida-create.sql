@@ -98,3 +98,29 @@ create table `alpha_oracle_data`(
   primary key (`id`),
   unique key `key_unique` (`alpha_oracle_id`, `date`)
 ) engine=innodb default charset=cp1251;
+
+drop table if exists `alpha_trader`;
+create table `alpha_trader`(
+  `id` bigint unsigned not null auto_increment,
+  `alpha_oracle_id` bigint unsigned not null,
+  `symbol` varchar(10) not null,
+  `quantity` int not null,
+  `balance` decimal(15,2),
+  `created` timestamp default current_timestamp,
+  primary key (`id`)
+) engine=innodb default charset=cp1251;
+
+drop table if exists `alpha_trader_data`;
+create table `alpha_trader_data`(
+  `id` bigint unsigned not null auto_increment,
+  `alpha_trader_id` bigint unsigned not null,
+  `date` datetime not null,
+  `price` decimal(15,6) not null,
+  `order` varchar(10) not null,
+  `order_num` bigint unsigned,
+  `result` int,
+  `reply_code` int,
+  `predicted` datetime not null,
+  `created` timestamp default current_timestamp,
+  primary key (`id`)
+) engine=innodb default charset=cp1251;

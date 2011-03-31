@@ -15,10 +15,17 @@
         <result column="date" property="date"/>
         <result column="price" property="price"/>
         <result column="order" property="order"/>
+        <result column="order_num" property="orderNum"/>
+        <result column="result" property="result"/>
+        <result column="reply_code" property="replyCode"/>
     </resultMap>
 
     <select id="selectAlphaTraders" resultMap="alphaTraderResultMap">
         select * from `alpha_trader`
+    </select>
+
+    <select id="selectAlphaTrader" resultMap="alphaTraderResultMap" parameterType="long">
+        select * from `alpha_trader` where `id` = #{id}
     </select>
 
     <select id="selectAlphaTraderDatas" resultMap="alphaTraderDataResultMap" parameterType="long">
@@ -31,7 +38,7 @@
     </insert>
     
     <update id="updateAlphaTraderData" parameterType="ru.inhell.aida.entity.AlphaTraderData">
-        update `alpha_trader_data` set ``
+        update `alpha_trader_data` set `result` = #{result}, `reply_code` = #{replyCode}, `order_num` = #{orderNum}
     </update>
 
     <update id="updateAlphaTrader" parameterType="ru.inhell.aida.entity.AlphaTrader">

@@ -14,11 +14,10 @@ import org.jfree.data.xy.DefaultHighLowDataset;
 import org.jfree.data.xy.OHLCDataset;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.ui.RectangleInsets;
-import ru.inhell.aida.entity.AlphaOracle;
-import ru.inhell.aida.entity.AlphaOracleData;
-import ru.inhell.aida.entity.Quote;
+import ru.inhell.aida.entity.*;
 import ru.inhell.aida.inject.AidaInjector;
 import ru.inhell.aida.oracle.AlphaOracleBean;
+import ru.inhell.aida.oracle.VectorForecastBean;
 import ru.inhell.aida.quotes.QuotesBean;
 
 import javax.swing.*;
@@ -39,6 +38,7 @@ public class AlphaOracleChart extends JPanel{
 
         final QuotesBean quotesBean = AidaInjector.getInstance(QuotesBean.class);
         final AlphaOracleBean alphaOracleBean = AidaInjector.getInstance(AlphaOracleBean.class);
+        final VectorForecastBean vectorForecastBean = AidaInjector.getInstance(VectorForecastBean.class);
 
         final List<AlphaOracle> alphaOracles = alphaOracleBean.getAlphaOracles();
 
@@ -67,6 +67,13 @@ public class AlphaOracleChart extends JPanel{
 
         chart.getXYPlot().setDataset(1, timeSeriesCollection);
         chart.getXYPlot().setRenderer(1, new XYLineAndShapeRenderer());
+
+        //forecast
+        final TimeSeriesCollection forecast = new TimeSeriesCollection();
+        forecast.addSeries(new TimeSeries("forecast"));
+
+        chart.getXYPlot().setDataset(2, forecast);
+        chart.getXYPlot().setRenderer(2, new XYLineAndShapeRenderer(true, false));
 
         //executor
         ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
@@ -103,6 +110,14 @@ public class AlphaOracleChart extends JPanel{
                             }else if (d.getPrediction().equals(AlphaOracleData.PREDICTION.SHORT)){
                                 timeSeriesShort.addOrUpdate(new Minute(d.getDate()), d.getPrice());
                             }
+                        }
+
+//                        Long count = vectorForecastBean.getVectorForecastDataCount(
+//                                new VectorForecastFilter(ao.getVectorForecast().getId()));
+
+                        for (VectorForecastData vfd : vectorForecastBean.getVectorForecastData(
+                                new VectorForecastFilter(ao.getVectorForecast().getId()))){
+                                forecast.getSeries("forecast").addOrUpdate(new Minute(vfd.getDate()), vfd.getPrice());
                         }
                     }
                 } catch (Exception e) {

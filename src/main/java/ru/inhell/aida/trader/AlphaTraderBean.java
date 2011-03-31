@@ -22,6 +22,10 @@ public class AlphaTraderBean {
         return sm.selectList(NS + ".selectAlphaTraders");
     }
 
+    public AlphaTrader getAlphaTrader(Long id){
+        return (AlphaTrader) sm.selectOne(NS + ".selectAlphaTrader", id);
+    }
+
     @SuppressWarnings({"unchecked"})
     public List<AlphaTraderData> getAlphaTraderDatas(Long alphaTraderId){
         return sm.selectList(NS + ".selectAlphaTraderDatas", alphaTraderId);
@@ -35,7 +39,7 @@ public class AlphaTraderBean {
         }
     }
 
-    public void update(AlphaTrader alphaTrader){
+    public void save(AlphaTrader alphaTrader){
         sm.update(NS + ".updateAlphaTrader", alphaTrader);
     }
 }

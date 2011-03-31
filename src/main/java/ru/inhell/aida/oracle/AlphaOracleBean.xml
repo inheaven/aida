@@ -15,7 +15,7 @@
         <result column="predicted" property="predicted"/>
     </resultMap>
 
-    <select id="selectAlphaOracle" parameterType="long">
+    <select id="selectAlphaOracle" resultMap="alphaOracleResultMap" parameterType="long">
         select * from `alpha_oracle` where `id` = #{id}
     </select>
 

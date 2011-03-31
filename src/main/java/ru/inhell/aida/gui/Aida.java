@@ -1,5 +1,8 @@
 package ru.inhell.aida.gui;
 
+import ru.inhell.aida.inject.AidaInjector;
+import ru.inhell.aida.trader.AlphaTraderService;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -19,6 +22,7 @@ public class Aida {
         root.add(new AlphaOracleChart(), BorderLayout.CENTER);
         root.add(new AlphaOraclePanel(), BorderLayout.SOUTH);
 
+        AidaInjector.getInstance(AlphaTraderService.class).process(1L);
 
         frame.setLocationRelativeTo(null);
         frame.pack();

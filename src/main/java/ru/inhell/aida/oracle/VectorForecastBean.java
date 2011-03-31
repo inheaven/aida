@@ -103,8 +103,8 @@ public class VectorForecastBean {
     }
 
     @SuppressWarnings({"unchecked"})
-    public List<VectorForecastData> getVectorForecastData(VectorForecast entity){
-        return sm.selectList(NS + ".selectVectorForecastData", entity);
+    public List<VectorForecastData> getVectorForecastData(VectorForecastFilter filter){
+        return sm.selectList(NS + ".selectVectorForecastData", filter);
     }
 
     @SuppressWarnings({"unchecked"})
@@ -112,8 +112,8 @@ public class VectorForecastBean {
         return sm.selectList(NS + ".selectVectorForecasts", filter);
     }
 
-    public Long getCount(VectorForecast entity){
-        return (Long) sm.selectOne(NS + ".selectVectorForecastDataCount", entity);
+    public Long getVectorForecastDataCount(VectorForecastFilter filter){
+        return (Long) sm.selectOne(NS + ".selectVectorForecastDataCount", filter);
     }
 
     public void update(VectorForecastData type){

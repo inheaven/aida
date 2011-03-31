@@ -25,4 +25,9 @@
     <select id="selectClosePrice" parameterType="string" resultType="float">
         select `close` from `quotes_1min` where `symbol` = #{symbol} order by `date` desc limit 1
     </select>
+
+    <insert id="insertQuote" parameterType="ru.inhell.aida.entity.Quote">
+        insert into `quotes_1min` (`symbol`, `date`, `open`, `low`, `high`, `close`, `volume`)
+            values (#{symbol}, #{date}, #{open}, #{low}, #{high}, #{close}, #{volume})
+    </insert>
  </mapper>

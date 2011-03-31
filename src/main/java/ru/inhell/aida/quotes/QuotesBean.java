@@ -32,5 +32,7 @@ public class QuotesBean {
         return (Float) sm.selectOne(NS + ".selectClosePrice", symbol);
     }
 
-
+    public void save(Quote quote){
+        sm.insert(NS + ".insertQuote", quote);
+    }
 }

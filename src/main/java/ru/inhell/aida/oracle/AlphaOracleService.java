@@ -75,7 +75,11 @@ public class AlphaOracleService {
                 Date last = vectorForecastBean.getLastVectorForecastDataDate(alphaOracle.getVectorForecast().getId());
                 Date lastQuote = quotesBean.getLastQuoteDate(alphaOracle.getVectorForecast().getSymbol());
 
-                predict(alphaOracle, (int) DateUtil.getMinuteShift(lastQuote, last));
+                int n = alphaOracle.getVectorForecast().getN();
+                int d = (int) DateUtil.getMinuteShift(lastQuote, last);
+
+//                predict(alphaOracle, d > 0 && d < n ? d : n);
+                predict(alphaOracle, 1);
             }
         };
     }

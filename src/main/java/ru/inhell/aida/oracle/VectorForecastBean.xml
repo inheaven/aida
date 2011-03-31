@@ -41,10 +41,10 @@
 
     <select id="selectVectorForecastData" parameterType="ru.inhell.aida.entity.VectorForecastFilter"
             resultMap="vectorForecastDataResultMap">
-        select * from `vector_forecast_data` where `vector_forecast_id` = #{id} limit #{first}, #{size}
+           select * from `vector_forecast_data` where `vector_forecast_id` = #{id}
     </select>
 
-    <select id="selectVectorForecastDataCount" parameterType="ru.inhell.aida.entity.VectorForecast" resultType="long">
+    <select id="selectVectorForecastDataCount" parameterType="ru.inhell.aida.entity.VectorForecastFilter" resultType="long">
         select count(*) from `vector_forecast_data` where `vector_forecast_id` = #{id}
     </select>
 

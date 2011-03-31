@@ -33,6 +33,10 @@ public class DateUtil {
     }
 
     public static long getMinuteShift(Date from, Date to){
+        if (to == null || from == null){
+            return -1;
+        }
+
         return (from.getTime() - to.getTime())/1000/60;
     }
 

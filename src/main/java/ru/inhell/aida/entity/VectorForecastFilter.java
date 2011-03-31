@@ -7,6 +7,8 @@ import java.util.Date;
  *         Date: 21.03.11 18:00
  */
 public class VectorForecastFilter {
+    private Long id;
+
     private String symbol;
     private VectorForecast.INTERVAL interval;
     private int n;
@@ -19,6 +21,16 @@ public class VectorForecastFilter {
     private int size;
 
     public VectorForecastFilter() {
+    }
+
+    public VectorForecastFilter(Long id) {
+        this.id = id;
+    }
+
+    public VectorForecastFilter(Long id, int first, int size) {
+        this.id = id;
+        this.first = first;
+        this.size = size;
     }
 
     public VectorForecastFilter(String symbol, VectorForecast.INTERVAL interval, int n, int l, int p, int m) {
