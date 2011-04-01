@@ -16,9 +16,11 @@ public class DateUtil {
     }
 
     public static Date nowMsk(){
-        return Calendar.getInstance(TimeZone.getTimeZone("GMT+3:00")).getTime();
-    }
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.HOUR_OF_DAY, -3);
 
+        return calendar.getTime();
+    }
 
     public static Date nextMinute(Date date){
         return getOneMinuteIndexDate(date, 1);
@@ -38,6 +40,10 @@ public class DateUtil {
         }
 
         return (from.getTime() - to.getTime())/1000/60;
+    }
+
+    public static long getAbsMinuteShiftMsk(Date date){
+        return Math.abs(nowMsk().getTime() - date.getTime())/1000/60;
     }
 
 

@@ -3,26 +3,33 @@ package ru.inhell.aida.gui;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.Timeline;
 import org.jfree.chart.renderer.xy.XYDotRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.renderer.xy.XYShapeRenderer;
 import org.jfree.data.time.Minute;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
+import org.jfree.data.time.TimeTableXYDataset;
 import org.jfree.data.xy.DefaultHighLowDataset;
 import org.jfree.data.xy.OHLCDataset;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.ui.RectangleInsets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.inhell.aida.entity.*;
 import ru.inhell.aida.inject.AidaInjector;
 import ru.inhell.aida.oracle.AlphaOracleBean;
 import ru.inhell.aida.oracle.VectorForecastBean;
+import ru.inhell.aida.quotes.CurrentBean;
 import ru.inhell.aida.quotes.QuotesBean;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -33,12 +40,15 @@ import java.util.concurrent.TimeUnit;
  *         Date: 22.03.11 18:15
  */
 public class AlphaOracleChart extends JPanel{
+    private final static Logger log = LoggerFactory.getLogger(AlphaOracleChart.class);
+
     public AlphaOracleChart() {
         setLayout(new BorderLayout());
 
         final QuotesBean quotesBean = AidaInjector.getInstance(QuotesBean.class);
         final AlphaOracleBean alphaOracleBean = AidaInjector.getInstance(AlphaOracleBean.class);
         final VectorForecastBean vectorForecastBean = AidaInjector.getInstance(VectorForecastBean.class);
+        final CurrentBean currentBean = AidaInjector.getInstance(CurrentBean.class);
 
         final List<AlphaOracle> alphaOracles = alphaOracleBean.getAlphaOracles();
 
@@ -66,7 +76,7 @@ public class AlphaOracleChart extends JPanel{
         }
 
         chart.getXYPlot().setDataset(1, timeSeriesCollection);
-        chart.getXYPlot().setRenderer(1, new XYLineAndShapeRenderer());
+        chart.getXYPlot().setRenderer(1, new XYLineAndShapeRenderer(false, true));
 
         //forecast
         final TimeSeriesCollection forecast = new TimeSeriesCollection();
@@ -112,16 +122,17 @@ public class AlphaOracleChart extends JPanel{
                             }
                         }
 
-//                        Long count = vectorForecastBean.getVectorForecastDataCount(
-//                                new VectorForecastFilter(ao.getVectorForecast().getId()));
+                        List<VectorForecastData> vfdList = vectorForecastBean.getVectorForecastData(
+                                new VectorForecastFilter(ao.getVectorForecast().getId(), date[0]));
 
-                        for (VectorForecastData vfd : vectorForecastBean.getVectorForecastData(
-                                new VectorForecastFilter(ao.getVectorForecast().getId()))){
-                                forecast.getSeries("forecast").addOrUpdate(new Minute(vfd.getDate()), vfd.getPrice());
+                        for (VectorForecastData vfd : vfdList){
+                            if (vfd.getDate().equals(date[size-2])) {
+                                forecast.getSeries("forecast").addOrUpdate(new Minute(vfd.getIndexDate()), vfd.getPrice());
+                            }
                         }
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    log.error("Ошибка рисования графика", e);
                 }
             }
         }, 0, 1, TimeUnit.SECONDS);

@@ -21,7 +21,7 @@ public class ImportQuotes {
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 
-        CSVReader reader = new CSVReader(new FileReader("C:\\Anatoly\\Java\\aida\\db\\GAZP_110101_110331.txt"));
+        CSVReader reader = new CSVReader(new FileReader("C:\\Anatoly\\Java\\aida\\db\\GAZP_110319_110401.txt"));
 
         QuotesBean quotesBean = AidaInjector.getInstance(QuotesBean.class);
 
@@ -35,7 +35,7 @@ public class ImportQuotes {
                         Float.parseFloat(line[4]), Float.parseFloat(line[5]), Float.parseFloat(line[6]),
                         Float.parseFloat(line[7]), Float.parseFloat(line[8])));
             } catch (Exception e) {
-                System.out.println(line[2]+" "+line[3]);
+                System.out.println("skip duplicate: "+line[2]+" "+line[3]);
             }
         }
     }

@@ -2,6 +2,8 @@ package ru.inhell.aida.oracle;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.inhell.aida.entity.AlphaOracle;
 import ru.inhell.aida.entity.AlphaOracleData;
 import ru.inhell.aida.entity.Quote;
@@ -23,6 +25,8 @@ import java.util.concurrent.TimeUnit;
  */
 @Singleton
 public class AlphaOracleService {
+    private final static Logger log = LoggerFactory.getLogger(AlphaOracleService.class);
+
     private final static int CORE_POOL_SIZE = 2;
     private final static int PERIOD = 30;
 
@@ -64,6 +68,8 @@ public class AlphaOracleService {
 
     private void predicted(AlphaOracle alphaOracle, String symbol, AlphaOracleData.PREDICTION prediction, Date date, float price){
         for (IAlphaOracleListener listener : listeners){
+            log.info("AlphaOracle" +alphaOracle.getId() + ". " + symbol + ", " + prediction.name() + ", " + date + ", " + price);
+
             listener.predicted(alphaOracle, symbol, prediction, date, price);
         }
     }
@@ -72,14 +78,17 @@ public class AlphaOracleService {
         return new Runnable() {
             @Override
             public void run() {
-                Date last = vectorForecastBean.getLastVectorForecastDataDate(alphaOracle.getVectorForecast().getId());
-                Date lastQuote = quotesBean.getLastQuoteDate(alphaOracle.getVectorForecast().getSymbol());
+                try {
+                    Date last = vectorForecastBean.getLastVectorForecastDataDate(alphaOracle.getVectorForecast().getId());
+                    Date lastQuote = quotesBean.getLastQuoteDate(alphaOracle.getVectorForecast().getSymbol());
 
-                int n = alphaOracle.getVectorForecast().getN();
-                int d = (int) DateUtil.getMinuteShift(lastQuote, last);
+                    int n = alphaOracle.getVectorForecast().getN();
+                    int d = (int) DateUtil.getMinuteShift(lastQuote, last);
 
-//                predict(alphaOracle, d > 0 && d < n ? d : n);
-                predict(alphaOracle, 1);
+                    predict(alphaOracle, d > 0 && d < n ? d : 60);
+                } catch (Exception e) {
+                    log.error("Ошибка предсказателя", e);
+                }
             }
         };
     }
@@ -120,8 +129,8 @@ public class AlphaOracleService {
             if (prediction != null) {
                 //save prediction
                 try {
-                    alphaOracleBean.save(new AlphaOracleData(alphaOracle.getId(), quotes.get(vf.getN()-1).getDate(),
-                            forecast[vf.getN()-1], prediction, DateUtil.now()));
+                    alphaOracleBean.save(new AlphaOracleData(alphaOracle.getId(), quotes.get(vf.getN() - 1).getDate(),
+                            forecast[vf.getN() - 1], prediction, DateUtil.now()));
                 } catch (Exception e) {
                     //skip duplicates
                 }

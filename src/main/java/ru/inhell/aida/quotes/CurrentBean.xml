@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ru.inhell.aida.quotes.CurrentBean">
+    <resultMap id="currentResultMap" type="ru.inhell.aida.entity.Current">
+        <id column="id" property="id"/>
+        <result column="instrument" property="instrument"/>
+        <result column="symbol" property="symbol"/>
+        <result column="date" property="date"/>
+        <result column="price" property="price"/>
+        <result column="mean" property="mean"/>
+        <result column="bid" property="bid"/>
+        <result column="ask" property="ask"/>
+        <result column="rate" property="rate"/>
+    </resultMap>
+
+    <select id="selectCurrent" resultMap="currentResultMap" parameterType="string">
+        select * from `current` where `symbol` = #{symbol}
+    </select>
+</mapper>

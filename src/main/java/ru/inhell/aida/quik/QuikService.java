@@ -55,11 +55,11 @@ public class QuikService {
     }
 
     public QuikTransaction buyFutures(long transId, String symbol, float price, int quantity) throws QuikTransactionException {
-        return newOrder(transId, "L01-00000F00", "EQBREMU", symbol, OPERATION.BUY, price, quantity);
+        return newOrder(transId, "SPBFUT00t71", "SPBFUT", symbol, OPERATION.BUY, price, quantity);
     }
 
     public QuikTransaction sellFutures(long transId, String symbol, float price, int quantity) throws QuikTransactionException {
-        return newOrder(transId, "L01-00000F00", "EQBREMU", symbol, OPERATION.SELL, price, quantity);
+        return newOrder(transId, "SPBFUT00t71", "SPBFUT", symbol, OPERATION.SELL, price, quantity);
     }
 
     /**

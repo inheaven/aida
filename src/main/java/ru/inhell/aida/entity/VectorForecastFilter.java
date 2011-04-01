@@ -17,6 +17,8 @@ public class VectorForecastFilter {
     private int m;
     private Date created;
 
+    private Date startDate;
+
     private int first;
     private int size;
 
@@ -25,6 +27,11 @@ public class VectorForecastFilter {
 
     public VectorForecastFilter(Long id) {
         this.id = id;
+    }
+
+    public VectorForecastFilter(Long id, Date startDate) {
+        this.id = id;
+        this.startDate = startDate;
     }
 
     public VectorForecastFilter(Long id, int first, int size) {
@@ -40,6 +47,14 @@ public class VectorForecastFilter {
         this.l = l;
         this.p = p;
         this.m = m;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getSymbol() {
@@ -96,6 +111,14 @@ public class VectorForecastFilter {
 
     public void setCreated(Date created) {
         this.created = created;
+    }
+
+    public Date getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
     }
 
     public int getFirst() {

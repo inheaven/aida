@@ -29,7 +29,23 @@ create table `quotes_1min`(
    `created` timestamp default current_timestamp,
    primary key (`id`),
    unique key `key_symbol_date` (`symbol`, `date`)
- )  engine=innodb default charset=cp1251;
+ ) engine=innodb default charset=cp1251;
+
+drop table if exists `current`;
+create table `current`(
+   `id` bigint unsigned not null auto_increment,
+   `instrument` varchar(64) not null,
+   `symbol` varchar(10) not null,
+   `date` varchar(10),
+   `price` decimal(15,6) not null,
+   `mean` decimal(15,6),
+   `bid` decimal(15,6),
+   `ask` decimal(15,6),
+   `rate` decimal(2,2),
+   `created` timestamp default current_timestamp,
+   primary key (`id`),
+   unique key `key_symbol_date` (`symbol`, `date`)
+ ) engine=innodb default charset=cp1251;
 
 DELIMITER $$
 DROP TRIGGER /*!50032 IF EXISTS */ `create_quotes`$$
@@ -37,7 +53,7 @@ CREATE
     /*!50017 DEFINER = 'root'@'localhost' */
     TRIGGER `create_quotes` AFTER INSERT ON `all_trades`
     FOR EACH ROW begin
-	set @date = timestamp(str_to_date(new.date, '%d.%m.%Y'), date_format(new.time, '%h:%i:00'));
+	set @date = timestamp(str_to_date(new.date, '%d.%m.%Y'), date_format(new.time, '%H:%i:00'));
 
 	if (select count(*) > 0 from `quotes_1min` where `date` = @date and `symbol` = new.symbol) then
 	    update `quotes_1min`  set `low` = if(`low` < new.price,`low`, new.price), `high` = if(`high` > new.price, `high`, new.price),

@@ -48,7 +48,5 @@ public class QuikTest {
         //Display the window.
         frame.pack();
         frame.setVisible(true);
-
-
     }
 }

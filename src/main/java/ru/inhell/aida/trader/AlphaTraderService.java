@@ -3,6 +3,7 @@ package ru.inhell.aida.trader;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.inhell.aida.Aida;
 import ru.inhell.aida.entity.AlphaOracle;
 import ru.inhell.aida.entity.AlphaOracleData;
 import ru.inhell.aida.entity.AlphaTrader;
@@ -10,9 +11,8 @@ import ru.inhell.aida.entity.AlphaTraderData;
 import ru.inhell.aida.inject.AidaInjector;
 import ru.inhell.aida.oracle.AlphaOracleService;
 import ru.inhell.aida.oracle.IAlphaOracleListener;
-import ru.inhell.aida.quik.QuikService;
-import ru.inhell.aida.quik.QuikTransaction;
-import ru.inhell.aida.quik.QuikTransactionException;
+import ru.inhell.aida.quik.*;
+import ru.inhell.aida.quotes.CurrentBean;
 import ru.inhell.aida.quotes.Forts;
 import ru.inhell.aida.quotes.QuotesBean;
 import ru.inhell.aida.util.DateUtil;
@@ -35,6 +35,9 @@ public class AlphaTraderService {
     private QuotesBean quotesBean;
 
     @Inject
+    private CurrentBean currentBean;
+
+    @Inject
     private QuikService quikService;
 
     @Inject
@@ -53,12 +56,20 @@ public class AlphaTraderService {
             //уже в позиции
             if ((alphaTrader.getQuantity() > 0 && prediction.equals(LONG))
                     || (alphaTrader.getQuantity() < 0 && prediction.equals(SHORT))){
+                log.info("уже в позиции: " + date + ", " + price);
+
+                return;
+            }
+
+            if (DateUtil.getAbsMinuteShiftMsk(date) > alphaOracle.getVectorForecast().getM()){
+                log.info("предсказание устарело: " + date + ", " + price);
+
                 return;
             }
 
             //цена и код фьючерса
             String futureSymbol = Forts.valueOf(symbol).getFortsSymbol();
-            float futurePrice = quotesBean.getClosePrice(futureSymbol);
+            float futurePrice = currentBean.getCurrent(futureSymbol).getPrice();
             float orderPrice = getOrderPrice(prediction, futurePrice);
             int quantity = getOrderQuantity(alphaTrader);
 
@@ -77,6 +88,8 @@ public class AlphaTraderService {
             try {
                 QuikTransaction qt;
 
+                quikService.connect(Aida.getQuikDir()); //quik connect
+
                 switch (prediction){
                     case LONG:
                         qt = quikService.buyFutures(alphaTraderData.getId(), futureSymbol, futurePrice, quantity);
@@ -90,14 +103,20 @@ public class AlphaTraderService {
                         throw new IllegalArgumentException();
                 }
 
+                quikService.disconnect(); //quik disconnect
+
                 update(qt, alphaTraderData);
                 alphaTraderBean.save(alphaTrader);
 
                 log.info(qt.toString());
-            } catch (QuikTransactionException e) {
+            } catch (QuikTransactionException e) { //ошибка выставления заявки
                 log.error(e.getMessage(), e);
 
                 update(e.getQuikTransaction(), alphaTraderData);
+            } catch (QuikException e) { //ошибка подключения
+                log.error(e.getMessage(), e);
+
+                update(e.getQuikMessage(), alphaTraderData);
             }
         }
 
@@ -105,6 +124,12 @@ public class AlphaTraderService {
             alphaTraderData.setReplyCode((int) quikTransaction.getReplyCode().getValue());
             alphaTraderData.setResult(quikTransaction.getResult().intValue());
             alphaTraderData.setOrderNum((long) quikTransaction.getOrderNum().getValue());
+
+            alphaTraderBean.save(alphaTraderData);
+        }
+
+        private void update(QuikMessage quikMessage, AlphaTraderData alphaTraderData){
+            alphaTraderData.setResult(quikMessage.getResult().intValue());
 
             alphaTraderBean.save(alphaTraderData);
         }
@@ -139,15 +164,7 @@ public class AlphaTraderService {
     public void process(Long alphaTraderId){
         AlphaTrader alphaTrader = alphaTraderBean.getAlphaTrader(alphaTraderId);
 
-//        alphaOracleService.addListener(new AlphaOracleListener(alphaTrader));
-        alphaOracleService.addListener(new IAlphaOracleListener(){
-
-            @Override
-            public void predicted(AlphaOracle alphaOracle, String symbol, AlphaOracleData.PREDICTION prediction, Date date, float price) {
-                System.out.println(alphaOracle.getId() + ", " + symbol + ", " + prediction.name() + ", " + date + ", " + price);
-            }
-        });
-
+        alphaOracleService.addListener(new AlphaOracleListener(alphaTrader));
         alphaOracleService.process(alphaTrader.getAlphaOracleId());
     }
 }
