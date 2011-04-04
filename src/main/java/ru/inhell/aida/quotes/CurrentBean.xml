@@ -14,6 +14,6 @@
     </resultMap>
 
     <select id="selectCurrent" resultMap="currentResultMap" parameterType="string">
-        select * from `current` where `symbol` = #{symbol}
+        select * from `current` where `symbol` = #{symbol} order by `id` desc limit 1
     </select>
 </mapper>
