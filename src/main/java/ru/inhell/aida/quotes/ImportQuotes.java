@@ -21,7 +21,7 @@ public class ImportQuotes {
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 
-        CSVReader reader = new CSVReader(new FileReader("C:\\Anatoly\\Java\\aida\\db\\GAZP_110319_110401.txt"));
+        CSVReader reader = new CSVReader(new FileReader("C:\\Anatoly\\Java\\aida\\db\\GAZP_110304_110404.txt"));
 
         QuotesBean quotesBean = AidaInjector.getInstance(QuotesBean.class);
 

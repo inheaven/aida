@@ -66,11 +66,18 @@ public class AlphaOracleService {
         listeners.add(listener);
     }
 
-    private void predicted(AlphaOracle alphaOracle, String symbol, AlphaOracleData.PREDICTION prediction, Date date, float price){
-        for (IAlphaOracleListener listener : listeners){
-            log.info("AlphaOracle" +alphaOracle.getId() + ". " + symbol + ", " + prediction.name() + ", " + date + ", " + price);
+    private void predicted(AlphaOracle alphaOracle, AlphaOracleData.PREDICTION prediction, List<Quote> quotes,
+                           float[] forecast){
+        String symbol = alphaOracle.getVectorForecast().getSymbol();
+        int n = alphaOracle.getVectorForecast().getN();
 
-            listener.predicted(alphaOracle, symbol, prediction, date, price);
+        for (IAlphaOracleListener listener : listeners){
+            if (prediction != null) {
+                log.info("AlphaOracle" +alphaOracle.getId() + ". " + symbol + ", " + prediction.name() + ", " +
+                        quotes.get(n-1).getDate() + ", " + forecast[n-1]);
+            }
+
+            listener.predicted(alphaOracle, prediction, quotes, forecast);
         }
     }
 
@@ -134,10 +141,10 @@ public class AlphaOracleService {
                 } catch (Exception e) {
                     //skip duplicates
                 }
-
-                //fire listeners
-                predicted(alphaOracle, vf.getSymbol(), prediction, quotes.get(vf.getN() - 1).getDate(), forecast[vf.getN() - 1]);
             }
+
+            //fire listeners
+            predicted(alphaOracle, prediction, quotes, forecast);
         }
     }
 }

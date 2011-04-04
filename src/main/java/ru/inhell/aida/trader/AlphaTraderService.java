@@ -4,11 +4,7 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inhell.aida.Aida;
-import ru.inhell.aida.entity.AlphaOracle;
-import ru.inhell.aida.entity.AlphaOracleData;
-import ru.inhell.aida.entity.AlphaTrader;
-import ru.inhell.aida.entity.AlphaTraderData;
-import ru.inhell.aida.inject.AidaInjector;
+import ru.inhell.aida.entity.*;
 import ru.inhell.aida.oracle.AlphaOracleService;
 import ru.inhell.aida.oracle.IAlphaOracleListener;
 import ru.inhell.aida.quik.*;
@@ -18,8 +14,10 @@ import ru.inhell.aida.quotes.QuotesBean;
 import ru.inhell.aida.util.DateUtil;
 
 import java.util.Date;
+import java.util.List;
 
-import static ru.inhell.aida.entity.AlphaOracleData.PREDICTION.*;
+import static ru.inhell.aida.entity.AlphaOracleData.PREDICTION.LONG;
+import static ru.inhell.aida.entity.AlphaOracleData.PREDICTION.SHORT;
 
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
@@ -51,24 +49,31 @@ public class AlphaTraderService {
         }
 
         @Override
-        public void predicted(AlphaOracle alphaOracle, String symbol, AlphaOracleData.PREDICTION prediction,
-                              Date date, float price) {
+        public void predicted(AlphaOracle alphaOracle, AlphaOracleData.PREDICTION prediction, List<Quote> quotes, float[] forecast) {
+            if (prediction == null){
+                return;
+            }
+
+            Date date = quotes.get(alphaOracle.getVectorForecast().getN()-1).getDate();
+
+            alphaTrader = alphaTraderBean.getAlphaTrader(alphaTrader.getId());
+
             //уже в позиции
             if ((alphaTrader.getQuantity() > 0 && prediction.equals(LONG))
                     || (alphaTrader.getQuantity() < 0 && prediction.equals(SHORT))){
-                log.info("уже в позиции: " + date + ", " + price);
+                log.info("уже в позиции: " + date);
 
                 return;
             }
 
             if (DateUtil.getAbsMinuteShiftMsk(date) > alphaOracle.getVectorForecast().getM()){
-                log.info("предсказание устарело: " + date + ", " + price);
+                log.info("предсказание устарело: " + date);
 
                 return;
             }
 
             //цена и код фьючерса
-            String futureSymbol = Forts.valueOf(symbol).getFortsSymbol();
+            String futureSymbol = Forts.valueOf(alphaOracle.getVectorForecast().getSymbol()).getFortsSymbol();
             float futurePrice = currentBean.getCurrent(futureSymbol).getPrice();
             float orderPrice = getOrderPrice(prediction, futurePrice);
             int quantity = getOrderQuantity(alphaTrader);
