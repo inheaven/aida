@@ -3,6 +3,7 @@ package ru.inhell.aida.gui;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.time.Minute;
@@ -21,6 +22,7 @@ import ru.inhell.aida.util.DateUtil;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -43,7 +45,7 @@ public class AlphaOracleChart extends JPanel{
         final AlphaOracle alphaOracle = alphaOracleBean.getAlphaOracle(alphaOracleId);
         final VectorForecast vf = alphaOracle.getVectorForecast();
 
-        final int size = 120;
+        final int size = 60;
 
         //model
         final Date[] date = new Date[size];
@@ -56,6 +58,11 @@ public class AlphaOracleChart extends JPanel{
         //chart
         final JFreeChart chart = ChartFactory.createCandlestickChart(vf.getSymbol(), "date", "price", null, true);
         ((NumberAxis)chart.getXYPlot().getRangeAxis()).setAutoRangeIncludesZero(false);
+
+        Calendar c = Calendar.getInstance();
+        c.set(Calendar.HOUR_OF_DAY, 10);
+
+        ((DateAxis) chart.getXYPlot().getDomainAxis()).setAutoRange(true);
         add(new ChartPanel(chart));
 
         chart.setTitle(alphaOracle.getId() + "-" + vf.getSymbol() + "-"

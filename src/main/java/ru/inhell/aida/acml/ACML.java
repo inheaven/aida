@@ -1,5 +1,6 @@
 package ru.inhell.aida.acml;
 
+import org.slf4j.LoggerFactory;
 import ru.inhell.aida.netlib.BLAS;
 import ru.inhell.aida.netlib.LAPACK;
 
@@ -30,17 +31,16 @@ public class ACML implements LAPACK, BLAS {
     }
 
     private ACML() {
-        Logger logger = Logger.getLogger("ru.inhell.aida");
+        org.slf4j.Logger log = LoggerFactory.getLogger(ACML.class);
 
         try {
             System.loadLibrary("acml_wrapper_gpu");
 
             loaded = true;
-            logger.config("ACML GPU library loaded successfully.");
-            System.out.println("ACML GPU library loaded successfully.");
+            log.info("ACML GPU library loaded successfully.");
         } catch (UnsatisfiedLinkError e) {
             loaded = false;
-            logger.config("ACML GPU library is not found.");
+            log.error("ACML GPU library is not found.");
         }
 
         if (!loaded){
@@ -48,11 +48,10 @@ public class ACML implements LAPACK, BLAS {
                 System.loadLibrary("acml_wrapper_mp");
 
                 loaded = true;
-                logger.config("ACML MP library loaded successfully.");
-                System.out.println("ACML MP library loaded successfully.");
+                log.info("ACML MP library loaded successfully.");
             } catch (UnsatisfiedLinkError e) {
                 loaded = false;
-                logger.config("ACML MP library is not found.");
+                log.error("ACML MP library is not found.");
             }
         }
 
@@ -61,11 +60,10 @@ public class ACML implements LAPACK, BLAS {
                 System.loadLibrary("acml_wrapper");
 
                 loaded = true;
-                logger.config("ACML library loaded successfully.");
-                System.out.println("ACML library loaded successfully.");
+                log.info("ACML library loaded successfully.");
             } catch (UnsatisfiedLinkError e) {
                 loaded = false;
-                logger.config("ACML library is not found.");
+                log.error("ACML library is not found.");
             }
         }
     }

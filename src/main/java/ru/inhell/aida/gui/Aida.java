@@ -16,7 +16,7 @@ public class Aida {
         JFrame frame = new JFrame("Aida");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        JPanel root = new JPanel(new GridLayout(2,1));
+        JPanel root = new JPanel(new GridLayout(1,2));
         frame.add(root);
 
         root.add(new AlphaOracleChart(1L));
