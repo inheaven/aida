@@ -33,14 +33,28 @@ public class ACML implements LAPACK, BLAS {
     private ACML() {
         org.slf4j.Logger log = LoggerFactory.getLogger(ACML.class);
 
-        try {
-            System.loadLibrary("acml_wrapper_gpu");
+        if (!loaded){
+            try {
+                System.loadLibrary("acml_wrapper32_mp");
 
-            loaded = true;
-            log.info("ACML GPU library loaded successfully.");
-        } catch (UnsatisfiedLinkError e) {
-            loaded = false;
-            log.error("ACML GPU library is not found.");
+                loaded = true;
+                log.info("ACML32 MP library loaded successfully.");
+            } catch (UnsatisfiedLinkError e) {
+                loaded = false;
+                log.error("ACML32 MP library is not found.");
+            }
+        }
+
+        if (!loaded) {
+            try {
+                System.loadLibrary("acml_wrapper_gpu");
+
+                loaded = true;
+                log.info("ACML GPU library loaded successfully.");
+            } catch (UnsatisfiedLinkError e) {
+                loaded = false;
+                log.error("ACML GPU library is not found.");
+            }
         }
 
         if (!loaded){
@@ -54,6 +68,8 @@ public class ACML implements LAPACK, BLAS {
                 log.error("ACML MP library is not found.");
             }
         }
+
+
 
         if (!loaded){
             try {

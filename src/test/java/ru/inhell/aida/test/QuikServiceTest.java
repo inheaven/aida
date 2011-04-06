@@ -19,7 +19,7 @@ public class QuikServiceTest {
         quikService.connect("C:\\Anatoly\\QUIK_VTB24_DEMO\\");
         quikService.checkConnection();
 
-        QuikTransaction qt = quikService.buyFutures(1, "LKOH", 2000.33F, 3);
+        QuikTransaction qt = quikService.buyFutures(1, "LKOH", 2000, 3);
 
         System.out.println(qt);
 

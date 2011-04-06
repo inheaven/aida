@@ -25,7 +25,7 @@ public class Aida {
         AidaInjector.getInstance(AlphaTraderService.class).process(1L);
         AidaInjector.getInstance(AlphaTraderService.class).process(2L);
 
-        frame.setLocationRelativeTo(null);
+//        frame.setLocationRelativeTo(null);
         frame.pack();
         frame.setVisible(true);
     }

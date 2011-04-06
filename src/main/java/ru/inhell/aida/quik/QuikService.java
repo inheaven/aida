@@ -27,7 +27,11 @@ public class QuikService {
     public void connect(String quikDir) throws QuikException {
         QuikMessage qm = new QuikMessage();
 
-        qm.result =  Trans2Quik.INSTANCE.TRANS2QUIK_CONNECT(quikDir, qm.code, qm.message, qm.size);
+        try {
+            qm.result =  Trans2Quik.INSTANCE.TRANS2QUIK_CONNECT(quikDir, qm.code, qm.message, qm.size);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
 
         if (qm.result.intValue() != Trans2Quik.TRANS2QUIK_SUCCESS){
             throw new QuikException(qm);
@@ -54,11 +58,11 @@ public class QuikService {
         }
     }
 
-    public QuikTransaction buyFutures(long transId, String symbol, float price, int quantity) throws QuikTransactionException {
+    public QuikTransaction buyFutures(long transId, String symbol, int price, int quantity) throws QuikTransactionException {
         return newOrder(transId, "SPBFUT00t71", "SPBFUT", symbol, OPERATION.BUY, price, quantity);
     }
 
-    public QuikTransaction sellFutures(long transId, String symbol, float price, int quantity) throws QuikTransactionException {
+    public QuikTransaction sellFutures(long transId, String symbol, int price, int quantity) throws QuikTransactionException {
         return newOrder(transId, "SPBFUT00t71", "SPBFUT", symbol, OPERATION.SELL, price, quantity);
     }
 
@@ -91,7 +95,7 @@ public class QuikService {
      * @throws QuikTransactionException
      */
     private QuikTransaction newOrder(long transId, String account, String classCode, String symbol, OPERATION operation,
-                                     float price, int quantity) throws QuikTransactionException {
+                                     int price, int quantity) throws QuikTransactionException {
         QuikTransaction qt = new QuikTransaction("ACTION=NEW_ORDER; ACCOUNT=" + account + "; TRANS_ID=" +transId +
                 "; CLASSCODE=" + classCode + "; SECCODE=" + symbol + "; OPERATION=" + operation.code +
                 "; PRICE=" + price + "; QUANTITY=" + quantity + ";");

@@ -58,16 +58,16 @@ public class AlphaTraderService {
 
             alphaTrader = alphaTraderBean.getAlphaTrader(alphaTrader.getId());
 
-            //уже в позиции
-            if ((alphaTrader.getQuantity() > 0 && prediction.equals(LONG))
-                    || (alphaTrader.getQuantity() < 0 && prediction.equals(SHORT))){
-                log.info("уже в позиции: " + date);
+            if (DateUtil.getAbsMinuteShiftMsk(date) > alphaOracle.getVectorForecast().getM()){
+                log.info("предсказание устарело: " + date);
 
                 return;
             }
 
-            if (DateUtil.getAbsMinuteShiftMsk(date) > alphaOracle.getVectorForecast().getM()){
-                log.info("предсказание устарело: " + date);
+            //уже в позиции
+            if ((alphaTrader.getQuantity() > 0 && prediction.equals(LONG))
+                    || (alphaTrader.getQuantity() < 0 && prediction.equals(SHORT))){
+                log.info("уже в позиции: " + date);
 
                 return;
             }
@@ -84,7 +84,7 @@ public class AlphaTraderService {
             }
 
             //создаем транзакцию
-            AlphaTraderData alphaTraderData = new AlphaTraderData(alphaTrader.getId(), DateUtil.now(), orderPrice,
+            AlphaTraderData alphaTraderData = new AlphaTraderData(alphaTrader.getId(), DateUtil.nowMsk(), orderPrice,
                     getOrder(prediction));
 
             alphaTraderBean.save(alphaTraderData);
@@ -93,22 +93,26 @@ public class AlphaTraderService {
             try {
                 QuikTransaction qt;
 
-                quikService.connect(Aida.getQuikDir()); //quik connect
+                try {
+                    quikService.connect(Aida.getQuikDir()); //quik connect
+                } catch (QuikException e) {
+
+                }
 
                 switch (prediction){
                     case LONG:
-                        qt = quikService.buyFutures(alphaTraderData.getId(), futureSymbol, futurePrice, quantity);
+                        qt = quikService.buyFutures(alphaTraderData.getId(), futureSymbol, (int) futurePrice, quantity);
                         alphaTrader.setQuantity(alphaTrader.getQuantity() + quantity);
                         break;
                     case SHORT:
-                        qt = quikService.sellFutures(alphaTraderData.getId(), futureSymbol, futurePrice, quantity);
+                        qt = quikService.sellFutures(alphaTraderData.getId(), futureSymbol, (int) futurePrice, quantity);
                         alphaTrader.setQuantity(alphaTrader.getQuantity() - quantity);
                         break;
                     default:
                         throw new IllegalArgumentException();
                 }
 
-                quikService.disconnect(); //quik disconnect
+                //quikService.disconnect(); //quik disconnect
 
                 update(qt, alphaTraderData);
                 alphaTraderBean.save(alphaTrader);
@@ -118,10 +122,12 @@ public class AlphaTraderService {
                 log.error(e.getMessage(), e);
 
                 update(e.getQuikTransaction(), alphaTraderData);
-            } catch (QuikException e) { //ошибка подключения
+//            } catch (QuikException e) { //ошибка подключения
+//                log.error(e.getMessage(), e);
+//
+//                update(e.getQuikMessage(), alphaTraderData);
+            }catch (Exception e){
                 log.error(e.getMessage(), e);
-
-                update(e.getQuikMessage(), alphaTraderData);
             }
         }
 

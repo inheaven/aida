@@ -32,7 +32,8 @@
         select * from `alpha_trader_data` where `alpha_trader_id` = #{alphaTraderId}
     </select>
 
-    <insert id="insertAlphaTraderData" parameterType="ru.inhell.aida.entity.AlphaTraderData">
+    <insert id="insertAlphaTraderData" parameterType="ru.inhell.aida.entity.AlphaTraderData"
+            keyProperty="id" useGeneratedKeys="true">
         insert into `alpha_trader_data` (`alpha_trader_id`, `date`, `price`, `order`)
             values (#{alphaTraderId}, #{date}, #{price}, #{order})
     </insert>

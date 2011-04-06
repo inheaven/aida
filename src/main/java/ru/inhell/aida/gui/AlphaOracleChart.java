@@ -45,7 +45,7 @@ public class AlphaOracleChart extends JPanel{
         final AlphaOracle alphaOracle = alphaOracleBean.getAlphaOracle(alphaOracleId);
         final VectorForecast vf = alphaOracle.getVectorForecast();
 
-        final int size = 60;
+        final int size = 120;
 
         //model
         final Date[] date = new Date[size];
@@ -59,10 +59,6 @@ public class AlphaOracleChart extends JPanel{
         final JFreeChart chart = ChartFactory.createCandlestickChart(vf.getSymbol(), "date", "price", null, true);
         ((NumberAxis)chart.getXYPlot().getRangeAxis()).setAutoRangeIncludesZero(false);
 
-        Calendar c = Calendar.getInstance();
-        c.set(Calendar.HOUR_OF_DAY, 10);
-
-        ((DateAxis) chart.getXYPlot().getDomainAxis()).setAutoRange(true);
         add(new ChartPanel(chart));
 
         chart.setTitle(alphaOracle.getId() + "-" + vf.getSymbol() + "-"
@@ -153,6 +149,16 @@ public class AlphaOracleChart extends JPanel{
                             timeSeriesShort.addOrUpdate(new Minute(d.getDate()), d.getPrice());
                         }
                     }
+
+                    Calendar c1 = Calendar.getInstance();
+                    c1.add(Calendar.HOUR_OF_DAY, -3);
+                    c1.add(Calendar.MINUTE, -120);
+
+                    Calendar c2 = Calendar.getInstance();
+                    c2.add(Calendar.HOUR_OF_DAY, -3);
+                    c2.add(Calendar.MINUTE, 10);
+                    ((DateAxis) chart.getXYPlot().getDomainAxis()).setMinimumDate(c1.getTime());
+                    ((DateAxis) chart.getXYPlot().getDomainAxis()).setMaximumDate(c2.getTime());
                 } catch (Exception e) {
                     log.error("Ошибка рисования графика", e);
                 }

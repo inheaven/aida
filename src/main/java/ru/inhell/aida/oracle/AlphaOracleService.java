@@ -15,6 +15,7 @@ import ru.inhell.aida.util.QuoteUtil;
 import ru.inhell.aida.util.VectorForecastUtil;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -38,6 +39,8 @@ public class AlphaOracleService {
 
     @Inject
     private AlphaOracleBean alphaOracleBean;
+
+    private Map<Long, Date> predictedTime = new ConcurrentHashMap<Long, Date>();
 
     private ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(CORE_POOL_SIZE);
     private Map<Long, ScheduledFuture> scheduledFutures = new LinkedHashMap<Long, ScheduledFuture>();
@@ -77,7 +80,11 @@ public class AlphaOracleService {
                         quotes.get(n-1).getDate() + ", " + forecast[n-1]);
             }
 
-            listener.predicted(alphaOracle, prediction, quotes, forecast);
+            try {
+                listener.predicted(alphaOracle, prediction, quotes, forecast);
+            } catch (Exception e) {
+                log.error("ошибка слушателя", e);
+            }
         }
     }
 
@@ -93,6 +100,7 @@ public class AlphaOracleService {
                     int d = (int) DateUtil.getMinuteShift(lastQuote, last);
 
                     predict(alphaOracle, d > 0 && d < n ? d : 60);
+//                    predict(alphaOracle, 1);
                 } catch (Exception e) {
                     log.error("Ошибка предсказателя", e);
                 }
@@ -107,6 +115,15 @@ public class AlphaOracleService {
         float[] forecast = new float[vssa.forecastSize()];
 
         List<Quote> allQuotes = quotesBean.getQuotes(vf.getSymbol(), vf.getN() + count);
+
+        //skip execution
+        Date date = predictedTime.get(alphaOracle.getId());
+        Date quoteDate = allQuotes.get(allQuotes.size()-1).getDate();
+        if (date != null && date.equals(quoteDate)){
+            return;
+        }else{
+            predictedTime.put(alphaOracle.getId(), quoteDate);
+        }
 
         for (int index = 0; index < count; ++index) {
             //load quotes
@@ -127,9 +144,13 @@ public class AlphaOracleService {
             //predict
             AlphaOracleData.PREDICTION prediction = null;
 
-            if (VectorForecastUtil.isMin(forecast, vf.getN(), vf.getM())){ //LONG
+            if (VectorForecastUtil.isMin(forecast, vf.getN(), vf.getM())
+                    || VectorForecastUtil.isMin(forecast, vf.getN()-1, vf.getM())
+                    || VectorForecastUtil.isMin(forecast, vf.getN()+1, vf.getM())){ //LONG
                 prediction = AlphaOracleData.PREDICTION.LONG;
-            }else if (VectorForecastUtil.isMax(forecast, vf.getN(), vf.getM())){ //SHORT
+            }else if (VectorForecastUtil.isMax(forecast, vf.getN(), vf.getM())
+                    || VectorForecastUtil.isMax(forecast, vf.getN()-1, vf.getM())
+                    || VectorForecastUtil.isMax(forecast, vf.getN()+1, vf.getM())){ //SHORT
                 prediction = AlphaOracleData.PREDICTION.SHORT;
             }
 
