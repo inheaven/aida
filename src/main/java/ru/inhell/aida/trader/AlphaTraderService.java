@@ -41,7 +41,9 @@ public class AlphaTraderService {
     @Inject
     private AlphaTraderBean alphaTraderBean;
 
-    private class AlphaOracleListener implements IAlphaOracleListener{
+    public class AlphaOracleListener implements IAlphaOracleListener{
+        private Date processDate;
+
         private AlphaTrader alphaTrader;
 
         private AlphaOracleListener(AlphaTrader alphaTrader) {
@@ -55,6 +57,13 @@ public class AlphaTraderService {
             }
 
             Date date = quotes.get(alphaOracle.getVectorForecast().getN()-1).getDate();
+
+            //skip
+            if (processDate != null && processDate.equals(date)){
+                return;
+            }else{
+                processDate = date;
+            }
 
             alphaTrader = alphaTraderBean.getAlphaTrader(alphaTrader.getId());
 
@@ -93,11 +102,11 @@ public class AlphaTraderService {
             try {
                 QuikTransaction qt;
 
-                try {
-                    quikService.connect(Aida.getQuikDir()); //quik connect
-                } catch (QuikException e) {
-
-                }
+//                try {
+//                    quikService.connect(Aida.getQuikDir()); //quik connect
+//                } catch (QuikException e) {
+//
+//                }
 
                 switch (prediction){
                     case LONG:

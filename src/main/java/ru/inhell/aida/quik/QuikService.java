@@ -100,9 +100,13 @@ public class QuikService {
                 "; CLASSCODE=" + classCode + "; SECCODE=" + symbol + "; OPERATION=" + operation.code +
                 "; PRICE=" + price + "; QUANTITY=" + quantity + ";");
 
-        qt.result = Trans2Quik.INSTANCE.TRANS2QUIK_SEND_SYNC_TRANSACTION(qt.transaction, qt.replyCode, qt.transId,
-                qt.orderNum, qt.resultMessage, qt.resultMessageSize, qt.extendedErrorCode, qt.errorMessage,
-                qt.errorMessageSize);
+        try {
+            qt.result = Trans2Quik.INSTANCE.TRANS2QUIK_SEND_SYNC_TRANSACTION(qt.transaction, qt.replyCode, qt.transId,
+                    qt.orderNum, qt.resultMessage, qt.resultMessageSize, qt.extendedErrorCode, qt.errorMessage,
+                    qt.errorMessageSize);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
 
         if (qt.result.intValue() != Trans2Quik.TRANS2QUIK_SUCCESS && qt.replyCode.getValue() != 3){
             throw new QuikTransactionException(qt);

@@ -82,7 +82,7 @@ public class AlphaOracleService {
 
             try {
                 listener.predicted(alphaOracle, prediction, quotes, forecast);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 log.error("ошибка слушателя", e);
             }
         }
@@ -101,7 +101,7 @@ public class AlphaOracleService {
 
                     predict(alphaOracle, d > 0 && d < n ? d : 60);
 //                    predict(alphaOracle, 1);
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     log.error("Ошибка предсказателя", e);
                 }
             }
