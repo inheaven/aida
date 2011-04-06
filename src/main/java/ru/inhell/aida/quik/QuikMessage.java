@@ -1,33 +1,40 @@
 package ru.inhell.aida.quik;
 
+import com.sun.jna.Native;
 import com.sun.jna.NativeLong;
-import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.LongByReference;
-import com.sun.jna.ptr.NativeLongByReference;
 
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
  *         Date: 25.03.11 15:27
  */
 public class QuikMessage {
-    String message = "";
+    byte[] errorMessage = new byte[255];
     LongByReference code = new LongByReference();
-    Integer size = 256;
-    NativeLong result;
+    NativeLong result = new NativeLong();
 
-    public String getMessage() {
-        return message;
+    public byte[] getErrorMessage() {
+        return errorMessage;
     }
 
     public LongByReference getCode() {
         return code;
     }
 
-    public Integer getSize() {
-        return size;
+    public int getSize() {
+        return errorMessage.length;
     }
 
     public NativeLong getResult() {
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "QuikMessage{" +
+                "errorMessage=" + Native.toString(errorMessage) +
+                ", code=" + code +
+                ", result=" + result +
+                '}';
     }
 }

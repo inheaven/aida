@@ -1,9 +1,6 @@
 package ru.inhell.aida.test;
 
-import com.sun.jna.Function;
-import com.sun.jna.Library;
-import com.sun.jna.NativeLibrary;
-import com.sun.jna.NativeLong;
+import com.sun.jna.*;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.LongByReference;
 import com.sun.jna.win32.StdCallLibrary;
@@ -31,16 +28,14 @@ public class QuikTest {
             @Override
             public void actionPerformed(ActionEvent e) {
                 LongByReference pnExtendedErrorCode = new LongByReference();
-                String lpstrErrorMessage = "";
-                Integer dwErrorMessageSize = 256;
+                byte[] lpstrErrorMessage = new byte[255];
 
                 NativeLong code = Trans2Quik.INSTANCE.TRANS2QUIK_CONNECT("C:\\Anatoly\\QUIK\\", pnExtendedErrorCode,
-                        lpstrErrorMessage, dwErrorMessageSize);
+                        lpstrErrorMessage, 255);
 
                 System.out.println(code);
                 System.out.println(pnExtendedErrorCode.getValue());
-                System.out.println(lpstrErrorMessage);
-                System.out.println(dwErrorMessageSize);
+                System.out.println(Native.toString(lpstrErrorMessage));
             }
         });
         frame.add(connect);

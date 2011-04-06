@@ -20,6 +20,6 @@ public class QuikException extends Exception{
 
     @Override
     public String getMessage() {
-        return quikMessage.result.intValue() + ": " + quikMessage.code.getValue() + ": " +quikMessage.message;
+        return quikMessage.toString();
     }
 }

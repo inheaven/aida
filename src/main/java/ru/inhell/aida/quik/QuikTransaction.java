@@ -1,5 +1,6 @@
 package ru.inhell.aida.quik;
 
+import com.sun.jna.Native;
 import com.sun.jna.NativeLong;
 import com.sun.jna.ptr.DoubleByReference;
 import com.sun.jna.ptr.IntByReference;
@@ -15,11 +16,9 @@ public class QuikTransaction {
     LongByReference replyCode = new LongByReference();
     IntByReference transId = new IntByReference();
     DoubleByReference orderNum = new DoubleByReference();
-    String resultMessage = "";
-    Integer resultMessageSize = 0;
+    byte[] resultMessage = new byte[255];
     LongByReference extendedErrorCode = new LongByReference();
-    String errorMessage = "";
-    Integer errorMessageSize = 0;
+    byte[] errorMessage = new byte[255];
 
     NativeLong result;
 
@@ -46,24 +45,24 @@ public class QuikTransaction {
         return orderNum;
     }
 
-    public String getResultMessage() {
+    public byte[] getResultMessage() {
         return resultMessage;
     }
 
-    public Integer getResultMessageSize() {
-        return resultMessageSize;
+    public int getResultMessageSize() {
+        return resultMessage.length;
     }
 
     public LongByReference getExtendedErrorCode() {
         return extendedErrorCode;
     }
 
-    public String getErrorMessage() {
+    public byte[] getErrorMessage() {
         return errorMessage;
     }
 
-    public Integer getErrorMessageSize() {
-        return errorMessageSize;
+    public int getErrorMessageSize() {
+        return errorMessage.length;
     }
 
     public NativeLong getResult() {
@@ -77,11 +76,9 @@ public class QuikTransaction {
                 ", replyCode=" + replyCode.getValue() +
                 ", transId=" + transId.getValue() +
                 ", orderNum=" + (long)orderNum.getValue() +
-                ", resultMessage='" + resultMessage + '\'' +
-                ", resultMessageSize=" + resultMessageSize +
+                ", resultMessage='" + Native.toString(resultMessage) + '\'' +
                 ", extendedErrorCode=" + extendedErrorCode.getValue() +
-                ", errorMessage='" + errorMessage + '\'' +
-                ", errorMessageSize=" + errorMessageSize +
+                ", errorMessage='" + Native.toString(errorMessage) + '\'' +
                 ", result=" + result.intValue() +
                 '}';
     }

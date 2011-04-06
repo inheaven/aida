@@ -132,7 +132,7 @@ public class AlphaTraderService {
 
                 update(e.getQuikTransaction(), alphaTraderData);
 //            } catch (QuikException e) { //ошибка подключения
-//                log.error(e.getMessage(), e);
+//                log.error(e.getErrorMessage(), e);
 //
 //                update(e.getQuikMessage(), alphaTraderData);
             }catch (Exception e){

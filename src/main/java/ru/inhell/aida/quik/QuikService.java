@@ -1,9 +1,5 @@
 package ru.inhell.aida.quik;
 
-import com.sun.jna.NativeLong;
-import com.sun.jna.ptr.DoubleByReference;
-import com.sun.jna.ptr.IntByReference;
-import com.sun.jna.ptr.LongByReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +24,7 @@ public class QuikService {
         QuikMessage qm = new QuikMessage();
 
         try {
-            qm.result =  Trans2Quik.INSTANCE.TRANS2QUIK_CONNECT(quikDir, qm.code, qm.message, qm.size);
+            qm.result =  Trans2Quik.INSTANCE.TRANS2QUIK_CONNECT(quikDir, qm.code, qm.errorMessage, qm.getSize());
         } catch (Throwable e) {
             e.printStackTrace();
         }
@@ -41,7 +37,7 @@ public class QuikService {
     public void checkConnection() throws QuikException {
         QuikMessage qm = new QuikMessage();
 
-        qm.result  = Trans2Quik.INSTANCE.TRANS2QUIK_IS_QUIK_CONNECTED(qm.code, qm.message, qm.size);
+        qm.result  = Trans2Quik.INSTANCE.TRANS2QUIK_IS_QUIK_CONNECTED(qm.code, qm.errorMessage, qm.getSize());
 
         if (qm.result.intValue() != Trans2Quik.TRANS2QUIK_QUIK_CONNECTED){
             throw new QuikException(qm);
@@ -51,7 +47,7 @@ public class QuikService {
     public void disconnect() throws QuikException {
         QuikMessage qm = new QuikMessage();
 
-        qm.result = Trans2Quik.INSTANCE.TRANS2QUIK_DISCONNECT(qm.code, qm.message, qm.size);
+        qm.result = Trans2Quik.INSTANCE.TRANS2QUIK_DISCONNECT(qm.code, qm.errorMessage, qm.getSize());
 
         if (qm.result.intValue() != Trans2Quik.TRANS2QUIK_SUCCESS){
             throw new QuikException(qm);
@@ -102,8 +98,8 @@ public class QuikService {
 
         try {
             qt.result = Trans2Quik.INSTANCE.TRANS2QUIK_SEND_SYNC_TRANSACTION(qt.transaction, qt.replyCode, qt.transId,
-                    qt.orderNum, qt.resultMessage, qt.resultMessageSize, qt.extendedErrorCode, qt.errorMessage,
-                    qt.errorMessageSize);
+                    qt.orderNum, qt.resultMessage, qt.getResultMessageSize(), qt.extendedErrorCode, qt.errorMessage,
+                    qt.getErrorMessageSize());
         } catch (Throwable e) {
             e.printStackTrace();
         }

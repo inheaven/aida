@@ -56,7 +56,7 @@ public interface Trans2Quik extends Library{
      *             передается дополнительный код ошибки
      */
     NativeLong TRANS2QUIK_CONNECT(String lpcstrConnectionParamsString, LongByReference pnExtendedErrorCode,
-                                  String lpstrErrorMessage, Integer dwErrorMessageSize);
+                                  byte[] lpstrErrorMessage, int dwErrorMessageSize);
 
     /**
      * Функция используется для разрыва связи библиотеки Trans2QUIK.dll с терминалом QUIK.
@@ -71,7 +71,7 @@ public interface Trans2Quik extends Library{
      *         TRANS2QUIK_DLL_NOT_CONNECTED – попытка разорвать соединение при не установленной связи. В этом случае
      *             в pnExtendedErrorCode может передаваться дополнительный код ошибки
      */
-    NativeLong TRANS2QUIK_DISCONNECT(LongByReference pnExtendedErrorCode, String lpstrErrorMessage, Integer dwErrorMessageSize);
+    NativeLong TRANS2QUIK_DISCONNECT(LongByReference pnExtendedErrorCode, byte[] lpstrErrorMessage, int dwErrorMessageSize);
 
     /**
      * Функция используется для проверки наличия соединения между терминалом QUIK и сервером
@@ -85,7 +85,7 @@ public interface Trans2Quik extends Library{
      *         TRANS2QUIK_DLL_NOT_CONNECTED – не установлена связь библиотеки Trans2QUIK.dll с терминалом QUIK.
      *             В этом случае проверить наличие или отсутствие связи терминала QUIK с сервером невозможно
      */
-    NativeLong TRANS2QUIK_IS_QUIK_CONNECTED(LongByReference pnExtendedErrorCode, String lpstrErrorMessage, Integer dwErrorMessageSize);
+    NativeLong TRANS2QUIK_IS_QUIK_CONNECTED(LongByReference pnExtendedErrorCode, byte[] lpstrErrorMessage, int dwErrorMessageSize);
 
     /**
      * Функция используется для проверки наличия соединения между библиотекой Trans2QUIK.dll и терминалом QUIK.
@@ -123,9 +123,9 @@ public interface Trans2Quik extends Library{
      */
     NativeLong TRANS2QUIK_SEND_SYNC_TRANSACTION(String lpstTransactionString, LongByReference pnReplyCode,
                                                 IntByReference pdwTransId, DoubleByReference pdOrderNum,
-                                                String lpstrResultMessage, Integer dwResultMessageSize,
+                                                byte[] lpstrResultMessage, int dwResultMessageSize,
                                                 LongByReference pnExtendedErrorCode,
-                                                String lpstErrorMessage, Integer dwErrorMessageSize);
+                                                byte[] lpstErrorMessage, int dwErrorMessageSize);
 
     /**
      * Асинхронная передача транзакции. При отправке асинхронной транзакции возврат из функции происходит сразу же,
