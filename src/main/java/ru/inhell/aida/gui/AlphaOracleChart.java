@@ -128,7 +128,7 @@ public class AlphaOracleChart extends JPanel{
         });
 
         //executor
-        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(updateInterval);
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
 
         executor.scheduleAtFixedRate(new Runnable() {
             @Override
@@ -188,7 +188,7 @@ public class AlphaOracleChart extends JPanel{
                     log.error("Ошибка рисования графика", e);
                 }
             }
-        }, 0, 1, TimeUnit.SECONDS);
+        }, 0, updateInterval, TimeUnit.SECONDS);
     }
 }
 

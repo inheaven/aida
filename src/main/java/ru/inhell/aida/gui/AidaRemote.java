@@ -15,8 +15,8 @@ public class AidaRemote {
         JPanel root = new JPanel(new GridLayout(1,2));
         frame.add(root);
 
-        root.add(new AlphaOracleChart(3L, 60));
-        root.add(new AlphaOracleChart(2L, 60));
+        root.add(new AlphaOracleChart(3L, 30));
+        root.add(new AlphaOracleChart(2L, 30));
 
         frame.pack();
         frame.setVisible(true);
