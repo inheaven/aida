@@ -17,6 +17,7 @@ import ru.inhell.aida.inject.AidaInjector;
 import ru.inhell.aida.oracle.AlphaOracleBean;
 import ru.inhell.aida.oracle.AlphaOracleService;
 import ru.inhell.aida.oracle.IAlphaOracleListener;
+import ru.inhell.aida.oracle.VectorForecastBean;
 import ru.inhell.aida.quotes.QuotesBean;
 import ru.inhell.aida.util.DateUtil;
 
@@ -35,12 +36,20 @@ import java.util.concurrent.TimeUnit;
 public class AlphaOracleChart extends JPanel{
     private final static Logger log = LoggerFactory.getLogger(AlphaOracleChart.class);
 
-    public AlphaOracleChart(Long alphaOracleId) {
+    public AlphaOracleChart(Long alphaOracleId){
+        this(alphaOracleId, 1);
+    }
+
+    public AlphaOracleChart(Long alphaOracleId, int updateInterval) {
         setLayout(new BorderLayout());
+
+        final JLabel label = new JLabel();
+        add(label, BorderLayout.SOUTH);
 
         final QuotesBean quotesBean = AidaInjector.getInstance(QuotesBean.class);
         final AlphaOracleBean alphaOracleBean = AidaInjector.getInstance(AlphaOracleBean.class);
         final AlphaOracleService alphaOracleService = AidaInjector.getInstance(AlphaOracleService.class);
+        final VectorForecastBean vectorForecastBean = AidaInjector.getInstance(VectorForecastBean.class);
 
         final AlphaOracle alphaOracle = alphaOracleBean.getAlphaOracle(alphaOracleId);
         final VectorForecast vf = alphaOracle.getVectorForecast();
@@ -59,7 +68,7 @@ public class AlphaOracleChart extends JPanel{
         final JFreeChart chart = ChartFactory.createCandlestickChart(vf.getSymbol(), "date", "price", null, true);
         ((NumberAxis)chart.getXYPlot().getRangeAxis()).setAutoRangeIncludesZero(false);
 
-        add(new ChartPanel(chart));
+        add(new ChartPanel(chart), BorderLayout.CENTER);
 
         chart.setTitle(alphaOracle.getId() + "-" + vf.getSymbol() + "-"
                     + "n" + vf.getN() + "l" + vf.getL() + "p" + vf.getP() + "m" + vf.getM());
@@ -67,24 +76,31 @@ public class AlphaOracleChart extends JPanel{
         //prediction
         final TimeSeriesCollection predictionPoint = new TimeSeriesCollection();
 
-        predictionPoint.addSeries(new TimeSeries("long" + alphaOracle.getId()));
-        predictionPoint.addSeries(new TimeSeries("short" + alphaOracle.getId()));
+        predictionPoint.addSeries(new TimeSeries("long"));
+        predictionPoint.addSeries(new TimeSeries("short"));
 
         chart.getXYPlot().setDataset(1, predictionPoint);
         chart.getXYPlot().setRenderer(1, new XYLineAndShapeRenderer(false, true));
 
         //forecastLine
         final TimeSeriesCollection forecastLine = new TimeSeriesCollection();
-        forecastLine.addSeries(new TimeSeries("forecast" + alphaOracle.getId()));
+        forecastLine.addSeries(new TimeSeries("forecast"));
 
         chart.getXYPlot().setDataset(2, forecastLine);
         chart.getXYPlot().setRenderer(2, new XYLineAndShapeRenderer(true, false));
+
+        //currentForecastLine
+        final TimeSeriesCollection currentForecastLine = new TimeSeriesCollection();
+        currentForecastLine.addSeries(new TimeSeries("currentForecast"));
+
+        chart.getXYPlot().setDataset(3, currentForecastLine);
+        chart.getXYPlot().setRenderer(3, new XYLineAndShapeRenderer(true, false));
 
         alphaOracleService.addListener(new IAlphaOracleListener() {
             @Override
             public void predicted(AlphaOracle ao, AlphaOracleData.PREDICTION prediction, List<Quote> quotes, float[] forecast) {
                 if (alphaOracle.getId().equals(ao.getId())) {
-                    TimeSeries forecastTimeSeries = forecastLine.getSeries("forecast" + ao.getId());
+                    TimeSeries forecastTimeSeries = forecastLine.getSeries("forecast");
 
                     forecastTimeSeries.clear();
 
@@ -112,7 +128,7 @@ public class AlphaOracleChart extends JPanel{
         });
 
         //executor
-        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(updateInterval);
 
         executor.scheduleAtFixedRate(new Runnable() {
             @Override
@@ -136,10 +152,10 @@ public class AlphaOracleChart extends JPanel{
                     chart.getXYPlot().setDataset(new DefaultHighLowDataset("", date, high, low, open, close, volume));
 
                     //Prediction
-                    TimeSeries timeSeriesLong = predictionPoint.getSeries("long" + alphaOracle.getId());
+                    TimeSeries timeSeriesLong = predictionPoint.getSeries("long");
                     timeSeriesLong.clear();
 
-                    TimeSeries timeSeriesShort = predictionPoint.getSeries("short" + alphaOracle.getId());
+                    TimeSeries timeSeriesShort = predictionPoint.getSeries("short");
                     timeSeriesShort.clear();
 
                     for (AlphaOracleData d : alphaOracleBean.getAlphaOracleDatas(alphaOracle.getId(), date[0])){
@@ -148,6 +164,13 @@ public class AlphaOracleChart extends JPanel{
                         }else if (d.getPrediction().equals(AlphaOracleData.PREDICTION.SHORT)){
                             timeSeriesShort.addOrUpdate(new Minute(d.getDate()), d.getPrice());
                         }
+                    }
+
+                    //Vector Forecast
+                    for (VectorForecastData d :  vectorForecastBean
+                            .getVectorForecastData(new VectorForecastFilter(vf.getId(), date[size-2]))){
+                        currentForecastLine.getSeries("currentForecast")
+                                .addOrUpdate(new Minute(d.getIndexDate()),d.getPrice());
                     }
 
                     Calendar c1 = Calendar.getInstance();
@@ -159,6 +182,8 @@ public class AlphaOracleChart extends JPanel{
                     c2.add(Calendar.MINUTE, 10);
                     ((DateAxis) chart.getXYPlot().getDomainAxis()).setMinimumDate(c1.getTime());
                     ((DateAxis) chart.getXYPlot().getDomainAxis()).setMaximumDate(c2.getTime());
+
+                    label.setText(date[size-1].toString());
                 } catch (Exception e) {
                     log.error("Ошибка рисования графика", e);
                 }
