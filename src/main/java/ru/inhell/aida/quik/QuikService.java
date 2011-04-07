@@ -32,6 +32,8 @@ public class QuikService {
         if (qm.result.intValue() != Trans2Quik.TRANS2QUIK_SUCCESS){
             throw new QuikException(qm);
         }
+
+        log.info(qm.toString());
     }
 
     public void checkConnection() throws QuikException {

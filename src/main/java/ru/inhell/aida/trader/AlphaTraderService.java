@@ -1,6 +1,7 @@
 package ru.inhell.aida.trader;
 
 import com.google.inject.Inject;
+import com.sun.jna.Native;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inhell.aida.Aida;
@@ -52,14 +53,14 @@ public class AlphaTraderService {
 
         @Override
         public void predicted(AlphaOracle alphaOracle, AlphaOracleData.PREDICTION prediction, List<Quote> quotes, float[] forecast) {
-            if (prediction == null){
+            if (prediction == null || !alphaTrader.getAlphaOracleId().equals(alphaOracle.getId())){
                 return;
             }
 
             Date date = quotes.get(alphaOracle.getVectorForecast().getN()-1).getDate();
 
             //skip
-            if (processDate != null && processDate.equals(date)){
+            if (processDate != null && DateUtil.getAbsMinuteShiftMsk(processDate) < 5){
                 return;
             }else{
                 processDate = date;
@@ -83,8 +84,7 @@ public class AlphaTraderService {
 
             //цена и код фьючерса
             String futureSymbol = Forts.valueOf(alphaOracle.getVectorForecast().getSymbol()).getFortsSymbol();
-            float futurePrice = currentBean.getCurrent(futureSymbol).getPrice();
-            float orderPrice = getOrderPrice(prediction, futurePrice);
+            float orderPrice = getOrderPrice(prediction, currentBean.getCurrent(futureSymbol).getPrice());
             int quantity = getOrderQuantity(alphaTrader);
 
             //если в противоположной позиции то переворачиваем
@@ -110,11 +110,11 @@ public class AlphaTraderService {
 
                 switch (prediction){
                     case LONG:
-                        qt = quikService.buyFutures(alphaTraderData.getId(), futureSymbol, (int) futurePrice, quantity);
+                        qt = quikService.buyFutures(alphaTraderData.getId(), futureSymbol, (int) orderPrice, quantity);
                         alphaTrader.setQuantity(alphaTrader.getQuantity() + quantity);
                         break;
                     case SHORT:
-                        qt = quikService.sellFutures(alphaTraderData.getId(), futureSymbol, (int) futurePrice, quantity);
+                        qt = quikService.sellFutures(alphaTraderData.getId(), futureSymbol, (int) orderPrice, quantity);
                         alphaTrader.setQuantity(alphaTrader.getQuantity() - quantity);
                         break;
                     default:
@@ -144,6 +144,8 @@ public class AlphaTraderService {
             alphaTraderData.setReplyCode((int) quikTransaction.getReplyCode().getValue());
             alphaTraderData.setResult(quikTransaction.getResult().intValue());
             alphaTraderData.setOrderNum((long) quikTransaction.getOrderNum().getValue());
+            alphaTraderData.setResultMessage(Native.toString(quikTransaction.getResultMessage(), "cp1251"));
+            alphaTraderData.setErrorMessage(Native.toString(quikTransaction.getErrorMessage(), "cp1251"));
 
             alphaTraderBean.save(alphaTraderData);
         }
@@ -157,9 +159,9 @@ public class AlphaTraderService {
         private float getOrderPrice(AlphaOracleData.PREDICTION prediction, float price){
             switch (prediction){
                 case LONG:
-                    return price *= 1.02;
+                    return price *= 1.005;
                 case SHORT:
-                    return price /= 1.02;
+                    return price /= 1.005;
                 default:
                     throw new IllegalArgumentException();
             }

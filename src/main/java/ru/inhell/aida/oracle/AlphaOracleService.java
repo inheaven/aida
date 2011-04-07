@@ -29,7 +29,8 @@ public class AlphaOracleService {
     private final static Logger log = LoggerFactory.getLogger(AlphaOracleService.class);
 
     private final static int CORE_POOL_SIZE = 2;
-    private final static int PERIOD = 30;
+    private final static int PERIOD = 20;
+    private final static int UPDATE_COUNT = 4;
 
     @Inject
     private QuotesBean quotesBean;
@@ -41,6 +42,7 @@ public class AlphaOracleService {
     private AlphaOracleBean alphaOracleBean;
 
     private Map<Long, Date> predictedTime = new ConcurrentHashMap<Long, Date>();
+    private Map<Long, Integer> predictedTimeCount = new ConcurrentHashMap<Long, Integer>();
 
     private ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(CORE_POOL_SIZE);
     private Map<Long, ScheduledFuture> scheduledFutures = new LinkedHashMap<Long, ScheduledFuture>();
@@ -99,7 +101,11 @@ public class AlphaOracleService {
                     int n = alphaOracle.getVectorForecast().getN();
                     int d = (int) DateUtil.getMinuteShift(lastQuote, last);
 
+//                    long time = System.currentTimeMillis();
+
                     predict(alphaOracle, d > 0 && d < n ? d : 60);
+
+//                    log.info("predict" + alphaOracle.getId() + ": " + (System.currentTimeMillis() - time) + "ms");
 //                    predict(alphaOracle, 1);
                 } catch (Throwable e) {
                     log.error("Ошибка предсказателя", e);
@@ -120,9 +126,16 @@ public class AlphaOracleService {
         Date date = predictedTime.get(alphaOracle.getId());
         Date quoteDate = allQuotes.get(allQuotes.size()-1).getDate();
         if (date != null && date.equals(quoteDate)){
-            return;
+            Integer updateCount = predictedTimeCount.get(alphaOracle.getId());
+
+            if (updateCount > UPDATE_COUNT){
+                return;
+            }else{
+                predictedTimeCount.put(alphaOracle.getId(), updateCount + 1);
+            }
         }else{
             predictedTime.put(alphaOracle.getId(), quoteDate);
+            predictedTimeCount.put(alphaOracle.getId(), 0);
         }
 
         for (int index = 0; index < count; ++index) {

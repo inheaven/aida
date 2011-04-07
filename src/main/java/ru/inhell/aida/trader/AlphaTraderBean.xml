@@ -18,6 +18,8 @@
         <result column="order_num" property="orderNum"/>
         <result column="result" property="result"/>
         <result column="reply_code" property="replyCode"/>
+        <result column="result_message" property="resultMessage"/>
+        <result column="error_message" property="errorMessage"/>
     </resultMap>
 
     <select id="selectAlphaTraders" resultMap="alphaTraderResultMap">
@@ -39,7 +41,8 @@
     </insert>
     
     <update id="updateAlphaTraderData" parameterType="ru.inhell.aida.entity.AlphaTraderData">
-        update `alpha_trader_data` set `result` = #{result}, `reply_code` = #{replyCode}, `order_num` = #{orderNum}
+        update `alpha_trader_data` set `result` = #{result}, `reply_code` = #{replyCode}, `order_num` = #{orderNum},
+            `result_message` = #{resultMessage}, `error_message` = #{errorMessage} where `id` = #{id}
     </update>
 
     <update id="updateAlphaTrader" parameterType="ru.inhell.aida.entity.AlphaTrader">

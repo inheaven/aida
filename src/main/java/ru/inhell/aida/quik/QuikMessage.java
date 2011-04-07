@@ -32,8 +32,8 @@ public class QuikMessage {
     @Override
     public String toString() {
         return "QuikMessage{" +
-                "errorMessage=" + Native.toString(errorMessage) +
-                ", code=" + code +
+                "errorMessage=" + Native.toString(errorMessage, "cp1251") +
+                ", code=" + code.getValue() +
                 ", result=" + result +
                 '}';
     }

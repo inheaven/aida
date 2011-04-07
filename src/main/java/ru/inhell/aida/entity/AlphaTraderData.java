@@ -17,6 +17,8 @@ public class AlphaTraderData {
     private Long orderNum;
     private Integer result;
     private Integer replyCode;
+    private String resultMessage;
+    private String errorMessage;
 
     public AlphaTraderData(Long alphaTraderId, Date date, float price, ORDER order) {
         this.alphaTraderId = alphaTraderId;
@@ -87,5 +89,21 @@ public class AlphaTraderData {
 
     public void setReplyCode(Integer replyCode) {
         this.replyCode = replyCode;
+    }
+
+    public String getResultMessage() {
+        return resultMessage;
+    }
+
+    public void setResultMessage(String resultMessage) {
+        this.resultMessage = resultMessage;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
     }
 }

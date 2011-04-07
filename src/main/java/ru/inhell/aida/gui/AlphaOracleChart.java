@@ -185,7 +185,7 @@ public class AlphaOracleChart extends JPanel{
 
                     label.setText(date[size-1].toString());
                 } catch (Exception e) {
-                    log.error("Ошибка рисования графика", e);
+                    log.error("Ошибка рисования графика: " + e.getMessage());
                 }
             }
         }, 0, updateInterval, TimeUnit.SECONDS);

@@ -76,9 +76,9 @@ public class QuikTransaction {
                 ", replyCode=" + replyCode.getValue() +
                 ", transId=" + transId.getValue() +
                 ", orderNum=" + (long)orderNum.getValue() +
-                ", resultMessage='" + Native.toString(resultMessage) + '\'' +
+                ", resultMessage='" + Native.toString(resultMessage, "cp1251") + '\'' +
                 ", extendedErrorCode=" + extendedErrorCode.getValue() +
-                ", errorMessage='" + Native.toString(errorMessage) + '\'' +
+                ", errorMessage='" + Native.toString(errorMessage, "cp1251") + '\'' +
                 ", result=" + result.intValue() +
                 '}';
     }

@@ -136,6 +136,8 @@ create table `alpha_trader_data`(
   `order_num` bigint unsigned,
   `result` int,
   `reply_code` int,
+  `result_message` varchar(255),
+  `error_message` varchar(255),
   `predicted` datetime not null,
   `created` timestamp default current_timestamp,
   primary key (`id`)
