@@ -102,7 +102,6 @@ public class AlphaOracleService {
             @Override
             public void run() {
                 try {
-                    Date last = vectorForecastBean.getLastVectorForecastDataDate(alphaOracle.getVectorForecast().getId());
                     Date lastQuote = quotesBean.getLastQuoteDate(alphaOracle.getVectorForecast().getSymbol());
 
                     //skip execution
@@ -120,8 +119,13 @@ public class AlphaOracleService {
                         predictedTimeCount.put(alphaOracle.getId(), 0);
                     }
 
-                    predict(alphaOracle, DateUtil.isSameDay(last, lastQuote)
-                            ? (int) DateUtil.getMinuteShift(lastQuote, last) : 1);
+                    Date d = vectorForecastBean.getLastVectorForecastDataDate(alphaOracle.getVectorForecast().getId());
+
+                    if (d == null || DateUtil.isSameDay(d, lastQuote)){
+                        d = DateUtil.getCurrentStartTradeTime();
+                    }
+
+                    predict(alphaOracle, DateUtil.getMinuteShift(lastQuote, d));
                 } catch (Throwable e) {
                     log.error("Ошибка предсказателя", e);
                 }

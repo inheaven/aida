@@ -34,12 +34,12 @@ public class DateUtil {
         return calendar.getTime();
     }
 
-    public static long getMinuteShift(Date from, Date to){
+    public static int getMinuteShift(Date from, Date to){
         if (to == null || from == null){
             return -1;
         }
 
-        return (from.getTime() - to.getTime())/1000/60;
+        return (int) ((from.getTime() - to.getTime())/1000/60);
     }
 
     public static long getAbsMinuteShiftMsk(Date date){
@@ -55,5 +55,14 @@ public class DateUtil {
 
         return c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR)
                 && c1.get(Calendar.DAY_OF_YEAR) == c2.get(Calendar.DAY_OF_YEAR);
+    }
+
+    public static Date getCurrentStartTradeTime(){
+        Calendar c = Calendar.getInstance();
+        c.set(Calendar.HOUR_OF_DAY, 10);
+        c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0);
+
+        return c.getTime();
     }
 }
