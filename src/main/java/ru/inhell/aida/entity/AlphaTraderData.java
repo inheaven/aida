@@ -13,6 +13,7 @@ public class AlphaTraderData {
     private Long alphaTraderId;
     private Date date;
     private float price;
+    private long quantity;
     private ORDER order;
     private Long orderNum;
     private Integer result;
@@ -20,10 +21,11 @@ public class AlphaTraderData {
     private String resultMessage;
     private String errorMessage;
 
-    public AlphaTraderData(Long alphaTraderId, Date date, float price, ORDER order) {
+    public AlphaTraderData(Long alphaTraderId, Date date, float price, long quantity, ORDER order) {
         this.alphaTraderId = alphaTraderId;
         this.date = date;
         this.price = price;
+        this.quantity = quantity;
         this.order = order;
     }
 
@@ -57,6 +59,14 @@ public class AlphaTraderData {
 
     public void setPrice(float price) {
         this.price = price;
+    }
+
+    public long getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(long quantity) {
+        this.quantity = quantity;
     }
 
     public ORDER getOrder() {

@@ -93,20 +93,14 @@ public class AlphaTraderService {
             }
 
             //создаем транзакцию
-            AlphaTraderData alphaTraderData = new AlphaTraderData(alphaTrader.getId(), DateUtil.nowMsk(), orderPrice,
-                    getOrder(prediction));
+            AlphaTraderData alphaTraderData = new AlphaTraderData(alphaTrader.getId(), DateUtil.nowMsk(),
+                    orderPrice, quantity, getOrder(prediction));
 
             alphaTraderBean.save(alphaTraderData);
 
             //делаем заявку
             try {
                 QuikTransaction qt;
-
-//                try {
-//                    quikService.connect(Aida.getQuikDir()); //quik connect
-//                } catch (QuikException e) {
-//
-//                }
 
                 switch (prediction){
                     case LONG:
@@ -121,8 +115,6 @@ public class AlphaTraderService {
                         throw new IllegalArgumentException();
                 }
 
-                //quikService.disconnect(); //quik disconnect
-
                 update(qt, alphaTraderData);
                 alphaTraderBean.save(alphaTrader);
 
@@ -131,10 +123,6 @@ public class AlphaTraderService {
                 log.error(e.getMessage(), e);
 
                 update(e.getQuikTransaction(), alphaTraderData);
-//            } catch (QuikException e) { //ошибка подключения
-//                log.error(e.getErrorMessage(), e);
-//
-//                update(e.getQuikMessage(), alphaTraderData);
             }catch (Exception e){
                 log.error(e.getMessage(), e);
             }

@@ -4,16 +4,20 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.inhell.aida.Aida;
 import ru.inhell.aida.entity.AlphaOracle;
 import ru.inhell.aida.entity.AlphaOracleData;
 import ru.inhell.aida.entity.Quote;
 import ru.inhell.aida.entity.VectorForecast;
 import ru.inhell.aida.quotes.QuotesBean;
 import ru.inhell.aida.ssa.VectorForecastSSA;
+import ru.inhell.aida.ssa.VectorForecastSSAService;
 import ru.inhell.aida.util.DateUtil;
 import ru.inhell.aida.util.QuoteUtil;
 import ru.inhell.aida.util.VectorForecastUtil;
 
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
@@ -40,6 +44,9 @@ public class AlphaOracleService {
 
     @Inject
     private AlphaOracleBean alphaOracleBean;
+
+    @Inject
+    private VectorForecastSSAService vectorForecastSSAService;
 
     private Map<Long, Date> predictedTime = new ConcurrentHashMap<Long, Date>();
     private Map<Long, Integer> predictedTimeCount = new ConcurrentHashMap<Long, Integer>();
@@ -98,15 +105,16 @@ public class AlphaOracleService {
                     Date last = vectorForecastBean.getLastVectorForecastDataDate(alphaOracle.getVectorForecast().getId());
                     Date lastQuote = quotesBean.getLastQuoteDate(alphaOracle.getVectorForecast().getSymbol());
 
-                    int n = alphaOracle.getVectorForecast().getN();
-                    int d = (int) DateUtil.getMinuteShift(lastQuote, last);
+                    //skip execution
+                    Date date = predictedTime.get(alphaOracle.getId());
+                    if (date != null && date.equals(lastQuote)){
+                        return;
+                    }else{
+                        predictedTime.put(alphaOracle.getId(), lastQuote);
+                    }
 
-//                    long time = System.currentTimeMillis();
-
-                    predict(alphaOracle, d > 0 && d < n ? d : 60);
-
-//                    log.info("predict" + alphaOracle.getId() + ": " + (System.currentTimeMillis() - time) + "ms");
-//                    predict(alphaOracle, 1);
+                    predict(alphaOracle, DateUtil.isSameDay(last, lastQuote)
+                            ? (int) DateUtil.getMinuteShift(lastQuote, last) : 1);
                 } catch (Throwable e) {
                     log.error("Ошибка предсказателя", e);
                 }
@@ -114,29 +122,12 @@ public class AlphaOracleService {
         };
     }
 
-    public void predict(final AlphaOracle alphaOracle, int count){
+    public void predict(final AlphaOracle alphaOracle, int count) throws NotBoundException, RemoteException {
         VectorForecast vf = alphaOracle.getVectorForecast();
-
-        VectorForecastSSA vssa = vectorForecastBean.getVectorForecastSSA(vf);
-        float[] forecast = new float[vssa.forecastSize()];
 
         List<Quote> allQuotes = quotesBean.getQuotes(vf.getSymbol(), vf.getN() + count);
 
-        //skip execution
-        Date date = predictedTime.get(alphaOracle.getId());
-        Date quoteDate = allQuotes.get(allQuotes.size()-1).getDate();
-        if (date != null && date.equals(quoteDate)){
-            Integer updateCount = predictedTimeCount.get(alphaOracle.getId());
-
-            if (updateCount > UPDATE_COUNT){
-                return;
-            }else{
-                predictedTimeCount.put(alphaOracle.getId(), updateCount + 1);
-            }
-        }else{
-            predictedTime.put(alphaOracle.getId(), quoteDate);
-            predictedTimeCount.put(alphaOracle.getId(), 0);
-        }
+        float[] forecast;
 
         for (int index = 0; index < count; ++index) {
             //load quotes
@@ -145,7 +136,11 @@ public class AlphaOracleService {
             float[] prices = QuoteUtil.getAveragePrices(quotes);
 
             //process vssa
-            vssa.execute(prices, forecast);
+            if (Aida.getProperty("use_remote_vssa").equals("true")) {
+                forecast = vectorForecastSSAService.executeRemote(vf.getN(), vf.getL(), vf.getP(), vf.getM(), prices);
+            }else{
+                forecast = vectorForecastSSAService.execute(vf.getN(), vf.getL(), vf.getP(), vf.getM(), prices);
+            }
 
             //save vector forecast history
             try {

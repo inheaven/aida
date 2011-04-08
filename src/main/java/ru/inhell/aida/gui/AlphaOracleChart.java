@@ -5,6 +5,7 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.time.Minute;
 import org.jfree.data.time.TimeSeries;
@@ -66,6 +67,7 @@ public class AlphaOracleChart extends JPanel{
 
         //chart
         final JFreeChart chart = ChartFactory.createCandlestickChart(vf.getSymbol(), "date", "price", null, true);
+        chart.getXYPlot().setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
         ((NumberAxis)chart.getXYPlot().getRangeAxis()).setAutoRangeIncludesZero(false);
 
         add(new ChartPanel(chart), BorderLayout.CENTER);
@@ -166,11 +168,13 @@ public class AlphaOracleChart extends JPanel{
                         }
                     }
 
+                    TimeSeries timeSeriesCurrentForecast = currentForecastLine.getSeries("currentForecast");
+                    timeSeriesCurrentForecast.clear();
+
                     //Vector Forecast
                     for (VectorForecastData d :  vectorForecastBean
-                            .getVectorForecastData(new VectorForecastFilter(vf.getId(), date[size-2]))){
-                        currentForecastLine.getSeries("currentForecast")
-                                .addOrUpdate(new Minute(d.getIndexDate()),d.getPrice());
+                            .getVectorForecastData(new VectorForecastFilter(vf.getId(), date[size - 2]))){
+                                timeSeriesCurrentForecast.addOrUpdate(new Minute(d.getIndexDate()), d.getPrice());
                     }
 
                     Calendar c1 = Calendar.getInstance();

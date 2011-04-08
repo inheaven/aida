@@ -19,7 +19,7 @@ public class AlphaOracleServiceTest {
 
         AlphaOracleService service = AidaInjector.getInstance(AlphaOracleService.class);
 
-        service.predict(ao, 60);
+//        service.predict(ao, 60);
     }
 
 

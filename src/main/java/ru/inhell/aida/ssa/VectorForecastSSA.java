@@ -33,6 +33,8 @@ public class VectorForecastSSA {
     private final float[] Yd;
     private final float[] Zi;
 
+    private final float[] forecast;
+
     private BasicAnalysisSSA basicAnalysis;
 
     /**
@@ -66,6 +68,8 @@ public class VectorForecastSSA {
 
         Yd = new float[L-1];
         Zi = new float[L];
+
+        forecast = new float[forecastSize()];
     }
 
     public int getN() {
@@ -86,6 +90,12 @@ public class VectorForecastSSA {
 
     public int forecastSize(){
         return N + M + L - 1;
+    }
+
+    public float[] execute(float[] timeSeries){
+        execute(timeSeries, forecast);
+
+        return forecast;
     }
 
     /**

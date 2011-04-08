@@ -26,14 +26,7 @@ public class VectorForecastBean {
     @Inject
     private SqlSessionManager sm;
 
-    @Inject
-    private VectorForecastSSAService vectorForecastSSAService;
-
     private final static String NS = VectorForecastBean.class.getName();
-
-    public VectorForecastSSA getVectorForecastSSA(VectorForecast vf){
-        return vectorForecastSSAService.getVectorForecastSSA(vf.getN(), vf.getL(), vf.getP(), vf.getM());
-    }
 
     public void save(VectorForecast vectorForecast, List<Quote> quotes, float[] forecast){
         List<VectorForecastData> dataList = new ArrayList<VectorForecastData>();

@@ -14,6 +14,7 @@
         <result column="alpha_trader_id" property="alphaTraderId"/>
         <result column="date" property="date"/>
         <result column="price" property="price"/>
+        <result column="quantity" property="quantity"/>
         <result column="order" property="order"/>
         <result column="order_num" property="orderNum"/>
         <result column="result" property="result"/>
@@ -36,8 +37,8 @@
 
     <insert id="insertAlphaTraderData" parameterType="ru.inhell.aida.entity.AlphaTraderData"
             keyProperty="id" useGeneratedKeys="true">
-        insert into `alpha_trader_data` (`alpha_trader_id`, `date`, `price`, `order`)
-            values (#{alphaTraderId}, #{date}, #{price}, #{order})
+        insert into `alpha_trader_data` (`alpha_trader_id`, `date`, `price`, `quantity`, `order`)
+            values (#{alphaTraderId}, #{date}, #{price}, #{quantity}, #{order})
     </insert>
     
     <update id="updateAlphaTraderData" parameterType="ru.inhell.aida.entity.AlphaTraderData">
