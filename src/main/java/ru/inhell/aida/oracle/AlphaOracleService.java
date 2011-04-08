@@ -108,9 +108,16 @@ public class AlphaOracleService {
                     //skip execution
                     Date date = predictedTime.get(alphaOracle.getId());
                     if (date != null && date.equals(lastQuote)){
-                        return;
+                        Integer updateCount = predictedTimeCount.get(alphaOracle.getId());
+
+                        if (updateCount > UPDATE_COUNT){
+                            return;
+                        }else{
+                            predictedTimeCount.put(alphaOracle.getId(), updateCount + 1);
+                        }
                     }else{
                         predictedTime.put(alphaOracle.getId(), lastQuote);
+                        predictedTimeCount.put(alphaOracle.getId(), 0);
                     }
 
                     predict(alphaOracle, DateUtil.isSameDay(last, lastQuote)
