@@ -5,11 +5,9 @@ import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inhell.aida.Aida;
-import ru.inhell.aida.entity.AlphaOracle;
-import ru.inhell.aida.entity.AlphaOracleData;
-import ru.inhell.aida.entity.Quote;
-import ru.inhell.aida.entity.VectorForecast;
+import ru.inhell.aida.entity.*;
 import ru.inhell.aida.quotes.QuotesBean;
+import ru.inhell.aida.ssa.RemoteVSSAException;
 import ru.inhell.aida.ssa.VectorForecastSSA;
 import ru.inhell.aida.ssa.VectorForecastSSAService;
 import ru.inhell.aida.util.DateUtil;
@@ -32,9 +30,9 @@ import java.util.concurrent.TimeUnit;
 public class AlphaOracleService {
     private final static Logger log = LoggerFactory.getLogger(AlphaOracleService.class);
 
-    private final static int CORE_POOL_SIZE = 2;
+    private final static int CORE_POOL_SIZE = 4;
     private final static int PERIOD = 20;
-    private final static int UPDATE_COUNT = 4;
+    private final static int UPDATE_COUNT = 6;
 
     @Inject
     private QuotesBean quotesBean;
@@ -83,12 +81,12 @@ public class AlphaOracleService {
         String symbol = alphaOracle.getVectorForecast().getSymbol();
         int n = alphaOracle.getVectorForecast().getN();
 
-        for (IAlphaOracleListener listener : listeners){
-            if (prediction != null) {
-                log.info("AlphaOracle" +alphaOracle.getId() + ". " + symbol + ", " + prediction.name() + ", " +
-                        quotes.get(n-1).getDate() + ", " + forecast[n-1]);
-            }
+        if (prediction != null) {
+            log.info("AlphaOracle" +alphaOracle.getId() + ". " + symbol + ", " + prediction.name() + ", " +
+                    quotes.get(n-1).getDate() + ", " + forecast[n-1]);
+        }
 
+        for (IAlphaOracleListener listener : listeners){
             try {
                 listener.predicted(alphaOracle, prediction, quotes, forecast);
             } catch (Throwable e) {
@@ -107,14 +105,22 @@ public class AlphaOracleService {
 
                     //skip execution
                     Date date = predictedTime.get(alphaOracle.getId());
+                    Integer updateCount = predictedTimeCount.get(alphaOracle.getId());
+
                     if (date != null && date.equals(lastQuote)){
-                        return;
+                        if (updateCount > UPDATE_COUNT){
+                            return;
+                        }else{
+                            predictedTimeCount.put(alphaOracle.getId(), updateCount + 1);
+                        }
                     }else{
                         predictedTime.put(alphaOracle.getId(), lastQuote);
+                        predictedTimeCount.put(alphaOracle.getId(), 0);
                     }
 
-                    predict(alphaOracle, DateUtil.isSameDay(last, lastQuote)
-                            ? (int) DateUtil.getMinuteShift(lastQuote, last) : 1);
+                    int count = DateUtil.isSameDay(last, lastQuote) ? (int) DateUtil.getMinuteShift(lastQuote, last) : 1;
+
+                    predict(alphaOracle, count, false);
                 } catch (Throwable e) {
                     log.error("Ошибка предсказателя", e);
                 }
@@ -122,7 +128,11 @@ public class AlphaOracleService {
         };
     }
 
-    public void predict(final AlphaOracle alphaOracle, int count) throws NotBoundException, RemoteException {
+    public void predict(Long alphaOracleId, int count, boolean skipIfForecastExist) throws RemoteVSSAException {
+        predict(alphaOracleBean.getAlphaOracle(alphaOracleId), count, skipIfForecastExist);
+    }
+
+    public void predict(final AlphaOracle alphaOracle, int count, boolean skipIfForecastExist) throws  RemoteVSSAException {
         VectorForecast vf = alphaOracle.getVectorForecast();
 
         List<Quote> allQuotes = quotesBean.getQuotes(vf.getSymbol(), vf.getN() + count);
@@ -133,7 +143,30 @@ public class AlphaOracleService {
             //load quotes
             List<Quote> quotes = allQuotes.subList(index, vf.getN() + index);
 
-            float[] prices = QuoteUtil.getAveragePrices(quotes);
+            //skip if has vector forecast data in db
+            if (skipIfForecastExist){
+                VectorForecastFilter filter = new VectorForecastFilter();
+                filter.setDate(quotes.get(quotes.size()-1).getDate());
+                filter.setVectorForecastId(vf.getId());
+
+                if (vectorForecastBean.getVectorForecastDataCount(filter) > 0){
+                    continue;
+                }
+            }
+
+            float[] prices;
+
+            //select price type
+            switch (alphaOracle.getPriceType()){
+                case AVERAGE:
+                    prices = QuoteUtil.getAveragePrices(quotes);
+                    break;
+                case CLOSE:
+                    prices = QuoteUtil.getClosePrices(quotes);
+                    break;
+                default:
+                    throw new IllegalArgumentException();
+            }
 
             //process vssa
             if (Aida.getProperty("use_remote_vssa").equals("true")) {

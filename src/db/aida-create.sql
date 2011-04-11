@@ -98,6 +98,7 @@ drop table if exists `alpha_oracle`;
 create table `alpha_oracle`(
   `id` bigint unsigned not null auto_increment,
   `vector_forecast_id` bigint unsigned not null,
+  `price_type` varchar(10),
   `created` timestamp default current_timestamp,
   primary key (`id`)
 ) engine=innodb default charset=cp1251;
