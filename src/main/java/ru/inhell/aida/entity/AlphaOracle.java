@@ -7,9 +7,11 @@ import java.util.Date;
  *         Date: 18.03.11 18:21
  */
 public class AlphaOracle {
+    public static enum PRICE_TYPE{AVERAGE, CLOSE}
+
     private Long id;
     private VectorForecast vectorForecast;
-    private Date created;
+    private PRICE_TYPE priceType;
     private boolean enable = true;
 
     public Long getId() {
@@ -28,12 +30,12 @@ public class AlphaOracle {
         this.vectorForecast = vectorForecast;
     }
 
-    public Date getCreated() {
-        return created;
+    public PRICE_TYPE getPriceType() {
+        return priceType;
     }
 
-    public void setCreated(Date created) {
-        this.created = created;
+    public void setPriceType(PRICE_TYPE priceType) {
+        this.priceType = priceType;
     }
 
     public boolean isEnable() {

@@ -7,7 +7,7 @@ import java.util.Date;
  *         Date: 21.03.11 18:00
  */
 public class VectorForecastFilter {
-    private Long id;
+    private Long vectorForecastId;
 
     private String symbol;
     private VectorForecast.INTERVAL interval;
@@ -17,27 +17,13 @@ public class VectorForecastFilter {
     private int m;
     private Date created;
 
+    private Date date;
     private Date startDate;
 
     private int first;
     private int size;
 
     public VectorForecastFilter() {
-    }
-
-    public VectorForecastFilter(Long id) {
-        this.id = id;
-    }
-
-    public VectorForecastFilter(Long id, Date startDate) {
-        this.id = id;
-        this.startDate = startDate;
-    }
-
-    public VectorForecastFilter(Long id, int first, int size) {
-        this.id = id;
-        this.first = first;
-        this.size = size;
     }
 
     public VectorForecastFilter(String symbol, VectorForecast.INTERVAL interval, int n, int l, int p, int m) {
@@ -49,12 +35,12 @@ public class VectorForecastFilter {
         this.m = m;
     }
 
-    public Long getId() {
-        return id;
+    public Long getVectorForecastId() {
+        return vectorForecastId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setVectorForecastId(Long vectorForecastId) {
+        this.vectorForecastId = vectorForecastId;
     }
 
     public String getSymbol() {
@@ -111,6 +97,14 @@ public class VectorForecastFilter {
 
     public void setCreated(Date created) {
         this.created = created;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
     }
 
     public Date getStartDate() {

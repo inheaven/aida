@@ -35,13 +35,16 @@ public class VectorForecastSSAService {
         return getVectorForecastSSA(n, l, p, m).execute(timeSeries);
     }
 
-    public float[] executeRemote(int n, int l, int p, int m, float[] timeSeries)
-            throws RemoteException, NotBoundException {
-        if (remoteVSSA == null){
-            Registry registry = LocateRegistry.getRegistry();
-            remoteVSSA = (IRemoteVSSA) registry.lookup("RemoteVSSA");
-        }
+    public float[] executeRemote(int n, int l, int p, int m, float[] timeSeries) throws RemoteVSSAException {
+        try {
+            if (remoteVSSA == null){
+                Registry registry = LocateRegistry.getRegistry();
+                remoteVSSA = (IRemoteVSSA) registry.lookup("RemoteVSSA");
+            }
 
-        return remoteVSSA.execute(n, l, p, m, timeSeries);
+            return remoteVSSA.execute(n, l, p, m, timeSeries);
+        } catch (Exception e) {
+            throw new RemoteVSSAException(e);
+        }
     }
 }
