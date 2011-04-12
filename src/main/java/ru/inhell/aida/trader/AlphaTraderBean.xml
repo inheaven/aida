@@ -5,8 +5,12 @@
         <id column="id" property="id"/>
         <result column="alpha_oracle_id" property="alphaOracleId"/>
         <result column="symbol" property="symbol"/>
+        <result column="future_symbol" property="futureSymbol"/>
         <result column="quantity" property="quantity"/>
+        <result column="order_quantity" property="orderQuantity"/>
+        <result column="stop_price" property="stopPrice"/>
         <result column="balance" property="balance"/>
+        <result column="stop_type" property="stopType"/>
     </resultMap>
 
     <resultMap id="alphaTraderDataResultMap" type="ru.inhell.aida.entity.AlphaTraderData">
@@ -47,6 +51,6 @@
     </update>
 
     <update id="updateAlphaTrader" parameterType="ru.inhell.aida.entity.AlphaTrader">
-        update `alpha_trader` set `quantity` = #{quantity}, `balance` = #{balance} where `id` = #{id}
+        update `alpha_trader` set `stop_price` = #{stopPrice}, `quantity` = #{quantity}, `balance` = #{balance} where `id` = #{id}
     </update>
 </mapper>

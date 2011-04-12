@@ -8,7 +8,7 @@ import java.util.Date;
  */
 public class AlphaOracleData {
     public static enum PREDICTION {
-        LONG, SHORT
+        LONG, SHORT, STOP_BUY, STOP_SELL
     }
 
     private Long id;

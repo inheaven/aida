@@ -8,14 +8,11 @@ import ru.inhell.aida.Aida;
 import ru.inhell.aida.entity.*;
 import ru.inhell.aida.quotes.QuotesBean;
 import ru.inhell.aida.ssa.RemoteVSSAException;
-import ru.inhell.aida.ssa.VectorForecastSSA;
 import ru.inhell.aida.ssa.VectorForecastSSAService;
 import ru.inhell.aida.util.DateUtil;
 import ru.inhell.aida.util.QuoteUtil;
 import ru.inhell.aida.util.VectorForecastUtil;
 
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
@@ -33,6 +30,8 @@ public class AlphaOracleService {
     private final static int CORE_POOL_SIZE = 4;
     private final static int PERIOD = 20;
     private final static int UPDATE_COUNT = 6;
+
+    private final static boolean USE_REMOTE = Aida.getProperty("use_remote_vssa").equals("true");
 
     @Inject
     private QuotesBean quotesBean;
@@ -88,7 +87,9 @@ public class AlphaOracleService {
 
         for (IAlphaOracleListener listener : listeners){
             try {
-                listener.predicted(alphaOracle, prediction, quotes, forecast);
+                if (listener.getFilteredId() == null || listener.getFilteredId().equals(alphaOracle.getId())) {
+                    listener.predicted(alphaOracle, prediction, quotes, forecast);
+                }
             } catch (Throwable e) {
                 log.error("ошибка слушателя", e);
             }
@@ -118,9 +119,9 @@ public class AlphaOracleService {
                         predictedTimeCount.put(alphaOracle.getId(), 0);
                     }
 
-                    int count = DateUtil.isSameDay(last, lastQuote) ? (int) DateUtil.getMinuteShift(lastQuote, last) : 1;
+                    int count = DateUtil.isSameDay(last, lastQuote) ? DateUtil.getMinuteShift(lastQuote, last) : 1;
 
-                    predict(alphaOracle, count, false);
+                    predict(alphaOracle, count, USE_REMOTE, true);
                 } catch (Throwable e) {
                     log.error("Ошибка предсказателя", e);
                 }
@@ -128,11 +129,8 @@ public class AlphaOracleService {
         };
     }
 
-    public void predict(Long alphaOracleId, int count, boolean skipIfForecastExist) throws RemoteVSSAException {
-        predict(alphaOracleBean.getAlphaOracle(alphaOracleId), count, skipIfForecastExist);
-    }
-
-    public void predict(final AlphaOracle alphaOracle, int count, boolean skipIfForecastExist) throws  RemoteVSSAException {
+    public void predict(final AlphaOracle alphaOracle, int count, boolean skipIfForecastExist, boolean useRemote)
+            throws  RemoteVSSAException {
         VectorForecast vf = alphaOracle.getVectorForecast();
 
         List<Quote> allQuotes = quotesBean.getQuotes(vf.getSymbol(), vf.getN() + count);
@@ -169,7 +167,7 @@ public class AlphaOracleService {
             }
 
             //process vssa
-            if (Aida.getProperty("use_remote_vssa").equals("true")) {
+            if (useRemote) {
                 forecast = vectorForecastSSAService.executeRemote(vf.getN(), vf.getL(), vf.getP(), vf.getM(), prices);
             }else{
                 forecast = vectorForecastSSAService.execute(vf.getN(), vf.getL(), vf.getP(), vf.getM(), prices);

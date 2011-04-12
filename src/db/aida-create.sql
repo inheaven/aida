@@ -120,9 +120,12 @@ drop table if exists `alpha_trader`;
 create table `alpha_trader`(
   `id` bigint unsigned not null auto_increment,
   `alpha_oracle_id` bigint unsigned not null,
+  `future_symbol` varchar(10) not null,
   `symbol` varchar(10) not null,
   `quantity` int not null,
+  `order_quantity` int not null,
   `balance` decimal(15,2),
+  `stop_type` varchar(10) not null default 'NONE'
   `created` timestamp default current_timestamp,
   primary key (`id`)
 ) engine=innodb default charset=cp1251;

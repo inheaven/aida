@@ -13,4 +13,5 @@ import java.util.List;
  */
 public interface IAlphaOracleListener {
     void predicted(AlphaOracle alphaOracle, AlphaOracleData.PREDICTION prediction, List<Quote> quotes, float[] forecast);
+    Long getFilteredId();
 }
