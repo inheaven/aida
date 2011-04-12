@@ -174,7 +174,7 @@ public class AlphaOracleChart extends JPanel{
                     //Vector Forecast
                     VectorForecastFilter filter = new VectorForecastFilter();
                     filter.setVectorForecastId(vf.getId());
-                    filter.setDate(date[size - 1]);
+                    filter.setDate(date[size - 2]);
 
                     for (VectorForecastData d :  vectorForecastBean.getVectorForecastData(filter)){
                         timeSeriesCurrentForecast.addOrUpdate(new Minute(d.getIndexDate()), d.getPrice());
