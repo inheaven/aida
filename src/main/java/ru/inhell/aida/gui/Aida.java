@@ -19,18 +19,16 @@ public class Aida {
         JFrame frame = new JFrame("Aida");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        JPanel root = new JPanel(new GridLayout(2,2));
+        JPanel root = new JPanel(new GridLayout(1,3));
         frame.add(root);
 
-        root.add(new AlphaOracleChart(1L));
-        root.add(new AlphaOracleChart(2L));
-        root.add(new AlphaOracleChart(3L));
-        root.add(new AlphaOracleChart(4L));
+        root.add(new AlphaOracleChart(10L));
+        root.add(new AlphaOracleChart(12L));
+        root.add(new AlphaOracleChart(15L));
 
-        AidaInjector.getInstance(AlphaTraderService.class).process(1L);
-        AidaInjector.getInstance(AlphaTraderService.class).process(2L);
-        AidaInjector.getInstance(AlphaTraderService.class).process(3L);
-        AidaInjector.getInstance(AlphaTraderService.class).process(4L);
+        AidaInjector.getInstance(AlphaTraderService.class).process(10L);
+        AidaInjector.getInstance(AlphaTraderService.class).process(12L);
+        AidaInjector.getInstance(AlphaTraderService.class).process(15L);
 
 
 //        frame.setLocationRelativeTo(null);
