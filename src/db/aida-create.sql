@@ -126,6 +126,8 @@ create table `alpha_trader`(
   `order_quantity` int not null,
   `balance` decimal(15,2),
   `stop_type` varchar(10) not null default 'NONE'
+  `stop_count` int not null,
+  `stop_factor` decimal(15,2),
   `created` timestamp default current_timestamp,
   primary key (`id`)
 ) engine=innodb default charset=cp1251;

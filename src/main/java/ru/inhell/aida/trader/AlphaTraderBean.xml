@@ -11,6 +11,8 @@
         <result column="stop_price" property="stopPrice"/>
         <result column="balance" property="balance"/>
         <result column="stop_type" property="stopType"/>
+        <result column="stop_count" property="stopCount"/>
+        <result column="stop_factor" property="stopFactor"/>
     </resultMap>
 
     <resultMap id="alphaTraderDataResultMap" type="ru.inhell.aida.entity.AlphaTraderData">
@@ -51,6 +53,7 @@
     </update>
 
     <update id="updateAlphaTrader" parameterType="ru.inhell.aida.entity.AlphaTrader">
-        update `alpha_trader` set `stop_price` = #{stopPrice}, `quantity` = #{quantity}, `balance` = #{balance} where `id` = #{id}
+        update `alpha_trader` set `stop_price` = #{stopPrice}, `stop_count` = #{stopCount}, `quantity` = #{quantity},
+            `balance` = #{balance} where `id` = #{id}
     </update>
 </mapper>

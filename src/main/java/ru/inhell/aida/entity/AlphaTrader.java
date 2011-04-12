@@ -16,6 +16,8 @@ public class AlphaTrader {
     private float stopPrice;
     private float balance;
     private STOP_TYPE stopType;
+    private int stopCount;
+    private float stopFactor;
 
     public Long getId() {
         return id;
@@ -87,5 +89,21 @@ public class AlphaTrader {
 
     public void setStopType(STOP_TYPE stopType) {
         this.stopType = stopType;
+    }
+
+    public int getStopCount() {
+        return stopCount;
+    }
+
+    public void setStopCount(int stopCount) {
+        this.stopCount = stopCount;
+    }
+
+    public float getStopFactor() {
+        return stopFactor;
+    }
+
+    public void setStopFactor(float stopFactor) {
+        this.stopFactor = stopFactor;
     }
 }

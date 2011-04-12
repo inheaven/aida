@@ -80,6 +80,8 @@ public class AlphaOracleChart extends JPanel{
 
         predictionPoint.addSeries(new TimeSeries("long"));
         predictionPoint.addSeries(new TimeSeries("short"));
+        predictionPoint.addSeries(new TimeSeries("stopBuy"));
+        predictionPoint.addSeries(new TimeSeries("stopSell"));
 
         chart.getXYPlot().setDataset(1, predictionPoint);
         chart.getXYPlot().setRenderer(1, new XYLineAndShapeRenderer(false, true));
@@ -165,11 +167,26 @@ public class AlphaOracleChart extends JPanel{
                     TimeSeries timeSeriesShort = predictionPoint.getSeries("short");
                     timeSeriesShort.clear();
 
+                    TimeSeries timeSeriesStopBuy = predictionPoint.getSeries("stopBuy");
+                    timeSeriesStopBuy.clear();
+
+                    TimeSeries timeSeriesStopSell = predictionPoint.getSeries("stopSell");
+                    timeSeriesStopSell.clear();
+
                     for (AlphaOracleData d : alphaOracleBean.getAlphaOracleDatas(alphaOracle.getId(), date[0])){
-                        if (d.getPrediction().equals(AlphaOracleData.PREDICTION.LONG)){
-                            timeSeriesLong.addOrUpdate(new Minute(d.getDate()), d.getPrice());
-                        }else if (d.getPrediction().equals(AlphaOracleData.PREDICTION.SHORT)){
-                            timeSeriesShort.addOrUpdate(new Minute(d.getDate()), d.getPrice());
+                        switch (d.getPrediction()){
+                            case LONG:
+                                timeSeriesLong.addOrUpdate(new Minute(d.getDate()), d.getPrice());
+                                break;
+                            case SHORT:
+                                timeSeriesShort.addOrUpdate(new Minute(d.getDate()), d.getPrice());
+                                break;
+                            case STOP_BUY:
+                                timeSeriesStopBuy.addOrUpdate(new Minute(d.getDate()), d.getPrice());
+                                break;
+                            case STOP_SELL:
+                                timeSeriesStopSell.addOrUpdate(new Minute(d.getDate()), d.getPrice());
+                                break;
                         }
                     }
 

@@ -5,6 +5,7 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.SegmentedTimeline;
+import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.time.Minute;
 import org.jfree.data.time.TimeSeries;
@@ -33,17 +34,16 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
  *         Date: 10.04.11 19:38
  */
 public class AlphaTraderSchool {
-    private final static int COUNT = 3000;
+    private final static int COUNT = 2500;
 
     public static void main(String... args) throws RemoteVSSAException {
 //        randomStudyAll();
         initGUI();
 
-        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
-
 
         study("GAZP", 922, 80, 29, 6, true, false, 0);
-        study("GAZP", 922, 80, 29, 6, true, true, 1.002f);
+        study("GAZP", 922, 80, 29, 6, true, true, 1.0005f);
+        study("GAZP", 922, 80, 29, 6, true, true, 1.001f);
         study("GAZP", 922, 80, 29, 6, true, true, 1.004f);
         study("GAZP", 922, 80, 29, 6, true, true, 1.010f);
 
@@ -61,6 +61,8 @@ public class AlphaTraderSchool {
         JFrame frame = new JFrame("Alpha Oracle School");
         JFreeChart chart = ChartFactory.createTimeSeriesChart("Alpha Oracle School", "time", "balance", balanceDataSet,
                 true, true, false);
+
+        chart.getXYPlot().setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
 
         ((XYLineAndShapeRenderer)chart.getXYPlot().getRenderer()).setBaseShapesVisible(true);
         SegmentedTimeline timeline = new SegmentedTimeline( SegmentedTimeline.MINUTE_SEGMENT_SIZE, 495, 945);
