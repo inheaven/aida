@@ -120,7 +120,7 @@ public class AlphaTraderService {
 
                 log.info(qt.toString());
             } catch (QuikTransactionException e) { //ошибка выставления заявки
-                log.error(e.getMessage(), e);
+                log.error(e.getMessage());
 
                 update(e.getQuikTransaction(), alphaTraderData);
             }catch (Exception e){

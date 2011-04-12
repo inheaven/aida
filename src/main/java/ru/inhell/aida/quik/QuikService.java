@@ -96,7 +96,7 @@ public class QuikService {
                                      int price, int quantity) throws QuikTransactionException {
         QuikTransaction qt = new QuikTransaction("ACTION=NEW_ORDER; ACCOUNT=" + account + "; TRANS_ID=" +transId +
                 "; CLASSCODE=" + classCode + "; SECCODE=" + symbol + "; OPERATION=" + operation.code +
-                "; PRICE=" + price + "; QUANTITY=" + quantity + ";");
+                "; PRICE=" + price + "; QUANTITY=" + quantity + "; TYPE=M");
 
         try {
             qt.result = Trans2Quik.INSTANCE.TRANS2QUIK_SEND_SYNC_TRANSACTION(qt.transaction, qt.replyCode, qt.transId,
@@ -106,7 +106,7 @@ public class QuikService {
             e.printStackTrace();
         }
 
-        if (qt.result.intValue() != Trans2Quik.TRANS2QUIK_SUCCESS && qt.replyCode.getValue() != 3){
+        if (qt.result.intValue() != Trans2Quik.TRANS2QUIK_SUCCESS || qt.replyCode.getValue() != 3){
             throw new QuikTransactionException(qt);
         }
 
