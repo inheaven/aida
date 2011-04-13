@@ -4,6 +4,7 @@ import com.sun.jna.Native;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inhell.aida.entity.*;
+import ru.inhell.aida.oracle.AlphaOracleBean;
 import ru.inhell.aida.oracle.IAlphaOracleListener;
 import ru.inhell.aida.quik.QuikMessage;
 import ru.inhell.aida.quik.QuikService;
@@ -30,21 +31,24 @@ public class AlphaOracleListener implements IAlphaOracleListener {
     private AlphaTrader alphaTrader;
 
     private AlphaTraderBean alphaTraderBean;
+    private AlphaOracleBean alphaOracleBean;
     private CurrentBean currentBean;
     private QuikService quikService;
 
     private Date processDate;
 
-    public AlphaOracleListener(AlphaTrader alphaTrader, AlphaTraderBean alphaTraderBean, CurrentBean currentBean,
-                               QuikService quikService) {
+    public AlphaOracleListener(AlphaTrader alphaTrader, AlphaTraderBean alphaTraderBean, AlphaOracleBean alphaOracleBean,
+                               CurrentBean currentBean, QuikService quikService) {
         this.alphaTrader = alphaTrader;
         this.alphaTraderBean = alphaTraderBean;
+        this.alphaOracleBean = alphaOracleBean;
         this.currentBean = currentBean;
         this.quikService = quikService;
     }
 
     @Override
     public void predicted(AlphaOracle alphaOracle, AlphaOracleData.PREDICTION prediction, List<Quote> quotes, float[] forecast) {
+        int n = alphaOracle.getVectorForecast().getN();
         alphaTrader = alphaTraderBean.getAlphaTrader(alphaTrader.getId());
 
         //max stop count
@@ -69,6 +73,14 @@ public class AlphaOracleListener implements IAlphaOracleListener {
                 }
             }else{
                 return;
+            }
+
+            //save prediction
+            try {
+                alphaOracleBean.save(new AlphaOracleData(alphaOracle.getId(), quotes.get(n-1).getDate(),
+                        forecast[n-1], prediction, DateUtil.now()));
+            } catch (Exception e) {
+                //skip duplicates
             }
         }
 

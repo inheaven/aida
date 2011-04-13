@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inhell.aida.entity.*;
+import ru.inhell.aida.oracle.AlphaOracleBean;
 import ru.inhell.aida.oracle.AlphaOracleService;
 import ru.inhell.aida.quik.*;
 import ru.inhell.aida.quotes.CurrentBean;
@@ -23,6 +24,9 @@ public class AlphaTraderService {
     private AlphaTraderBean alphaTraderBean;
 
     @Inject
+    private AlphaOracleBean alphaOracleBean;
+
+    @Inject
     private CurrentBean currentBean;
 
     @Inject
@@ -34,7 +38,8 @@ public class AlphaTraderService {
     public void process(Long alphaTraderId){
         AlphaTrader alphaTrader = alphaTraderBean.getAlphaTrader(alphaTraderId);
 
-        alphaOracleService.addListener(new AlphaOracleListener(alphaTrader, alphaTraderBean, currentBean, quikService));
+        alphaOracleService.addListener(new AlphaOracleListener(alphaTrader, alphaTraderBean, alphaOracleBean,
+                currentBean, quikService));
         alphaOracleService.process(alphaTrader.getAlphaOracleId());
     }
 }
