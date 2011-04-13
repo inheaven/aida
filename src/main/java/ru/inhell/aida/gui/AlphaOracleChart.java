@@ -203,17 +203,17 @@ public class AlphaOracleChart extends JPanel{
                     }
 
                     Calendar c1 = Calendar.getInstance();
-//                    c1.add(Calendar.HOUR_OF_DAY, -3);
-//                    c1.add(Calendar.MINUTE, -120);
+                    c1.add(Calendar.HOUR_OF_DAY, -3);
+                    c1.add(Calendar.MINUTE, -120);
 
-                    c1.set(Calendar.HOUR_OF_DAY, 10);
-                    c1.set(Calendar.MINUTE, 30);
+//                    c1.set(Calendar.HOUR_OF_DAY, 10);
+//                    c1.set(Calendar.MINUTE, 30);
 
                     Calendar c2 = Calendar.getInstance();
-//                    c2.add(Calendar.HOUR_OF_DAY, -3);
-//                    c2.add(Calendar.MINUTE, 10);
-                    c2.set(Calendar.HOUR_OF_DAY, 18);
-                    c2.set(Calendar.MINUTE, 45);
+                    c2.add(Calendar.HOUR_OF_DAY, -3);
+                    c2.add(Calendar.MINUTE, 10);
+//                    c2.set(Calendar.HOUR_OF_DAY, 18);
+//                    c2.set(Calendar.MINUTE, 45);
                     ((DateAxis) chart.getXYPlot().getDomainAxis()).setMinimumDate(c1.getTime());
                     ((DateAxis) chart.getXYPlot().getDomainAxis()).setMaximumDate(c2.getTime());
 

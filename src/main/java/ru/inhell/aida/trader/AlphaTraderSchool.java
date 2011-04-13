@@ -162,6 +162,7 @@ public class AlphaTraderSchool {
                     boolean average = random.nextBoolean();
 
                     study("SBER03", n, l, p, m, average, true, 1.002f);
+                    study("SBER03", n, l, p, m, average, true, 1.0005f);
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
                 }

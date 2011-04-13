@@ -64,6 +64,8 @@ public class AlphaOracleListener implements IAlphaOracleListener {
                     prediction = AlphaOracleData.PREDICTION.STOP_SELL;
                 }else if (quantity < 0 &&  currentPrice > stopPrice){
                     prediction = AlphaOracleData.PREDICTION.STOP_BUY;
+                }else{
+                    return;
                 }
             }else{
                 return;

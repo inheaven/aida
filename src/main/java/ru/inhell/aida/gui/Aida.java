@@ -22,13 +22,13 @@ public class Aida {
         JPanel root = new JPanel(new GridLayout(1,3));
         frame.add(root);
 
-//        root.add(new AlphaOracleChart(3L));
+        root.add(new AlphaOracleChart(10L));
         root.add(new AlphaOracleChart(13L));
-//        root.add(new AlphaOracleChart(4L));
+        root.add(new AlphaOracleChart(16L));
 
-//        AidaInjector.getInstance(AlphaTraderService.class).process(10L);
-//        AidaInjector.getInstance(AlphaTraderService.class).process(12L);
-//        AidaInjector.getInstance(AlphaTraderService.class).process(15L);
+        AidaInjector.getInstance(AlphaTraderService.class).process(10L);
+        AidaInjector.getInstance(AlphaTraderService.class).process(13L);
+        AidaInjector.getInstance(AlphaTraderService.class).process(16L);
 
 
 //        frame.setLocationRelativeTo(null);
