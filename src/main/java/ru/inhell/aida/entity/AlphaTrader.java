@@ -5,7 +5,7 @@ package ru.inhell.aida.entity;
  * Date: 03.01.11 14:35
  */
 public class AlphaTrader {
-    public static enum STOP_TYPE{NONE, M_STOP}
+    public static enum STOP_TYPE{NONE, F_STOP}
 
     private Long id;
     private Long alphaOracleId;

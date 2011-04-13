@@ -1,18 +1,15 @@
 package ru.inhell.aida.trader;
 
-import com.google.inject.Inject;
 import com.sun.jna.Native;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inhell.aida.entity.*;
-import ru.inhell.aida.oracle.AlphaOracleService;
 import ru.inhell.aida.oracle.IAlphaOracleListener;
 import ru.inhell.aida.quik.QuikMessage;
 import ru.inhell.aida.quik.QuikService;
 import ru.inhell.aida.quik.QuikTransaction;
 import ru.inhell.aida.quik.QuikTransactionException;
 import ru.inhell.aida.quotes.CurrentBean;
-import ru.inhell.aida.quotes.QuotesBean;
 import ru.inhell.aida.util.DateUtil;
 
 import java.util.Date;
@@ -59,7 +56,7 @@ public class AlphaOracleListener implements IAlphaOracleListener {
         if (prediction == null){
             int quantity = alphaTrader.getQuantity();
 
-            if (alphaTrader.getStopType().equals(AlphaTrader.STOP_TYPE.M_STOP) && quantity != 0){
+            if (alphaTrader.getStopType().equals(AlphaTrader.STOP_TYPE.F_STOP) && quantity != 0){
                 float currentPrice = currentBean.getCurrent(alphaTrader.getSymbol()).getPrice();
                 float stopPrice = alphaTrader.getStopPrice();
 

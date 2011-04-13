@@ -34,21 +34,14 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
  *         Date: 10.04.11 19:38
  */
 public class AlphaTraderSchool {
-    private final static int COUNT = 2500;
+    private final static int COUNT = 6000;
 
     public static void main(String... args) throws RemoteVSSAException {
-//        randomStudyAll();
-        initGUI();
-
-
-        study("GAZP", 922, 80, 29, 6, true, false, 0);
-        study("GAZP", 922, 80, 29, 6, true, true, 1.0005f);
-        study("GAZP", 922, 80, 29, 6, true, true, 1.001f);
-        study("GAZP", 922, 80, 29, 6, true, true, 1.004f);
-        study("GAZP", 922, 80, 29, 6, true, true, 1.010f);
-
+        randomStudyAll();
+//        initGUI();
+//
 //        study("SBER03", 1244, 327, 37, 7, true, false, 0);
-
+//        study("SBER03", 1244, 327, 37, 7, true, true, 1.0005f);
 //        study("SBER03", 1244, 327, 37, 7, true, true, 1.002f);
 //        study("SBER03", 1244, 327, 37, 7, true, true, 1.004f);
 //        study("SBER03", 1244, 327, 37, 7, true, true, 1.01f);
@@ -64,12 +57,13 @@ public class AlphaTraderSchool {
 
         chart.getXYPlot().setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
 
-        ((XYLineAndShapeRenderer)chart.getXYPlot().getRenderer()).setBaseShapesVisible(true);
-        SegmentedTimeline timeline = new SegmentedTimeline( SegmentedTimeline.MINUTE_SEGMENT_SIZE, 495, 945);
-        timeline.setStartTime(SegmentedTimeline.firstMondayAfter1900() + 630 * timeline.getSegmentSize());
-        timeline.setBaseTimeline(SegmentedTimeline.newMondayThroughFridayTimeline());
+//        ((XYLineAndShapeRenderer)chart.getXYPlot().getRenderer()).setBaseShapesVisible(true);
 
-        ((DateAxis)chart.getXYPlot().getDomainAxis()).setTimeline(SegmentedTimeline.newFifteenMinuteTimeline());
+//        SegmentedTimeline timeline = new SegmentedTimeline( SegmentedTimeline.MINUTE_SEGMENT_SIZE, 495, 945);
+//        timeline.setStartTime(SegmentedTimeline.firstMondayAfter1900() + 630 * timeline.getSegmentSize());
+//        timeline.setBaseTimeline(SegmentedTimeline.newMondayThroughFridayTimeline());
+//
+//        ((DateAxis)chart.getXYPlot().getDomainAxis()).setTimeline(SegmentedTimeline.newFifteenMinuteTimeline());
 
         frame.add(new ChartPanel(chart));
         frame.pack();
@@ -148,7 +142,7 @@ public class AlphaTraderSchool {
 
         ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
 
-        for (int i=0; i < 20; ++i){
+        for (int i=0; i < 50; ++i){
             executor.execute(getRandomStudyCommand());
         }
     }
@@ -160,15 +154,14 @@ public class AlphaTraderSchool {
                 try {
                     Random random = new Random();
 
-                    int n = 300 + random.nextInt(1200);
+                    int n = 300 + random.nextInt(1000);
                     int l = 30 + random.nextInt(70);
                     int p = 10 + random.nextInt(40);
                     int m = 5 + random.nextInt(5);
-                    boolean useStop = random.nextBoolean();
+//                    boolean useStop = random.nextBoolean();
                     boolean average = random.nextBoolean();
 
-                    study("GAZP", n, l, p, m, average, useStop, 1.002f);
-                    study("SBER03", n, l, p, m, average, useStop, 1.002f);
+                    study("SBER03", n, l, p, m, average, true, 1.002f);
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
                 }
@@ -203,9 +196,14 @@ public class AlphaTraderSchool {
         boolean closeDay = false;
 
         List<Quote> allQuotes = quotesBean.getQuotes(symbol, COUNT + n);
-        TimeSeries balanceTimeSeries = new TimeSeries(symbol +"-n" + n + "l" + l +"p" + p + "m" + m
-                + (average?"a":"c") + (useStop?"s":"") + stopFactor);
+
+        String name = symbol +"-n" + n + "l" + l +"p" + p + "m" + m + (average?"a":"c") + (useStop?"s":"") + stopFactor;
+
+        TimeSeries balanceTimeSeries = new TimeSeries(name);
         balanceDataSet.addSeries(balanceTimeSeries);
+
+//        TimeSeries stopTimeSeries = new TimeSeries("STOP_" + name);
+//        balanceDataSet.addSeries(stopTimeSeries);
 
         Calendar current = Calendar.getInstance();
 
@@ -222,6 +220,31 @@ public class AlphaTraderSchool {
                 closeDay = true;
             }
 
+            //stop
+            if ((useStop && stopPrice != 0) || closeDay) {
+                if (quantity > 0 && (prices[prices.length-1] < stopPrice || closeDay)){ //stop sell
+                    balance = balance + (currentQuote.getClose() - price);
+                    price = currentQuote.getClose();
+
+                    balanceTimeSeries.add(new Minute(currentQuote.getDate()), balance);
+
+                    stopPrice = 0;
+                    quantity = 0;
+                    closeDay = false;
+                    continue;
+                }else if (quantity < 0 && (prices[prices.length-1] > stopPrice || closeDay)){ //stop buy
+                    balance = balance + (price - currentQuote.getClose());
+                    price = currentQuote.getClose();
+
+                    balanceTimeSeries.add(new Minute(currentQuote.getDate()), balance);
+
+                    stopPrice = 0;
+                    quantity = 0;
+                    closeDay = false;
+                    continue;
+                }
+            }
+
             float[] forecast = vectorForecastSSAService.execute(n, l, p, m, prices);
 
             if (VectorForecastUtil.isMin(forecast, n, m)
@@ -229,6 +252,7 @@ public class AlphaTraderSchool {
                     || VectorForecastUtil.isMin(forecast, n + 1, m)){ //LONG
                 if (quantity == 0){
                     price = currentQuote.getClose();
+                    stopPrice = price/stopFactor;
                     balanceTimeSeries.add(new Minute(currentQuote.getDate()), balance);
                 }
 
@@ -240,12 +264,12 @@ public class AlphaTraderSchool {
                 }
 
                 quantity = 1;
-                continue;
             }else if (VectorForecastUtil.isMax(forecast, n, m)
                     || VectorForecastUtil.isMax(forecast, n-1, m)
                     || VectorForecastUtil.isMax(forecast, n+1, m)){ //SHORT
                 if (quantity == 0){
                     price = currentQuote.getClose();
+                    stopPrice = price/stopFactor;
                     balanceTimeSeries.add(new Minute(currentQuote.getDate()), balance);
                 }
 
@@ -257,36 +281,16 @@ public class AlphaTraderSchool {
                 }
 
                 quantity = -1;
-                continue;
-            }
-
-            //stop
-            if ((useStop && stopPrice != 0) || closeDay) {
-                if (quantity > 0 && (currentQuote.getClose() < stopPrice || closeDay)){ //stop sell
-                    balance = balance + (currentQuote.getClose() - price);
-                    price = currentQuote.getClose();
-
-                    balanceTimeSeries.add(new Minute(currentQuote.getDate()), balance);
-
-                    stopPrice = 0;
-                    quantity = 0;
-                    closeDay = false;
-                }else if (quantity < 0 && (currentQuote.getClose() > stopPrice || closeDay)){ //stop bay
-                    balance = balance + (price - currentQuote.getClose());
-                    price = currentQuote.getClose();
-
-                    balanceTimeSeries.add(new Minute(currentQuote.getDate()), balance);
-
-                    stopPrice = 0;
-                    quantity = 0;
-                    closeDay = false;
-                }
             }
         }
 
-        if (balance < 0){
+        if (balance < 15){
             balanceDataSet.removeSeries(balanceTimeSeries);
             System.out.println("series " + balanceTimeSeries.getKey() + " by negative balance: " + balance);
+        }else{
+
         }
+
+        System.out.println(balanceTimeSeries.getKey() + " = " + balance );
     }
 }
