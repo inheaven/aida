@@ -3,8 +3,6 @@ package ru.inhell.aida.trader;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.DateAxis;
-import org.jfree.chart.axis.SegmentedTimeline;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.time.Minute;
@@ -24,7 +22,6 @@ import ru.inhell.aida.util.QuoteUtil;
 import ru.inhell.aida.util.VectorForecastUtil;
 
 import javax.swing.*;
-import java.awt.*;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -182,8 +179,8 @@ public class AlphaTraderSchool {
                     Random random = new Random();
 
                     int n = 1000 + random.nextInt(1000);
-                    int l = 495;
-                    int p = 20 + random.nextInt(100);
+                    int l = 60;
+                    int p = 20 + random.nextInt(40);
                     int m = 10;
 //                    boolean useStop = random.nextBoolean();
 //                    boolean average = random.nextBoolean();
@@ -212,6 +209,7 @@ public class AlphaTraderSchool {
     }
 
     static float maxBalance = 0;
+    static float minBalance = 0;
 
     private static void study(String prefix, String symbol, int n, int l, int p, int m, boolean average, boolean useStop, float stopFactor)
             throws RemoteVSSAException {
@@ -258,7 +256,7 @@ public class AlphaTraderSchool {
             //close day
             current.setTime(currentQuote.getDate());
             if (current.get(Calendar.HOUR_OF_DAY) == 18 && current.get(Calendar.MINUTE) > 40){
-                if (orderCount < 3 || balance < -5){
+                if (orderCount < 3){
                     System.out.println(prefix+balanceTimeSeries.getKey() + "," + balance + "," + orderCount + "," + stopCount + "," + start + "," + end);
                     balanceDataSet.removeSeries(balanceTimeSeries);
                     return;
@@ -295,7 +293,12 @@ public class AlphaTraderSchool {
                 }
             }
 
-            float[] forecast = vectorForecastSSAService.execute(n, l, p, m, prices);
+            float[] forecast = new float[0];
+            try {
+                forecast = vectorForecastSSAService.execute(n, l, p, m, prices);
+            } catch (Exception e) {
+                balanceDataSet.removeSeries(balanceTimeSeries);
+            }
 
             if (VectorForecastUtil.isMin(forecast, n, m)
                     || VectorForecastUtil.isMin(forecast, n - 1, m)
@@ -346,10 +349,10 @@ public class AlphaTraderSchool {
             }
         }
 
-        if (balance < maxBalance){
+        if (balance >= minBalance && balance < maxBalance){
             balanceDataSet.removeSeries(balanceTimeSeries);
         }else{
-            maxBalance = balance;
+            balance = balance > maxBalance ? maxBalance : minBalance;
         }
 
         System.out.println(prefix+balanceTimeSeries.getKey() + "," + balance + "," + orderCount + "," + stopCount + "," + start + "," + end);
