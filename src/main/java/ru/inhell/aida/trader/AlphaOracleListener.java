@@ -48,6 +48,10 @@ public class AlphaOracleListener implements IAlphaOracleListener {
 
     @Override
     public void predicted(AlphaOracle alphaOracle, AlphaOracleData.PREDICTION prediction, List<Quote> quotes, float[] forecast) {
+        if (!alphaOracle.getId().equals(alphaTrader.getAlphaOracleId())){
+            return;
+        }
+
         int n = alphaOracle.getVectorForecast().getN();
         alphaTrader = alphaTraderBean.getAlphaTrader(alphaTrader.getId());
 
@@ -150,6 +154,8 @@ public class AlphaOracleListener implements IAlphaOracleListener {
                     throw new IllegalArgumentException();
             }
 
+            alphaTraderData.setQuantity(reverseQuantity);
+
             update(qt, alphaTraderData);
             alphaTraderBean.save(alphaTrader);
 
@@ -187,8 +193,10 @@ public class AlphaOracleListener implements IAlphaOracleListener {
     private float getOrderPrice(AlphaOracleData.PREDICTION prediction, float price){
         switch (prediction){
             case LONG:
+            case STOP_BUY:
                 return price *= 1.005;
             case SHORT:
+            case STOP_SELL:
                 return price /= 1.005;
             default:
                 throw new IllegalArgumentException();

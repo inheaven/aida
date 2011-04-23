@@ -14,27 +14,29 @@ import java.awt.*;
  *         Date: 21.03.11 18:37
  */
 public class Aida {
+    private static JPanel root;
+
     public static void main(String... args) throws QuikException {
         //Frame
         JFrame frame = new JFrame("Aida");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        JPanel root = new JPanel(new GridLayout(1,3));
+        root = new JPanel(new GridLayout(3,3));
         frame.add(root);
 
-        root.add(new AlphaOracleChart(10L));
-        root.add(new AlphaOracleChart(13L));
-        root.add(new AlphaOracleChart(16L));
+        process(1, 14, 19, 21, 22, 23, 24, 25, 26);
 
-        AidaInjector.getInstance(AlphaTraderService.class).process(10L);
-        AidaInjector.getInstance(AlphaTraderService.class).process(13L);
-        AidaInjector.getInstance(AlphaTraderService.class).process(16L);
-
-
-//        frame.setLocationRelativeTo(null);
         frame.pack();
         frame.setVisible(true);
 
         AidaInjector.getInstance(QuikService.class).connect(ru.inhell.aida.Aida.getQuikDir());
     }
+
+    private static void process(int... ids){
+        for (int id :  ids){
+            root.add(new AlphaOracleChart((long)id));
+            AidaInjector.getInstance(AlphaTraderService.class).process((long)id);
+        }
+    }
 }
+

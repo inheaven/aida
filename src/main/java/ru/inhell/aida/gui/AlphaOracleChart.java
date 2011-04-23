@@ -106,8 +106,6 @@ public class AlphaOracleChart extends JPanel{
                 if (alphaOracle.getId().equals(ao.getId())) {
                     TimeSeries forecastTimeSeries = forecastLine.getSeries("forecast");
 
-                    forecastTimeSeries.clear();
-
                     int n = ao.getVectorForecast().getN();
 
                     Date p = quotes.get(n-1).getDate();
@@ -162,16 +160,12 @@ public class AlphaOracleChart extends JPanel{
 
                     //Prediction
                     TimeSeries timeSeriesLong = predictionPoint.getSeries("long");
-                    timeSeriesLong.clear();
 
                     TimeSeries timeSeriesShort = predictionPoint.getSeries("short");
-                    timeSeriesShort.clear();
 
                     TimeSeries timeSeriesStopBuy = predictionPoint.getSeries("stopBuy");
-                    timeSeriesStopBuy.clear();
 
                     TimeSeries timeSeriesStopSell = predictionPoint.getSeries("stopSell");
-                    timeSeriesStopSell.clear();
 
                     for (AlphaOracleData d : alphaOracleBean.getAlphaOracleDatas(alphaOracle.getId(), date[0])){
                         switch (d.getPrediction()){
@@ -191,7 +185,6 @@ public class AlphaOracleChart extends JPanel{
                     }
 
                     TimeSeries timeSeriesCurrentForecast = currentForecastLine.getSeries("currentForecast");
-                    timeSeriesCurrentForecast.clear();
 
                     //Vector Forecast
                     VectorForecastFilter filter = new VectorForecastFilter();

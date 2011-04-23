@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 public class AlphaOracleService {
     private final static Logger log = LoggerFactory.getLogger(AlphaOracleService.class);
 
-    private final static int CORE_POOL_SIZE = 4;
+    private final static int CORE_POOL_SIZE = 3;
     private final static int PERIOD = 20;
     private final static int UPDATE_COUNT = 6;
 
