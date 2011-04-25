@@ -8,17 +8,24 @@ import java.awt.*;
  *         Date: 06.04.11 16:37
  */
 public class AidaRemote {
+    private static JPanel root;
+
     public static void main(String... args){
         JFrame frame = new JFrame("Aida");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        JPanel root = new JPanel(new GridLayout(1,1));
+        root = new JPanel(new GridLayout(3,3));
         frame.add(root);
 
-//        root.add(new AlphaOracleChart(3L, 20));
-        root.add(new AlphaOracleChart(2L, 20));
+        process(1,2,14,19,21,27,28,29,30);
 
         frame.pack();
         frame.setVisible(true);
+    }
+
+    private static void process(int... ids){
+        for (int id : ids){
+            root.add(new AlphaOracleChart((long)id, 30));
+        }
     }
 }
