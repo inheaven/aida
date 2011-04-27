@@ -8,6 +8,7 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.time.Minute;
+import org.jfree.data.time.MovingAverage;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.xy.DefaultHighLowDataset;
@@ -100,6 +101,10 @@ public class AlphaOracleChart extends JPanel{
         chart.getXYPlot().setDataset(3, currentForecastLine);
         chart.getXYPlot().setRenderer(3, new XYLineAndShapeRenderer(true, false));
 
+        //Moving Average
+        chart.getXYPlot().setRenderer(4, new XYLineAndShapeRenderer(true, false));
+        chart.getXYPlot().setRenderer(5, new XYLineAndShapeRenderer(true, false));
+
         alphaOracleService.addListener(new IAlphaOracleListener() {
             @Override
             public void predicted(AlphaOracle ao, AlphaOracleData.PREDICTION prediction, List<Quote> quotes, float[] forecast) {
@@ -156,7 +161,12 @@ public class AlphaOracleChart extends JPanel{
                     }
 
                     //todo improve object creation
-                    chart.getXYPlot().setDataset(new DefaultHighLowDataset("", date, high, low, open, close, volume));
+                    DefaultHighLowDataset dataset = new DefaultHighLowDataset(alphaOracle.getVectorForecast().getSymbol(),
+                            date, high, low, open, close, volume);
+                    chart.getXYPlot().setDataset(dataset);
+
+                    chart.getXYPlot().setDataset(4, MovingAverage.createMovingAverage(dataset, "_MA200", 40*60*1000, 0));
+                    chart.getXYPlot().setDataset(5, MovingAverage.createMovingAverage(dataset, "_MA100", 20*60*1000, 0));
 
                     //Prediction
                     TimeSeries timeSeriesLong = predictionPoint.getSeries("long");
