@@ -14,6 +14,8 @@ import ru.inhell.aida.util.DateUtil;
 import ru.inhell.aida.util.QuoteUtil;
 import ru.inhell.aida.util.VectorForecastUtil;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
@@ -33,6 +35,8 @@ public class AlphaOracleService {
     private final static int UPDATE_COUNT = 12;
 
     private final static boolean USE_REMOTE = Aida.getProperty("use_remote_vssa").equals("true");
+
+    public static final DateFormat dateFormat = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.SHORT, SimpleDateFormat.SHORT);
 
     @Inject
     private QuotesBean quotesBean;
@@ -112,7 +116,7 @@ public class AlphaOracleService {
         };
     }
 
-    public void predict(final AlphaOracle alphaOracle, int count, boolean skipIfForecastExists, boolean useRemote)
+    public void predict(final AlphaOracle alphaOracle, int count, boolean skipIfOracleExists, boolean useRemote)
             throws  RemoteVSSAException {
         VectorForecast vf = alphaOracle.getVectorForecast();
 
@@ -128,8 +132,13 @@ public class AlphaOracleService {
             //текущая дата
             Date date = quotes.get(quotes.size()-1).getDate();
 
+            //текущая цена
+            float currentPrice = DateUtil.getAbsMinuteShiftMsk(date) < 2
+                        ? currentBean.getCurrent(vf.getSymbol()).getPrice()
+                        : quotes.get(quotes.size()-1).getClose();
+
             //пропускаем если уже есть запись предсказания в базе данных
-            if (skipIfForecastExists && vectorForecastBean.isVectorForecastDataExists(vf.getId(), date)){
+            if (skipIfOracleExists && alphaOracleBean.isAlphaOracleDataExists(alphaOracle.getId(), date)){
                 continue;
             }
 
@@ -158,8 +167,6 @@ public class AlphaOracleService {
 
             //предсказание на текущую дату
             if (alphaOracle.getStopCount() < alphaOracle.getMaxStopCount()) {
-                float currentPrice = currentBean.getCurrent(vf.getSymbol()).getPrice();
-
                 if (StopType.F_STOP.equals(alphaOracle.getStopType()) && alphaOracle.isInMarket()){
                     float stopPrice = alphaOracle.getStopPrice();
 
@@ -206,8 +213,8 @@ public class AlphaOracleService {
             vectorForecastBean.save(vf, quotes, forecast);
 
             //сохранение предсказания
-            if (prediction != null && alphaOracleBean.isAlphaOracleDataExists(alphaOracle.getId(), date)) {
-                alphaOracleBean.save(new AlphaOracleData(alphaOracle.getId(), date, forecast[vf.getN() - 1], prediction));
+            if (prediction != null && !alphaOracleBean.isAlphaOracleDataExists(alphaOracle.getId(), date)) {
+                alphaOracleBean.save(new AlphaOracleData(alphaOracle.getId(), date, currentPrice, prediction));
             }
         }
     }
@@ -216,7 +223,7 @@ public class AlphaOracleService {
         if (prediction != null) {
             int n = alphaOracle.getVectorForecast().getN();
             log.info(alphaOracle.getId() + "-" + alphaOracle.getVectorForecast().getSymbol() + ", " +
-                    prediction.name() + ", " + quotes.get(n-1).getDate() + ", " + forecast[n-1]);
+                    prediction.name() + ", " + dateFormat.format(quotes.get(n-1).getDate()) + ", " + forecast[n-1]);
         }
 
         for (IAlphaOracleListener listener : listeners){

@@ -16,12 +16,15 @@ import ru.inhell.aida.quotes.QuotesBean;
 import ru.inhell.aida.ssa.RemoteVSSAException;
 import ru.inhell.aida.ssa.VectorForecastSSA;
 import ru.inhell.aida.ssa.VectorForecastSSAService;
+import ru.inhell.aida.util.DateUtil;
 import ru.inhell.aida.util.QuoteUtil;
 import ru.inhell.aida.util.VectorForecastUtil;
 
 import javax.swing.*;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -33,24 +36,19 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
  *         Date: 10.04.11 19:38
  */
 public class AlphaTraderSchool {
-    private final static int COUNT = 495;
+    public static final DateFormat dateFormat = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.SHORT, SimpleDateFormat.SHORT);
+
+    private final static int COUNT = 20000;
     static FileWriter fileWriter;
 
     public static void main(String... args) throws RemoteVSSAException, IOException {
         fileWriter = new FileWriter("c:\\aos.txt");
 
-        studyAll();
+//        studyAll();
 
-//        scoreAll();
+        scoreAll();
 //
 //        randomStudyAll();
-
-//        initGUI();
-//        study("SBER03", 1027, 285, 16, 11, true, true, 1.002f);
-//        study("SBER03", 596, 64, 37, 8, true, true, 1.0002f);
-//        study("20-","GAZP", 202, 75, 71, 7, true, true, 1.008f);
-//        study("GAZP", 922, 80, 29, 6, true, true, 1.002f);
-//        study("SBER03", 1244, 327, 37, 7, true, true, 1.01f);
     }
 
 
@@ -85,15 +83,15 @@ public class AlphaTraderSchool {
 
         AlphaOracleBean alphaOracleBean = AidaInjector.getInstance(AlphaOracleBean.class);
 
-        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(4);
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
 
         List<AlphaOracle> alphaOracles =  alphaOracleBean.getAlphaOracles();
         for (AlphaOracle ao : alphaOracles){
             VectorForecast vf = ao.getVectorForecast();
 
             if (vf.getSymbol().equals("GAZP")){
-                executor.execute(getStudyCommand(vf.getId()+"-", vf.getSymbol(), vf.getN(), vf.getL(), vf.getP(), vf.getM(), ao.getPriceType().equals(PriceType.AVERAGE), true, 1.002f));
-                executor.execute(getStudyCommand(vf.getId()+"-", vf.getSymbol(), vf.getN(), vf.getL(), vf.getP(), vf.getM(), ao.getPriceType().equals(PriceType.AVERAGE), true, 1.008f));
+                executor.execute(getStudyCommand(vf.getId()+"-", vf.getSymbol(), vf.getN(), vf.getL(), vf.getP(), vf.getM(), ao.getPriceType().equals(PriceType.AVERAGE), false, 1.002f));
+//                executor.execute(getStudyCommand(vf.getId()+"-", vf.getSymbol(), vf.getN(), vf.getL(), vf.getP(), vf.getM(), ao.getPriceType().equals(PriceType.AVERAGE), true, 1.008f));
             }
         }
 
@@ -103,13 +101,19 @@ public class AlphaTraderSchool {
         initGUI();
 
         AlphaOracleBean alphaOracleBean = AidaInjector.getInstance(AlphaOracleBean.class);
-        AlphaOracleService alphaOracleService = AidaInjector.getInstance(AlphaOracleService.class);
+        final AlphaOracleService alphaOracleService = AidaInjector.getInstance(AlphaOracleService.class);
+
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(5);
 
         List<AlphaOracle> alphaOracles =  alphaOracleBean.getAlphaOracles();
-        for (AlphaOracle alphaOracle : alphaOracles){
-            alphaOracleService.predict(alphaOracle, COUNT, true, false);
-
-            score(alphaOracle);
+        for (final AlphaOracle alphaOracle : alphaOracles){
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    alphaOracleService.predict(alphaOracle, COUNT, true, false);
+                    score(alphaOracle);
+                }
+            });
         }
     }
 
@@ -135,32 +139,63 @@ public class AlphaTraderSchool {
         float price = 0;
         int quantity = 0;
 
-        for (AlphaOracleData alphaOracleData : alphaOracleDataList){
+        for (int i=0; i < alphaOracleDataList.size()-1; ++i){
+            AlphaOracleData alphaOracleData = alphaOracleDataList.get(i);
+            AlphaOracleData alphaOracleDataNext = alphaOracleDataList.get(i+1);
+
+             Date date = alphaOracleData.getDate();
+
             if (quantity == 0){
                 price = alphaOracleData.getPrice();
+                balanceTimeSeries.add(new Minute(date), balance);
             }
 
             switch (alphaOracleData.getPrediction()){
                 case LONG:
                     if (quantity == -1){
-                        balance = balance + 2*(price - alphaOracleData.getPrice());
+                        balance += 2*(price - alphaOracleData.getPrice());
                         price = alphaOracleData.getPrice();
 
-                        balanceTimeSeries.add(new Minute(alphaOracleData.getDate()), balance);
+                        balanceTimeSeries.add(new Minute(date), balance);
                     }
 
                     quantity = 1;
                     break;
                 case SHORT:
                     if (quantity == 1){
-                        balance = balance + 2*(alphaOracleData.getPrice() - price);
+                        balance += 2*(alphaOracleData.getPrice() - price);
                         price = alphaOracleData.getPrice();
 
-                        balanceTimeSeries.add(new Minute(alphaOracleData.getDate()), balance);
+                        balanceTimeSeries.add(new Minute(date), balance);
                     }
 
                     quantity = -1;
                     break;
+                case STOP_BUY:
+                    if (quantity == -1){
+                        balance += (price - alphaOracleData.getPrice());
+                        price = alphaOracleData.getPrice();
+
+                        balanceTimeSeries.add(new Minute(date), balance);
+
+                        quantity = 0;
+                    }
+                    break;
+                case STOP_SELL:
+                    if (quantity == 1) {
+                        balance += (alphaOracleData.getPrice() - price);
+                        price = alphaOracleData.getPrice();
+
+                        balanceTimeSeries.add(new Minute(date), balance);
+
+                        quantity = 0;
+                    }
+                    break;
+            }
+
+
+            if (!DateUtil.isSameDay(date, alphaOracleDataNext.getDate())){
+                quantity = 0;
             }
         }
     }
@@ -171,34 +206,31 @@ public class AlphaTraderSchool {
         ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(3);
 
         for (int i=0; i < 200; ++i){
-            executor.execute(getRandomStudyCommand());
-        }
-    }
 
-    private static Runnable getRandomStudyCommand(){
-        return new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Random random = new Random();
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Random random = new Random();
 
-                    int[] ll = {60, 80, 100, 120, 128, 180, 200, 240, 256, 360};
-                    int nn[] = {2475, 2*2475};
-                    int[] mm = {5, 10, 15};
-                    float[] ss = {1.002f, 1.004f, 1.008f, 1.01f};
+                        int[] ll = {60, 80, 100, 120, 128, 180, 200, 240, 256, 360};
+                        int nn[] = {2475, 2*2475};
+                        int[] mm = {5, 10, 15};
+                        float[] ss = {1.002f, 1.004f, 1.008f, 1.01f};
 
-                    int n = nn[random.nextInt(2)];
-                    int l = ll[random.nextInt(10)];
-                    int p = 20 + random.nextInt(80);
-                    int m = mm[random.nextInt(3)];
-                    float s = ss[random.nextInt(4)];
+                        int n = nn[random.nextInt(2)];
+                        int l = ll[random.nextInt(10)];
+                        int p = 20 + random.nextInt(80);
+                        int m = mm[random.nextInt(3)];
+                        float s = ss[random.nextInt(4)];
 
-                    study("", "GAZP", n, l, p, m, true, true, s);
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
+                        study("", "GAZP", n, l, p, m, true, true, s);
+                    } catch (Exception e) {
+                        System.out.println(e.getMessage());
+                    }
                 }
-            }
-        };
+            });
+        }
     }
 
     private static Runnable getStudyCommand(final String prefix, final String symbol, final int n, final int l, final int p, final int m,
@@ -243,9 +275,6 @@ public class AlphaTraderSchool {
         TimeSeries balanceTimeSeries = new TimeSeries(name);
         balanceDataSet.addSeries(balanceTimeSeries);
 
-//        TimeSeries stopTimeSeries = new TimeSeries("STOP_" + name);
-//        balanceDataSet.addSeries(stopTimeSeries);
-
         Calendar current = Calendar.getInstance();
 
         VectorForecastSSA vectorForecastSSA = new VectorForecastSSA(n, l, p, m);
@@ -267,11 +296,9 @@ public class AlphaTraderSchool {
             current.setTime(currentQuote.getDate());
             if (current.get(Calendar.HOUR_OF_DAY) == 18 && current.get(Calendar.MINUTE) > 40){
                 if (orderCount < 2){
-//                    System.out.println(prefix+balanceTimeSeries.getKey() + "," + balance + "," + orderCount + "," + stopCount + "," + start + "," + end);
                     balanceDataSet.removeSeries(balanceTimeSeries);
                     return;
                 }
-
 
                 closeDay = true;
             }
@@ -369,7 +396,7 @@ public class AlphaTraderSchool {
             }
         }
 
-        String s = prefix+balanceTimeSeries.getKey() + "," + balance + "," + orderCount + "," + stopCount + "," + start + "," + end;
+        String s = prefix+balanceTimeSeries.getKey() + "," + balance + "," + orderCount + "," + stopCount + "," + dateFormat.format(start) + "," + dateFormat.format(end);
 
         try {
             fileWriter.write(s + "\n");

@@ -53,6 +53,6 @@
 
     <update id="updateAlphaOracle" parameterType="ru.inhell.aida.entity.AlphaOracle">
         update `alpha_oracle` set `price` = #{price}, `prediction` = #{prediction}, `score` = #{score},
-            `stop_price` = #{stopPrice}, `stop_count` = #{stop_count} where `id` = #{id}
+            `stop_price` = #{stopPrice}, `stop_count` = #{stopCount} where `id` = #{id}
     </update>
 </mapper>
