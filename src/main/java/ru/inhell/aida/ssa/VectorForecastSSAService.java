@@ -38,7 +38,7 @@ public class VectorForecastSSAService {
     public float[] executeRemote(int n, int l, int p, int m, float[] timeSeries) throws RemoteVSSAException {
         try {
             if (remoteVSSA == null){
-                Registry registry = LocateRegistry.getRegistry();
+                Registry registry = LocateRegistry.getRegistry(51099);
                 remoteVSSA = (IRemoteVSSA) registry.lookup("RemoteVSSA");
             }
 

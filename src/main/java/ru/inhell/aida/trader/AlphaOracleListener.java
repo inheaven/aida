@@ -24,7 +24,7 @@ import static ru.inhell.aida.entity.AlphaOracleData.PREDICTION.SHORT;
 *         Date: 12.04.11 22:09
 */
 public class AlphaOracleListener implements IAlphaOracleListener {
-    private static final int MAX_STOP_COUNT = 5;
+    private static final int MAX_STOP_COUNT = 10;
 
     private final Logger log = LoggerFactory.getLogger(AlphaTraderService.class);
 

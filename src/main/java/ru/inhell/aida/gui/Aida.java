@@ -24,7 +24,7 @@ public class Aida {
         root = new JPanel(new GridLayout(3,3));
         frame.add(root);
 
-        process(1, 14, 19, 21, 22, 23, 24, 25, 26);
+        process(1, 2, 14, 19, 27, 28, 31, 32, 33);
 
         frame.pack();
         frame.setVisible(true);

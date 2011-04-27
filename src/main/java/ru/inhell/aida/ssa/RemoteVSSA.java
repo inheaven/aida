@@ -31,7 +31,7 @@ public class RemoteVSSA implements IRemoteVSSA{
     }
 
     public static void main(String... args) throws RemoteException, AlreadyBoundException {
-        Registry registry = LocateRegistry.getRegistry();
+        Registry registry = LocateRegistry.getRegistry(51099);
         registry.bind("RemoteVSSA", UnicastRemoteObject.exportObject(new RemoteVSSA(), 0));
 
         vectorForecastSSAService = AidaInjector.getInstance(VectorForecastSSAService.class);

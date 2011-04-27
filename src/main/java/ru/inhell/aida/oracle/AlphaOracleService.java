@@ -27,9 +27,9 @@ import java.util.concurrent.TimeUnit;
 public class AlphaOracleService {
     private final static Logger log = LoggerFactory.getLogger(AlphaOracleService.class);
 
-    private final static int CORE_POOL_SIZE = 3;
-    private final static int PERIOD = 20;
-    private final static int UPDATE_COUNT = 6;
+    private final static int CORE_POOL_SIZE = 5;
+    private final static int PERIOD = 6;
+    private final static int UPDATE_COUNT = 12;
 
     private final static boolean USE_REMOTE = Aida.getProperty("use_remote_vssa").equals("true");
 
