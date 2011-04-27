@@ -10,15 +10,13 @@ public class VectorForecastFilter {
     private Long vectorForecastId;
 
     private String symbol;
-    private VectorForecast.INTERVAL interval;
+    private Interval interval;
     private int n;
     private int l;
     private int p;
     private int m;
-    private Date created;
 
     private Date date;
-    private Date startDate;
 
     private int first;
     private int size;
@@ -26,13 +24,18 @@ public class VectorForecastFilter {
     public VectorForecastFilter() {
     }
 
-    public VectorForecastFilter(String symbol, VectorForecast.INTERVAL interval, int n, int l, int p, int m) {
+    public VectorForecastFilter(String symbol, Interval interval, int n, int l, int p, int m) {
         this.symbol = symbol;
         this.interval = interval;
         this.n = n;
         this.l = l;
         this.p = p;
         this.m = m;
+    }
+
+    public VectorForecastFilter(Long vectorForecastId, Date date) {
+        this.vectorForecastId = vectorForecastId;
+        this.date = date;
     }
 
     public Long getVectorForecastId() {
@@ -51,11 +54,11 @@ public class VectorForecastFilter {
         this.symbol = symbol;
     }
 
-    public VectorForecast.INTERVAL getInterval() {
+    public Interval getInterval() {
         return interval;
     }
 
-    public void setInterval(VectorForecast.INTERVAL interval) {
+    public void setInterval(Interval interval) {
         this.interval = interval;
     }
 
@@ -91,28 +94,12 @@ public class VectorForecastFilter {
         this.m = m;
     }
 
-    public Date getCreated() {
-        return created;
-    }
-
-    public void setCreated(Date created) {
-        this.created = created;
-    }
-
     public Date getDate() {
         return date;
     }
 
     public void setDate(Date date) {
         this.date = date;
-    }
-
-    public Date getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(Date startDate) {
-        this.startDate = startDate;
     }
 
     public int getFirst() {

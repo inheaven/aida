@@ -2,21 +2,17 @@ package ru.inhell.aida.oracle;
 
 import com.google.inject.Inject;
 import org.apache.ibatis.session.SqlSessionManager;
-import ru.inhell.aida.entity.Quote;
-import ru.inhell.aida.entity.VectorForecast;
-import ru.inhell.aida.entity.VectorForecastData;
-import ru.inhell.aida.entity.VectorForecastFilter;
-import ru.inhell.aida.ssa.VectorForecastSSA;
-import ru.inhell.aida.ssa.VectorForecastSSAService;
+import ru.inhell.aida.entity.*;
 import ru.inhell.aida.util.DateUtil;
 import ru.inhell.aida.util.VectorForecastUtil;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
-import static ru.inhell.aida.entity.VectorForecastData.TYPE.*;
-import static ru.inhell.aida.entity.VectorForecastData.TYPE.MIN20;
+import static ru.inhell.aida.entity.ExtremumType.*;
+import static ru.inhell.aida.entity.ExtremumType.MIN20;
 
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
@@ -29,18 +25,22 @@ public class VectorForecastBean {
     private final static String NS = VectorForecastBean.class.getName();
 
     public void save(VectorForecast vectorForecast, List<Quote> quotes, float[] forecast){
-        List<VectorForecastData> dataList = new ArrayList<VectorForecastData>();
+        Date date = quotes.get(vectorForecast.getN() - 1).getDate();
 
-        for (int index = -vectorForecast.getM(); index <= vectorForecast.getM(); ++index){
-            Date date = quotes.get(vectorForecast.getN() - 1).getDate();
-            Date indexDate = DateUtil.getOneMinuteIndexDate(date, index);
-            float price = forecast[vectorForecast.getN() + index];
-            dataList.add(new VectorForecastData(vectorForecast.getId(), date, index, indexDate, price));
+        //проверяем если предсказание уже сохранено на текущую дату
+        if (!isVectorForecastDataExists(vectorForecast.getId(), date)) {
+            List<VectorForecastData> dataList = new ArrayList<VectorForecastData>();
+
+            for (int index = -vectorForecast.getM(); index <= vectorForecast.getM(); ++index){
+                Date indexDate = DateUtil.getOneMinuteIndexDate(date, index);
+                float price = forecast[vectorForecast.getN() + index];
+                dataList.add(new VectorForecastData(vectorForecast.getId(), date, index, indexDate, price));
+            }
+
+            extremum(dataList);
+
+            save(dataList);
         }
-
-        extremum(dataList);
-
-        save(dataList);
     }
 
     private void extremum(List<VectorForecastData> dataList){
@@ -105,15 +105,18 @@ public class VectorForecastBean {
         return sm.selectList(NS + ".selectVectorForecasts", filter);
     }
 
-    public Long getVectorForecastDataCount(VectorForecastFilter filter){
-        return (Long) sm.selectOne(NS + ".selectVectorForecastDataCount", filter);
+    public boolean isVectorForecastDataExists(final Long vectorForecastId, final Date date){
+        return (Boolean)sm.selectOne(NS + ".selectIsVectorForecastDataExists", new HashMap<String, Object>(){{
+            put("vectorForecastId", vectorForecastId);
+            put("date", date);
+        }});
     }
 
     public void update(VectorForecastData type){
         sm.update(NS + ".updateVectorForecastData", type);
     }
 
-    public VectorForecast getOrCreateVectorForecast(String symbol, VectorForecast.INTERVAL interval,
+    public VectorForecast getOrCreateVectorForecast(String symbol, Interval interval,
                                                     int n, int l, int p, int m){
         VectorForecast vectorForecast = (VectorForecast) sm.selectOne(NS + ".selectVectorForecast",
                 new VectorForecastFilter(symbol, interval, n, l, p, m));

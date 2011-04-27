@@ -7,26 +7,20 @@ import java.util.Date;
  *         Date: 21.03.11 16:43
  */
 public class AlphaOracleData {
-    public static enum PREDICTION {
-        LONG, SHORT, STOP_BUY, STOP_SELL
-    }
-
     private Long id;
     private Long alphaOracleId;
     private Date date;
     private float price;
-    private PREDICTION prediction;
-    private Date predicted;
+    private Prediction prediction;
 
     public AlphaOracleData() {
     }
 
-    public AlphaOracleData(Long alphaOracleId, Date date, float price, PREDICTION prediction, Date predicted) {
+    public AlphaOracleData(Long alphaOracleId, Date date, float price, Prediction prediction) {
         this.alphaOracleId = alphaOracleId;
         this.date = date;
         this.price = price;
         this.prediction = prediction;
-        this.predicted = predicted;
     }
 
     public Long getId() {
@@ -61,19 +55,11 @@ public class AlphaOracleData {
         this.price = price;
     }
 
-    public PREDICTION getPrediction() {
+    public Prediction getPrediction() {
         return prediction;
     }
 
-    public void setPrediction(PREDICTION prediction) {
+    public void setPrediction(Prediction prediction) {
         this.prediction = prediction;
-    }
-
-    public Date getPredicted() {
-        return predicted;
-    }
-
-    public void setPredicted(Date predicted) {
-        this.predicted = predicted;
     }
 }

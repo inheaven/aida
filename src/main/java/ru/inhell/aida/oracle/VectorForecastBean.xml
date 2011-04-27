@@ -49,13 +49,8 @@
             </where>
     </select>
 
-    <select id="selectVectorForecastDataCount" parameterType="ru.inhell.aida.entity.VectorForecastFilter" resultType="long">
-        select count(*) from `vector_forecast_data`
-        <where>
-            <if test="vectorForecastId != null">`vector_forecast_id` = #{vectorForecastId}</if>
-            <if test="startDate != null">and `date` >= #{startDate}</if>
-            <if test="date != null">and `date` = #{date}</if>
-        </where>
+    <select id="selectIsVectorForecastDataExists" parameterType="map" resultType="boolean">
+        select count(*) > 0 from `vector_forecast_data` where `vector_forecast_id` = #{vectorForecastId} and `date` = #{date}
     </select>
 
     <insert id="insertVectorForecast" parameterType="ru.inhell.aida.entity.VectorForecast" useGeneratedKeys="true"

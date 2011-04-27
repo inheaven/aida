@@ -1,18 +1,48 @@
 package ru.inhell.aida.entity;
 
-import java.util.Date;
-
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
  *         Date: 18.03.11 18:21
  */
 public class AlphaOracle {
-    public static enum PRICE_TYPE{AVERAGE, CLOSE}
-
     private Long id;
     private VectorForecast vectorForecast;
-    private PRICE_TYPE priceType;
-    private boolean enable = true;
+    private float price;
+    private Prediction prediction;
+    private float stopPrice;
+    private StopType stopType;
+    private float stopFactor;
+    private int stopCount;
+    private float score;
+    private PriceType priceType;
+    private int maxStopCount;
+    private Status status;
+
+    public boolean isInMarket(){
+        return Prediction.LONG.equals(prediction) || Prediction.SHORT.equals(prediction);
+    }
+
+    public void update(Prediction prediction, float price){
+        switch (prediction){
+            case STOP_BUY:
+                stopCount++;
+                score += this.price - price;
+                break;
+            case STOP_SELL:
+                stopCount++;
+                score += price - this.price;
+                break;
+            case LONG:
+                score += this.price - price;
+                break;
+            case SHORT:
+                score += price - this.price;
+                break;
+        }
+
+        this.prediction = prediction;
+        this.price = price;
+    }
 
     public Long getId() {
         return id;
@@ -30,19 +60,83 @@ public class AlphaOracle {
         this.vectorForecast = vectorForecast;
     }
 
-    public PRICE_TYPE getPriceType() {
+    public float getPrice() {
+        return price;
+    }
+
+    public void setPrice(float price) {
+        this.price = price;
+    }
+
+    public Prediction getPrediction() {
+        return prediction;
+    }
+
+    public void setPrediction(Prediction prediction) {
+        this.prediction = prediction;
+    }
+
+    public float getStopPrice() {
+        return stopPrice;
+    }
+
+    public void setStopPrice(float stopPrice) {
+        this.stopPrice = stopPrice;
+    }
+
+    public StopType getStopType() {
+        return stopType;
+    }
+
+    public void setStopType(StopType stopType) {
+        this.stopType = stopType;
+    }
+
+    public float getStopFactor() {
+        return stopFactor;
+    }
+
+    public void setStopFactor(float stopFactor) {
+        this.stopFactor = stopFactor;
+    }
+
+    public int getStopCount() {
+        return stopCount;
+    }
+
+    public void setStopCount(int stopCount) {
+        this.stopCount = stopCount;
+    }
+
+    public float getScore() {
+        return score;
+    }
+
+    public void setScore(float score) {
+        this.score = score;
+    }
+
+    public PriceType getPriceType() {
         return priceType;
     }
 
-    public void setPriceType(PRICE_TYPE priceType) {
+    public void setPriceType(PriceType priceType) {
         this.priceType = priceType;
     }
 
-    public boolean isEnable() {
-        return enable;
+    public int getMaxStopCount() {
+        return maxStopCount;
     }
 
-    public void setEnable(boolean enable) {
-        this.enable = enable;
+    public void setMaxStopCount(int maxStopCount) {
+        this.maxStopCount = maxStopCount;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
     }
 }

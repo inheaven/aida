@@ -16,81 +16,41 @@ import ru.inhell.aida.util.DateUtil;
 import java.util.Date;
 import java.util.List;
 
-import static ru.inhell.aida.entity.AlphaOracleData.PREDICTION.LONG;
-import static ru.inhell.aida.entity.AlphaOracleData.PREDICTION.SHORT;
+import static ru.inhell.aida.entity.Prediction.*;
 
 /**
 * @author Anatoly A. Ivanov java@inhell.ru
 *         Date: 12.04.11 22:09
 */
 public class AlphaOracleListener implements IAlphaOracleListener {
-    private static final int MAX_STOP_COUNT = 10;
-
     private final Logger log = LoggerFactory.getLogger(AlphaTraderService.class);
 
     private AlphaTrader alphaTrader;
 
     private AlphaTraderBean alphaTraderBean;
-    private AlphaOracleBean alphaOracleBean;
     private CurrentBean currentBean;
     private QuikService quikService;
 
     private Date processDate;
 
-    public AlphaOracleListener(AlphaTrader alphaTrader, AlphaTraderBean alphaTraderBean, AlphaOracleBean alphaOracleBean,
+    public AlphaOracleListener(AlphaTrader alphaTrader, AlphaTraderBean alphaTraderBean,
                                CurrentBean currentBean, QuikService quikService) {
         this.alphaTrader = alphaTrader;
         this.alphaTraderBean = alphaTraderBean;
-        this.alphaOracleBean = alphaOracleBean;
         this.currentBean = currentBean;
         this.quikService = quikService;
     }
 
     @Override
-    public void predicted(AlphaOracle alphaOracle, AlphaOracleData.PREDICTION prediction, List<Quote> quotes, float[] forecast) {
-        if (!alphaOracle.getId().equals(alphaTrader.getAlphaOracleId())){
-            return;
-        }
-
-        int n = alphaOracle.getVectorForecast().getN();
-        alphaTrader = alphaTraderBean.getAlphaTrader(alphaTrader.getId());
-
-        //max stop count
-        if (alphaTrader.getStopCount() > MAX_STOP_COUNT){
-            return;
-        }
-
-        //stop loss
+    public void predicted(AlphaOracle alphaOracle, Prediction prediction, List<Quote> quotes, float[] forecast) {
+        //нет предсказания
         if (prediction == null){
-            int quantity = alphaTrader.getQuantity();
-
-            if (alphaTrader.getStopType().equals(AlphaTrader.STOP_TYPE.F_STOP) && quantity != 0){
-                float currentPrice = currentBean.getCurrent(alphaTrader.getSymbol()).getPrice();
-                float stopPrice = alphaTrader.getStopPrice();
-
-                if (quantity > 0 && currentPrice < stopPrice){
-                    prediction = AlphaOracleData.PREDICTION.STOP_SELL;
-                }else if (quantity < 0 &&  currentPrice > stopPrice){
-                    prediction = AlphaOracleData.PREDICTION.STOP_BUY;
-                }else{
-                    return;
-                }
-            }else{
-                return;
-            }
-
-            //save prediction
-            try {
-                alphaOracleBean.save(new AlphaOracleData(alphaOracle.getId(), quotes.get(n-1).getDate(),
-                        forecast[n-1], prediction, DateUtil.now()));
-            } catch (Exception e) {
-                //skip duplicates
-            }
+            return;
         }
 
         Date date = quotes.get(quotes.size()-1).getDate();
 
-        //skip
+        //в локальном интервале уже было предсказание
         if (processDate != null && DateUtil.getAbsMinuteShiftMsk(processDate) < 5){
             return;
         }else{
@@ -103,24 +63,29 @@ public class AlphaOracleListener implements IAlphaOracleListener {
             return;
         }
 
+        //обновление данных
+        alphaTrader = alphaTraderBean.getAlphaTrader(alphaTrader.getId());
+
         //уже в позиции
         if ((alphaTrader.getQuantity() > 0 && prediction.equals(LONG))
-                || (alphaTrader.getQuantity() < 0 && prediction.equals(SHORT))){
-            log.info("уже в позиции: " + date);
+                || (alphaTrader.getQuantity() < 0 && prediction.equals(SHORT))
+                || (alphaTrader.getQuantity() == 0 && prediction.equals(STOP_BUY))
+                || (alphaTrader.getQuantity() == 0 && prediction.equals(STOP_SELL))){
+            log.info("уже в позиции: " + date + ", alphaTraderId = " + alphaTrader.getId());
 
             return;
         }
 
         //цена и код фьючерса
-        int orderPrice = (int) getOrderPrice(prediction, currentBean.getCurrent(alphaTrader.getFutureSymbol()).getPrice());
+        int orderFuturePrice = (int) getOrderPrice(prediction, currentBean.getCurrent(alphaTrader.getFutureSymbol()).getPrice());
 
         //создаем транзакцию
-        AlphaTraderData alphaTraderData = new AlphaTraderData(alphaTrader.getId(), DateUtil.nowMsk(), orderPrice, 0,
-                getOrder(prediction));
+        AlphaTraderData alphaTraderData = new AlphaTraderData(alphaTrader.getId(), DateUtil.nowMsk(), orderFuturePrice,
+                0, getOrder(prediction));
 
         alphaTraderBean.save(alphaTraderData);
 
-        //делаем заявку
+        //формируем заявку
         try {
             QuikTransaction qt;
 
@@ -131,33 +96,61 @@ public class AlphaOracleListener implements IAlphaOracleListener {
 
             switch (prediction){
                 case LONG:
-                    qt = quikService.buyFutures(transactionId, futureSymbol, orderPrice, reverseQuantity);
+                    //покупка фьючерса через quik
+                    qt = quikService.buyFutures(transactionId, futureSymbol, orderFuturePrice, reverseQuantity);
+
+                    //обновление баланса
+                    if (alphaTrader.getQuantity() != 0) {
+                        alphaTrader.addBalance(reverseQuantity*(orderFuturePrice - alphaTrader.getPrice()));
+                    }
+
+                    //установка цены и количества заявки
                     alphaTrader.setQuantity(orderQuantity);
-                    alphaTrader.setStopPrice(currentBean.getCurrent(alphaTrader.getSymbol()).getPrice()/alphaTrader.getStopFactor());
+                    alphaTrader.setPrice(orderFuturePrice);
                     break;
                 case SHORT:
-                    qt = quikService.sellFutures(transactionId, futureSymbol, orderPrice, reverseQuantity);
+                    //продажа фьючерса через quik
+                    qt = quikService.sellFutures(transactionId, futureSymbol, orderFuturePrice, reverseQuantity);
+
+                    //обновление баланса
+                    if (alphaTrader.getQuantity() != 0) {
+                        alphaTrader.addBalance(reverseQuantity*(alphaTrader.getPrice() - orderFuturePrice));
+                    }
+
+                    //установка цены и количества заявки
                     alphaTrader.setQuantity(-orderQuantity);
-                    alphaTrader.setStopPrice(currentBean.getCurrent(alphaTrader.getSymbol()).getPrice()*alphaTrader.getStopFactor());
+                    alphaTrader.setPrice(orderFuturePrice);
                     break;
                 case STOP_BUY:
-                    qt = quikService.buyFutures(transactionId, futureSymbol, orderPrice, orderQuantity);
+                    //покупка фьючерса через quik
+                    qt = quikService.buyFutures(transactionId, futureSymbol, orderFuturePrice, orderQuantity);
+
+                    //обновление баланса
+                    alphaTrader.addBalance(orderQuantity*(orderFuturePrice - alphaTrader.getPrice()));
+
+                    //установка цены и количества заявки
                     alphaTrader.setQuantity(0);
-                    alphaTrader.setStopCount(alphaTrader.getStopCount() + 1);
+                    alphaTrader.setPrice(0);
                     break;
                 case STOP_SELL:
-                    qt = quikService.sellFutures(transactionId, futureSymbol, orderPrice, orderQuantity);
+                    //продажа фьючерса через quik
+                    qt = quikService.sellFutures(transactionId, futureSymbol, orderFuturePrice, orderQuantity);
+
+                    //обновление баланса
+                    alphaTrader.addBalance(orderQuantity*(alphaTrader.getPrice() - orderFuturePrice));
+
+                    //установка цены и количества заявки
                     alphaTrader.setQuantity(0);
-                    alphaTrader.setStopCount(alphaTrader.getStopCount() + 1);
+                    alphaTrader.setPrice(0);
                     break;
                 default:
                     throw new IllegalArgumentException();
             }
 
-            alphaTraderData.setQuantity(reverseQuantity);
-
-            update(qt, alphaTraderData);
             alphaTraderBean.save(alphaTrader);
+
+            alphaTraderData.setQuantity(reverseQuantity);
+            update(qt, alphaTraderData);
 
             log.info(qt.toString());
         } catch (QuikTransactionException e) { //ошибка выставления заявки
@@ -184,13 +177,7 @@ public class AlphaOracleListener implements IAlphaOracleListener {
         alphaTraderBean.save(alphaTraderData);
     }
 
-    private void update(QuikMessage quikMessage, AlphaTraderData alphaTraderData){
-        alphaTraderData.setResult(quikMessage.getResult().intValue());
-
-        alphaTraderBean.save(alphaTraderData);
-    }
-
-    private float getOrderPrice(AlphaOracleData.PREDICTION prediction, float price){
+    private float getOrderPrice(Prediction prediction, float price){
         switch (prediction){
             case LONG:
             case STOP_BUY:
@@ -203,18 +190,14 @@ public class AlphaOracleListener implements IAlphaOracleListener {
         }
     }
 
-    private int getOrderQuantity(AlphaTrader alphaTrader){
-        return 1;
-    }
-
-    private AlphaTraderData.ORDER getOrder(AlphaOracleData.PREDICTION prediction){
+    private Order getOrder(Prediction prediction){
         switch (prediction){
             case LONG:
             case STOP_BUY:
-                return AlphaTraderData.ORDER.BUY;
+                return Order.BUY;
             case SHORT:
             case STOP_SELL:
-                return AlphaTraderData.ORDER.SELL;
+                return Order.SELL;
             default:
                 throw new IllegalArgumentException();
         }

@@ -7,6 +7,7 @@ import org.ujmp.core.Matrix;
 import org.ujmp.core.MatrixFactory;
 import org.ujmp.core.calculation.Calculation;
 import org.ujmp.core.enums.FileFormat;
+import ru.inhell.aida.entity.Interval;
 import ru.inhell.aida.entity.VectorForecast;
 import ru.inhell.aida.entity.VectorForecastData;
 import ru.inhell.aida.entity.VectorForecastFilter;
@@ -21,7 +22,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import static ru.inhell.aida.entity.VectorForecastData.TYPE.*;
+import static ru.inhell.aida.entity.ExtremumType.*;
 
 /**
  * @author Anatoly A. Ivanov java@inhell.ru
@@ -91,7 +92,7 @@ public class AlphaOracleTest {
 
         sm = SqlSessionFactory.getSessionManager();
 
-        VectorForecast entity = new VectorForecast(contract,VectorForecast.INTERVAL.ONE_MINUTE, N, L, P, M, new Date());
+        VectorForecast entity = new VectorForecast(contract, Interval.ONE_MINUTE, N, L, P, M, new Date());
         save(entity);
 
         sm.startManagedSession();

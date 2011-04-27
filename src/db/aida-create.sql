@@ -98,9 +98,19 @@ drop table if exists `alpha_oracle`;
 create table `alpha_oracle`(
   `id` bigint unsigned not null auto_increment,
   `vector_forecast_id` bigint unsigned not null,
-  `price_type` varchar(10),
+  `price_type` varchar(10) not null,
+  `stop_price` decimal(15,6) not null,
+  `stop_type` varchar(10) not null,
+  `stop_factor` decimal(15,6) not null,
+  `stop_count` int(10) not null,
+  `max_stop_count` int(10) not null,
+  `score` decimal(15,2) not null,
+  `prediction` varchar(10),
+  `status` varchar(45) not null,
   `created` timestamp default current_timestamp,
-  primary key (`id`)
+  primary key (`id`),
+  key `key_vector_forecast` (`vector_forecast_id`),
+  constraint `fk_vector_forecast` foreign key (`vector_forecast_id`) references `vector_forecast` (`id`)
 ) engine=innodb default charset=cp1251;
 
 drop table if exists `alpha_oracle_data`;
@@ -110,7 +120,6 @@ create table `alpha_oracle_data`(
   `date` datetime not null,
   `price` decimal(15,6) not null,
   `prediction` varchar(10) not null,
-  `predicted` datetime not null,
   `created` timestamp default current_timestamp,
   primary key (`id`),
   unique key `key_unique` (`alpha_oracle_id`, `date`)
@@ -122,12 +131,10 @@ create table `alpha_trader`(
   `alpha_oracle_id` bigint unsigned not null,
   `future_symbol` varchar(10) not null,
   `symbol` varchar(10) not null,
+  `price` decimal(15,6),
   `quantity` int not null,
   `order_quantity` int not null,
   `balance` decimal(15,2),
-  `stop_type` varchar(10) not null default 'NONE'
-  `stop_count` int not null,
-  `stop_factor` decimal(15,2),
   `created` timestamp default current_timestamp,
   primary key (`id`)
 ) engine=innodb default charset=cp1251;

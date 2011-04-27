@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inhell.aida.Aida;
 import ru.inhell.aida.entity.*;
+import ru.inhell.aida.quotes.CurrentBean;
 import ru.inhell.aida.quotes.QuotesBean;
 import ru.inhell.aida.ssa.RemoteVSSAException;
 import ru.inhell.aida.ssa.VectorForecastSSAService;
@@ -45,6 +46,9 @@ public class AlphaOracleService {
     @Inject
     private VectorForecastSSAService vectorForecastSSAService;
 
+    @Inject
+    private CurrentBean currentBean;
+
     private Map<Long, Date> predictedTime = new ConcurrentHashMap<Long, Date>();
     private Map<Long, Integer> predictedTimeCount = new ConcurrentHashMap<Long, Integer>();
 
@@ -73,27 +77,6 @@ public class AlphaOracleService {
 
     public void addListener(IAlphaOracleListener listener){
         listeners.add(listener);
-    }
-
-    private void predicted(AlphaOracle alphaOracle, AlphaOracleData.PREDICTION prediction, List<Quote> quotes,
-                           float[] forecast){
-        String symbol = alphaOracle.getVectorForecast().getSymbol();
-        int n = alphaOracle.getVectorForecast().getN();
-
-        if (prediction != null) {
-            log.info("AlphaOracle" +alphaOracle.getId() + ". " + symbol + ", " + prediction.name() + ", " +
-                    quotes.get(n-1).getDate() + ", " + forecast[n-1]);
-        }
-
-        for (IAlphaOracleListener listener : listeners){
-            try {
-                if (listener.getFilteredId() == null || listener.getFilteredId().equals(alphaOracle.getId())) {
-                    listener.predicted(alphaOracle, prediction, quotes, forecast);
-                }
-            } catch (Throwable e) {
-                log.error("ошибка слушателя", e);
-            }
-        }
     }
 
     private Runnable getCommand(final AlphaOracle alphaOracle){
@@ -129,32 +112,30 @@ public class AlphaOracleService {
         };
     }
 
-    public void predict(final AlphaOracle alphaOracle, int count, boolean skipIfForecastExist, boolean useRemote)
+    public void predict(final AlphaOracle alphaOracle, int count, boolean skipIfForecastExists, boolean useRemote)
             throws  RemoteVSSAException {
         VectorForecast vf = alphaOracle.getVectorForecast();
 
+        //загружаем все котировки
         List<Quote> allQuotes = quotesBean.getQuotes(vf.getSymbol(), vf.getN() + count);
 
         float[] forecast;
 
         for (int index = 0; index < count; ++index) {
-            //load quotes
+            //текущий список котировок
             List<Quote> quotes = allQuotes.subList(index, vf.getN() + index);
 
-            //skip if has vector forecast data in db
-            if (skipIfForecastExist){
-                VectorForecastFilter filter = new VectorForecastFilter();
-                filter.setDate(quotes.get(quotes.size()-1).getDate());
-                filter.setVectorForecastId(vf.getId());
+            //текущая дата
+            Date date = quotes.get(quotes.size()-1).getDate();
 
-                if (vectorForecastBean.getVectorForecastDataCount(filter) > 0){
-                    continue;
-                }
+            //пропускаем если уже есть запись предсказания в базе данных
+            if (skipIfForecastExists && vectorForecastBean.isVectorForecastDataExists(vf.getId(), date)){
+                continue;
             }
 
             float[] prices;
 
-            //select price type
+            //тип цены
             switch (alphaOracle.getPriceType()){
                 case AVERAGE:
                     prices = QuoteUtil.getAveragePrices(quotes);
@@ -166,45 +147,86 @@ public class AlphaOracleService {
                     throw new IllegalArgumentException();
             }
 
-            //process vssa
+            //алгоритм векторного прогнозирования
             if (useRemote) {
                 forecast = vectorForecastSSAService.executeRemote(vf.getN(), vf.getL(), vf.getP(), vf.getM(), prices);
             }else{
                 forecast = vectorForecastSSAService.execute(vf.getN(), vf.getL(), vf.getP(), vf.getM(), prices);
             }
 
-            //save vector forecast history
-            try {
-                vectorForecastBean.save(vf, quotes, forecast);
-            } catch (Exception e) {
-                //skip duplicates
-            }
+            Prediction prediction = null;
 
-            //predict
-            AlphaOracleData.PREDICTION prediction = null;
+            //предсказание на текущую дату
+            if (alphaOracle.getStopCount() < alphaOracle.getMaxStopCount()) {
+                float currentPrice = currentBean.getCurrent(vf.getSymbol()).getPrice();
 
-            if (VectorForecastUtil.isMin(forecast, vf.getN(), vf.getM())
-                    || VectorForecastUtil.isMin(forecast, vf.getN()-1, vf.getM())
-                    || VectorForecastUtil.isMin(forecast, vf.getN()+1, vf.getM())){ //LONG
-                prediction = AlphaOracleData.PREDICTION.LONG;
-            }else if (VectorForecastUtil.isMax(forecast, vf.getN(), vf.getM())
-                    || VectorForecastUtil.isMax(forecast, vf.getN()-1, vf.getM())
-                    || VectorForecastUtil.isMax(forecast, vf.getN()+1, vf.getM())){ //SHORT
-                prediction = AlphaOracleData.PREDICTION.SHORT;
-            }
+                if (StopType.F_STOP.equals(alphaOracle.getStopType()) && alphaOracle.isInMarket()){
+                    float stopPrice = alphaOracle.getStopPrice();
 
-            if (prediction != null) {
-                //save prediction
-                try {
-                    alphaOracleBean.save(new AlphaOracleData(alphaOracle.getId(), quotes.get(vf.getN() - 1).getDate(),
-                            forecast[vf.getN() - 1], prediction, DateUtil.now()));
-                } catch (Exception e) {
-                    //skip duplicates
+                    if (Prediction.LONG.equals(alphaOracle.getPrediction()) && currentPrice < stopPrice){
+                        //защитная приостановка - продажа
+                        prediction = Prediction.STOP_SELL;
+                    }else if (Prediction.SHORT.equals(alphaOracle.getPrediction()) &&  currentPrice > stopPrice){
+                        //защитная приостановка - покупка
+                        prediction = Prediction.STOP_BUY;
+                    }
+                }
+
+                if (prediction == null) {
+                    if (VectorForecastUtil.isMin(forecast, vf.getN(), vf.getM())
+                            || VectorForecastUtil.isMin(forecast, vf.getN()-1, vf.getM()-1)
+                            || VectorForecastUtil.isMin(forecast, vf.getN()+1, vf.getM()-1)){
+                        //длинная покупка
+                        prediction = Prediction.LONG;
+
+                        //установка цены защитной приостановки
+                        alphaOracle.setStopPrice(currentPrice / alphaOracle.getStopFactor());
+                    }else if (VectorForecastUtil.isMax(forecast, vf.getN(), vf.getM())
+                            || VectorForecastUtil.isMax(forecast, vf.getN()-1, vf.getM()-1)
+                            || VectorForecastUtil.isMax(forecast, vf.getN()+1, vf.getM()-1)){
+                        //короткая продажа
+                        prediction = Prediction.SHORT;
+
+                        //установка цены защитной приостановки
+                        alphaOracle.setStopPrice(currentPrice * alphaOracle.getStopFactor());
+                    }
+                }
+
+                //обновление текущих параметров предсказателя
+                if (prediction != null) {
+                    alphaOracle.update(prediction, currentPrice);
+                    alphaOracleBean.save(alphaOracle);
                 }
             }
 
-            //fire listeners
+            //уведомление подписчиков о предсказании
             predicted(alphaOracle, prediction, quotes, forecast);
+
+            //сохранение результата векторного прогнозирования
+            vectorForecastBean.save(vf, quotes, forecast);
+
+            //сохранение предсказания
+            if (prediction != null && alphaOracleBean.isAlphaOracleDataExists(alphaOracle.getId(), date)) {
+                alphaOracleBean.save(new AlphaOracleData(alphaOracle.getId(), date, forecast[vf.getN() - 1], prediction));
+            }
+        }
+    }
+
+    private void predicted(AlphaOracle alphaOracle, Prediction prediction, List<Quote> quotes, float[] forecast){
+        if (prediction != null) {
+            int n = alphaOracle.getVectorForecast().getN();
+            log.info(alphaOracle.getId() + "-" + alphaOracle.getVectorForecast().getSymbol() + ", " +
+                    prediction.name() + ", " + quotes.get(n-1).getDate() + ", " + forecast[n-1]);
+        }
+
+        for (IAlphaOracleListener listener : listeners){
+            if (listener.getFilteredId() == null || listener.getFilteredId().equals(alphaOracle.getId())) {
+                try {
+                    listener.predicted(alphaOracle, prediction, quotes, forecast);
+                } catch (Throwable e) {
+                    log.error("Ошибка слушателя", e);
+                }
+            }
         }
     }
 }

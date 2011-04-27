@@ -56,7 +56,7 @@ public class AlphaOracleChart extends JPanel{
         final AlphaOracle alphaOracle = alphaOracleBean.getAlphaOracle(alphaOracleId);
         final VectorForecast vf = alphaOracle.getVectorForecast();
 
-        final int size = 490;
+        final int size = 220;
 
         //model
         final Date[] date = new Date[size];
@@ -107,7 +107,7 @@ public class AlphaOracleChart extends JPanel{
 
         alphaOracleService.addListener(new IAlphaOracleListener() {
             @Override
-            public void predicted(AlphaOracle ao, AlphaOracleData.PREDICTION prediction, List<Quote> quotes, float[] forecast) {
+            public void predicted(AlphaOracle ao, Prediction prediction, List<Quote> quotes, float[] forecast) {
                 if (alphaOracle.getId().equals(ao.getId())) {
                     TimeSeries forecastTimeSeries = forecastLine.getSeries("forecast");
 
@@ -165,8 +165,7 @@ public class AlphaOracleChart extends JPanel{
                             date, high, low, open, close, volume);
                     chart.getXYPlot().setDataset(dataset);
 
-                    chart.getXYPlot().setDataset(4, MovingAverage.createMovingAverage(dataset, "_MA200", 40*60*1000, 0));
-                    chart.getXYPlot().setDataset(5, MovingAverage.createMovingAverage(dataset, "_MA100", 20*60*1000, 0));
+
 
                     //Prediction
                     TimeSeries timeSeriesLong = predictionPoint.getSeries("long");
@@ -219,6 +218,11 @@ public class AlphaOracleChart extends JPanel{
 //                    c2.set(Calendar.MINUTE, 45);
                     ((DateAxis) chart.getXYPlot().getDomainAxis()).setMinimumDate(c1.getTime());
                     ((DateAxis) chart.getXYPlot().getDomainAxis()).setMaximumDate(c2.getTime());
+
+                    if (c1.get(Calendar.HOUR_OF_DAY) > 11) {
+                        chart.getXYPlot().setDataset(4, MovingAverage.createMovingAverage(dataset, "_MA100", 100*60*1000, 0));
+                        chart.getXYPlot().setDataset(5, MovingAverage.createMovingAverage(dataset, "_MA50", 50*60*1000, 0));
+                    }
 
                     label.setText(date[size-1].toString());
                 } catch (Exception e) {

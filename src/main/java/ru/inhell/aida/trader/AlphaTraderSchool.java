@@ -8,10 +8,7 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.time.Minute;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
-import ru.inhell.aida.entity.AlphaOracle;
-import ru.inhell.aida.entity.AlphaOracleData;
-import ru.inhell.aida.entity.Quote;
-import ru.inhell.aida.entity.VectorForecast;
+import ru.inhell.aida.entity.*;
 import ru.inhell.aida.inject.AidaInjector;
 import ru.inhell.aida.oracle.AlphaOracleBean;
 import ru.inhell.aida.oracle.AlphaOracleService;
@@ -95,8 +92,8 @@ public class AlphaTraderSchool {
             VectorForecast vf = ao.getVectorForecast();
 
             if (vf.getSymbol().equals("GAZP")){
-                executor.execute(getStudyCommand(vf.getId()+"-", vf.getSymbol(), vf.getN(), vf.getL(), vf.getP(), vf.getM(), ao.getPriceType().equals(AlphaOracle.PRICE_TYPE.AVERAGE), true, 1.002f));
-                executor.execute(getStudyCommand(vf.getId()+"-", vf.getSymbol(), vf.getN(), vf.getL(), vf.getP(), vf.getM(), ao.getPriceType().equals(AlphaOracle.PRICE_TYPE.AVERAGE), true, 1.008f));
+                executor.execute(getStudyCommand(vf.getId()+"-", vf.getSymbol(), vf.getN(), vf.getL(), vf.getP(), vf.getM(), ao.getPriceType().equals(PriceType.AVERAGE), true, 1.002f));
+                executor.execute(getStudyCommand(vf.getId()+"-", vf.getSymbol(), vf.getN(), vf.getL(), vf.getP(), vf.getM(), ao.getPriceType().equals(PriceType.AVERAGE), true, 1.008f));
             }
         }
 
@@ -129,7 +126,7 @@ public class AlphaTraderSchool {
         VectorForecast vf = alphaOracle.getVectorForecast();
 
         String name = vf.getId() + vf.getSymbol() +"-n" + vf.getN() + "l" + vf.getL() +"p" + vf.getP() + "m" + vf.getM() +
-                (alphaOracle.getPriceType().equals(AlphaOracle.PRICE_TYPE.AVERAGE)?"a":"c");
+                (alphaOracle.getPriceType().equals(PriceType.AVERAGE)?"a":"c");
 
         TimeSeries balanceTimeSeries = new TimeSeries(name);
         balanceDataSet.addSeries(balanceTimeSeries);

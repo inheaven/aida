@@ -7,18 +7,13 @@ import java.util.Date;
  *         Date: 05.12.10 19:06
  */
 public class VectorForecastData {
-    public static enum TYPE{
-        MIN5, MIN10, MIN15, MIN20, MIN30,
-        MAX5, MAX10, MAX15, MAX20, MAX30
-    }
-
     private Long id;
     private Long vectorForecastId;
     private Date date;
     private int index;
     private Date indexDate;
     private float price;
-    private TYPE type;
+    private ExtremumType type;
 
     public VectorForecastData() {
     }
@@ -79,11 +74,11 @@ public class VectorForecastData {
         this.price = price;
     }
 
-    public TYPE getType() {
+    public ExtremumType getType() {
         return type;
     }
 
-    public void setType(TYPE type) {
+    public void setType(ExtremumType type) {
         this.type = type;
     }
 

@@ -24,9 +24,6 @@ public class AlphaTraderService {
     private AlphaTraderBean alphaTraderBean;
 
     @Inject
-    private AlphaOracleBean alphaOracleBean;
-
-    @Inject
     private CurrentBean currentBean;
 
     @Inject
@@ -38,8 +35,11 @@ public class AlphaTraderService {
     public void process(Long alphaTraderId){
         AlphaTrader alphaTrader = alphaTraderBean.getAlphaTrader(alphaTraderId);
 
-        alphaOracleService.addListener(new AlphaOracleListener(alphaTrader, alphaTraderBean, alphaOracleBean,
-                currentBean, quikService));
+        if (alphaTrader.getOrderQuantity() == 0){
+            alphaTrader.setPrice(0);
+        }
+
+        alphaOracleService.addListener(new AlphaOracleListener(alphaTrader, alphaTraderBean, currentBean, quikService));
         alphaOracleService.process(alphaTrader.getAlphaOracleId());
     }
 }

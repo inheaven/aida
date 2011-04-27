@@ -3,7 +3,17 @@
 <mapper namespace="ru.inhell.aida.oracle.AlphaOracleBean">
     <resultMap id="alphaOracleResultMap" type="ru.inhell.aida.entity.AlphaOracle">
         <id column="id" property="id"/>
+        <result column="price" property="price"/>
+        <result column="prediction" property="prediction"/>
         <result column="price_type" property="priceType"/>
+        <result column="stop_price" property="stopPrice"/>
+        <result column="stop_type" property="stopType"/>
+        <result column="stop_factor" property="stopFactor"/>
+        <result column="stop_count" property="stopCount"/>
+        <result column="max_stop_count" property="maxStopCount"/>
+        <result column="score" property="score"/>
+        <result column="status" property="status"/>
+
         <association column="vector_forecast_id" property="vectorForecast" select="selectVectorForecast"/>
     </resultMap>
 
@@ -13,7 +23,6 @@
         <result column="date" property="date"/>
         <result column="price" property="price"/>
         <result column="prediction" property="prediction"/>
-        <result column="predicted" property="predicted"/>
     </resultMap>
 
     <select id="selectAlphaOracle" resultMap="alphaOracleResultMap" parameterType="long">
@@ -34,7 +43,16 @@
     </insert>
 
     <insert id="insertAlphaOracleData" parameterType="ru.inhell.aida.entity.AlphaOracleData">
-        insert into `alpha_oracle_data` (`id`, `alpha_oracle_id`, `date`, `price`, `prediction`, `predicted`)
-            values (#{id}, #{alphaOracleId}, #{date}, #{price}, #{prediction}, #{predicted})
+        insert into `alpha_oracle_data` (`id`, `alpha_oracle_id`, `date`, `price`, `prediction`)
+            values (#{id}, #{alphaOracleId}, #{date}, #{price}, #{prediction})
     </insert>
+
+    <select id="selectIsAlphaOracleDataExists" resultType="boolean" parameterType="map">
+        select count(*) > 0 from `alpha_oracle_data` where `alpha_oracle_id` = #{alphaOracleId} and `date` = #{date}
+    </select>
+
+    <update id="updateAlphaOracle" parameterType="ru.inhell.aida.entity.AlphaOracle">
+        update `alpha_oracle` set `price` = #{price}, `prediction` = #{prediction}, `score` = #{score},
+            `stop_price` = #{stopPrice}, `stop_count` = #{stop_count} where `id` = #{id}
+    </update>
 </mapper>

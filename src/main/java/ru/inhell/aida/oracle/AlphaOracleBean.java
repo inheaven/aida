@@ -41,10 +41,21 @@ public class AlphaOracleBean {
     }
 
     public void save(AlphaOracle alphaOracle){
-        session.insert(NS + ".insertAlphaOracle", alphaOracle);
+        if (alphaOracle.getId() == null) {
+            session.insert(NS + ".insertAlphaOracle", alphaOracle);
+        } else {
+            session.update(NS + ".updateAlphaOracle", alphaOracle);
+        }
     }
 
     public void save(AlphaOracleData alphaOracleData){
         session.insert(NS + ".insertAlphaOracleData", alphaOracleData);
+    }
+
+    public boolean isAlphaOracleDataExists(final Long alphaOracleId, final Date date){
+        return (Boolean)session.selectOne(NS + ".selectIsAlphaOracleDataExists", new HashMap<String, Object>(){{
+            put("alphaOracleId", alphaOracleId);
+            put("date", date);
+        }});
     }
 }

@@ -7,21 +7,19 @@ import java.util.Date;
  * Date: 03.01.11 14:39
  */
 public class AlphaTraderData {
-    public static enum ORDER{BUY, SELL}
-
     private Long id;
     private Long alphaTraderId;
     private Date date;
     private float price;
     private long quantity;
-    private ORDER order;
+    private Order order;
     private Long orderNum;
     private Integer result;
     private Integer replyCode;
     private String resultMessage;
     private String errorMessage;
 
-    public AlphaTraderData(Long alphaTraderId, Date date, float price, long quantity, ORDER order) {
+    public AlphaTraderData(Long alphaTraderId, Date date, float price, long quantity, Order order) {
         this.alphaTraderId = alphaTraderId;
         this.date = date;
         this.price = price;
@@ -69,11 +67,11 @@ public class AlphaTraderData {
         this.quantity = quantity;
     }
 
-    public ORDER getOrder() {
+    public Order getOrder() {
         return order;
     }
 
-    public void setOrder(ORDER order) {
+    public void setOrder(Order order) {
         this.order = order;
     }
 

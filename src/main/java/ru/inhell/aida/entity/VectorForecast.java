@@ -7,11 +7,9 @@ import java.util.Date;
  *         Date: 05.12.10 19:04
  */
 public class VectorForecast {
-    public static enum INTERVAL{ONE_MINUTE, FIVE_MINUTES, HALF_HOUR, ONE_HOUR}
-
     private Long id;
     private String symbol;
-    private INTERVAL interval;
+    private Interval interval;
     private int n;
     private int l;
     private int p;
@@ -21,7 +19,7 @@ public class VectorForecast {
     public VectorForecast() {
     }
 
-    public VectorForecast(String symbol, INTERVAL interval, int n, int l, int p, int m, Date created) {
+    public VectorForecast(String symbol, Interval interval, int n, int l, int p, int m, Date created) {
         this.symbol = symbol;
         this.interval = interval;
         this.n = n;
@@ -47,11 +45,11 @@ public class VectorForecast {
         this.symbol = symbol;
     }
 
-    public INTERVAL getInterval() {
+    public Interval getInterval() {
         return interval;
     }
 
-    public void setInterval(INTERVAL interval) {
+    public void setInterval(Interval interval) {
         this.interval = interval;
     }
 
