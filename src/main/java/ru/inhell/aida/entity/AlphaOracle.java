@@ -27,21 +27,28 @@ public class AlphaOracle {
             case STOP_BUY:
                 stopCount++;
                 score += this.price - price;
+                this.price = 0;
+
                 break;
             case STOP_SELL:
                 stopCount++;
                 score += price - this.price;
+                this.price = 0;
+
                 break;
             case LONG:
-                score += this.price - price;
+                if (this.price > 0) score += 2*(this.price - price);
+                this.price = price;
+
                 break;
             case SHORT:
-                score += price - this.price;
+                if (this.price > 0) score += 2*(price - this.price);
+                this.price = price;
+
                 break;
         }
 
         this.prediction = prediction;
-        this.price = price;
     }
 
     public Long getId() {
