@@ -6,6 +6,7 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.DatasetRenderingOrder;
+import org.jfree.chart.plot.DefaultDrawingSupplier;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.time.Minute;
 import org.jfree.data.time.MovingAverage;
@@ -45,9 +46,6 @@ public class AlphaOracleChart extends JPanel{
     public AlphaOracleChart(Long alphaOracleId, int updateInterval) {
         setLayout(new BorderLayout());
 
-        final JLabel label = new JLabel();
-        add(label, BorderLayout.SOUTH);
-
         final QuotesBean quotesBean = AidaInjector.getInstance(QuotesBean.class);
         final AlphaOracleBean alphaOracleBean = AidaInjector.getInstance(AlphaOracleBean.class);
         final AlphaOracleService alphaOracleService = AidaInjector.getInstance(AlphaOracleService.class);
@@ -67,10 +65,11 @@ public class AlphaOracleChart extends JPanel{
         final double[] volume = new double[size];
 
         //chart
-        final JFreeChart chart = ChartFactory.createCandlestickChart(vf.getSymbol(), "date", "price", null, true);
+        final JFreeChart chart = ChartFactory.createHighLowChart(vf.getSymbol(), null, null, null, true);
         chart.getXYPlot().setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
         ((NumberAxis)chart.getXYPlot().getRangeAxis()).setAutoRangeIncludesZero(false);
         chart.getLegend().setVisible(false);
+        chart.getXYPlot().getRenderer(0).setSeriesPaint(0, Color.BLACK);
 
         add(new ChartPanel(chart), BorderLayout.CENTER);
 
@@ -86,7 +85,26 @@ public class AlphaOracleChart extends JPanel{
         predictionPoint.addSeries(new TimeSeries("stopSell"));
 
         chart.getXYPlot().setDataset(1, predictionPoint);
-        chart.getXYPlot().setRenderer(1, new XYLineAndShapeRenderer(false, true));
+        XYLineAndShapeRenderer predictionPointRenderer = new XYLineAndShapeRenderer(false, true);
+
+        Shape[] shapes = DefaultDrawingSupplier.createStandardSeriesShapes();
+
+        predictionPointRenderer.setAutoPopulateSeriesShape(false);
+        predictionPointRenderer.setAutoPopulateSeriesPaint(false);
+
+        predictionPointRenderer.setSeriesShape(0, shapes[2]);
+        predictionPointRenderer.setSeriesPaint(0, Color.GREEN);
+
+        predictionPointRenderer.setSeriesShape(1, shapes[5]);
+        predictionPointRenderer.setSeriesPaint(1, Color.RED);
+
+        predictionPointRenderer.setSeriesShape(2, shapes[1]);
+        predictionPointRenderer.setSeriesPaint(2, Color.CYAN);
+
+        predictionPointRenderer.setSeriesShape(3, shapes[1]);
+        predictionPointRenderer.setSeriesPaint(3, Color.ORANGE);
+
+        chart.getXYPlot().setRenderer(1, predictionPointRenderer);
 
         //forecastLine
         final TimeSeriesCollection forecastLine = new TimeSeriesCollection();
@@ -224,8 +242,6 @@ public class AlphaOracleChart extends JPanel{
                         chart.getXYPlot().setDataset(4, MovingAverage.createMovingAverage(dataset, "_MA100", 100*60*1000, 0));
                         chart.getXYPlot().setDataset(5, MovingAverage.createMovingAverage(dataset, "_MA50", 50*60*1000, 0));
                     }
-
-                    label.setText(date[size-1].toString());
                 } catch (Exception e) {
                     log.error("Ошибка рисования графика: " + e.getMessage());
                 }
