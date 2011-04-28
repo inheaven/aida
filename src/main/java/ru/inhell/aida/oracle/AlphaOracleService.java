@@ -183,6 +183,11 @@ public class AlphaOracleService {
                     if (VectorForecastUtil.isMin(forecast, vf.getN(), vf.getM())
                             || VectorForecastUtil.isMin(forecast, vf.getN()-1, vf.getM()-1)
                             || VectorForecastUtil.isMin(forecast, vf.getN()+1, vf.getM()-1)){
+                        //уже в позиции
+                        if (Prediction.LONG.equals(alphaOracle.getPrediction())){
+                            return;
+                        }
+
                         //длинная покупка
                         prediction = Prediction.LONG;
 
@@ -191,6 +196,11 @@ public class AlphaOracleService {
                     }else if (VectorForecastUtil.isMax(forecast, vf.getN(), vf.getM())
                             || VectorForecastUtil.isMax(forecast, vf.getN()-1, vf.getM()-1)
                             || VectorForecastUtil.isMax(forecast, vf.getN()+1, vf.getM()-1)){
+                        //уже в позиции
+                        if (Prediction.SHORT.equals(alphaOracle.getPrediction())){
+                            return;
+                        }
+
                         //короткая продажа
                         prediction = Prediction.SHORT;
 
