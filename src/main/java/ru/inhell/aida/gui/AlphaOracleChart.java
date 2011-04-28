@@ -70,6 +70,7 @@ public class AlphaOracleChart extends JPanel{
         final JFreeChart chart = ChartFactory.createCandlestickChart(vf.getSymbol(), "date", "price", null, true);
         chart.getXYPlot().setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
         ((NumberAxis)chart.getXYPlot().getRangeAxis()).setAutoRangeIncludesZero(false);
+        chart.getLegend().setVisible(false);
 
         add(new ChartPanel(chart), BorderLayout.CENTER);
 

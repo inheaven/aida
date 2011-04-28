@@ -38,7 +38,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 public class AlphaTraderSchool {
     public static final DateFormat dateFormat = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.SHORT, SimpleDateFormat.SHORT);
 
-    private final static int COUNT = 20000;
+    private final static int COUNT = 495*5;
     static FileWriter fileWriter;
 
     public static void main(String... args) throws RemoteVSSAException, IOException {
@@ -47,7 +47,7 @@ public class AlphaTraderSchool {
 //        studyAll();
 
         scoreAll();
-//
+
 //        randomStudyAll();
     }
 
@@ -77,33 +77,13 @@ public class AlphaTraderSchool {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
-
-    private static void studyAll() throws RemoteVSSAException {
-        initGUI();
-
-        AlphaOracleBean alphaOracleBean = AidaInjector.getInstance(AlphaOracleBean.class);
-
-        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
-
-        List<AlphaOracle> alphaOracles =  alphaOracleBean.getAlphaOracles();
-        for (AlphaOracle ao : alphaOracles){
-            VectorForecast vf = ao.getVectorForecast();
-
-            if (vf.getSymbol().equals("GAZP")){
-                executor.execute(getStudyCommand(vf.getId()+"-", vf.getSymbol(), vf.getN(), vf.getL(), vf.getP(), vf.getM(), ao.getPriceType().equals(PriceType.AVERAGE), false, 1.002f));
-//                executor.execute(getStudyCommand(vf.getId()+"-", vf.getSymbol(), vf.getN(), vf.getL(), vf.getP(), vf.getM(), ao.getPriceType().equals(PriceType.AVERAGE), true, 1.008f));
-            }
-        }
-
-    }
-
     private static void scoreAll() throws RemoteVSSAException {
         initGUI();
 
         AlphaOracleBean alphaOracleBean = AidaInjector.getInstance(AlphaOracleBean.class);
         final AlphaOracleService alphaOracleService = AidaInjector.getInstance(AlphaOracleService.class);
 
-        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(5);
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
 
         List<AlphaOracle> alphaOracles =  alphaOracleBean.getAlphaOracles();
         for (final AlphaOracle alphaOracle : alphaOracles){
@@ -203,7 +183,7 @@ public class AlphaTraderSchool {
     private static void randomStudyAll() throws RemoteVSSAException{
         initGUI();
 
-        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(3);
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(2);
 
         for (int i=0; i < 200; ++i){
 
@@ -213,15 +193,15 @@ public class AlphaTraderSchool {
                     try {
                         Random random = new Random();
 
-                        int[] ll = {60, 80, 100, 120, 128, 180, 200, 240, 256, 360};
-                        int nn[] = {2475, 2*2475};
-                        int[] mm = {5, 10, 15};
+                        int[] ll = {120, 1280, 200, 240, 256, 360, 480};
+                        int nn[] = {495*3, 495*4, 495*5, 495*6, 495*7};
+                        int[] mm = {10, 15};
                         float[] ss = {1.002f, 1.004f, 1.008f, 1.01f};
 
-                        int n = nn[random.nextInt(2)];
-                        int l = ll[random.nextInt(10)];
-                        int p = 20 + random.nextInt(80);
-                        int m = mm[random.nextInt(3)];
+                        int n = nn[random.nextInt(5)];
+                        int l = ll[random.nextInt(7)];
+                        int p = 40 + random.nextInt(100);
+                        int m = mm[random.nextInt(2)];
                         float s = ss[random.nextInt(4)];
 
                         study("", "GAZP", n, l, p, m, true, true, s);
@@ -231,20 +211,6 @@ public class AlphaTraderSchool {
                 }
             });
         }
-    }
-
-    private static Runnable getStudyCommand(final String prefix, final String symbol, final int n, final int l, final int p, final int m,
-                                            final boolean average, final boolean useStop, final float stopFactor){
-        return new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    study(prefix, symbol, n, l, p, m, average, useStop,  stopFactor);
-                } catch (RemoteVSSAException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
     }
 
     static float maxBalance = 0;
