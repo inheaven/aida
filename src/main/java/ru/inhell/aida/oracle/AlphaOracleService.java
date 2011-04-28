@@ -61,15 +61,13 @@ public class AlphaOracleService {
 
     private List<IAlphaOracleListener> listeners = new ArrayList<IAlphaOracleListener>();
 
-    public ScheduledFuture process(Long alphaOracleId){
-        AlphaOracle alphaOracle = alphaOracleBean.getAlphaOracle(alphaOracleId);
-
-        ScheduledFuture f = scheduledFutures.get(alphaOracleId);
+    public ScheduledFuture process(AlphaOracle alphaOracle){
+        ScheduledFuture f = scheduledFutures.get(alphaOracle.getId());
 
         if (f == null){
             f = executor.scheduleAtFixedRate(getCommand(alphaOracle), 0, PERIOD, TimeUnit.SECONDS);
 
-            scheduledFutures.put(alphaOracleId, f);
+            scheduledFutures.put(alphaOracle.getId(), f);
         }
 
         return f;

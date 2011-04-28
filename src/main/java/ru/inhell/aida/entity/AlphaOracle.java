@@ -18,6 +18,18 @@ public class AlphaOracle {
     private int maxStopCount;
     private Status status;
 
+    public String getName(){
+        return vectorForecast.getId() +
+                "-" + vectorForecast.getSymbol() +
+                "-n" + vectorForecast.getN() +
+                "l" + vectorForecast.getL() +
+                "p" + vectorForecast.getP() +
+                "m" + vectorForecast.getM() +
+                priceType.name().substring(0,1).toLowerCase() +
+                stopType.name().substring(0,1).toLowerCase()
+                +stopFactor;
+    }
+
     public boolean isInMarket(){
         return Prediction.LONG.equals(prediction) || Prediction.SHORT.equals(prediction);
     }

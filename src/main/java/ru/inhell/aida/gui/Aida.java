@@ -1,7 +1,6 @@
 package ru.inhell.aida.gui;
 
 import ru.inhell.aida.inject.AidaInjector;
-import ru.inhell.aida.oracle.AlphaOracleService;
 import ru.inhell.aida.quik.QuikException;
 import ru.inhell.aida.quik.QuikService;
 import ru.inhell.aida.trader.AlphaTraderService;
@@ -14,15 +13,18 @@ import java.awt.*;
  *         Date: 21.03.11 18:37
  */
 public class Aida {
-    private static JPanel root;
+    private static JPanel oraclePanel;
 
     public static void main(String... args) throws QuikException {
         //Frame
         JFrame frame = new JFrame("Aida");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        root = new JPanel(new GridLayout(3,3));
-        frame.add(root);
+        JTabbedPane tabbedPane = new JTabbedPane();
+        frame.add(tabbedPane);
+
+        oraclePanel = new JPanel(new GridLayout(3,3));
+        tabbedPane.addTab("Предсказатели", oraclePanel);
 
         process(3, 4, 14, 19, 27, 28, 31, 32, 33);
 
@@ -34,7 +36,7 @@ public class Aida {
 
     private static void process(int... ids){
         for (int id :  ids){
-            root.add(new AlphaOracleChart((long)id));
+            oraclePanel.add(new AlphaOracleChart((long)id));
             AidaInjector.getInstance(AlphaTraderService.class).process((long)id);
         }
     }

@@ -40,6 +40,6 @@ public class AlphaTraderService {
         }
 
         alphaOracleService.addListener(new AlphaOracleListener(alphaTrader, alphaTraderBean, currentBean, quikService));
-        alphaOracleService.process(alphaTrader.getAlphaOracleId());
+        alphaOracleService.process(alphaTrader.getAlphaOracle());
     }
 }

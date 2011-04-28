@@ -100,8 +100,8 @@ public class AlphaOracleListener implements IAlphaOracleListener {
                     qt = quikService.buyFutures(transactionId, futureSymbol, orderFuturePrice, reverseQuantity);
 
                     //обновление баланса
-                    if (alphaTrader.getQuantity() != 0) {
-                        alphaTrader.addBalance(reverseQuantity*(orderFuturePrice - alphaTrader.getPrice()));
+                    if (alphaTrader.getQuantity() < 0) {
+                        alphaTrader.addBalance(reverseQuantity*(alphaTrader.getPrice() - orderFuturePrice));
                     }
 
                     //установка цены и количества заявки
@@ -113,8 +113,8 @@ public class AlphaOracleListener implements IAlphaOracleListener {
                     qt = quikService.sellFutures(transactionId, futureSymbol, orderFuturePrice, reverseQuantity);
 
                     //обновление баланса
-                    if (alphaTrader.getQuantity() != 0) {
-                        alphaTrader.addBalance(reverseQuantity*(alphaTrader.getPrice() - orderFuturePrice));
+                    if (alphaTrader.getQuantity() > 0) {
+                        alphaTrader.addBalance(reverseQuantity*(orderFuturePrice - alphaTrader.getPrice()));
                     }
 
                     //установка цены и количества заявки
@@ -126,7 +126,7 @@ public class AlphaOracleListener implements IAlphaOracleListener {
                     qt = quikService.buyFutures(transactionId, futureSymbol, orderFuturePrice, orderQuantity);
 
                     //обновление баланса
-                    alphaTrader.addBalance(orderQuantity*(orderFuturePrice - alphaTrader.getPrice()));
+                    alphaTrader.addBalance(orderQuantity*(alphaTrader.getPrice() - orderFuturePrice));
 
                     //установка цены и количества заявки
                     alphaTrader.setQuantity(0);
@@ -137,7 +137,7 @@ public class AlphaOracleListener implements IAlphaOracleListener {
                     qt = quikService.sellFutures(transactionId, futureSymbol, orderFuturePrice, orderQuantity);
 
                     //обновление баланса
-                    alphaTrader.addBalance(orderQuantity*(alphaTrader.getPrice() - orderFuturePrice));
+                    alphaTrader.addBalance(orderQuantity*(orderFuturePrice - alphaTrader.getPrice()));
 
                     //установка цены и количества заявки
                     alphaTrader.setQuantity(0);
@@ -164,7 +164,7 @@ public class AlphaOracleListener implements IAlphaOracleListener {
 
     @Override
     public Long getFilteredId() {
-        return alphaTrader.getAlphaOracleId();
+        return alphaTrader.getAlphaOracle().getId();
     }
 
     private void update(QuikTransaction quikTransaction, AlphaTraderData alphaTraderData){

@@ -6,7 +6,7 @@ package ru.inhell.aida.entity;
  */
 public class AlphaTrader {
     private Long id;
-    private Long alphaOracleId;
+    private AlphaOracle alphaOracle;
     private String symbol;
     private String futureSymbol;
     private float price;
@@ -26,12 +26,12 @@ public class AlphaTrader {
         this.id = id;
     }
 
-    public Long getAlphaOracleId() {
-        return alphaOracleId;
+    public AlphaOracle getAlphaOracle() {
+        return alphaOracle;
     }
 
-    public void setAlphaOracleId(Long alphaOracleId) {
-        this.alphaOracleId = alphaOracleId;
+    public void setAlphaOracle(AlphaOracle alphaOracle) {
+        this.alphaOracle = alphaOracle;
     }
 
     public String getSymbol() {

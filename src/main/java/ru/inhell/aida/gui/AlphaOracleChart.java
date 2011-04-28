@@ -54,7 +54,7 @@ public class AlphaOracleChart extends JPanel{
         final AlphaOracle alphaOracle = alphaOracleBean.getAlphaOracle(alphaOracleId);
         final VectorForecast vf = alphaOracle.getVectorForecast();
 
-        final int size = 220;
+        final int size = 120;
 
         //model
         final Date[] date = new Date[size];
@@ -239,8 +239,8 @@ public class AlphaOracleChart extends JPanel{
                     ((DateAxis) chart.getXYPlot().getDomainAxis()).setMaximumDate(c2.getTime());
 
                     if (c1.get(Calendar.HOUR_OF_DAY) > 11) {
-                        chart.getXYPlot().setDataset(4, MovingAverage.createMovingAverage(dataset, "_MA100", 100*60*1000, 0));
-                        chart.getXYPlot().setDataset(5, MovingAverage.createMovingAverage(dataset, "_MA50", 50*60*1000, 0));
+//                        chart.getXYPlot().setDataset(4, MovingAverage.createMovingAverage(dataset, "_MA100", 100*60*1000, 0));
+//                        chart.getXYPlot().setDataset(5, MovingAverage.createMovingAverage(dataset, "_MA50", 50*60*1000, 0));
                     }
                 } catch (Exception e) {
                     log.error("Ошибка рисования графика: " + e.getMessage());
