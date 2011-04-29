@@ -77,7 +77,8 @@ public class AlphaOracleListener implements IAlphaOracleListener {
         }
 
         //цена и код фьючерса
-        int orderFuturePrice = (int) getOrderPrice(prediction, currentBean.getCurrent(alphaTrader.getFutureSymbol()).getPrice());
+        int currentFuturePrice = (int) currentBean.getCurrent(alphaTrader.getFutureSymbol()).getPrice();
+        int orderFuturePrice = (int) getOrderPrice(prediction, currentFuturePrice);
 
         //создаем транзакцию
         AlphaTraderData alphaTraderData = new AlphaTraderData(alphaTrader.getId(), DateUtil.nowMsk(), orderFuturePrice,
@@ -101,12 +102,12 @@ public class AlphaOracleListener implements IAlphaOracleListener {
 
                     //обновление баланса
                     if (alphaTrader.getQuantity() < 0) {
-                        alphaTrader.addBalance(reverseQuantity*(alphaTrader.getPrice() - orderFuturePrice));
+                        alphaTrader.addBalance(reverseQuantity*(alphaTrader.getPrice() - currentFuturePrice));
                     }
 
                     //установка цены и количества заявки
                     alphaTrader.setQuantity(orderQuantity);
-                    alphaTrader.setPrice(orderFuturePrice);
+                    alphaTrader.setPrice(currentFuturePrice);
                     break;
                 case SHORT:
                     //продажа фьючерса через quik
@@ -114,19 +115,19 @@ public class AlphaOracleListener implements IAlphaOracleListener {
 
                     //обновление баланса
                     if (alphaTrader.getQuantity() > 0) {
-                        alphaTrader.addBalance(reverseQuantity*(orderFuturePrice - alphaTrader.getPrice()));
+                        alphaTrader.addBalance(reverseQuantity*(currentFuturePrice - alphaTrader.getPrice()));
                     }
 
                     //установка цены и количества заявки
                     alphaTrader.setQuantity(-orderQuantity);
-                    alphaTrader.setPrice(orderFuturePrice);
+                    alphaTrader.setPrice(currentFuturePrice);
                     break;
                 case STOP_BUY:
                     //покупка фьючерса через quik
                     qt = quikService.buyFutures(transactionId, futureSymbol, orderFuturePrice, orderQuantity);
 
                     //обновление баланса
-                    alphaTrader.addBalance(orderQuantity*(alphaTrader.getPrice() - orderFuturePrice));
+                    alphaTrader.addBalance(orderQuantity*(alphaTrader.getPrice() - currentFuturePrice));
 
                     //установка цены и количества заявки
                     alphaTrader.setQuantity(0);
@@ -137,7 +138,7 @@ public class AlphaOracleListener implements IAlphaOracleListener {
                     qt = quikService.sellFutures(transactionId, futureSymbol, orderFuturePrice, orderQuantity);
 
                     //обновление баланса
-                    alphaTrader.addBalance(orderQuantity*(orderFuturePrice - alphaTrader.getPrice()));
+                    alphaTrader.addBalance(orderQuantity*(currentFuturePrice - alphaTrader.getPrice()));
 
                     //установка цены и количества заявки
                     alphaTrader.setQuantity(0);
