@@ -106,6 +106,7 @@ public class AlphaOracleListener implements IAlphaOracleListener {
                     }
 
                     //установка цены и количества заявки
+                    alphaTraderData.setQuantity(reverseQuantity);
                     alphaTrader.setQuantity(orderQuantity);
                     alphaTrader.setPrice(currentFuturePrice);
                     break;
@@ -119,6 +120,7 @@ public class AlphaOracleListener implements IAlphaOracleListener {
                     }
 
                     //установка цены и количества заявки
+                    alphaTraderData.setQuantity(-reverseQuantity);
                     alphaTrader.setQuantity(-orderQuantity);
                     alphaTrader.setPrice(currentFuturePrice);
                     break;
@@ -130,6 +132,7 @@ public class AlphaOracleListener implements IAlphaOracleListener {
                     alphaTrader.addBalance(orderQuantity*(alphaTrader.getPrice() - currentFuturePrice));
 
                     //установка цены и количества заявки
+                    alphaTraderData.setQuantity(reverseQuantity);
                     alphaTrader.setQuantity(0);
                     alphaTrader.setPrice(0);
                     break;
@@ -141,6 +144,7 @@ public class AlphaOracleListener implements IAlphaOracleListener {
                     alphaTrader.addBalance(orderQuantity*(currentFuturePrice - alphaTrader.getPrice()));
 
                     //установка цены и количества заявки
+                    alphaTraderData.setQuantity(-reverseQuantity);
                     alphaTrader.setQuantity(0);
                     alphaTrader.setPrice(0);
                     break;
@@ -150,7 +154,6 @@ public class AlphaOracleListener implements IAlphaOracleListener {
 
             alphaTraderBean.save(alphaTrader);
 
-            alphaTraderData.setQuantity(reverseQuantity);
             update(qt, alphaTraderData);
 
             log.info(qt.toString());
