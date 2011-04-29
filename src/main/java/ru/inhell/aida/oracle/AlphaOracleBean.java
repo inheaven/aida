@@ -4,6 +4,8 @@ import com.google.inject.Inject;
 import org.apache.ibatis.session.SqlSessionManager;
 import ru.inhell.aida.entity.AlphaOracle;
 import ru.inhell.aida.entity.AlphaOracleData;
+import ru.inhell.aida.entity.AlphaOracleFilter;
+import ru.inhell.aida.util.DateUtil;
 
 import javax.management.monitor.StringMonitor;
 import java.util.Date;
@@ -34,10 +36,12 @@ public class AlphaOracleBean {
 
     @SuppressWarnings({"unchecked"})
     public List<AlphaOracleData> getAlphaOracleDatas(final Long alphaOracleId, final Date fromDate){
-        return session.selectList(NS + ".selectAlphaOracleDatas", new HashMap<String, Object>(){{
-            put("alphaOracleId", alphaOracleId);
-            put("fromDate", fromDate);
-        }});
+        return getAlphaOracleDatas(new AlphaOracleFilter(alphaOracleId, fromDate, DateUtil.nowMsk()));
+    }
+
+    @SuppressWarnings({"unchecked"})
+    public List<AlphaOracleData> getAlphaOracleDatas(AlphaOracleFilter filter){
+        return session.selectList(NS + ".selectAlphaOracleDatas", filter);
     }
 
     public void save(AlphaOracle alphaOracle){

@@ -2,8 +2,11 @@ package ru.inhell.aida.trader;
 
 import com.google.inject.Inject;
 import org.apache.ibatis.session.SqlSessionManager;
+import ru.inhell.aida.entity.AlphaOracleData;
 import ru.inhell.aida.entity.AlphaTrader;
 import ru.inhell.aida.entity.AlphaTraderData;
+import ru.inhell.aida.entity.AlphaTraderFilter;
+import ru.inhell.aida.util.DateUtil;
 
 import java.util.List;
 
@@ -27,8 +30,12 @@ public class AlphaTraderBean {
     }
 
     @SuppressWarnings({"unchecked"})
-    public List<AlphaTraderData> getAlphaTraderDatas(Long alphaTraderId){
-        return sm.selectList(NS + ".selectAlphaTraderDatas", alphaTraderId);
+    public List<AlphaTraderData> getAlphaTraderDatas(AlphaTraderFilter filter){
+        return sm.selectList(NS + ".selectAlphaTraderDatas", filter);
+    }
+
+    public Long getAlphaTraderDatasCount(AlphaTraderFilter filter){
+        return (Long) sm.selectOne(NS + ".selectAlphaTraderDatasCount", filter);
     }
 
     public void save(AlphaTraderData alphaTraderData){
@@ -41,5 +48,9 @@ public class AlphaTraderBean {
 
     public void save(AlphaTrader alphaTrader){
         sm.update(NS + ".updateAlphaTrader", alphaTrader);
+    }
+
+    public AlphaTraderData getCurrentAlphaTraderData(Long alphaTraderId){
+        return (AlphaTraderData) sm.selectOne(NS + ".selectCurrentAlphaTraderData", alphaTraderId);
     }
 }

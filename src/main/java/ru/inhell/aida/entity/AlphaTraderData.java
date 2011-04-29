@@ -19,6 +19,9 @@ public class AlphaTraderData {
     private String resultMessage;
     private String errorMessage;
 
+    public AlphaTraderData() {
+    }
+
     public AlphaTraderData(Long alphaTraderId, Date date, float price, long quantity, Order order) {
         this.alphaTraderId = alphaTraderId;
         this.date = date;

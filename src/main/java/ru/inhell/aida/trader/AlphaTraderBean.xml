@@ -35,8 +35,9 @@
         select * from `alpha_trader` where `id` = #{id}
     </select>
 
-    <select id="selectAlphaTraderDatas" resultMap="alphaTraderDataResultMap" parameterType="long">
-        select * from `alpha_trader_data` where `alpha_trader_id` = #{alphaTraderId}
+    <select id="selectAlphaTraderDatas" resultMap="alphaTraderDataResultMap" parameterType="ru.inhell.aida.entity.AlphaTraderFilter">
+        select * from `alpha_trader_data` where `alpha_trader_id` = #{id} and `date` between #{startDate} and #{endDate}
+            order by `date` asc
     </select>
 
     <insert id="insertAlphaTraderData" parameterType="ru.inhell.aida.entity.AlphaTraderData"
@@ -53,4 +54,23 @@
     <update id="updateAlphaTrader" parameterType="ru.inhell.aida.entity.AlphaTrader">
         update `alpha_trader` set `price` = #{price}, `quantity` = #{quantity}, `balance` = #{balance} where `id` = #{id}
     </update>
+
+    <select id="selectCurrentAlphaTraderData" resultMap="alphaTraderDataResultMap" parameterType="long">
+        select * from `alpha_trader_data` where `alpha_trader_id` = #{id} order by `date` desc limit 1;
+    </select>
+
+    <select id="selectAlphaTraderDatasCount" resultType="long" parameterType="ru.inhell.aida.entity.AlphaTraderFilter">
+        select count(*) from `alpha_trader_data` where `alpha_trader_id` = #{id} and `date` between #{startDate} and #{endDate}
+    </select>
+
+    <select id="test">
+            select
+        (select -sum(price*quantity) FROM alpha_trader_data where alpha_trader_id = 28 and `order` = 'SELL' and reply_code = 3)
+        -
+        (select sum(price*quantity) FROM alpha_trader_data where alpha_trader_id = 28 and `order` = 'BUY' and reply_code = 3)
+        +
+        (select sum(d.quantity)*c.price FROM alpha_trader_data d, current c, alpha_trader t
+        where d.alpha_trader_id = 28 and d.reply_code = 3 and c.symbol=t.future_symbol and d.alpha_trader_id = t.id)
+        ;
+    </select>
 </mapper>

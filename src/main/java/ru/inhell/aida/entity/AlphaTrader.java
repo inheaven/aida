@@ -14,6 +14,10 @@ public class AlphaTrader {
     private int orderQuantity;
     private float balance;
 
+    public String getName(){
+        return alphaOracle.getName();
+    }
+
     public void addBalance(float balance){
         this.balance += balance;
     }
