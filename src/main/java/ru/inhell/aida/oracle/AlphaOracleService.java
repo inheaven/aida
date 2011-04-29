@@ -30,9 +30,9 @@ import java.util.concurrent.TimeUnit;
 public class AlphaOracleService {
     private final static Logger log = LoggerFactory.getLogger(AlphaOracleService.class);
 
-    private final static int CORE_POOL_SIZE = 3;
-    private final static int PERIOD = 30;
-    private final static int UPDATE_COUNT = 3;
+    private final static int CORE_POOL_SIZE = 2;
+    private final static int PERIOD = 27;
+    private final static int UPDATE_COUNT = 4;
 
     private final static boolean USE_REMOTE = Aida.getProperty("use_remote_vssa").equals("true");
 
@@ -106,7 +106,7 @@ public class AlphaOracleService {
 
                     int count = DateUtil.isSameDay(last, lastQuote) ? DateUtil.getMinuteShift(lastQuote, last) : 1;
 
-                    predict(alphaOracle, count, USE_REMOTE, true);
+                    predict(alphaOracle, count, false, USE_REMOTE);
                 } catch (Throwable e) {
                     log.error("Ошибка предсказателя", e);
                 }
@@ -114,8 +114,10 @@ public class AlphaOracleService {
         };
     }
 
-    public void predict(final AlphaOracle alphaOracle, int count, boolean skipIfOracleExists, boolean useRemote)
+    public void predict(AlphaOracle alphaOracle, int count, boolean skipIfOracleExists, boolean useRemote)
             throws  RemoteVSSAException {
+        alphaOracle = alphaOracleBean.getAlphaOracle(alphaOracle.getId());
+
         VectorForecast vf = alphaOracle.getVectorForecast();
 
         //загружаем все котировки
@@ -136,7 +138,9 @@ public class AlphaOracleService {
                         : quotes.get(quotes.size()-1).getClose();
 
             //пропускаем если уже есть запись предсказания в базе данных
-            if (skipIfOracleExists && alphaOracleBean.isAlphaOracleDataExists(alphaOracle.getId(), date)){
+            if (skipIfOracleExists
+                    && (!vectorForecastBean.hasVectorForecastDataExtremum(vf.getId(), date)
+                    || alphaOracleBean.isAlphaOracleDataExists(alphaOracle.getId(), date))){
                 continue;
             }
 
@@ -183,7 +187,7 @@ public class AlphaOracleService {
                             || VectorForecastUtil.isMin(forecast, vf.getN()+1, vf.getM()-1)){
                         //уже в позиции
                         if (Prediction.LONG.equals(alphaOracle.getPrediction())){
-                            return;
+                            continue;
                         }
 
                         //длинная покупка
@@ -196,7 +200,7 @@ public class AlphaOracleService {
                             || VectorForecastUtil.isMax(forecast, vf.getN()+1, vf.getM()-1)){
                         //уже в позиции
                         if (Prediction.SHORT.equals(alphaOracle.getPrediction())){
-                            return;
+                            continue;
                         }
 
                         //короткая продажа

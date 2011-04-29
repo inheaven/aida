@@ -112,6 +112,13 @@ public class VectorForecastBean {
         }});
     }
 
+    public boolean hasVectorForecastDataExtremum(final Long vectorForecastId, final Date date){
+        return (Boolean)sm.selectOne(NS + ".selectHasVectorForecastDataExtremum", new HashMap<String, Object>(){{
+            put("vectorForecastId", vectorForecastId);
+            put("date", date);
+        }});
+    }
+
     public void update(VectorForecastData type){
         sm.update(NS + ".updateVectorForecastData", type);
     }

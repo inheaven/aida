@@ -38,11 +38,11 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 public class AlphaTraderSchool {
     public static final DateFormat dateFormat = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.SHORT, SimpleDateFormat.SHORT);
 
-    private final static int COUNT = 495*5;
+    private final static int COUNT = 20000;
     static FileWriter fileWriter;
 
     public static void main(String... args) throws RemoteVSSAException, IOException {
-        fileWriter = new FileWriter("c:\\aos.txt");
+        fileWriter = new FileWriter("c:\\aos.txt", true);
 
 //        studyAll();
 
@@ -365,7 +365,7 @@ public class AlphaTraderSchool {
         String s = prefix+balanceTimeSeries.getKey() + "," + balance + "," + orderCount + "," + stopCount + "," + dateFormat.format(start) + "," + dateFormat.format(end);
 
         try {
-            fileWriter.write(s + "\n");
+            fileWriter.append(s).append("\n");
             fileWriter.flush();
         } catch (IOException e) {
             e.printStackTrace();
