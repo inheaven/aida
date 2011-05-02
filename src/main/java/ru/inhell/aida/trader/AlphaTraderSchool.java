@@ -5,6 +5,7 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.data.time.FixedMillisecond;
 import org.jfree.data.time.Minute;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
@@ -38,17 +39,15 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 public class AlphaTraderSchool {
     public static final DateFormat dateFormat = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.SHORT, SimpleDateFormat.SHORT);
 
-    private final static int COUNT = 20000;
+    private final static int COUNT = 495*20;
     static FileWriter fileWriter;
 
     public static void main(String... args) throws RemoteVSSAException, IOException {
         fileWriter = new FileWriter("c:\\aos.txt", true);
 
-//        studyAll();
+        //        scoreAll();
 
-        scoreAll();
-
-//        randomStudyAll();
+        randomStudyAll();
     }
 
 
@@ -83,15 +82,17 @@ public class AlphaTraderSchool {
         AlphaOracleBean alphaOracleBean = AidaInjector.getInstance(AlphaOracleBean.class);
         final AlphaOracleService alphaOracleService = AidaInjector.getInstance(AlphaOracleService.class);
 
-        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(3);
 
         List<AlphaOracle> alphaOracles =  alphaOracleBean.getAlphaOracles();
         for (final AlphaOracle alphaOracle : alphaOracles){
             executor.execute(new Runnable() {
                 @Override
                 public void run() {
-                    alphaOracleService.predict(alphaOracle, COUNT, true, false);
-                    score(alphaOracle);
+                    if (alphaOracle.getVectorForecast().getSymbol().equals("GAZP") && alphaOracle.getId() >= 20) {
+//                        alphaOracleService.predict(alphaOracle, COUNT, true, false);
+                        score(alphaOracle);
+                    }
                 }
             });
         }
@@ -127,7 +128,8 @@ public class AlphaTraderSchool {
 
             if (quantity == 0){
                 price = alphaOracleData.getPrice();
-                balanceTimeSeries.add(new Minute(date), balance);
+//                balanceTimeSeries.add(new Minute(date), balance);
+                balanceTimeSeries.add(new FixedMillisecond(i), balance);
             }
 
             switch (alphaOracleData.getPrediction()){
@@ -136,7 +138,8 @@ public class AlphaTraderSchool {
                         balance += 2*(price - alphaOracleData.getPrice());
                         price = alphaOracleData.getPrice();
 
-                        balanceTimeSeries.add(new Minute(date), balance);
+//                        balanceTimeSeries.add(new Minute(date), balance);
+                        balanceTimeSeries.add(new FixedMillisecond(i), balance);
                     }
 
                     quantity = 1;
@@ -146,7 +149,8 @@ public class AlphaTraderSchool {
                         balance += 2*(alphaOracleData.getPrice() - price);
                         price = alphaOracleData.getPrice();
 
-                        balanceTimeSeries.add(new Minute(date), balance);
+//                        balanceTimeSeries.add(new Minute(date), balance);
+                        balanceTimeSeries.add(new FixedMillisecond(i), balance);
                     }
 
                     quantity = -1;
@@ -156,7 +160,8 @@ public class AlphaTraderSchool {
                         balance += (price - alphaOracleData.getPrice());
                         price = alphaOracleData.getPrice();
 
-                        balanceTimeSeries.add(new Minute(date), balance);
+//                        balanceTimeSeries.add(new Minute(date), balance);
+                        balanceTimeSeries.add(new FixedMillisecond(i), balance);
 
                         quantity = 0;
                     }
@@ -166,7 +171,8 @@ public class AlphaTraderSchool {
                         balance += (alphaOracleData.getPrice() - price);
                         price = alphaOracleData.getPrice();
 
-                        balanceTimeSeries.add(new Minute(date), balance);
+//                        balanceTimeSeries.add(new Minute(date), balance);
+                        balanceTimeSeries.add(new FixedMillisecond(i), balance);
 
                         quantity = 0;
                     }
@@ -183,9 +189,9 @@ public class AlphaTraderSchool {
     private static void randomStudyAll() throws RemoteVSSAException{
         initGUI();
 
-        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(2);
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
 
-        for (int i=0; i < 200; ++i){
+        for (int i=0; i < 1000; ++i){
 
             executor.execute(new Runnable() {
                 @Override
@@ -193,15 +199,15 @@ public class AlphaTraderSchool {
                     try {
                         Random random = new Random();
 
-                        int[] ll = {120, 1280, 200, 240, 256, 360, 480};
-                        int nn[] = {495*3, 495*4, 495*5, 495*6, 495*7};
-                        int[] mm = {10, 15};
+                        int[] ll = {30, 60, 80, 90, 120};
+                        int nn[] = {495*3, 495*4, 495*5, 495*6, 495*7, 495*8, 495*9, 495*10, 495*11, 495*12, 495*13, 495*14};
+                        int[] mm = {5, 10, 15, 30};
                         float[] ss = {1.002f, 1.004f, 1.008f, 1.01f};
 
-                        int n = nn[random.nextInt(5)];
-                        int l = ll[random.nextInt(7)];
-                        int p = 40 + random.nextInt(100);
-                        int m = mm[random.nextInt(2)];
+                        int n = nn[random.nextInt(12)];
+                        int l = ll[random.nextInt(5)];
+                        int p = 10 + random.nextInt(90);
+                        int m = mm[random.nextInt(4)];
                         float s = ss[random.nextInt(4)];
 
                         study("", "GAZP", n, l, p, m, true, true, s);
@@ -216,11 +222,12 @@ public class AlphaTraderSchool {
     static float maxBalance = 0;
     static float minBalance = 0;
 
+    private final static boolean timing = false;
+
 
     private static void study(String prefix, String symbol, int n, int l, int p, int m, boolean average, boolean useStop, float stopFactor)
             throws RemoteVSSAException {
         QuotesBean quotesBean = AidaInjector.getInstance(QuotesBean.class);
-        VectorForecastSSAService vectorForecastSSAService = AidaInjector.getInstance(VectorForecastSSAService.class);
 
         float balance = 0;
         float price = 0;
@@ -245,10 +252,35 @@ public class AlphaTraderSchool {
 
         VectorForecastSSA vectorForecastSSA = new VectorForecastSSA(n, l, p, m);
 
+        long time;
+
         for (int i=0; i < COUNT; ++i) {
+            if (i > 1000 && balance < 0){
+                try {
+                    fileWriter.append(name).append(",,,,,").append("\n");
+                    balanceDataSet.removeSeries(balanceTimeSeries);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                return;
+            }
+
+            if (timing) time = System.currentTimeMillis();
+
             List<Quote> quotes = allQuotes.subList(i, n + i);
 
+            if (timing){
+                System.out.println("AlphaTraderSchool.1 " + (System.currentTimeMillis() - time));
+                time = System.currentTimeMillis();
+            }
+
             float[] prices = average ? QuoteUtil.getAveragePrices(quotes) : QuoteUtil.getClosePrices(quotes);
+
+            if (timing){
+                System.out.println("AlphaTraderSchool.2 " + (System.currentTimeMillis() - time));
+                time = System.currentTimeMillis();
+            }
 
             Quote currentQuote = quotes.get(quotes.size() - 1);
 
@@ -296,11 +328,21 @@ public class AlphaTraderSchool {
                 }
             }
 
+            if (timing){
+                System.out.println("AlphaTraderSchool.3 " + (System.currentTimeMillis() - time));
+                time = System.currentTimeMillis();
+            }
+
             float[] forecast = new float[0];
             try {
                 forecast = vectorForecastSSA.execute(prices);
             } catch (Exception e) {
                 balanceDataSet.removeSeries(balanceTimeSeries);
+            }
+
+            if (timing){
+                System.out.println("AlphaTraderSchool.4 " + (System.currentTimeMillis() - time));
+                time = System.currentTimeMillis();
             }
 
             if (VectorForecastUtil.isMin(forecast, n, m)
@@ -349,6 +391,10 @@ public class AlphaTraderSchool {
                     orderCount++;
                     quantity = -1;
                 }
+            }
+
+            if (timing){
+                System.out.println("AlphaTraderSchool.5 " + (System.currentTimeMillis() - time));
             }
         }
 

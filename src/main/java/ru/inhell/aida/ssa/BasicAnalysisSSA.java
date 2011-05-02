@@ -12,6 +12,9 @@ import java.util.Arrays;
  */
 public class BasicAnalysisSSA {
     private static final Logger log = LoggerFactory.getLogger(BasicAnalysisSSA.class);
+
+    private final static boolean timing = false;
+
     private int count = 0;
 
     public static class Result{
@@ -63,11 +66,23 @@ public class BasicAnalysisSSA {
     }
 
     public Result execute(float[] timeSeries, boolean diagonalAverage){
+        long time = System.currentTimeMillis();
+
         for (int j = 0; j < K; j++){
             System.arraycopy(timeSeries, j, r.X, j* L, L);
         }
 
+        if (timing){
+            System.out.println("BasicAnalysisSSA.1 " + (System.currentTimeMillis() - time));
+            time = System.currentTimeMillis();
+        }
+
         ACML.jni().sgesdd("A", L, K, r.X, L, r.S, r.U, L, r.VT, K, new int[1]);
+
+        if (timing){
+            System.out.println("BasicAnalysisSSA.2 " + (System.currentTimeMillis() - time));
+            time = System.currentTimeMillis();
+        }
 
         Arrays.fill(r.XI, 0);
 
@@ -100,6 +115,10 @@ public class BasicAnalysisSSA {
                     r.G[k + i*N] = getSum(Xi, L, K, k - K1 + 2, N - K1 + 1, k) / (N - k);
                 }
             }
+        }
+
+        if (timing){
+            System.out.println("BasicAnalysisSSA.3 " + (System.currentTimeMillis() - time));
         }
 
         return r;

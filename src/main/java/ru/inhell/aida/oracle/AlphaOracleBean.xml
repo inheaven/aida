@@ -25,6 +25,15 @@
         <result column="prediction" property="prediction"/>
     </resultMap>
 
+    <resultMap id="alphaOracleScoreResultMap" type="ru.inhell.aida.entity.AlphaOracleScore">
+        <id column="id" property="id"/>
+        <result column="alpha_oracle_id" property="alphaOracleId"/>
+        <result column="day" property="day"/>
+        <result column="score" property="score"/>
+        <result column="max" property="max"/>
+        <result column="min" property="min"/>
+    </resultMap>
+
     <select id="selectAlphaOracle" resultMap="alphaOracleResultMap" parameterType="long">
         select * from `alpha_oracle` where `id` = #{id}
     </select>
@@ -56,4 +65,9 @@
         update `alpha_oracle` set `price` = #{price}, `prediction` = #{prediction}, `score` = #{score},
             `stop_price` = #{stopPrice}, `stop_count` = #{stopCount} where `id` = #{id}
     </update>
+
+    <select id="selectScores" parameterType="ru.inhell.aida.entity.AlphaOracleFilter" resultMap="alphaOracleScoreResultMap">
+
+
+    </select>
 </mapper>

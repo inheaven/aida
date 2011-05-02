@@ -13,6 +13,8 @@ import java.util.Arrays;
 public class VectorForecastSSA {
     private static final Logger log = LoggerFactory.getLogger(VectorForecastSSA.class);
 
+    private final static boolean timing = false;
+
     private final int N;
     private final int L;
     private final int P;
@@ -104,7 +106,19 @@ public class VectorForecastSSA {
      * @param forecast float[N + M + L - 1]
      */
     public void execute(float[] timeSeries, float forecast[]) {
+        long time = System.currentTimeMillis();
+
+        if (timing){
+            System.out.println("VectorForecastSSA.1 " + (System.currentTimeMillis() - time));
+            time = System.currentTimeMillis();
+        }
+
         BasicAnalysisSSA.Result ssa = basicAnalysis.execute(timeSeries, false);
+
+        if (timing){
+            System.out.println("VectorForecastSSA.2 " + (System.currentTimeMillis() - time));
+            time = System.currentTimeMillis();
+        }
 
         float v2 = 0;
 
@@ -126,8 +140,18 @@ public class VectorForecastSSA {
             R[j] /= (1-v2);
         }
 
+        if (timing){
+            System.out.println("VectorForecastSSA.3 " + (System.currentTimeMillis() - time));
+            time = System.currentTimeMillis();
+        }
+
         ACML.jni().sgemm("N", "T", Ld, Ld, M, 1, VD, Ld, VD, Ld, 0, VDxVDt, Ld);
         ACML.jni().sgemm("N", "T", Ld, Ld, 1, 1-v2, R, Ld, R, Ld, 0, RxRt, Ld);
+
+        if (timing){
+            System.out.println("VectorForecastSSA.4 " + (System.currentTimeMillis() - time));
+            time = System.currentTimeMillis();
+        }
 
         for (int i = 0; i < Ld * Ld; ++i){
             Pr[i] = VDxVDt[i] + RxRt[i];
@@ -148,7 +172,16 @@ public class VectorForecastSSA {
             System.arraycopy(Zi, 0, Z, i * L, L);
         }
 
+        if (timing){
+            System.out.println("VectorForecastSSA.5 " + (System.currentTimeMillis() - time));
+            time = System.currentTimeMillis();
+        }
+
         diagonalAveraging(Z, L, N + M, forecast);
+
+        if (timing){
+            System.out.println("VectorForecastSSA.6 " + (System.currentTimeMillis() - time));
+        }
     }
 
     private void diagonalAveraging(float[] Y, int rows, int cols, float[] g){

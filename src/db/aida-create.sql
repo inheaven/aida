@@ -1,4 +1,3 @@
-drop table if exists `all_trades`;
 create table  `all_trades` (
   `id` bigint(20) unsigned not null auto_increment,
   `transaction_id` bigint(20) unsigned not null,
@@ -16,7 +15,6 @@ create table  `all_trades` (
   key `key_symbol` (`symbol`)
 ) engine=innodb default charset=cp1251;
 
-drop table if exists `quotes_1min`;
 create table `quotes_1min`(
    `id` bigint unsigned not null auto_increment,
    `symbol` varchar(10) not null,
@@ -31,7 +29,6 @@ create table `quotes_1min`(
    unique key `key_symbol_date` (`symbol`, `date`)
  ) engine=innodb default charset=cp1251;
 
-drop table if exists `current`;
 create table `current`(
    `id` bigint unsigned not null auto_increment,
    `instrument` varchar(64) not null,
@@ -66,7 +63,6 @@ CREATE
 $$
 DELIMITER ;
 
-drop table if exists `vector_forecast`;
 create table `vector_forecast`(
    `id` bigint unsigned not null auto_increment,
    `symbol` varchar(10) not null,
@@ -80,7 +76,6 @@ create table `vector_forecast`(
    unique key `key_unique` (`symbol`, `interval`, `n`, `l`, `p`, `m`)
 ) engine=innodb default charset=cp1251;
 
-drop table if exists `vector_forecast_data`;
 create table `vector_forecast_data`(
   `id` bigint unsigned not null auto_increment,
   `vector_forecast_id` bigint unsigned not null,
@@ -94,7 +89,6 @@ create table `vector_forecast_data`(
   unique key `key_unique` (`vector_forecast_id`, `date`, `index`)
 ) engine=innodb default charset=cp1251;
 
-drop table if exists `alpha_oracle`;
 create table `alpha_oracle`(
   `id` bigint unsigned not null auto_increment,
   `vector_forecast_id` bigint unsigned not null,
@@ -113,7 +107,6 @@ create table `alpha_oracle`(
   constraint `fk_vector_forecast` foreign key (`vector_forecast_id`) references `vector_forecast` (`id`)
 ) engine=innodb default charset=cp1251;
 
-drop table if exists `alpha_oracle_data`;
 create table `alpha_oracle_data`(
   `id` bigint unsigned not null auto_increment,
   `alpha_oracle_id` bigint unsigned not null,
@@ -125,7 +118,6 @@ create table `alpha_oracle_data`(
   unique key `key_unique` (`alpha_oracle_id`, `date`)
 ) engine=innodb default charset=cp1251;
 
-drop table if exists `alpha_trader`;
 create table `alpha_trader`(
   `id` bigint unsigned not null auto_increment,
   `alpha_oracle_id` bigint unsigned not null,
@@ -139,7 +131,6 @@ create table `alpha_trader`(
   primary key (`id`)
 ) engine=innodb default charset=cp1251;
 
-drop table if exists `alpha_trader_data`;
 create table `alpha_trader_data`(
   `id` bigint unsigned not null auto_increment,
   `alpha_trader_id` bigint unsigned not null,
@@ -154,4 +145,16 @@ create table `alpha_trader_data`(
   `predicted` datetime not null,
   `created` timestamp default current_timestamp,
   primary key (`id`)
+  key `key_alpha_trader`(`alpha_trader_id`),
+  constraint `fk_alpha_trader` foreign key (`alpha_trader_id`) references `alpha_trader` (`id`)
+) engine=innodb default charset=cp1251;
+
+create table `alpha_oracle_score` (
+  `id` bigint unsigned not null auto_increment,
+  `alpha_oracle_id` bigint unsigned not null,
+  `day` date not null,
+  `score` decimal(15,6) not null,
+  primary key (`id`),
+  key `key_alpha_oracle`(`alpha_oracle_id`),
+  constraint `fk_alpha_oracle` foreign key (`alpha_oracle_id`) references `alpha_oracle` (`id`)
 ) engine=innodb default charset=cp1251;

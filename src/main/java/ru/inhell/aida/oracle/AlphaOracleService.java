@@ -138,10 +138,12 @@ public class AlphaOracleService {
                         : quotes.get(quotes.size()-1).getClose();
 
             //пропускаем если уже есть запись предсказания в базе данных
-            if (skipIfOracleExists
-                    && (!vectorForecastBean.hasVectorForecastDataExtremum(vf.getId(), date)
-                    || alphaOracleBean.isAlphaOracleDataExists(alphaOracle.getId(), date))){
-                continue;
+            if (skipIfOracleExists && vectorForecastBean.isVectorForecastDataExists(vf.getId(), date)){
+                if (!vectorForecastBean.hasVectorForecastDataExtremum(vf.getId(), date)){
+                    continue;
+                }else if (alphaOracleBean.isAlphaOracleDataExists(alphaOracle.getId(), date)){
+                    continue;
+                }
             }
 
             float[] prices;

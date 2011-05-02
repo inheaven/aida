@@ -11,7 +11,7 @@ import java.util.logging.Logger;
  *         Date: 15.11.10 17:32
  */
 public class ACML implements LAPACK, BLAS {
-    private static ThreadLocal<ACML> localInstance = new ThreadLocal<ACML>();
+    private static ACML instance;
 
     private boolean loaded;
 
@@ -20,14 +20,11 @@ public class ACML implements LAPACK, BLAS {
     }
 
     public static ACML jni() {
-        ACML acml = localInstance.get();
-
-        if (acml == null){
-            acml = new ACML();
-            localInstance.set(acml);
+        if (instance == null){
+            instance = new ACML();
         }
 
-        return acml;
+        return instance;
     }
 
     private ACML() {

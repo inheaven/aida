@@ -81,10 +81,8 @@ public class AlphaOracleListener implements IAlphaOracleListener {
         int orderFuturePrice = (int) getOrderPrice(prediction, currentFuturePrice);
 
         //создаем транзакцию
-        AlphaTraderData alphaTraderData = new AlphaTraderData(alphaTrader.getId(), DateUtil.nowMsk(), orderFuturePrice,
-                0, getOrder(prediction));
-
-        alphaTraderBean.save(alphaTraderData);
+        AlphaTraderData alphaTraderData = new AlphaTraderData(alphaTrader.getId(), DateUtil.nowMsk(),
+                orderFuturePrice, 0, getOrder(prediction));
 
         //формируем заявку
         try {
@@ -92,8 +90,12 @@ public class AlphaOracleListener implements IAlphaOracleListener {
 
             int orderQuantity = alphaTrader.getOrderQuantity();
             int reverseQuantity = alphaTrader.getQuantity() == 0 ? orderQuantity : 2*orderQuantity;
-            Long transactionId = alphaTraderData.getId();
             String futureSymbol = alphaTrader.getFutureSymbol();
+
+            alphaTraderData.setQuantity(reverseQuantity);
+            alphaTraderBean.save(alphaTraderData);
+
+            Long transactionId = alphaTraderData.getId();
 
             switch (prediction){
                 case LONG:

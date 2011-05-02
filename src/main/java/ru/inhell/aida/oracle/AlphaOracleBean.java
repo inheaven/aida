@@ -7,7 +7,6 @@ import ru.inhell.aida.entity.AlphaOracleData;
 import ru.inhell.aida.entity.AlphaOracleFilter;
 import ru.inhell.aida.util.DateUtil;
 
-import javax.management.monitor.StringMonitor;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -20,18 +19,18 @@ public class AlphaOracleBean {
     private final static String NS = AlphaOracleBean.class.getName();
 
     @Inject
-    private SqlSessionManager session;
+    private SqlSessionManager sm;
 
     @Inject
     private VectorForecastBean vectorForecastBean;
 
     public AlphaOracle getAlphaOracle(Long id){
-        return (AlphaOracle) session.selectOne(NS + ".selectAlphaOracle", id);
+        return (AlphaOracle) sm.selectOne(NS + ".selectAlphaOracle", id);
     }
 
     @SuppressWarnings({"unchecked"})
     public List<AlphaOracle> getAlphaOracles(){
-        return session.selectList(NS + ".selectAlphaOracles");
+        return sm.selectList(NS + ".selectAlphaOracles");
     }
 
     @SuppressWarnings({"unchecked"})
@@ -41,25 +40,29 @@ public class AlphaOracleBean {
 
     @SuppressWarnings({"unchecked"})
     public List<AlphaOracleData> getAlphaOracleDatas(AlphaOracleFilter filter){
-        return session.selectList(NS + ".selectAlphaOracleDatas", filter);
+        return sm.selectList(NS + ".selectAlphaOracleDatas", filter);
     }
 
     public void save(AlphaOracle alphaOracle){
         if (alphaOracle.getId() == null) {
-            session.insert(NS + ".insertAlphaOracle", alphaOracle);
+            sm.insert(NS + ".insertAlphaOracle", alphaOracle);
         } else {
-            session.update(NS + ".updateAlphaOracle", alphaOracle);
+            sm.update(NS + ".updateAlphaOracle", alphaOracle);
         }
     }
 
     public void save(AlphaOracleData alphaOracleData){
-        session.insert(NS + ".insertAlphaOracleData", alphaOracleData);
+        sm.insert(NS + ".insertAlphaOracleData", alphaOracleData);
     }
 
     public boolean isAlphaOracleDataExists(final Long alphaOracleId, final Date date){
-        return (Boolean)session.selectOne(NS + ".selectIsAlphaOracleDataExists", new HashMap<String, Object>(){{
+        return (Boolean) sm.selectOne(NS + ".selectIsAlphaOracleDataExists", new HashMap<String, Object>(){{
             put("alphaOracleId", alphaOracleId);
             put("date", date);
         }});
+    }
+
+    public Long getScore(AlphaOracleFilter filter){
+        return (Long) sm.selectOne(NS + ".selectScore", filter);
     }
 }

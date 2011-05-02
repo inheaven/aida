@@ -22,7 +22,7 @@ public class AidaRemote {
 
         process(3,4,14,19,27,28,31,32,33);
 
-//        tabbedPane.addTab("Статистика", new AlphaStatisticPanel());
+        tabbedPane.addTab("Статистика", new AlphaStatisticPanel());
 
         frame.pack();
         frame.setSize(1024, 768);
