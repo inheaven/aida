@@ -155,6 +155,7 @@ create table `alpha_oracle_score` (
   `day` date not null,
   `score` decimal(15,6) not null,
   primary key (`id`),
+  unique key `key_unique`(`alpha_oracle_id`, `day`),
   key `key_alpha_oracle`(`alpha_oracle_id`),
   constraint `fk_alpha_oracle` foreign key (`alpha_oracle_id`) references `alpha_oracle` (`id`)
 ) engine=innodb default charset=cp1251;

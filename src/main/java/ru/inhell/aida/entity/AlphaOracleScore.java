@@ -72,4 +72,16 @@ public class AlphaOracleScore {
     public void setMax(float max) {
         this.max = max;
     }
+
+    @Override
+    public String toString() {
+        return "AlphaOracleScore{" +
+                "id=" + id +
+                ", alphaOracleId=" + alphaOracleId +
+                ", day=" + day +
+                ", score=" + score +
+                ", min=" + min +
+                ", max=" + max +
+                '}';
+    }
 }

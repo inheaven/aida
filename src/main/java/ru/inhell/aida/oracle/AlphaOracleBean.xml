@@ -67,7 +67,11 @@
     </update>
 
     <select id="selectScores" parameterType="ru.inhell.aida.entity.AlphaOracleFilter" resultMap="alphaOracleScoreResultMap">
-
-
+        select * from `alpha_oracle_score` where `alpha_oracle_id` = #{id} and `date` between #{startDate} and #{endDate}
     </select>
+
+    <insert id="insertAlphaOracleScore" parameterType="ru.inhell.aida.entity.AlphaOracleScore">
+        insert into `alpha_oracle_score` (`alpha_oracle_id`, `day`, `max`, `min`, `score`)
+            values (#{alphaOracleId}, #{day}, #{max}, #{min}, #{score})
+    </insert>
 </mapper>

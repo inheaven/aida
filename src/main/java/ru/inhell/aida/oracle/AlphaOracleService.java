@@ -2,10 +2,13 @@ package ru.inhell.aida.oracle;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.jfree.data.time.FixedMillisecond;
+import org.jfree.data.time.TimeSeries;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inhell.aida.Aida;
 import ru.inhell.aida.entity.*;
+import ru.inhell.aida.inject.AidaInjector;
 import ru.inhell.aida.quotes.CurrentBean;
 import ru.inhell.aida.quotes.QuotesBean;
 import ru.inhell.aida.ssa.RemoteVSSAException;
@@ -30,8 +33,8 @@ import java.util.concurrent.TimeUnit;
 public class AlphaOracleService {
     private final static Logger log = LoggerFactory.getLogger(AlphaOracleService.class);
 
-    private final static int CORE_POOL_SIZE = 2;
-    private final static int PERIOD = 27;
+    private final static int CORE_POOL_SIZE = 1;
+    private final static int PERIOD = 28;
     private final static int UPDATE_COUNT = 4;
 
     private final static boolean USE_REMOTE = Aida.getProperty("use_remote_vssa").equals("true");
@@ -134,8 +137,8 @@ public class AlphaOracleService {
 
             //текущая цена
             float currentPrice = DateUtil.getAbsMinuteShiftMsk(date) < 2
-                        ? currentBean.getCurrent(vf.getSymbol()).getPrice()
-                        : quotes.get(quotes.size()-1).getClose();
+                    ? currentBean.getCurrent(vf.getSymbol()).getPrice()
+                    : quotes.get(quotes.size()-1).getClose();
 
             //пропускаем если уже есть запись предсказания в базе данных
             if (skipIfOracleExists && vectorForecastBean.isVectorForecastDataExists(vf.getId(), date)){
@@ -248,6 +251,101 @@ public class AlphaOracleService {
                 } catch (Throwable e) {
                     log.error("Ошибка слушателя", e);
                 }
+            }
+        }
+    }
+
+    public void score(AlphaOracle alphaOracle, Date startDate, Date endDate){
+        Long alphaOracleId = alphaOracle.getId();
+
+        List<Quote> quotes = quotesBean.getQuotes(alphaOracle.getVectorForecast().getSymbol(), startDate, endDate);
+
+        List<AlphaOracleData> alphaOracleDataList = alphaOracleBean.getAlphaOracleDatas(alphaOracleId, quotes.get(0).getDate());
+
+        float score = 0;
+        float price = 0;
+        int quantity = 0;
+        float max = 0;
+        float min = 0;
+
+        int size = alphaOracleDataList.size();
+
+        for (int i=0; i < size; ++i){
+            AlphaOracleData alphaOracleData = alphaOracleDataList.get(i);
+
+            Date date = alphaOracleData.getDate();
+
+            if (quantity == 0){
+                price = alphaOracleData.getPrice();
+            }
+
+            //Результат сделки
+            switch (alphaOracleData.getPrediction()){
+                case LONG:
+                    if (quantity == -1){
+                        score += 2*(price - alphaOracleData.getPrice());
+                        price = alphaOracleData.getPrice();
+                    }
+
+                    quantity = 1;
+                    break;
+                case SHORT:
+                    if (quantity == 1){
+                        score += 2*(alphaOracleData.getPrice() - price);
+                        price = alphaOracleData.getPrice();
+                    }
+
+                    quantity = -1;
+                    break;
+                case STOP_BUY:
+                    if (quantity == -1){
+                        score += (price - alphaOracleData.getPrice());
+                        price = alphaOracleData.getPrice();
+
+                        quantity = 0;
+                    }
+                    break;
+                case STOP_SELL:
+                    if (quantity == 1) {
+                        score += (alphaOracleData.getPrice() - price);
+                        price = alphaOracleData.getPrice();
+
+                        quantity = 0;
+                    }
+                    break;
+            }
+
+            //Максимум и минимум
+            if (score > max){
+                max = score;
+            } else if (score < min){
+                min = score;
+            }
+
+            //Новый торговый день, сохранение результатов
+            if (i == size - 1 || !DateUtil.isSameDay(date, alphaOracleDataList.get(i+1).getDate())){
+                float quotePrice = quotesBean.getQuote(alphaOracle.getVectorForecast().getSymbol(), date).getClose();
+
+                if (quantity == -1){
+                    score += (price - quotePrice);
+                } else if (quantity == 1){
+                    score += (quotePrice - price);
+                }
+
+                try {
+                    AlphaOracleScore alphaOracleScore = new AlphaOracleScore(alphaOracleId, date, score, min, max);
+                    alphaOracleBean.save(alphaOracleScore);
+
+                    log.info(alphaOracleScore.toString());
+                } catch (Exception e) {
+                    log.error("", e);
+                }
+
+                quantity = 0;
+                price = 0;
+                score = 0;
+                max = 0;
+                min = 0;
             }
         }
     }

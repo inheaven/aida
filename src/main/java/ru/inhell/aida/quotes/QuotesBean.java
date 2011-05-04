@@ -24,12 +24,17 @@ public class QuotesBean {
         return sm.selectList(NS + ".selectQuotes", new QuoteFilter(symbol, count));
     }
 
-    public Date getLastQuoteDate(String symbol){
-        return (Date) sm.selectOne(NS + ".selectLastQuoteDate", symbol);
+    @SuppressWarnings({"unchecked"})
+    public List<Quote> getQuotes(String symbol, Date startDate, Date endDate){
+        return sm.selectList(NS + ".selectQuotesInterval", new QuoteFilter(symbol, startDate, endDate));
     }
 
-    public float getClosePrice(String symbol){
-        return (Float) sm.selectOne(NS + ".selectClosePrice", symbol);
+    public Quote getQuote(String symbol, Date date){
+        return (Quote) sm.selectOne(NS + ".selectQuote", new QuoteFilter(symbol, date));
+    }
+
+    public Date getLastQuoteDate(String symbol){
+        return (Date) sm.selectOne(NS + ".selectLastQuoteDate", symbol);
     }
 
     public void save(Quote quote){

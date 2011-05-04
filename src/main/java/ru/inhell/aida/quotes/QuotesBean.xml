@@ -12,10 +12,18 @@
         <result column="volume" property="volume"/>
     </resultMap>
 
+    <select id="selectQuote" parameterType="ru.inhell.aida.entity.QuoteFilter" resultMap="quotesResultMap">
+        select * from `quotes_1min` where `symbol` = #{symbol} and `date` = #{date}
+    </select>
+
     <select id="selectQuotes" parameterType="ru.inhell.aida.entity.QuoteFilter" resultMap="quotesResultMap">
         select * from
             (select * from `quotes_1min` where `symbol` = #{symbol} order by `date` desc limit #{count}) as q
         order by q.`date` asc
+    </select>
+
+    <select id="selectQuotesInterval" parameterType="ru.inhell.aida.entity.QuoteFilter" resultMap="quotesResultMap">
+        select * from `quotes_1min` where `symbol` = #{symbol} and `date` between #{startDate} and #{endDate}
     </select>
 
     <select id="selectLastQuoteDate" parameterType="string" resultType="date">

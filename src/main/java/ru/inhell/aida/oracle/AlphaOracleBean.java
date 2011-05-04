@@ -5,6 +5,7 @@ import org.apache.ibatis.session.SqlSessionManager;
 import ru.inhell.aida.entity.AlphaOracle;
 import ru.inhell.aida.entity.AlphaOracleData;
 import ru.inhell.aida.entity.AlphaOracleFilter;
+import ru.inhell.aida.entity.AlphaOracleScore;
 import ru.inhell.aida.util.DateUtil;
 
 import java.util.Date;
@@ -64,5 +65,9 @@ public class AlphaOracleBean {
 
     public Long getScore(AlphaOracleFilter filter){
         return (Long) sm.selectOne(NS + ".selectScore", filter);
+    }
+
+    public void save(AlphaOracleScore alphaOracleScore){
+        sm.insert(NS + ".insertAlphaOracleScore", alphaOracleScore);
     }
 }
