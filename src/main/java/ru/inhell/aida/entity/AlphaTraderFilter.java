@@ -7,25 +7,25 @@ import java.util.Date;
  *         Date: 29.04.11 15:11
  */
 public class AlphaTraderFilter {
-    private Long id;
+    private Long alphaTraderId;
     private Date startDate;
     private Date endDate;
 
     public AlphaTraderFilter() {
     }
 
-    public AlphaTraderFilter(Long id, Date startDate, Date endDate) {
-        this.id = id;
+    public AlphaTraderFilter(Long alphaTraderId, Date startDate, Date endDate) {
+        this.alphaTraderId = alphaTraderId;
         this.startDate = startDate;
         this.endDate = endDate;
     }
 
-    public Long getId() {
-        return id;
+    public Long getAlphaTraderId() {
+        return alphaTraderId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setAlphaTraderId(Long alphaTraderId) {
+        this.alphaTraderId = alphaTraderId;
     }
 
     public Date getStartDate() {
