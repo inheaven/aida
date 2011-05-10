@@ -20,9 +20,9 @@ public class AidaRemote {
         oraclePanel = new JPanel(new GridLayout(3,3));
         tabbedPane.addTab("Предсказатели", oraclePanel);
 
-        process(3,4,14,19,27,28,31,32,33);
+        process(29, 31, 25, 27, 28, 26, 30, 22, 34);
 
-        tabbedPane.addTab("Статистика", new AlphaStatisticPanel());
+//        tabbedPane.addTab("Статистика", new AlphaStatisticPanel());
 
         frame.pack();
         frame.setSize(1024, 768);
