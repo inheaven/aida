@@ -199,20 +199,21 @@ public class AlphaTraderSchool {
                     try {
                         Random random = new Random();
 
-                        int[] ll = {30, 60, 80, 90, 120};
+                        int[] ll = {10, 15, 30, 45};
                         int nn[] = {495*3, 495*4, 495*5, 495*6, 495*7, 495*8, 495*9, 495*10, 495*11, 495*12, 495*13, 495*14};
                         int[] mm = {5, 10, 15, 30};
                         float[] ss = {1.002f, 1.004f, 1.008f, 1.01f};
 
                         int n = nn[random.nextInt(12)];
-                        int l = ll[random.nextInt(5)];
-                        int p = 10 + random.nextInt(90);
+                        int l = ll[random.nextInt(4)];
+                        int p = 2 + random.nextInt(l-2);
                         int m = mm[random.nextInt(4)];
                         float s = ss[random.nextInt(4)];
 
-                        study("", "GAZP", n, l, p, m, true, true, s);
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage());
+                        study("", "GAZP", n, l, p, m, false, true, s);
+//                          study("", "GAZP", 495*14, 120, 100, 30, false, true, s);
+                    } catch (Throwable e) {
+                        e.printStackTrace();
                     }
                 }
             });
@@ -241,7 +242,7 @@ public class AlphaTraderSchool {
 
         Date start = null, end = null;
 
-        List<Quote> allQuotes = quotesBean.getQuotes(symbol, COUNT + n);
+        List<Quote> allQuotes = quotesBean.getQuotes(symbol, COUNT + n + 1);
 
         String name = symbol +"-n" + n + "l" + l +"p" + p + "m" + m + (average?"a":"c") + (useStop?"s":"") + stopFactor;
 
@@ -293,10 +294,10 @@ public class AlphaTraderSchool {
             //close day
             current.setTime(currentQuote.getDate());
             if (current.get(Calendar.HOUR_OF_DAY) == 18 && current.get(Calendar.MINUTE) > 40){
-                if (orderCount < 2){
-                    balanceDataSet.removeSeries(balanceTimeSeries);
-                    return;
-                }
+//                if (orderCount < 2){
+//                    balanceDataSet.removeSeries(balanceTimeSeries);
+//                    return;
+//                }
 
                 closeDay = true;
             }

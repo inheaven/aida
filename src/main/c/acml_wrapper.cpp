@@ -38,11 +38,11 @@ JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_sgesvd
 	jfloat *jni_vt = (jfloat *)env->GetPrimitiveArrayCritical(vt, JNI_FALSE);
 	check_memory(env, jni_vt);
 
-    jint *jni_info = (jint *)env->GetPrimitiveArrayCritical(info, JNI_FALSE);
+        jint *jni_info = (jint *)env->GetPrimitiveArrayCritical(info, JNI_FALSE);
 	check_memory(env, jni_info);
 
 	//MP
-	acmlsetnumthreads(acmlgetnumprocs());
+	//acmlsetnumthreads(acmlgetnumprocs());
 
 //    env->MonitorEnter(calling_obj);
 	sgesvd(jni_jobu[0], jni_jobvt[0], (long)m, (long)n, jni_a, (long)lda, jni_s, jni_u, (long)ldu, jni_vt, (long)ldvt, (int *)&jni_info[0]);
@@ -74,11 +74,11 @@ JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_sgesdd
 	jfloat *jni_vt = (jfloat *)env->GetPrimitiveArrayCritical(vt, JNI_FALSE);
 	check_memory(env, jni_vt);
 
-    jint *jni_info = (jint *)env->GetPrimitiveArrayCritical(info, JNI_FALSE);
+        jint *jni_info = (jint *)env->GetPrimitiveArrayCritical(info, JNI_FALSE);
 	check_memory(env, jni_info);
 
 	//MP
-	acmlsetnumthreads(acmlgetnumprocs());
+	//acmlsetnumthreads(acmlgetnumprocs());
 
 	//env->MonitorEnter(calling_obj);
 	sgesdd(jni_jobz[0], (long)m, (long)n, jni_a, (long)lda, jni_s, jni_u, (long)ldu, jni_vt, (long)ldvt, (int *)&jni_info[0]);
@@ -112,13 +112,13 @@ JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_dgesvd
 	jdouble *jni_vt = (jdouble *)env->GetPrimitiveArrayCritical(vt, JNI_FALSE);
 	check_memory(env, jni_vt);
 
-    jint *jni_info = (jint *)env->GetPrimitiveArrayCritical(info, JNI_FALSE);
+        jint *jni_info = (jint *)env->GetPrimitiveArrayCritical(info, JNI_FALSE);
 	check_memory(env, jni_info);
 
 	//MP
-	acmlsetnumthreads(acmlgetnumprocs());
+	//acmlsetnumthreads(acmlgetnumprocs());
 
-    //env->MonitorEnter(calling_obj);
+        //env->MonitorEnter(calling_obj);
 	dgesvd(jni_jobu[0], jni_jobvt[0], (long)m, (long)n, jni_a, (long)lda, jni_s, jni_u, (long)ldu, jni_vt, (long)ldvt, (int *)&jni_info[0]);
 	//env->MonitorExit(calling_obj);
 
@@ -151,7 +151,7 @@ Java_ru_inhell_aida_acml_ACML_sgemm
 	check_memory(env, jni_c);
 
 	//MP
-	acmlsetnumthreads(acmlgetnumprocs());
+	//acmlsetnumthreads(acmlgetnumprocs());
 
     //env->MonitorEnter(calling_obj);
 	sgemm(jni_transa[0], jni_transb[0], (long)m, (long)n, (long)k, alpha, jni_a, (long)lda, jni_b, (long)ldb, beta, jni_c, (long)ldc);
@@ -181,7 +181,7 @@ Java_ru_inhell_aida_acml_ACML_dgemm
 	check_memory(env, jni_c);
 
 	//MP
-	acmlsetnumthreads(acmlgetnumprocs());
+	//acmlsetnumthreads(acmlgetnumprocs());
 
 	dgemm(jni_transa[0], jni_transb[0], (long)m, (long)n, (long)k, alpha, jni_a, (long)lda, jni_b, (long)ldb, beta, jni_c, (long)ldc);
 

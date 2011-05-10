@@ -124,7 +124,7 @@ public class AlphaOracleService {
         VectorForecast vf = alphaOracle.getVectorForecast();
 
         //загружаем все котировки
-        List<Quote> allQuotes = quotesBean.getQuotes(vf.getSymbol(), vf.getN() + count);
+        List<Quote> allQuotes = quotesBean.getQuotes(vf.getSymbol(), vf.getN() + count + 1);
 
         float[] forecast;
 
