@@ -205,7 +205,7 @@ CREATE
 			`close` = new.price, `volume` = new.volume where `date` = @date1 and `symbol` = new.symbol;
 		else
 		   insert into `quotes_1min` (`symbol`, `date`, `open`, `low`, `high`, `close`, `volume`)
-		 	values (new.symbol, @date, new.price, new.price, new.price, new.price, new.volume);
+		 	values (new.symbol, @date1, new.price, new.price, new.price, new.price, new.volume);
 		end if;
 
 	end if;
