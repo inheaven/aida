@@ -34,7 +34,9 @@ create table `current`(
    `instrument` varchar(64) not null,
    `symbol` varchar(10) not null,
    `date` varchar(10),
+   `time` time,
    `price` decimal(15,6) not null,
+   `volume` decimal(15,2),
    `mean` decimal(15,6),
    `bid` decimal(15,6),
    `ask` decimal(15,6),
@@ -184,5 +186,30 @@ select (select sum(s.price*s.quantity) FROM (select price, quantity from alpha_t
 return balance;
 
 END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+DROP TRIGGER /*!50032 IF EXISTS */ `gzm1_quotes`$$
+
+CREATE
+    TRIGGER `gzm1_quotes` AFTER UPDATE ON `current`
+    FOR EACH ROW BEGIN
+	if (new.symbol = 'GZM1') then
+
+		set @date1 = timestamp(str_to_date(new.date, '%d.%m.%Y'), date_format(new.time, '%H:%i:00'));
+
+		if (select count(*) > 0 from `quotes_1min` where `date` = @date1 and `symbol` = new.symbol) then
+		   update `quotes_1min`  set `low` = if(`low` < new.price,`low`, new.price), `high` = if(`high` > new.price, `high`, new.price),
+			`close` = new.price, `volume` = new.volume where `date` = @date1 and `symbol` = new.symbol;
+		else
+		   insert into `quotes_1min` (`symbol`, `date`, `open`, `low`, `high`, `close`, `volume`)
+		 	values (new.symbol, @date, new.price, new.price, new.price, new.price, new.volume);
+		end if;
+
+	end if;
+    END;
+$$
 
 DELIMITER ;
