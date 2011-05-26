@@ -34,7 +34,9 @@ create table `current`(
    `instrument` varchar(64) not null,
    `symbol` varchar(10) not null,
    `date` varchar(10),
+   `time` time,
    `price` decimal(15,6) not null,
+   `volume` decimal(15,2),
    `mean` decimal(15,6),
    `bid` decimal(15,6),
    `ask` decimal(15,6),
@@ -45,11 +47,27 @@ create table `current`(
  ) engine=innodb default charset=cp1251;
 
 DELIMITER $$
+
 DROP TRIGGER /*!50032 IF EXISTS */ `create_quotes`$$
+
 CREATE
     /*!50017 DEFINER = 'root'@'localhost' */
     TRIGGER `create_quotes` AFTER INSERT ON `all_trades`
     FOR EACH ROW begin
+	-- 5 sec
+	set @date_5sec = date_add(timestamp(str_to_date(new.date, '%d.%m.%Y'), date_format(new.time, '%H:%i:00')),
+		                     interval extract(second from (new.time div 5)*5) second);
+
+	if (select count(*) > 0 from `quotes_5sec` where `date` = @date_5sec and `symbol` = new.symbol) then
+	    update `quotes_5sec`  set `low` = if(`low` < new.price,`low`, new.price), `high` = if(`high` > new.price, `high`, new.price),
+	        `close` = new.price, `volume` = `volume` + new.volume where `date` = @date_5sec and `symbol` = new.symbol;
+	else
+	    insert into `quotes_5sec` (`symbol`, `date`, `open`, `low`, `high`, `close`, `volume`)
+	        values (new.symbol, @date_5sec, new.price, new.price, new.price, new.price, new.volume);
+	end if;
+
+	-- 1min
+
 	set @date = timestamp(str_to_date(new.date, '%d.%m.%Y'), date_format(new.time, '%H:%i:00'));
 
 	if (select count(*) > 0 from `quotes_1min` where `date` = @date and `symbol` = new.symbol) then
@@ -61,6 +79,7 @@ CREATE
 	end if;
     end;
 $$
+
 DELIMITER ;
 
 create table `vector_forecast`(
@@ -184,5 +203,30 @@ select (select sum(s.price*s.quantity) FROM (select price, quantity from alpha_t
 return balance;
 
 END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+DROP TRIGGER /*!50032 IF EXISTS */ `gzm1_quotes`$$
+
+CREATE
+    TRIGGER `gzm1_quotes` AFTER UPDATE ON `current`
+    FOR EACH ROW BEGIN
+	if (new.symbol = 'GZM1') then
+
+		set @date1 = timestamp(str_to_date(new.date, '%d.%m.%Y'), date_format(new.time, '%H:%i:00'));
+
+		if (select count(*) > 0 from `quotes_1min` where `date` = @date1 and `symbol` = new.symbol) then
+		   update `quotes_1min`  set `low` = if(`low` < new.price,`low`, new.price), `high` = if(`high` > new.price, `high`, new.price),
+			`close` = new.price, `volume` = new.volume where `date` = @date1 and `symbol` = new.symbol;
+		else
+		   insert into `quotes_1min` (`symbol`, `date`, `open`, `low`, `high`, `close`, `volume`)
+		 	values (new.symbol, @date1, new.price, new.price, new.price, new.price, new.volume);
+		end if;
+
+	end if;
+    END;
+$$
 
 DELIMITER ;
