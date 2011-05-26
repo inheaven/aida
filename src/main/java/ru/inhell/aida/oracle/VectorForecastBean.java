@@ -39,7 +39,11 @@ public class VectorForecastBean {
 
             extremum(dataList);
 
-            save(dataList);
+            try {
+                save(dataList);
+            } catch (Exception e) {
+                //
+            }
         }
     }
 

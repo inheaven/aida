@@ -51,7 +51,7 @@ public class AlphaOracleListener implements IAlphaOracleListener {
         Date date = quotes.get(quotes.size()-1).getDate();
 
         //в локальном интервале уже было предсказание
-        if (processDate != null && DateUtil.getAbsMinuteShiftMsk(processDate) < 5){
+        if (processDate != null && DateUtil.getAbsMinuteShiftMsk(processDate) == 0){
             return;
         }else{
             processDate = date;
@@ -108,7 +108,6 @@ public class AlphaOracleListener implements IAlphaOracleListener {
                     }
 
                     //установка цены и количества заявки
-                    alphaTraderData.setQuantity(reverseQuantity);
                     alphaTrader.setQuantity(orderQuantity);
                     alphaTrader.setPrice(currentFuturePrice);
                     break;
@@ -122,7 +121,6 @@ public class AlphaOracleListener implements IAlphaOracleListener {
                     }
 
                     //установка цены и количества заявки
-                    alphaTraderData.setQuantity(-reverseQuantity);
                     alphaTrader.setQuantity(-orderQuantity);
                     alphaTrader.setPrice(currentFuturePrice);
                     break;
@@ -134,7 +132,7 @@ public class AlphaOracleListener implements IAlphaOracleListener {
                     alphaTrader.addBalance(orderQuantity*(alphaTrader.getPrice() - currentFuturePrice));
 
                     //установка цены и количества заявки
-                    alphaTraderData.setQuantity(reverseQuantity);
+                    alphaTraderData.setQuantity(orderQuantity);
                     alphaTrader.setQuantity(0);
                     alphaTrader.setPrice(0);
                     break;
@@ -146,7 +144,7 @@ public class AlphaOracleListener implements IAlphaOracleListener {
                     alphaTrader.addBalance(orderQuantity*(currentFuturePrice - alphaTrader.getPrice()));
 
                     //установка цены и количества заявки
-                    alphaTraderData.setQuantity(-reverseQuantity);
+                    alphaTraderData.setQuantity(orderQuantity);
                     alphaTrader.setQuantity(0);
                     alphaTrader.setPrice(0);
                     break;

@@ -6,7 +6,7 @@ REM set LIB=I:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\lib;I:\Progra
 
 set CL_DIR="I:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\amd64\"
 
-set C_OPT=/fp:precise /favor:AMD64
+rem set C_OPT=/fp:precise /favor:AMD64
 
 set INCLUDE_JNI=/I "I:\Program Files\Java\jdk1.6.0_22\include" /I "I:\Program Files\Java\jdk1.6.0_22\include\win32"
 

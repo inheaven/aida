@@ -2,6 +2,7 @@ package ru.inhell.aida.quik;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.inhell.aida.gui.Aida;
 
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
@@ -57,11 +58,11 @@ public class QuikService {
     }
 
     public QuikTransaction buyFutures(long transId, String symbol, int price, int quantity) throws QuikTransactionException {
-        return newOrder(transId, "SPBFUT00t71", "SPBFUT", symbol, OPERATION.BUY, price, quantity);
+        return newOrder(transId, ru.inhell.aida.Aida.getAccount(), "SPBFUT", symbol, OPERATION.BUY, price, quantity);
     }
 
     public QuikTransaction sellFutures(long transId, String symbol, int price, int quantity) throws QuikTransactionException {
-        return newOrder(transId, "SPBFUT00t71", "SPBFUT", symbol, OPERATION.SELL, price, quantity);
+        return newOrder(transId, ru.inhell.aida.Aida.getAccount(), "SPBFUT", symbol, OPERATION.SELL, price, quantity);
     }
 
     /**
@@ -96,7 +97,7 @@ public class QuikService {
                                      int price, int quantity) throws QuikTransactionException {
         QuikTransaction qt = new QuikTransaction("ACTION=NEW_ORDER; ACCOUNT=" + account + "; TRANS_ID=" +transId +
                 "; CLASSCODE=" + classCode + "; SECCODE=" + symbol + "; OPERATION=" + operation.code +
-                "; PRICE=" + price + "; QUANTITY=" + quantity + "; TYPE=M");
+                "; PRICE=" + price + "; QUANTITY=" + quantity);
 
         try {
             qt.result = Trans2Quik.INSTANCE.TRANS2QUIK_SEND_SYNC_TRANSACTION(qt.transaction, qt.replyCode, qt.transId,

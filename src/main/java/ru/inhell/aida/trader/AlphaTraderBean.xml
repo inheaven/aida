@@ -48,7 +48,7 @@
     
     <update id="updateAlphaTraderData" parameterType="ru.inhell.aida.entity.AlphaTraderData">
         update `alpha_trader_data` set `result` = #{result}, `reply_code` = #{replyCode}, `order_num` = #{orderNum},
-            `result_message` = #{resultMessage}, `error_message` = #{errorMessage} where `id` = #{id}
+            `result_message` = #{resultMessage}, `error_message` = #{errorMessage}, `quantity` = #{quantity} where `id` = #{id}
     </update>
 
     <update id="updateAlphaTrader" parameterType="ru.inhell.aida.entity.AlphaTrader">

@@ -22,6 +22,7 @@ import ru.inhell.aida.util.QuoteUtil;
 import ru.inhell.aida.util.VectorForecastUtil;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -39,13 +40,16 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 public class AlphaTraderSchool {
     public static final DateFormat dateFormat = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.SHORT, SimpleDateFormat.SHORT);
 
-    private final static int COUNT = 495*20;
+    private final static int COUNT = 495*20*4;
     static FileWriter fileWriter;
 
     public static void main(String... args) throws RemoteVSSAException, IOException {
         fileWriter = new FileWriter("c:\\aos.txt", true);
 
-        //        scoreAll();
+//                scoreAll();
+
+//        initGUI();
+//        study("", "GAZP", 1980, 10, 2, 5, false, true, 1.002f);
 
         randomStudyAll();
     }
@@ -53,11 +57,12 @@ public class AlphaTraderSchool {
 
     static TimeSeriesCollection balanceDataSet = new TimeSeriesCollection();
     static TimeSeriesCollection forecastDataSet = new TimeSeriesCollection();
+    static JLabel label;
 
     private static void initGUI(){
         JFrame frame = new JFrame("Alpha Oracle School");
 
-        JFreeChart chart = ChartFactory.createTimeSeriesChart("Alpha Oracle School - Balance", "time", "balance", balanceDataSet,
+        JFreeChart chart = ChartFactory.createTimeSeriesChart("Alpha Oracle School", "time", "balance", balanceDataSet,
                 true, true, false);
 
         chart.getXYPlot().setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
@@ -70,7 +75,14 @@ public class AlphaTraderSchool {
 //
 //        ((DateAxis)chart.getXYPlot().getDomainAxis()).setTimeline(SegmentedTimeline.newFifteenMinuteTimeline());
 
-        frame.add(new ChartPanel(chart));
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(new ChartPanel(chart), BorderLayout.CENTER);
+
+        label = new JLabel();
+        panel.add(label, BorderLayout.SOUTH);
+
+        frame.add(panel);
+
         frame.pack();
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -89,8 +101,9 @@ public class AlphaTraderSchool {
             executor.execute(new Runnable() {
                 @Override
                 public void run() {
-                    if (alphaOracle.getVectorForecast().getSymbol().equals("GAZP") && alphaOracle.getId() >= 20) {
-//                        alphaOracleService.predict(alphaOracle, COUNT, true, false);
+                    if (alphaOracle.getVectorForecast().getSymbol().equals("GZM1") && alphaOracle.getId() >= 20
+                            && (alphaOracle.getId() == 37 || alphaOracle.getId() == 38)) {
+                        alphaOracleService.predict(alphaOracle, COUNT, true, false);
                         score(alphaOracle);
                     }
                 }
@@ -199,19 +212,19 @@ public class AlphaTraderSchool {
                     try {
                         Random random = new Random();
 
-                        int[] ll = {10, 15, 30, 45};
-                        int nn[] = {495*3, 495*4, 495*5, 495*6, 495*7, 495*8, 495*9, 495*10, 495*11, 495*12, 495*13, 495*14};
+//                        int[] ll = {10, 15, 30, 45};
+                        int nn[] = {495, 495*2, 495*3, 495*4}; // 495*5, 495*6, 495*7, 495*8, 495*9, 495*10, 495*11, 495*12, 495*13, 495*14};
                         int[] mm = {5, 10, 15, 30};
                         float[] ss = {1.002f, 1.004f, 1.008f, 1.01f};
 
-                        int n = nn[random.nextInt(12)];
-                        int l = ll[random.nextInt(4)];
-                        int p = 2 + random.nextInt(l-2);
+                        int n = nn[random.nextInt(4)];
+                        int l = random.nextInt(60);
+                        int p = 1 + random.nextInt(l-2);
                         int m = mm[random.nextInt(4)];
                         float s = ss[random.nextInt(4)];
 
-                        study("", "GAZP", n, l, p, m, false, true, s);
-//                          study("", "GAZP", 495*14, 120, 100, 30, false, true, s);
+                        study("", "GZM1", n, l, p, m, true, true, s);
+//                        study("", "SRM1", n, l, p, m, false, true, s);
                     } catch (Throwable e) {
                         e.printStackTrace();
                     }
@@ -243,6 +256,7 @@ public class AlphaTraderSchool {
         Date start = null, end = null;
 
         List<Quote> allQuotes = quotesBean.getQuotes(symbol, COUNT + n + 1);
+        List<Quote> allFutureQuotes = quotesBean.getQuotes(symbol, COUNT + n + 1);
 
         String name = symbol +"-n" + n + "l" + l +"p" + p + "m" + m + (average?"a":"c") + (useStop?"s":"") + stopFactor;
 
@@ -256,7 +270,7 @@ public class AlphaTraderSchool {
         long time;
 
         for (int i=0; i < COUNT; ++i) {
-            if (i > 1000 && balance < 0){
+            if ((i > 10000 && balance < 0) || (i > 500 && orderCount < 2)){
                 try {
                     fileWriter.append(name).append(",,,,,").append("\n");
                     balanceDataSet.removeSeries(balanceTimeSeries);
@@ -270,6 +284,7 @@ public class AlphaTraderSchool {
             if (timing) time = System.currentTimeMillis();
 
             List<Quote> quotes = allQuotes.subList(i, n + i);
+            List<Quote> quotesFuture = allFutureQuotes.subList(i, n + i);
 
             if (timing){
                 System.out.println("AlphaTraderSchool.1 " + (System.currentTimeMillis() - time));
@@ -283,17 +298,18 @@ public class AlphaTraderSchool {
                 time = System.currentTimeMillis();
             }
 
+            Quote currentFutureQuote = quotesFuture.get(quotes.size() - 1);
             Quote currentQuote = quotes.get(quotes.size() - 1);
 
             if (i == 0){
-                start = currentQuote.getDate();
+                start = currentFutureQuote.getDate();
             }else if (i == COUNT - 1){
-                end = currentQuote.getDate();
+                end = currentFutureQuote.getDate();
             }
 
             //close day
-            current.setTime(currentQuote.getDate());
-            if (current.get(Calendar.HOUR_OF_DAY) == 18 && current.get(Calendar.MINUTE) > 40){
+            current.setTime(currentFutureQuote.getDate());
+            if (current.get(Calendar.HOUR_OF_DAY) == 23 && current.get(Calendar.MINUTE) > 40){
 //                if (orderCount < 2){
 //                    balanceDataSet.removeSeries(balanceTimeSeries);
 //                    return;
@@ -305,10 +321,10 @@ public class AlphaTraderSchool {
             //stop
             if ((useStop && stopPrice != 0) || closeDay) {
                 if (quantity > 0 && (prices[prices.length-1] < stopPrice || closeDay)){ //stop sell
-                    balance = balance + (currentQuote.getClose() - price);
-                    price = currentQuote.getClose();
+                    balance = balance + (currentFutureQuote.getClose() - price);
+                    price = currentFutureQuote.getClose();
 
-                    balanceTimeSeries.add(new Minute(currentQuote.getDate()), balance);
+                    balanceTimeSeries.add(new Minute(currentFutureQuote.getDate()), balance);
 
                     stopPrice = 0;
                     quantity = 0;
@@ -316,10 +332,10 @@ public class AlphaTraderSchool {
                     stopCount++;
                     continue;
                 }else if (quantity < 0 && (prices[prices.length-1] > stopPrice || closeDay)){ //stop buy
-                    balance = balance + (price - currentQuote.getClose());
-                    price = currentQuote.getClose();
+                    balance = balance + (price - currentFutureQuote.getClose());
+                    price = currentFutureQuote.getClose();
 
-                    balanceTimeSeries.add(new Minute(currentQuote.getDate()), balance);
+                    balanceTimeSeries.add(new Minute(currentFutureQuote.getDate()), balance);
 
                     stopPrice = 0;
                     quantity = 0;
@@ -350,21 +366,21 @@ public class AlphaTraderSchool {
                     || VectorForecastUtil.isMin(forecast, n - 1, m)
                     || VectorForecastUtil.isMin(forecast, n + 1, m)){ //LONG
                 if (quantity == 0){
-                    price = currentQuote.getClose();
-                    stopPrice = price/stopFactor;
+                    price = currentFutureQuote.getClose();
+                    stopPrice = currentQuote.getClose()/stopFactor;
 
-                    balanceTimeSeries.add(new Minute(currentQuote.getDate()), balance);
+                    balanceTimeSeries.add(new Minute(currentFutureQuote.getDate()), balance);
 
                     orderCount++;
                     quantity = 1;
                 }
 
                 if (quantity == -1){
-                    balance = balance + 2*(price - currentQuote.getClose());
-                    price = currentQuote.getClose();
-                    stopPrice = price/stopFactor;
+                    balance = balance + 2*(price - currentFutureQuote.getClose());
+                    price = currentFutureQuote.getClose();
+                    stopPrice = currentQuote.getClose()/stopFactor;
 
-                    balanceTimeSeries.add(new Minute(currentQuote.getDate()), balance);
+                    balanceTimeSeries.add(new Minute(currentFutureQuote.getDate()), balance);
 
                     orderCount++;
                     quantity = 1;
@@ -373,21 +389,21 @@ public class AlphaTraderSchool {
                     || VectorForecastUtil.isMax(forecast, n-1, m)
                     || VectorForecastUtil.isMax(forecast, n+1, m)){ //SHORT
                 if (quantity == 0){
-                    price = currentQuote.getClose();
-                    stopPrice = price/stopFactor;
+                    price = currentFutureQuote.getClose();
+                    stopPrice = currentQuote.getClose()/stopFactor;
 
-                    balanceTimeSeries.add(new Minute(currentQuote.getDate()), balance);
+                    balanceTimeSeries.add(new Minute(currentFutureQuote.getDate()), balance);
 
                     orderCount++;
                     quantity = -1;
                 }
 
                 if (quantity == 1){
-                    balance = balance + 2*(currentQuote.getClose() - price);
-                    price = currentQuote.getClose();
-                    stopPrice = price*stopFactor;
+                    balance = balance + 2*(currentFutureQuote.getClose() - price);
+                    price = currentFutureQuote.getClose();
+                    stopPrice = currentQuote.getClose()*stopFactor;
 
-                    balanceTimeSeries.add(new Minute(currentQuote.getDate()), balance);
+                    balanceTimeSeries.add(new Minute(currentFutureQuote.getDate()), balance);
 
                     orderCount++;
                     quantity = -1;
@@ -397,6 +413,8 @@ public class AlphaTraderSchool {
             if (timing){
                 System.out.println("AlphaTraderSchool.5 " + (System.currentTimeMillis() - time));
             }
+
+            label.setText(i + ": " + prefix+balanceTimeSeries.getKey() + ", " + balance + ", " + orderCount + ", " + stopCount);
         }
 
         if (balance >= minBalance && balance < maxBalance){

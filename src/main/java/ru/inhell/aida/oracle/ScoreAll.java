@@ -25,12 +25,12 @@ public class ScoreAll {
         ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(2);
 
         for (final AlphaOracle alphaOracle : alphaOracleBean.getAlphaOracles()){
-            if (alphaOracle.getVectorForecast().getSymbol().equals("GAZP") && !alphaOracle.getStatus().equals(Status.ARCHIVE)){
+            if (alphaOracle.getVectorForecast().getSymbol().equals("GZM1") && !alphaOracle.getStatus().equals(Status.ARCHIVE)){
                 executor.execute(new Runnable() {
                     @Override
                     public void run() {
                         try {
-//                            alphaOracleService.predict(alphaOracle, 495*5*4*5, true, false);
+                            alphaOracleService.predict(alphaOracle, 495*5*4*5, true, false);
                             alphaOracleService.score(alphaOracle, start.getTime(), end.getTime());
                         } catch (RemoteVSSAException e) {
                             e.printStackTrace();

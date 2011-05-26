@@ -34,8 +34,8 @@ public class AlphaOracleService {
     private final static Logger log = LoggerFactory.getLogger(AlphaOracleService.class);
 
     private final static int CORE_POOL_SIZE = 1;
-    private final static int PERIOD = 28;
-    private final static int UPDATE_COUNT = 4;
+    private final static int PERIOD = 60;
+    private final static int UPDATE_COUNT = 2;
 
     private final static boolean USE_REMOTE = Aida.getProperty("use_remote_vssa").equals("true");
 
@@ -67,8 +67,14 @@ public class AlphaOracleService {
     public ScheduledFuture process(AlphaOracle alphaOracle){
         ScheduledFuture f = scheduledFutures.get(alphaOracle.getId());
 
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.MINUTE, 1);
+        calendar.set(Calendar.SECOND, 0);
+
+        long delay = (calendar.getTime().getTime() - new Date().getTime())/1000;
+
         if (f == null){
-            f = executor.scheduleAtFixedRate(getCommand(alphaOracle), 0, PERIOD, TimeUnit.SECONDS);
+            f = executor.scheduleAtFixedRate(getCommand(alphaOracle), delay, PERIOD, TimeUnit.SECONDS);
 
             scheduledFutures.put(alphaOracle.getId(), f);
         }
@@ -100,7 +106,7 @@ public class AlphaOracleService {
                         if (updateCount > UPDATE_COUNT){
                             return;
                         }else{
-                            predictedTimeCount.put(alphaOracle.getId(), updateCount + 1);
+                            predictedTimeCount.put(alphaOracle.getId(), updateCount);
                         }
                     }else{
                         predictedTime.put(alphaOracle.getId(), lastQuote);
@@ -110,6 +116,7 @@ public class AlphaOracleService {
                     int count = DateUtil.isSameDay(last, lastQuote) ? DateUtil.getMinuteShift(lastQuote, last) : 1;
 
                     predict(alphaOracle, count, false, USE_REMOTE);
+                    log.info(new Date().toString());
                 } catch (Throwable e) {
                     log.error("Ошибка предсказателя", e);
                 }
@@ -124,11 +131,11 @@ public class AlphaOracleService {
         VectorForecast vf = alphaOracle.getVectorForecast();
 
         //загружаем все котировки
-        List<Quote> allQuotes = quotesBean.getQuotes(vf.getSymbol(), vf.getN() + count + 1);
+        List<Quote> allQuotes = quotesBean.getQuotes(vf.getSymbol(), vf.getN() + count);
 
         float[] forecast;
 
-        for (int index = 0; index < count; ++index) {
+        for (int index = 0; index <= count; ++index) {
             //текущий список котировок
             List<Quote> quotes = allQuotes.subList(index, vf.getN() + index);
 
@@ -188,31 +195,27 @@ public class AlphaOracleService {
 
                 if (prediction == null) {
                     if (VectorForecastUtil.isMin(forecast, vf.getN(), vf.getM())
-                            || VectorForecastUtil.isMin(forecast, vf.getN()-1, vf.getM()-1)
-                            || VectorForecastUtil.isMin(forecast, vf.getN()+1, vf.getM()-1)){
+                            || VectorForecastUtil.isMin(forecast, vf.getN()-1, vf.getM())
+                            || VectorForecastUtil.isMin(forecast, vf.getN()+1, vf.getM())){
                         //уже в позиции
-                        if (Prediction.LONG.equals(alphaOracle.getPrediction())){
-                            continue;
+                        if (!Prediction.LONG.equals(alphaOracle.getPrediction())){
+                            //длинная покупка
+                            prediction = Prediction.LONG;
+
+                            //установка цены защитной приостановки
+                            alphaOracle.setStopPrice(currentPrice / alphaOracle.getStopFactor());
                         }
-
-                        //длинная покупка
-                        prediction = Prediction.LONG;
-
-                        //установка цены защитной приостановки
-                        alphaOracle.setStopPrice(currentPrice / alphaOracle.getStopFactor());
                     }else if (VectorForecastUtil.isMax(forecast, vf.getN(), vf.getM())
-                            || VectorForecastUtil.isMax(forecast, vf.getN()-1, vf.getM()-1)
-                            || VectorForecastUtil.isMax(forecast, vf.getN()+1, vf.getM()-1)){
+                            || VectorForecastUtil.isMax(forecast, vf.getN()-1, vf.getM())
+                            || VectorForecastUtil.isMax(forecast, vf.getN()+1, vf.getM())){
                         //уже в позиции
-                        if (Prediction.SHORT.equals(alphaOracle.getPrediction())){
-                            continue;
+                        if (!Prediction.SHORT.equals(alphaOracle.getPrediction())){
+                            //короткая продажа
+                            prediction = Prediction.SHORT;
+
+                            //установка цены защитной приостановки
+                            alphaOracle.setStopPrice(currentPrice * alphaOracle.getStopFactor());
                         }
-
-                        //короткая продажа
-                        prediction = Prediction.SHORT;
-
-                        //установка цены защитной приостановки
-                        alphaOracle.setStopPrice(currentPrice * alphaOracle.getStopFactor());
                     }
                 }
 

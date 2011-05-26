@@ -26,4 +26,8 @@ public class Aida {
     public static String getQuikDir(){
         return getProperty("quik_dir");
     }
+
+    public static String getAccount(){
+        return getProperty("forts_account");
+    }
 }

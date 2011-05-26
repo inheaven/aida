@@ -7,6 +7,7 @@ import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.DefaultDrawingSupplier;
+import org.jfree.chart.renderer.xy.HighLowRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.time.Minute;
 import org.jfree.data.time.MovingAverage;
@@ -70,11 +71,12 @@ public class AlphaOracleChart extends JPanel{
         ((NumberAxis)chart.getXYPlot().getRangeAxis()).setAutoRangeIncludesZero(false);
         chart.getLegend().setVisible(false);
         chart.getXYPlot().getRenderer(0).setSeriesPaint(0, Color.BLACK);
+//        ((HighLowRenderer)chart.getXYPlot().getRenderer()).
+
 
         add(new ChartPanel(chart), BorderLayout.CENTER);
 
-        chart.setTitle(alphaOracle.getId() + "-" + vf.getSymbol() + "-"
-                    + "n" + vf.getN() + "l" + vf.getL() + "p" + vf.getP() + "m" + vf.getM());
+        chart.setTitle(alphaOracle.getName());
 
         //prediction
         final TimeSeriesCollection predictionPoint = new TimeSeriesCollection();
