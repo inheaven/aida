@@ -61,6 +61,20 @@ public class DateUtil {
                 && c1.get(Calendar.DAY_OF_YEAR) == c2.get(Calendar.DAY_OF_YEAR);
     }
 
+    public static boolean isSameMinute(Date date1, Date date2){
+        Calendar c1 = Calendar.getInstance();
+        c1.setTime(date1);
+
+        Calendar c2 = Calendar.getInstance();
+        c2.setTime(date2);
+
+        return c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR)
+                && c1.get(Calendar.DAY_OF_YEAR) == c2.get(Calendar.DAY_OF_YEAR)
+                && c1.get(Calendar.HOUR_OF_DAY) == c2.get(Calendar.HOUR_OF_DAY)
+                && c1.get(Calendar.MINUTE) == c2.get(Calendar.MINUTE);
+
+    }
+
     public static Date getCurrentStartTradeTime(){
         Calendar c = Calendar.getInstance();
         c.set(Calendar.HOUR_OF_DAY, 10);

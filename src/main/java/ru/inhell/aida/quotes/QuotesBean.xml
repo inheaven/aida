@@ -22,8 +22,18 @@
         order by q.`date` asc
     </select>
 
+    <select id="selectQuotes5Sec" parameterType="ru.inhell.aida.entity.QuoteFilter" resultMap="quotesResultMap">
+        select * from
+            (select * from `quotes_5sec` where `symbol` = #{symbol} order by `date` desc limit #{count}) as q
+        order by q.`date` asc
+    </select>
+
     <select id="selectQuotesInterval" parameterType="ru.inhell.aida.entity.QuoteFilter" resultMap="quotesResultMap">
         select * from `quotes_1min` where `symbol` = #{symbol} and `date` between #{startDate} and #{endDate}
+    </select>
+
+    <select id="selectQuotes5SecInterval" parameterType="ru.inhell.aida.entity.QuoteFilter" resultMap="quotesResultMap">
+        select * from `quotes_5sec` where `symbol` = #{symbol} and `date` between #{startDate} and #{endDate}
     </select>
 
     <select id="selectLastQuoteDate" parameterType="string" resultType="date">
@@ -36,6 +46,11 @@
 
     <insert id="insertQuote" parameterType="ru.inhell.aida.entity.Quote">
         insert into `quotes_1min` (`symbol`, `date`, `open`, `low`, `high`, `close`, `volume`)
+            values (#{symbol}, #{date}, #{open}, #{low}, #{high}, #{close}, #{volume})
+    </insert>
+
+    <insert id="insert5SecQuote" parameterType="ru.inhell.aida.entity.Quote">
+        insert into `quotes_5sec` (`symbol`, `date`, `open`, `low`, `high`, `close`, `volume`)
             values (#{symbol}, #{date}, #{open}, #{low}, #{high}, #{close}, #{volume})
     </insert>
  </mapper>

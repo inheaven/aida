@@ -25,8 +25,18 @@ public class QuotesBean {
     }
 
     @SuppressWarnings({"unchecked"})
+    public List<Quote> getQuotes5Sec(String symbol, int count){
+        return sm.selectList(NS + ".selectQuotes5Sec", new QuoteFilter(symbol, count));
+    }
+
+    @SuppressWarnings({"unchecked"})
     public List<Quote> getQuotes(String symbol, Date startDate, Date endDate){
         return sm.selectList(NS + ".selectQuotesInterval", new QuoteFilter(symbol, startDate, endDate));
+    }
+
+    @SuppressWarnings({"unchecked"})
+    public List<Quote> getQuotes5Sec(String symbol, Date startDate, Date endDate){
+        return sm.selectList(NS + ".selectQuotes5SecInterval", new QuoteFilter(symbol, startDate, endDate));
     }
 
     public Quote getQuote(String symbol, Date date){
@@ -39,5 +49,9 @@ public class QuotesBean {
 
     public void save(Quote quote){
         sm.insert(NS + ".insertQuote", quote);
+    }
+
+    public void save5Sec(Quote quote){
+        sm.insert(NS + ".insert5SecQuote", quote);
     }
 }

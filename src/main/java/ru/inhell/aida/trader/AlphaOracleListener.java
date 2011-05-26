@@ -51,7 +51,7 @@ public class AlphaOracleListener implements IAlphaOracleListener {
         Date date = quotes.get(quotes.size()-1).getDate();
 
         //в локальном интервале уже было предсказание
-        if (processDate != null && DateUtil.getAbsMinuteShiftMsk(processDate) == 0){
+        if (processDate != null && DateUtil.getAbsMinuteShiftMsk(processDate) < 2){
             return;
         }else{
             processDate = date;
@@ -82,7 +82,7 @@ public class AlphaOracleListener implements IAlphaOracleListener {
 
         //создаем транзакцию
         AlphaTraderData alphaTraderData = new AlphaTraderData(alphaTrader.getId(), DateUtil.nowMsk(),
-                orderFuturePrice, 0, getOrder(prediction));
+                currentFuturePrice, 0, getOrder(prediction));
 
         //формируем заявку
         try {
