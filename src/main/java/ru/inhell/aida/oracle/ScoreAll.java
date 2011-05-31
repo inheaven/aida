@@ -18,19 +18,20 @@ public class ScoreAll {
         final AlphaOracleService alphaOracleService = AidaInjector.getInstance(AlphaOracleService.class);
 
         final Calendar start = Calendar.getInstance();
-        start.set(2011, 0, 1, 10, 30, 0);
+        start.add(Calendar.MINUTE, - 720*7);
 
         final Calendar end = Calendar.getInstance();
 
         ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(2);
 
         for (final AlphaOracle alphaOracle : alphaOracleBean.getAlphaOracles()){
-            if (alphaOracle.getVectorForecast().getSymbol().equals("GZM1") && !alphaOracle.getStatus().equals(Status.ARCHIVE)){
+            if ((alphaOracle.getVectorForecast().getSymbol().equals("GZM1") ||  alphaOracle.getVectorForecast().getSymbol().equals("GZM1"))
+                    && !alphaOracle.getStatus().equals(Status.ARCHIVE)){
                 executor.execute(new Runnable() {
                     @Override
                     public void run() {
                         try {
-                            alphaOracleService.predict(alphaOracle, 495*5*4*5, true, false);
+                            alphaOracleService.predict(alphaOracle, 720*7, true, false);
                             alphaOracleService.score(alphaOracle, start.getTime(), end.getTime());
                         } catch (RemoteVSSAException e) {
                             e.printStackTrace();

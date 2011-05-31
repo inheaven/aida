@@ -35,7 +35,7 @@ public class AlphaOracleService {
 
     private final static int CORE_POOL_SIZE = 1;
     private final static int PERIOD = 60;
-    private final static int UPDATE_COUNT = 2;
+    private final static int UPDATE_COUNT = 1;
 
     private final static boolean USE_REMOTE = Aida.getProperty("use_remote_vssa").equals("true");
 
@@ -67,14 +67,8 @@ public class AlphaOracleService {
     public ScheduledFuture process(AlphaOracle alphaOracle){
         ScheduledFuture f = scheduledFutures.get(alphaOracle.getId());
 
-        Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.MINUTE, 1);
-        calendar.set(Calendar.SECOND, 0);
-
-        long delay = (calendar.getTime().getTime() - new Date().getTime())/1000;
-
         if (f == null){
-            f = executor.scheduleAtFixedRate(getCommand(alphaOracle), delay, PERIOD, TimeUnit.SECONDS);
+            f = executor.scheduleAtFixedRate(getCommand(alphaOracle), 0, 500, TimeUnit.MILLISECONDS);
 
             scheduledFutures.put(alphaOracle.getId(), f);
         }
@@ -92,31 +86,31 @@ public class AlphaOracleService {
 
     private Runnable getCommand(final AlphaOracle alphaOracle){
         return new Runnable() {
+            private int orderSecond = 0;
+            private Date last =  DateUtil.now();
+
             @Override
             public void run() {
                 try {
-                    Date last = vectorForecastBean.getLastVectorForecastDataDate(alphaOracle.getVectorForecast().getId());
-                    Date lastQuote = quotesBean.getLastQuoteDate(alphaOracle.getVectorForecast().getSymbol());
-
-                    //skip execution
-                    Date date = predictedTime.get(alphaOracle.getId());
-                    Integer updateCount = predictedTimeCount.get(alphaOracle.getId());
-
-                    if (date != null && date.equals(lastQuote)){
-                        if (updateCount > UPDATE_COUNT){
-                            return;
-                        }else{
-                            predictedTimeCount.put(alphaOracle.getId(), updateCount);
-                        }
-                    }else{
-                        predictedTime.put(alphaOracle.getId(), lastQuote);
-                        predictedTimeCount.put(alphaOracle.getId(), 0);
+                    if (Calendar.getInstance().get(Calendar.SECOND) != orderSecond){
+                        return;
                     }
 
-                    int count = DateUtil.isSameDay(last, lastQuote) ? DateUtil.getMinuteShift(lastQuote, last) : 1;
+                    if (DateUtil.now().getTime() - last.getTime() < 10*1000){
+                        return;
+                    }
 
-                    predict(alphaOracle, count, false, USE_REMOTE);
+                    if (DateUtil.nowMsk().getTime() - quotesBean.getLastQuoteDate(alphaOracle.getSymbol()).getTime() > 100*1000){
+                        return;
+                    }
+
+                    orderSecond = (55 + new Random().nextInt(5)) % 60;
+                    last = DateUtil.now();
+
+                    predict(alphaOracle, 1, false, USE_REMOTE);
+
                     log.info(new Date().toString());
+
                 } catch (Throwable e) {
                     log.error("Ошибка предсказателя", e);
                 }
@@ -133,23 +127,29 @@ public class AlphaOracleService {
         //загружаем все котировки
         List<Quote> allQuotes = quotesBean.getQuotes(vf.getSymbol(), vf.getN() + count + 1);
 
+        long now = DateUtil.nowMsk().getTime();
+        long last = allQuotes.get(allQuotes.size() - 1).getDate().getTime();
+
+        //проверяем время последней котировки
+        if (now - last < 50*1000){
+            allQuotes.remove(allQuotes.size() - 1);
+        }else {
+            allQuotes.remove(0);
+        }
+
         float[] forecast;
 
-        for (int index = 0; index <= count; ++index) {
+        for (int index = 1; index <= count; ++index) {
             //текущий список котировок
             List<Quote> quotes = allQuotes.subList(index, vf.getN() + index);
 
             //текущая дата
             Date date = quotes.get(quotes.size()-1).getDate();
 
-            if (DateUtil.isSameMinute(date, DateUtil.nowMsk())){
-                continue;
-            }
+            log.info(alphaOracle.getName() + " - predict " + dateFormat.format(date));
 
             //текущая цена
-            float currentPrice = DateUtil.getAbsMinuteShiftMsk(date) < 2
-                    ? currentBean.getCurrent(vf.getSymbol()).getPrice()
-                    : quotes.get(quotes.size()-1).getClose();
+            float currentPrice = quotes.get(quotes.size()-1).getClose();
 
             //пропускаем если уже есть запись предсказания в базе данных
             if (skipIfOracleExists && vectorForecastBean.isVectorForecastDataExists(vf.getId(), date)){
@@ -231,14 +231,20 @@ public class AlphaOracleService {
             }
 
             //уведомление подписчиков о предсказании
-            predicted(alphaOracle, prediction, quotes, forecast);
+            if (index == count) {
+                predicted(alphaOracle, prediction, quotes, forecast);
+            }
 
             //сохранение результата векторного прогнозирования
             vectorForecastBean.save(vf, quotes, forecast);
 
             //сохранение предсказания
-            if (prediction != null && !alphaOracleBean.isAlphaOracleDataExists(alphaOracle.getId(), date)) {
-                alphaOracleBean.save(new AlphaOracleData(alphaOracle.getId(), date, currentPrice, prediction));
+            if (prediction != null) {
+                try {
+                    alphaOracleBean.save(new AlphaOracleData(alphaOracle.getId(), date, currentPrice, prediction));
+                } catch (Exception e) {
+                    log.error(e.getMessage());
+                }
             }
         }
     }

@@ -7,5 +7,5 @@ Class-Path: jcommon-1.0.15.jar mysql-connector-java-5.1.15.jar jna-3.2
  ar testng-5.13.1.jar opencsv-2.1.jar jfreechart-1.0.13.jar javacl-cor
  e-1.0-beta-6.jar opencl4java-1.0-beta-6.jar junit-3.8.1.jar nativelib
  s4java-utils-1.1.jar
-Main-Class: ru.inhell.aida.trader.AlphaTraderSchool
+Main-Class: ru.inhell.aida.gui.Aida
 

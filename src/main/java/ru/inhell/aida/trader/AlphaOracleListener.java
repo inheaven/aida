@@ -51,11 +51,11 @@ public class AlphaOracleListener implements IAlphaOracleListener {
         Date date = quotes.get(quotes.size()-1).getDate();
 
         //в локальном интервале уже было предсказание
-        if (processDate != null && DateUtil.getAbsMinuteShiftMsk(processDate) < 2){
+       /* if (processDate != null && DateUtil.getAbsMinuteShiftMsk(processDate) == 0){
             return;
         }else{
             processDate = date;
-        }
+        }*/
 
         if (DateUtil.getAbsMinuteShiftMsk(date) > alphaOracle.getVectorForecast().getM()){
             log.info("предсказание устарело: " + date);

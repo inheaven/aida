@@ -32,9 +32,8 @@ public class VectorForecastBean {
             List<VectorForecastData> dataList = new ArrayList<VectorForecastData>();
 
             for (int index = -vectorForecast.getM(); index <= vectorForecast.getM(); ++index){
-                Date indexDate = DateUtil.getOneMinuteIndexDate(date, index);
                 float price = forecast[vectorForecast.getN() + index];
-                dataList.add(new VectorForecastData(vectorForecast.getId(), date, index, indexDate, price));
+                dataList.add(new VectorForecastData(vectorForecast.getId(), date, index, date, price));
             }
 
             extremum(dataList);

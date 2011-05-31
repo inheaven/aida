@@ -18,6 +18,17 @@ public class AlphaOracle {
     private int maxStopCount;
     private Status status;
 
+    public AlphaOracle() {
+    }
+
+    public AlphaOracle(Long id) {
+        this.id = id;
+    }
+
+    public String getSymbol(){
+        return vectorForecast.getSymbol();
+    }
+
     public String getName(){
         return vectorForecast.getId() +
                 "-" + vectorForecast.getSymbol() +

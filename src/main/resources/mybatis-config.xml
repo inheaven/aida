@@ -22,6 +22,7 @@
     <mappers>
         <mapper resource="ru/inhell/aida/oracle/AlphaOracleBean.xml"/>
         <mapper resource="ru/inhell/aida/oracle/VectorForecastBean.xml"/>
+        <mapper resource="ru/inhell/aida/oracle/AlphaOracleSchoolBean.xml"/>
         <mapper resource="ru/inhell/aida/quotes/QuotesBean.xml"/>
         <mapper resource="ru/inhell/aida/quotes/AllTradeBean.xml"/>
         <mapper resource="ru/inhell/aida/quotes/CurrentBean.xml"/>
