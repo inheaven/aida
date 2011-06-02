@@ -163,7 +163,7 @@ create table `alpha_trader_data`(
   `error_message` varchar(255),
   `predicted` datetime not null,
   `created` timestamp default current_timestamp,
-  primary key (`id`)
+  primary key (`id`),
   key `key_alpha_trader`(`alpha_trader_id`),
   constraint `fk_alpha_trader` foreign key (`alpha_trader_id`) references `alpha_trader` (`id`)
 ) engine=innodb default charset=cp1251;
@@ -181,8 +181,8 @@ create table `alpha_oracle_score` (
 
 DELIMITER $$
 
-DROP FUNCTION IF EXISTS `aida4`.`getTradeBalance` $$
-CREATE FUNCTION `aida4`.`getTradeBalance` (alphaTraderId BIGINT, startDate DATETIME, endDate DATETIME) RETURNS INT
+DROP FUNCTION IF EXISTS `getTradeBalance` $$
+CREATE FUNCTION `getTradeBalance` (alphaTraderId BIGINT, startDate DATETIME, endDate DATETIME) RETURNS INT
 BEGIN
 
 DECLARE sellCount, buyCount INT;
@@ -231,7 +231,7 @@ $$
 
 DELIMITER ;
 
-create table  `aida4`.`transaction` (
+create table `transaction` (
   `id` bigint(20) unsigned not null auto_increment,
   `transaction_id` bigint(20) unsigned not null,
   `symbol` varchar(45) not null,
