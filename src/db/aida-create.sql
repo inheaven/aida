@@ -230,3 +230,17 @@ CREATE
 $$
 
 DELIMITER ;
+
+create table  `aida4`.`transaction` (
+  `id` bigint(20) unsigned not null auto_increment,
+  `transaction_id` bigint(20) unsigned not null,
+  `symbol` varchar(45) not null,
+  `date` varchar(45) not null,
+  `time` varchar(45) not null,
+  `order_id` bigint(20) unsigned not null,
+  `type` varchar(45) not null,
+  `price` decimal(15,6) not null,
+  `quantity` int(10) unsigned not null,
+  `volume` decimal(15,2) not null,
+  primary key (`id`)
+) engine=innodb auto_increment=1303 default charset=cp1251;

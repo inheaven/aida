@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ru.inhell.aida.quik.TransactionBean">
+    <resultMap id="transactionResultMap" type="ru.inhell.aida.entity.Transaction">
+        <id column="id" property="id"/>
+        <result column="transaction_id" property="transactionId"/>
+        <result column="symbol" property="symbol"/>
+        <result column="date" property="date"/>
+        <result column="time" property="time"/>
+        <result column="order_id" property="orderId"/>
+        <result column="type" property="type"/>
+        <result column="price" property="price"/>
+        <result column="quantity" property="quantity"/>
+        <result column="volume" property="volume"/>
+    </resultMap>
+
+    <select id="selectTransactions" resultMap="transactionResultMap" parameterType="ru.inhell.aida.entity.TransactionFilter">
+        select * from `transaction` where `symbol` = #{symbol} and `date` = #{date} order by `time`;
+    </select>
+</mapper>

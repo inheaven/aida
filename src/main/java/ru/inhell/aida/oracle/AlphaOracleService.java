@@ -104,7 +104,8 @@ public class AlphaOracleService {
                         return;
                     }
 
-                    orderSecond = (55 + new Random().nextInt(5)) % 60;
+                    orderSecond = (55 + new Random().nextInt(10)) % 60;
+
                     last = DateUtil.now();
 
                     predict(alphaOracle, 1, false, USE_REMOTE);
