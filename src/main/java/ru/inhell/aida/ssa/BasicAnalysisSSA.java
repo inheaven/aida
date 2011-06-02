@@ -29,6 +29,7 @@ public class BasicAnalysisSSA {
     private int N;
     private int L;
     private int P;
+    private int[] PP;
 
     private int K;
 
@@ -45,9 +46,21 @@ public class BasicAnalysisSSA {
      * @param P - Количество главных компонент
      */
     public BasicAnalysisSSA(int N, int L, int P) {
+        this(N, L, P, new int[0]);
+    }
+
+    public BasicAnalysisSSA(int N, int L, int P, int[] PP) {
         this.N = N;
         this.L = L;
         this.P = P;
+
+        if (PP.length == 0){
+            this.PP = new int[P];
+
+            for (int i = 0; i < P; ++i){
+                this.PP[i] = i;
+            }
+        }
 
         K = N - L + 1;
 
@@ -55,7 +68,7 @@ public class BasicAnalysisSSA {
 
         r.X = new float[L * K];
         r.XI = new float[L * K];
-        r.G = new float[N * P];
+        r.G = new float[N * this.PP.length];
         r.S = new float[Math.min(L, K)];
         r.U = new float[L * L];
         r.VT = new float[K * K];
@@ -87,7 +100,7 @@ public class BasicAnalysisSSA {
         Arrays.fill(r.XI, 0);
 
         //Восстановление по первым P компонентам
-        for (int i = 0 ; i < P; ++i){
+        for (int i : PP){
             System.arraycopy(r.U, L *i, Ui, 0, L);
             for (int j = 0; j < K; ++j){
                 Vi[j] = r.VT[i + j*K];
