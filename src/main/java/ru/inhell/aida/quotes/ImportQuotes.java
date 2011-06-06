@@ -17,7 +17,7 @@ public class ImportQuotes {
 
     public static void main(String... args) throws IOException, ParseException {
 
-        File importDir = new File("E:\\Java\\Projects-2010\\ru.inhell.aida\\import");
+        File importDir = new File("/media/Storage/Java/Projects-2010/ru.inhell.aida/import");
 
         File[] files = importDir.listFiles(new FilenameFilter() {
             @Override

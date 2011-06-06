@@ -1,6 +1,9 @@
 #include "acml.h"
 #include "acml_wrapper.h"
 #include <stdio.h>
+#include <algorithm>
+#include <string.h>
+#include <math.h>
 
 void check_memory(JNIEnv * env, void * arg) {
 	if (arg != NULL) {
@@ -165,7 +168,7 @@ Java_ru_inhell_aida_acml_ACML_sgemm
 }
 
 JNIEXPORT void JNICALL
-Java_ru_inhell_aida_acml_ACML_dgemm 
+Java_ru_inhell_aida_acml_ACML_dgemm
 	(JNIEnv *env, jobject calling_obj, jstring transa, jstring transb, jint m, jint n, jint k, jdouble alpha, jdoubleArray a, jint lda, jdoubleArray b, jint ldb, jdouble beta, jdoubleArray c, jint ldc)
 {
     char *jni_transa = (char *)env->GetStringUTFChars(transa, JNI_FALSE);
@@ -194,10 +197,173 @@ Java_ru_inhell_aida_acml_ACML_dgemm
 
 //TEST
 
-JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_test
-	(JNIEnv *env, jobject calling_obj, jstring test)
-{
-	printf(env->GetStringUTFChars(test, JNI_FALSE));
-}
+//JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_test
+//	(JNIEnv *env, jobject calling_obj, jstring test)
+//{
+//	printf(env->GetStringUTFChars(test, JNI_FALSE));
+//}
+
+JNIEXPORT void JNICALL
+Java_ru_inhell_aida_acml_ACML_vssa
+    (JNIEnv *env, jobject calling_obj, jint n, jint l, jint p, jintArray pp, jint m, jfloatArray timeseries, jfloatArray forecast)
+	{
+	    jint *jni_pp = (jint *)env->GetPrimitiveArrayCritical(pp, JNI_FALSE);
+	    check_memory(env, jni_pp);
+
+	    jfloat *jni_timeseries = (jfloat *)env->GetPrimitiveArrayCritical(timeseries, JNI_FALSE);
+	    check_memory(env, jni_timeseries);
+
+	    jfloat *jni_forecast = (jfloat *)env->GetPrimitiveArrayCritical(forecast, JNI_FALSE);
+	    check_memory(env, jni_forecast);
+
+	    long k = (long)n -(long)l + 1;
+	    int ld = l - 1;
+
+	    float *x = (float*) malloc(l*k * sizeof(float));
+	    float *xi = (float*) malloc(l*k * sizeof(float));
+	    float *g = (float*) malloc(n * p * sizeof(float));
+	    float *s = (float*) malloc(l * sizeof(float));
+	    float *u = (float*) malloc(l*l * sizeof(float));
+	    float *vt = (float*) malloc(k*k * sizeof(float));
+
+	    float *ui = (float*) malloc(l * sizeof(float));
+	    float *vi = (float*) malloc(k * sizeof(float));
+	    float *xii = (float*) malloc(l*k * sizeof(float));
+
+	    float *z = (float*) malloc(l * (n + m) * sizeof(float));
+	    float *r = (float*) malloc(ld * sizeof(float));
+
+	    float *vd = (float*) malloc(ld * m * sizeof(float));
+	    float *pi = (float*) malloc(m * sizeof(float));
+
+	    float *vdxvdt = (float*) malloc(ld * ld * sizeof(float));
+	    float *rxrt = (float*) malloc(ld * ld * sizeof(float));
+	    float *pr = (float*) malloc(ld * ld * sizeof(float));
+
+	    float *yd = (float*) malloc((l-1) * sizeof(float));
+	    float *zi = (float*) malloc(l * sizeof(float));
+
+
+	    for (int j = 0; j < k; ++j){
+	        memcpy(x + j*l, jni_timeseries + j, l * sizeof(jfloat));
+	    }
+
+        //sgesdd, sgesvd
+	    sgesdd('S', (long)l, k, x, (long)l, s, u, (long)l, vt, k, new int[1]);
+
+	    std::fill_n(xi, l*k, 0);
+
+	    for (int ii=0; ii < p; ++ii){
+	        int i = jni_pp[ii];
+
+	        memcpy(ui, u + i*l, l * sizeof(float));
+
+	        for (int j = 0; j < k; ++j){
+	            vi[j] = vt[i + j*k];
+	        }
+
+	        sgemm('N', 'T', (long)l, k, 1, s[i], ui, (long)l, vi, k, 0, xii, (long)l);
+
+	        for (int j = 0; j < l*k; ++j){
+	            xi[j] += xii[j];
+	        }
+	    }
+
+	    float v2 = 0;
+
+	    for (int i=0; i < m; ++i){
+	        memcpy(vd + i*ld, u + i*l, (long)ld * sizeof(float));
+	        pi[i] = u[l-1 + i*l];
+	        v2 += pow(pi[i], 2);
+	    }
+
+	    std::fill_n(r, ld, 0);
+
+	    for (int i = 0; i < m; ++i){
+            for (int j = 0; j < ld; ++j){
+                r[j] += vd[j + i*ld] * pi[i];
+            }
+        }
+
+        for (int j=0; j < ld; ++j){
+            r[j] /= (1-v2);
+        }
+
+        sgemm('N', 'T', ld, ld, m, 1, vd, ld, vd, ld, 0, vdxvdt, ld);
+        sgemm('N', 'T', ld, ld, 1, 1-v2, r, ld, r, ld, 0, rxrt, ld);
+
+        for (int i = 0; i < ld * ld; ++i){
+            pr[i] = vdxvdt[i] + rxrt[i];
+        }
+
+        memcpy(z, xi, (long)l*k*sizeof(float));
+
+        for (int i = k; i < n + m; ++i){
+            memcpy(yd, z + 1 + (i-1)*l, (long)ld * sizeof(float));
+
+            sgemm('N', 'N', ld, 1, ld, 1, pr, ld, yd, ld, 0, zi, ld);
+
+            zi[l-1] = 0;
+            for (int j = 0; j < ld; ++j){
+                zi[l-1] += r[j] * yd[j];
+            }
+
+            memcpy(z + i*l, zi, l * sizeof(float));
+        }
+
+        diagonalAveraging(z, l, n + m, jni_forecast);
+
+        env->ReleasePrimitiveArrayCritical(pp, jni_pp, 0);
+        env->ReleasePrimitiveArrayCritical(timeseries, jni_timeseries, 0);
+        env->ReleasePrimitiveArrayCritical(forecast, jni_forecast, 0);
+
+        free(x);
+        free(xi);
+        free(g);
+        free(s);
+        free(u);
+        free(vt);
+        free(ui);
+        free(vi);
+        free(xii);
+        free(z);
+        free(r);
+        free(vd);
+        free(pi);
+        free(vdxvdt);
+        free(rxrt);
+        free(pr);
+        free(yd);
+        free(zi);
+	}
+
+void diagonalAveraging(float *y, int rows, int cols, float *g){
+        int l1 = std::min(rows, cols);
+        int k1 = std::max(rows, cols);
+
+        int n = l1 + k1 - 1;
+
+        for (int k = 0; k < l1 - 1; ++k){
+            g[k] = getSum(y, rows, cols, 1, k + 1, k) / (k + 1);
+        }
+
+        for (int k = l1 - 1; k < k1; ++k){
+            g[k] = getSum(y, rows, cols, 1, l1, k) / l1;
+        }
+
+        for (int k = k1; k < n; ++k){
+            g[k] = getSum(y, rows, cols, k - k1 + 2, n - k1 + 1, k) / (n - k);
+        }
+    }
+
+float getSum(float *y, int rows, int cols, int first, int last, int k){
+        float sum = 0;
+
+        for (int m = first; m <= last; ++m){
+            sum += rows < cols ? y[m - 1 + (k - m + 1)*rows] : y[k - m + 1 + (m - 1)*rows];
+        }
+
+        return sum;
+    }
 
 

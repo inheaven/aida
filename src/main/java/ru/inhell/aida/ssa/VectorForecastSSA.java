@@ -1,5 +1,6 @@
 package ru.inhell.aida.ssa;
 
+import org.apache.ibatis.logging.stdout.StdOutImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inhell.aida.acml.ACML;
@@ -47,16 +48,19 @@ public class VectorForecastSSA {
      * @param M - длина прогноза
      */
     public VectorForecastSSA(int N, int L, int P, int M) {
+        this(N, L, P, new int[0], M);
+    }
+
+    public VectorForecastSSA(int N, int L, int P, int[] PP, int M) {
         this.N = N;
         this.L = L;
         this.M = M;
         this.P = P;
 
-
         Ld = L - 1;
         K = N - L + 1;
 
-        basicAnalysis = new BasicAnalysisSSA(N, L, P);
+        basicAnalysis = new BasicAnalysisSSA(N, L, P, PP);
 
         Z = new float[L * (N + M)];
         R = new float[Ld];

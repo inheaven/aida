@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import ru.inhell.aida.acml.ACML;
 
 import java.util.Arrays;
+import java.util.Random;
 
 /**
  * @author Anatoly A. Ivanov java@inhell.ru
@@ -79,6 +80,8 @@ public class BasicAnalysisSSA {
         Xi = new float[L * K];
     }
 
+    private final static Random RANDOM = new Random();
+
     public Result execute(float[] timeSeries, boolean diagonalAverage){
         long time = System.currentTimeMillis();
 
@@ -91,7 +94,11 @@ public class BasicAnalysisSSA {
             time = System.currentTimeMillis();
         }
 
-        ACML.jni().sgesdd("A", L, K, r.X, L, r.S, r.U, L, r.VT, K, new int[1]);
+        if (RANDOM.nextBoolean()){
+            ACML.jni().sgesvd("S", "S", L, K, r.X, L, r.S, r.U, L, r.VT, K, new int[1]);
+        }else {
+            ACML.jni().sgesdd("S", L, K, r.X, L, r.S, r.U, L, r.VT, K, new int[1]);
+        }
 
         if (timing){
             System.out.println("BasicAnalysisSSA.2 " + (System.currentTimeMillis() - time));

@@ -1,6 +1,5 @@
 #include <jni.h>
 
-void check_memory(JNIEnv *, void *);
 
 #ifndef _Included_ru_inhell_aida_acml_ACML
 #define _Included_ru_inhell_aida_acml_ACML
@@ -53,8 +52,17 @@ JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_sgemm
  * Method:    test
  * Signature: (Ljava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_test
-  (JNIEnv *, jobject, jstring);
+//JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_test
+//  (JNIEnv *, jobject, jstring);
+
+JNIEXPORT void JNICALL
+Java_ru_inhell_aida_acml_ACML_vssa
+    (JNIEnv *, jobject, jint, jint, jint, jintArray, jint, jfloatArray, jfloatArray);
+
+void check_memory(JNIEnv *, void *);
+void diagonalAveraging(float *, int, int, float *);
+float getSum(float *, int, int, int, int, int);
+
 
 #ifdef __cplusplus
 }
