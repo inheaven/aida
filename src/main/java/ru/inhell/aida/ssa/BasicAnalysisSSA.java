@@ -64,6 +64,14 @@ public class BasicAnalysisSSA {
             }
         }
 
+        if (PP.length == 0){
+            this.PP = new int[P];
+
+            for (int i = 0; i < P; ++i){
+                this.PP[i] = i;
+            }
+        }
+
         K = N - L + 1;
 
         r = new Result();
