@@ -32,7 +32,8 @@ public class ACML implements LAPACK, BLAS {
 
         if (!loaded) {
             try {
-                System.load("/media/Storage/Java/Projects-2010/ru.inhell.aida/aida/lib/acml_wrapper_gpu.so");
+                ///media/Storage/Java/Projects-2010/ru.inhell.aida/aida/lib/acml_wrapper_gpu.so
+                System.loadLibrary("acml_wrapper_gpu");
 
                 loaded = true;
                 log.info("ACML GPU library loaded successfully.");

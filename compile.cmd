@@ -6,7 +6,7 @@ REM set LIB=I:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\lib;I:\Progra
 
 set CL_DIR="I:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\amd64\"
 
-rem set C_OPT=/fp:precise /favor:AMD64
+set C_OPT=/fp:precise /favor:AMD64 /Ox /GA
 
 set INCLUDE_JNI=/I "I:\Program Files\Java\jdk1.6.0_22\include" /I "I:\Program Files\Java\jdk1.6.0_22\include\win32"
 
@@ -18,7 +18,7 @@ rem MP
 
 
 rem GPU
-%CL_DIR%cl %C_OPT% %INCLUDE_JNI% /I "I:\AMD\acmlgpu1.1.2\ifort64\include" src\main\c\acml_wrapper.cpp "I:\AMD\acmlgpu1.1.2\ifort64\lib\libacml_dll.lib" /LD /Fotarget\bin\acml_wrapper_gpu.obj /Fetarget\bin\acml_wrapper_gpu.dll 
+%CL_DIR%cl %C_OPT% %INCLUDE_JNI% /I "I:\AMD\acmlgpu1.1.2\win64\include" src\main\c\acml_wrapper.cpp "I:\AMD\acmlgpu1.1.2\win64\lib\libacml_dll.lib" /LD /Fotarget\bin\acml_wrapper_gpu.obj /Fetarget\bin\acml_wrapper_gpu.dll 
 
 rem x86
 rem cl %C_OPT% %INCLUDE_JNI% /I "I:\AMD\acml4.4.0\ifort32_mp\include" src\main\c\acml_wrapper.cpp "I:\AMD\acml4.4.0\ifort32_mp\lib\libacml_mp_dll.lib" /LD /Fotarget\bin\acml_wrapper32_mp.obj /Fetarget\bin\acml_wrapper32_mp.dll 

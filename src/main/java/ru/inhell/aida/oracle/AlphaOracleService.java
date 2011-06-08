@@ -177,9 +177,9 @@ public class AlphaOracleService {
 
             //алгоритм векторного прогнозирования
             if (useRemote) {
-                forecast = vectorForecastSSAService.executeRemote(vf.getN(), vf.getL(), vf.getP(), vf.getM(), prices);
+                forecast = vectorForecastSSAService.executeRemote(vf.getN(), vf.getL(), vf.getP(), vf.getM() + 1, prices);
             }else{
-                forecast = vectorForecastSSAService.execute(vf.getN(), vf.getL(), vf.getP(), vf.getM(), prices);
+                forecast = vectorForecastSSAService.execute(vf.getN(), vf.getL(), vf.getP(), vf.getM() + 1, prices);
             }
 
             Prediction prediction = null;
@@ -189,10 +189,10 @@ public class AlphaOracleService {
                 if (StopType.F_STOP.equals(alphaOracle.getStopType()) && alphaOracle.isInMarket()){
                     float stopPrice = alphaOracle.getStopPrice();
 
-                    if (Prediction.LONG.equals(alphaOracle.getPrediction()) && currentPrice < stopPrice){
+                    if (Prediction.LONG.equals(alphaOracle.getPrediction()) &&(currentPrice < stopPrice || currentPrice > stopPrice*Math.pow(alphaOracle.getStopFactor(), 5))){
                         //защитная приостановка - продажа
                         prediction = Prediction.STOP_SELL;
-                    }else if (Prediction.SHORT.equals(alphaOracle.getPrediction()) &&  currentPrice > stopPrice){
+                    }else if (Prediction.SHORT.equals(alphaOracle.getPrediction()) &&  (currentPrice > stopPrice || currentPrice < stopPrice/Math.pow(alphaOracle.getStopFactor(), 5))){
                         //защитная приостановка - покупка
                         prediction = Prediction.STOP_BUY;
                     }

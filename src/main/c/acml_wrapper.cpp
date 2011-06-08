@@ -213,36 +213,34 @@ Java_ru_inhell_aida_acml_ACML_vssa
 	    jfloat *jni_timeseries = (jfloat *)env->GetPrimitiveArrayCritical(timeseries, JNI_FALSE);
 	    check_memory(env, jni_timeseries);
 
-	    jfloat *jni_forecast = (jfloat *)env->GetPrimitiveArrayCritical(forecast, JNI_FALSE);
-	    check_memory(env, jni_forecast);
+	    jfloat *jni_forecast = new jfloat[n + m + l - 1];
 
 	    long k = (long)n -(long)l + 1;
 	    int ld = l - 1;
 
-	    float *x = (float*) malloc(l*k * sizeof(float));
-	    float *xi = (float*) malloc(l*k * sizeof(float));
-	    float *g = (float*) malloc(n * p * sizeof(float));
-	    float *s = (float*) malloc(l * sizeof(float));
-	    float *u = (float*) malloc(l*l * sizeof(float));
-	    float *vt = (float*) malloc(k*k * sizeof(float));
+	    float *x = new float[l*k];
+	    float *xi = new float[l*k];
+	    float *g = new float[n * p];
+	    float *s = new float[l];
+	    float *u = new float[l*l];
+	    float *vt = new float[k*k];
 
-	    float *ui = (float*) malloc(l * sizeof(float));
-	    float *vi = (float*) malloc(k * sizeof(float));
-	    float *xii = (float*) malloc(l*k * sizeof(float));
+	    float *ui = new float[l];
+	    float *vi = new float[k];
+	    float *xii = new float[l*k];
 
-	    float *z = (float*) malloc(l * (n + m) * sizeof(float));
-	    float *r = (float*) malloc(ld * sizeof(float));
+	    float *z = new float[l * (n + m)];
+	    float *r = new float[ld];
 
-	    float *vd = (float*) malloc(ld * m * sizeof(float));
-	    float *pi = (float*) malloc(m * sizeof(float));
+	    float *vd = new float[ld * m];
+	    float *pi = new float[m];
 
-	    float *vdxvdt = (float*) malloc(ld * ld * sizeof(float));
-	    float *rxrt = (float*) malloc(ld * ld * sizeof(float));
-	    float *pr = (float*) malloc(ld * ld * sizeof(float));
+	    float *vdxvdt = new float[ld * ld];
+	    float *rxrt = new float[ld * ld];
+	    float *pr = new float[ld * ld];
 
-	    float *yd = (float*) malloc((l-1) * sizeof(float));
-	    float *zi = (float*) malloc(l * sizeof(float));
-
+	    float *yd = new float[(l-1)];
+	    float *zi = new float[l];
 
 	    for (int j = 0; j < k; ++j){
 	        memcpy(x + j*l, jni_timeseries + j, l * sizeof(jfloat));
@@ -251,7 +249,7 @@ Java_ru_inhell_aida_acml_ACML_vssa
         //sgesdd, sgesvd
 	    sgesdd('S', (long)l, k, x, (long)l, s, u, (long)l, vt, k, new int[1]);
 
-	    std::fill_n(xi, l*k, 0);
+	    std::fill_n(xi, l*k, (float)0);
 
 	    for (int ii=0; ii < p; ++ii){
 	        int i = jni_pp[ii];
@@ -277,7 +275,7 @@ Java_ru_inhell_aida_acml_ACML_vssa
 	        v2 += pow(pi[i], 2);
 	    }
 
-	    std::fill_n(r, ld, 0);
+	    std::fill_n(r, ld, (float)0);
 
 	    for (int i = 0; i < m; ++i){
             for (int j = 0; j < ld; ++j){
@@ -317,24 +315,25 @@ Java_ru_inhell_aida_acml_ACML_vssa
         env->ReleasePrimitiveArrayCritical(timeseries, jni_timeseries, 0);
         env->ReleasePrimitiveArrayCritical(forecast, jni_forecast, 0);
 
-        free(x);
-        free(xi);
-        free(g);
-        free(s);
-        free(u);
-        free(vt);
-        free(ui);
-        free(vi);
-        free(xii);
-        free(z);
-        free(r);
-        free(vd);
-        free(pi);
-        free(vdxvdt);
-        free(rxrt);
-        free(pr);
-        free(yd);
-        free(zi);
+        delete x;
+        delete xi;
+        delete g;
+        delete s;
+        delete u;
+        delete vt;
+        delete ui;
+        delete vi;
+        delete xii;
+        delete z;
+        delete r;
+        delete vd;
+        delete pi;
+        delete vdxvdt;
+        delete rxrt;
+        delete pr;
+        delete yd;
+        delete zi;
+        delete jni_forecast;
 	}
 
 void diagonalAveraging(float *y, int rows, int cols, float *g){
