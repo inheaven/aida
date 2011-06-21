@@ -57,7 +57,7 @@ JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_sgemm
 
 JNIEXPORT void JNICALL
 Java_ru_inhell_aida_acml_ACML_vssa
-    (JNIEnv *, jobject, jint, jint, jint, jintArray, jint, jfloatArray, jfloatArray);
+    (JNIEnv *, jobject, jint, jint, jint, jintArray, jint, jfloatArray, jfloatArray, jint);
 
 void check_memory(JNIEnv *, void *);
 void diagonalAveraging(float *, int, int, float *);

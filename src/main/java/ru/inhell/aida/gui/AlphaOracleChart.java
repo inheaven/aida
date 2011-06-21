@@ -7,12 +7,8 @@ import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.DefaultDrawingSupplier;
-import org.jfree.chart.renderer.xy.HighLowRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
-import org.jfree.data.time.Minute;
-import org.jfree.data.time.MovingAverage;
-import org.jfree.data.time.TimeSeries;
-import org.jfree.data.time.TimeSeriesCollection;
+import org.jfree.data.time.*;
 import org.jfree.data.xy.DefaultHighLowDataset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,15 +51,15 @@ public class AlphaOracleChart extends JPanel{
         final AlphaOracle alphaOracle = alphaOracleBean.getAlphaOracle(alphaOracleId);
         final VectorForecast vf = alphaOracle.getVectorForecast();
 
-        final int size = 120;
+        final int SIZE = alphaOracle.isFiveSecond() ? 720 : 180;
 
         //model
-        final Date[] date = new Date[size];
-        final double[] open = new double[size];
-        final double[] low = new double[size];
-        final double[] high = new double[size];
-        final double[] close = new double[size];
-        final double[] volume = new double[size];
+        final Date[] date = new Date[SIZE];
+        final double[] open = new double[SIZE];
+        final double[] low = new double[SIZE];
+        final double[] high = new double[SIZE];
+        final double[] close = new double[SIZE];
+        final double[] volume = new double[SIZE];
 
         //chart
         final JFreeChart chart = ChartFactory.createHighLowChart(vf.getSymbol(), null, null, null, true);
@@ -143,13 +139,15 @@ public class AlphaOracleChart extends JPanel{
                     for (int i = 0; i < n; ++i){
                         Date d = quotes.get(i).getDate();
                         if (d.after(date[0])){
-                            forecastTimeSeries.addOrUpdate(new Minute(d), forecast[i]);
+                            forecastTimeSeries.addOrUpdate(new Second(d), forecast[i]);
                         }
                     }
 
-                    for (int i = 0; i < ao.getVectorForecast().getM(); ++i){
-                        Date d = DateUtil.getOneMinuteIndexDate(p, i+1);
-                        forecastTimeSeries.addOrUpdate(new Minute(d), forecast[n+i]);
+                    for (int i = 0; i < ao.getVectorForecast().getM()*2; ++i){
+                        Date d = alphaOracle.isFiveSecond()
+                                ? DateUtil.getFiveSecondIndexDate(p, i + 1)
+                                : DateUtil.getOneMinuteIndexDate(p, i+1);
+                        forecastTimeSeries.addOrUpdate(new Second(d), forecast[n+i]);
                     }
                 }
             }
@@ -168,9 +166,11 @@ public class AlphaOracleChart extends JPanel{
             public void run() {
                 try {
                     //Quotes
-                    List<Quote> quotes = quotesBean.getQuotes(alphaOracle.getVectorForecast().getSymbol(), size);
+                    List<Quote> quotes = alphaOracle.getInterval().equals(Interval.FIVE_SECOND) ?
+                            quotesBean.getQuotes5Sec(alphaOracle.getVectorForecast().getSymbol(), SIZE)
+                            : quotesBean.getQuotes(alphaOracle.getVectorForecast().getSymbol(), SIZE);
 
-                    for (int i = 0; i < size; ++i) {
+                    for (int i = 0; i < SIZE; ++i) {
                         Quote q = quotes.get(i);
 
                         date[i] = q.getDate();
@@ -200,16 +200,16 @@ public class AlphaOracleChart extends JPanel{
                     for (AlphaOracleData d : alphaOracleBean.getAlphaOracleDatas(alphaOracle.getId(), date[0])){
                         switch (d.getPrediction()){
                             case LONG:
-                                timeSeriesLong.addOrUpdate(new Minute(d.getDate()), d.getPrice());
+                                timeSeriesLong.addOrUpdate(new Second(d.getDate()), d.getPrice());
                                 break;
                             case SHORT:
-                                timeSeriesShort.addOrUpdate(new Minute(d.getDate()), d.getPrice());
+                                timeSeriesShort.addOrUpdate(new Second(d.getDate()), d.getPrice());
                                 break;
                             case STOP_BUY:
-                                timeSeriesStopBuy.addOrUpdate(new Minute(d.getDate()), d.getPrice());
+                                timeSeriesStopBuy.addOrUpdate(new Second(d.getDate()), d.getPrice());
                                 break;
                             case STOP_SELL:
-                                timeSeriesStopSell.addOrUpdate(new Minute(d.getDate()), d.getPrice());
+                                timeSeriesStopSell.addOrUpdate(new Second(d.getDate()), d.getPrice());
                                 break;
                         }
                     }
@@ -219,22 +219,22 @@ public class AlphaOracleChart extends JPanel{
                     //Vector Forecast
                     VectorForecastFilter filter = new VectorForecastFilter();
                     filter.setVectorForecastId(vf.getId());
-                    filter.setDate(date[size - 2]);
+                    filter.setDate(date[SIZE - 2]);
 
                     for (VectorForecastData d :  vectorForecastBean.getVectorForecastData(filter)){
-                        timeSeriesCurrentForecast.addOrUpdate(new Minute(d.getIndexDate()), d.getPrice());
+                        timeSeriesCurrentForecast.addOrUpdate(new Second(d.getIndexDate()), d.getPrice());
                     }
 
                     Calendar c1 = Calendar.getInstance();
                     c1.add(Calendar.HOUR_OF_DAY, -3);
-                    c1.add(Calendar.MINUTE, -120);
+                    c1.add(alphaOracle.isFiveSecond() ? Calendar.SECOND : Calendar.MINUTE, -SIZE);
 
 //                    c1.set(Calendar.HOUR_OF_DAY, 10);
 //                    c1.set(Calendar.MINUTE, 30);
 
                     Calendar c2 = Calendar.getInstance();
                     c2.add(Calendar.HOUR_OF_DAY, -3);
-                    c2.add(Calendar.MINUTE, 10);
+                    c2.add(alphaOracle.isFiveSecond() ? Calendar.SECOND : Calendar.MINUTE, alphaOracle.getVectorForecast().getM()*2);
 //                    c2.set(Calendar.HOUR_OF_DAY, 18);
 //                    c2.set(Calendar.MINUTE, 45);
                     ((DateAxis) chart.getXYPlot().getDomainAxis()).setMinimumDate(c1.getTime());

@@ -17,7 +17,7 @@ public class NativeVSSATest {
     public static void main(String... args){
         float[] forecast = new float[10 + 4 + 2 - 1];
 
-        ACML.jni().vssa(10, 4, 2, new int[]{0,1}, 2, new float[]{2,2,3,4,5,6,7,8,9, 10}, forecast);
+        ACML.jni().vssa(10, 4, 2, new int[]{0,1}, 2, new float[]{2,2,3,4,5,6,7,8,9, 10}, forecast, 0);
 
         System.out.println(Arrays.toString(forecast));
 

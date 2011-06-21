@@ -205,7 +205,8 @@ Java_ru_inhell_aida_acml_ACML_dgemm
 
 JNIEXPORT void JNICALL
 Java_ru_inhell_aida_acml_ACML_vssa
-    (JNIEnv *env, jobject calling_obj, jint n, jint l, jint p, jintArray pp, jint m, jfloatArray timeseries, jfloatArray forecast)
+    (JNIEnv *env, jobject calling_obj, jint n, jint l, jint p, jintArray pp, jint m, jfloatArray timeseries,
+        jfloatArray forecast, jint svd)
 	{
 	    jint *jni_pp = (jint *)env->GetPrimitiveArrayCritical(pp, JNI_FALSE);
 	    check_memory(env, jni_pp);
@@ -213,7 +214,8 @@ Java_ru_inhell_aida_acml_ACML_vssa
 	    jfloat *jni_timeseries = (jfloat *)env->GetPrimitiveArrayCritical(timeseries, JNI_FALSE);
 	    check_memory(env, jni_timeseries);
 
-	    jfloat *jni_forecast = new jfloat[n + m + l - 1];
+	    jfloat *jni_forecast = (jfloat *)env->GetPrimitiveArrayCritical(forecast, JNI_FALSE);
+	    check_memory(env, jni_forecast);
 
 	    long k = (long)n -(long)l + 1;
 	    int ld = l - 1;
@@ -247,7 +249,12 @@ Java_ru_inhell_aida_acml_ACML_vssa
 	    }
 
         //sgesdd, sgesvd
-	    sgesdd('S', (long)l, k, x, (long)l, s, u, (long)l, vt, k, new int[1]);
+        if (svd == 0){
+            sgesdd('S', (long)l, k, x, (long)l, s, u, (long)l, vt, k, new int[1]);
+        }else{
+            sgesvd('S', 'S', (long)l, k, x, (long)l, s, u, (long)l, vt, k, new int[1]);
+        }
+
 
 	    std::fill_n(xi, l*k, (float)0);
 
@@ -315,25 +322,24 @@ Java_ru_inhell_aida_acml_ACML_vssa
         env->ReleasePrimitiveArrayCritical(timeseries, jni_timeseries, 0);
         env->ReleasePrimitiveArrayCritical(forecast, jni_forecast, 0);
 
-        delete x;
-        delete xi;
-        delete g;
-        delete s;
-        delete u;
-        delete vt;
-        delete ui;
-        delete vi;
-        delete xii;
-        delete z;
-        delete r;
-        delete vd;
-        delete pi;
-        delete vdxvdt;
-        delete rxrt;
-        delete pr;
-        delete yd;
-        delete zi;
-        delete jni_forecast;
+        delete[] x;
+        delete[] xi;
+        delete[] g;
+        delete[] s;
+        delete[] u;
+        delete[] vt;
+        delete[] ui;
+        delete[] vi;
+        delete[] xii;
+        delete[] z;
+        delete[] r;
+        delete[] vd;
+        delete[] pi;
+        delete[] vdxvdt;
+        delete[] rxrt;
+        delete[] pr;
+        delete[] yd;
+        delete[] zi;
 	}
 
 void diagonalAveraging(float *y, int rows, int cols, float *g){

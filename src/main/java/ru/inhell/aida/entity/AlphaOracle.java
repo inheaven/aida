@@ -25,8 +25,16 @@ public class AlphaOracle {
         this.id = id;
     }
 
+    public boolean isFiveSecond(){
+        return Interval.FIVE_SECOND.equals(vectorForecast.getInterval());
+    }
+
     public String getSymbol(){
         return vectorForecast.getSymbol();
+    }
+
+    public Interval getInterval(){
+        return vectorForecast.getInterval();
     }
 
     public String getName(){

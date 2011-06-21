@@ -103,5 +103,5 @@ public class ACML implements LAPACK, BLAS {
     public native void sgemm(String transa, String transb, int m, int n, int k, float alpha, float[] a, int lda,
                              float[] b, int ldb, float beta, float[] c, int ldc);
 
-    public native void vssa(int n, int l, int p, int[] pp, int m, float[] timeseries, float[] forecat);
+    public native void vssa(int n, int l, int p, int[] pp, int m, float[] timeseries, float[] forecat, int svd);
 }
