@@ -34,12 +34,10 @@ public class AlphaOracleService {
     private final static Logger log = LoggerFactory.getLogger(AlphaOracleService.class);
 
     private final static int CORE_POOL_SIZE = 1;
-    private final static int PERIOD = 60;
-    private final static int UPDATE_COUNT = 1;
 
     private final static boolean USE_REMOTE = Aida.getProperty("use_remote_vssa").equals("true");
 
-    public static final DateFormat dateFormat = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.SHORT, SimpleDateFormat.SHORT);
+    public static final DateFormat dateFormat = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.SHORT, SimpleDateFormat.FULL);
 
     @Inject
     private QuotesBean quotesBean;
@@ -55,9 +53,6 @@ public class AlphaOracleService {
 
     @Inject
     private CurrentBean currentBean;
-
-    private Map<Long, Date> predictedTime = new ConcurrentHashMap<Long, Date>();
-    private Map<Long, Integer> predictedTimeCount = new ConcurrentHashMap<Long, Integer>();
 
     private ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(CORE_POOL_SIZE);
     private Map<Long, ScheduledFuture> scheduledFutures = new LinkedHashMap<Long, ScheduledFuture>();
@@ -96,15 +91,15 @@ public class AlphaOracleService {
                         return;
                     }
 
-                    if (DateUtil.now().getTime() - last.getTime() < 10*1000){
+                    if (DateUtil.now().getTime() - last.getTime() < 4*1000){
                         return;
                     }
 
-                    if (DateUtil.nowMsk().getTime() - quotesBean.getLastQuoteDate(alphaOracle.getSymbol()).getTime() > 100*1000){
-                        return;
-                    }
+//                    if (DateUtil.nowMsk().getTime() - quotesBean.getLastQuoteDate(alphaOracle.getSymbol()).getTime() > 100*1000){
+//                        return;
+//                    }
 
-                    orderSecond = (55 + new Random().nextInt(10)) % 60;
+                    orderSecond = (orderSecond + 5) % 60;
 
                     last = DateUtil.now();
 
@@ -126,15 +121,22 @@ public class AlphaOracleService {
         VectorForecast vf = alphaOracle.getVectorForecast();
 
         //загружаем все котировки
-        List<Quote> allQuotes = quotesBean.getQuotes(vf.getSymbol(), vf.getN() + count + 1);
+        List<Quote> allQuotes;
+
+        if (alphaOracle.getInterval().equals(Interval.FIVE_SECOND)){
+            allQuotes = quotesBean.getQuotes5Sec(vf.getSymbol(), vf.getN() + count + 1);
+        }else{
+            allQuotes = quotesBean.getQuotes(vf.getSymbol(), vf.getN() + count + 1);
+        }
 
         long now = DateUtil.nowMsk().getTime();
         long last = allQuotes.get(allQuotes.size() - 1).getDate().getTime();
 
         //проверяем время последней котировки
-        if (now - last < 50*1000){
+        if ((now - last < 50*1000 && alphaOracle.getInterval().equals(Interval.ONE_MINUTE))
+                || (now - last < 3*1000 && alphaOracle.getInterval().equals(Interval.FIVE_SECOND))){
             allQuotes.remove(allQuotes.size() - 1);
-        }else {
+        } else {
             allQuotes.remove(0);
         }
 
@@ -177,9 +179,9 @@ public class AlphaOracleService {
 
             //алгоритм векторного прогнозирования
             if (useRemote) {
-                forecast = vectorForecastSSAService.executeRemote(vf.getN(), vf.getL(), vf.getP(), vf.getM(), prices);
+                forecast = vectorForecastSSAService.executeRemote(vf.getN(), vf.getL(), vf.getP(), vf.getM() + 1, prices);
             }else{
-                forecast = vectorForecastSSAService.execute(vf.getN(), vf.getL(), vf.getP(), vf.getM(), prices);
+                forecast = vectorForecastSSAService.execute(vf.getN(), vf.getL(), vf.getP(), vf.getM() + 1, prices);
             }
 
             Prediction prediction = null;
@@ -189,10 +191,10 @@ public class AlphaOracleService {
                 if (StopType.F_STOP.equals(alphaOracle.getStopType()) && alphaOracle.isInMarket()){
                     float stopPrice = alphaOracle.getStopPrice();
 
-                    if (Prediction.LONG.equals(alphaOracle.getPrediction()) && currentPrice < stopPrice){
+                    if (Prediction.LONG.equals(alphaOracle.getPrediction()) &&(currentPrice < stopPrice || currentPrice > stopPrice*Math.pow(alphaOracle.getStopFactor(), 5))){
                         //защитная приостановка - продажа
                         prediction = Prediction.STOP_SELL;
-                    }else if (Prediction.SHORT.equals(alphaOracle.getPrediction()) &&  currentPrice > stopPrice){
+                    }else if (Prediction.SHORT.equals(alphaOracle.getPrediction()) &&  (currentPrice > stopPrice || currentPrice < stopPrice/Math.pow(alphaOracle.getStopFactor(), 5))){
                         //защитная приостановка - покупка
                         prediction = Prediction.STOP_BUY;
                     }

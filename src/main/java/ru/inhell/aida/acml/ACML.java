@@ -32,6 +32,7 @@ public class ACML implements LAPACK, BLAS {
 
         if (!loaded) {
             try {
+                ///media/Storage/Java/Projects-2010/ru.inhell.aida/aida/lib/acml_wrapper_gpu.so
                 System.loadLibrary("acml_wrapper_gpu");
 
                 loaded = true;
@@ -102,5 +103,5 @@ public class ACML implements LAPACK, BLAS {
     public native void sgemm(String transa, String transb, int m, int n, int k, float alpha, float[] a, int lda,
                              float[] b, int ldb, float beta, float[] c, int ldc);
 
-    public native void test(String test);
+    public native void vssa(int n, int l, int p, int[] pp, int m, float[] timeseries, float[] forecat, int svd);
 }

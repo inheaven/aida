@@ -1,5 +1,6 @@
 package ru.inhell.aida.ssa;
 
+import org.apache.ibatis.logging.stdout.StdOutImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inhell.aida.acml.ACML;

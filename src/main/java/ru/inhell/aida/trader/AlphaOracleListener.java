@@ -185,10 +185,10 @@ public class AlphaOracleListener implements IAlphaOracleListener {
         switch (prediction){
             case LONG:
             case STOP_BUY:
-                return price *= 1.005;
+                return price *= 1.002;
             case SHORT:
             case STOP_SELL:
-                return price /= 1.005;
+                return price /= 1.002;
             default:
                 throw new IllegalArgumentException();
         }

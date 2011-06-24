@@ -26,7 +26,7 @@ public class Aida {
         oraclePanel = new JPanel(new GridLayout(1,1));
         tabbedPane.addTab("Предсказатели", oraclePanel);
 
-        process(40);
+        process(43);
 
         frame.pack();
         frame.setVisible(true);

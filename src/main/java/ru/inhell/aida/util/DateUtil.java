@@ -37,6 +37,14 @@ public class DateUtil {
         return calendar.getTime();
     }
 
+    public static Date getFiveSecondIndexDate(Date date, int index){
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.add(Calendar.SECOND, index*5);
+
+        return calendar.getTime();
+    }
+
     public static int getMinuteShift(Date from, Date to){
         if (to == null || from == null){
             return -1;
