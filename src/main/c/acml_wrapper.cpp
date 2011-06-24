@@ -217,7 +217,7 @@ Java_ru_inhell_aida_acml_ACML_vssa
 	    jfloat *jni_forecast = (jfloat *)env->GetPrimitiveArrayCritical(forecast, JNI_FALSE);
 	    check_memory(env, jni_forecast);
 
-	    long k = (long)n -(long)l + 1;
+	    int k = n - l + 1;
 	    int ld = l - 1;
 
 	    float *x = new float[l*k];
@@ -241,7 +241,7 @@ Java_ru_inhell_aida_acml_ACML_vssa
 	    float *rxrt = new float[ld * ld];
 	    float *pr = new float[ld * ld];
 
-	    float *yd = new float[(l-1)];
+	    float *yd = new float[l-1)];
 	    float *zi = new float[l];
 
 	    for (int j = 0; j < k; ++j){
@@ -250,13 +250,12 @@ Java_ru_inhell_aida_acml_ACML_vssa
 
         //sgesdd, sgesvd
         if (svd == 0){
-            sgesdd('S', (long)l, k, x, (long)l, s, u, (long)l, vt, k, new int[1]);
+            sgesdd('S', l, k, x, l, s, u, l, vt, k, new int[1]);
         }else{
-            sgesvd('S', 'S', (long)l, k, x, (long)l, s, u, (long)l, vt, k, new int[1]);
+            sgesvd('S', 'S', l, k, x, l, s, u, l, vt, k, new int[1]);
         }
 
-
-	    std::fill_n(xi, l*k, (float)0);
+        memset(xi, 0, l*k*sizeof(float));
 
 	    for (int ii=0; ii < p; ++ii){
 	        int i = jni_pp[ii];
@@ -267,7 +266,7 @@ Java_ru_inhell_aida_acml_ACML_vssa
 	            vi[j] = vt[i + j*k];
 	        }
 
-	        sgemm('N', 'T', (long)l, k, 1, s[i], ui, (long)l, vi, k, 0, xii, (long)l);
+	        sgemm('N', 'T', l, k, 1, s[i], ui, l, vi, k, 0, xii, l);
 
 	        for (int j = 0; j < l*k; ++j){
 	            xi[j] += xii[j];
@@ -277,12 +276,12 @@ Java_ru_inhell_aida_acml_ACML_vssa
 	    float v2 = 0;
 
 	    for (int i=0; i < m; ++i){
-	        memcpy(vd + i*ld, u + i*l, (long)ld * sizeof(float));
+	        memcpy(vd + i*ld, u + i*l, ld * sizeof(float));
 	        pi[i] = u[l-1 + i*l];
 	        v2 += pow(pi[i], 2);
 	    }
 
-	    std::fill_n(r, ld, (float)0);
+	    memset(r, 0, ld*sizeof(float));
 
 	    for (int i = 0; i < m; ++i){
             for (int j = 0; j < ld; ++j){
@@ -301,10 +300,10 @@ Java_ru_inhell_aida_acml_ACML_vssa
             pr[i] = vdxvdt[i] + rxrt[i];
         }
 
-        memcpy(z, xi, (long)l*k*sizeof(float));
+        memcpy(z, xi, l*k*sizeof(float));
 
         for (int i = k; i < n + m; ++i){
-            memcpy(yd, z + 1 + (i-1)*l, (long)ld * sizeof(float));
+            memcpy(yd, z + 1 + (i-1)*l, ld * sizeof(float));
 
             sgemm('N', 'N', ld, 1, ld, 1, pr, ld, yd, ld, 0, zi, ld);
 
