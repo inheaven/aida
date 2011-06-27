@@ -30,6 +30,18 @@ public class ACML implements LAPACK, BLAS {
     private ACML() {
         org.slf4j.Logger log = LoggerFactory.getLogger(ACML.class);
 
+        if (!loaded){
+            try {
+                System.loadLibrary("acml_wrapper");
+
+                loaded = true;
+                log.info("ACML library loaded successfully.");
+            } catch (UnsatisfiedLinkError e) {
+                loaded = false;
+                log.error("ACML library is not found.");
+            }
+        }
+
         if (!loaded) {
             try {
                 ///media/Storage/Java/Projects-2010/ru.inhell.aida/aida/lib/acml_wrapper_gpu.so
@@ -64,20 +76,6 @@ public class ACML implements LAPACK, BLAS {
             } catch (UnsatisfiedLinkError e) {
                 loaded = false;
                 log.error("ACML MP library is not found.");
-            }
-        }
-
-
-
-        if (!loaded){
-            try {
-                System.loadLibrary("acml_wrapper");
-
-                loaded = true;
-                log.info("ACML library loaded successfully.");
-            } catch (UnsatisfiedLinkError e) {
-                loaded = false;
-                log.error("ACML library is not found.");
             }
         }
     }

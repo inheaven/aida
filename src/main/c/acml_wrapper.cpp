@@ -24,24 +24,26 @@ void check_memory(JNIEnv * env, void * arg) {
 
 JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_sgesvd 
 	(JNIEnv *env, jobject calling_obj, jstring jobu, jstring jobvt, jint m, jint n, jfloatArray a, jint lda, jfloatArray s, jfloatArray u, jint ldu, jfloatArray vt, jint ldvt, jintArray info)
-{	
+{
 
-	char * jni_jobu = (char *) env->GetStringUTFChars(jobu, JNI_FALSE);
-	char * jni_jobvt = (char *)env->GetStringUTFChars(jobvt, JNI_FALSE);
+    jboolean isCopy = JNI_TRUE;
 
-	jfloat *jni_a = (jfloat *)env->GetPrimitiveArrayCritical(a, JNI_FALSE);
+	char * jni_jobu = (char *) env->GetStringUTFChars(jobu, &isCopy);
+	char * jni_jobvt = (char *)env->GetStringUTFChars(jobvt, &isCopy);
+
+	jfloat *jni_a = (jfloat *)env->GetPrimitiveArrayCritical(a, &isCopy);
 	check_memory(env, jni_a);
 
-	jfloat *jni_s = (jfloat *)env->GetPrimitiveArrayCritical(s, JNI_FALSE);
+	jfloat *jni_s = (jfloat *)env->GetPrimitiveArrayCritical(s, &isCopy);
 	check_memory(env, jni_s);
 
-	jfloat *jni_u = (jfloat *)env->GetPrimitiveArrayCritical(u, JNI_FALSE);
+	jfloat *jni_u = (jfloat *)env->GetPrimitiveArrayCritical(u, &isCopy);
 	check_memory(env, jni_u);
 
-	jfloat *jni_vt = (jfloat *)env->GetPrimitiveArrayCritical(vt, JNI_FALSE);
+	jfloat *jni_vt = (jfloat *)env->GetPrimitiveArrayCritical(vt, &isCopy);
 	check_memory(env, jni_vt);
 
-        jint *jni_info = (jint *)env->GetPrimitiveArrayCritical(info, JNI_FALSE);
+        jint *jni_info = (jint *)env->GetPrimitiveArrayCritical(info, &isCopy);
 	check_memory(env, jni_info);
 
 	//MP
@@ -53,7 +55,7 @@ JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_sgesvd
 
 	env->ReleaseStringUTFChars(jobu, jni_jobu);
 	env->ReleaseStringUTFChars(jobvt, jni_jobvt);
-	env->ReleasePrimitiveArrayCritical(a, jni_a, 0);
+	env->ReleasePrimitiveArrayCritical(a, jni_a, JNI_ABORT);
 	env->ReleasePrimitiveArrayCritical(s, jni_s, 0);
 	env->ReleasePrimitiveArrayCritical(u, jni_u, 0);
 	env->ReleasePrimitiveArrayCritical(vt, jni_vt, 0);
@@ -63,21 +65,23 @@ JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_sgesvd
 JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_sgesdd
 	(JNIEnv *env, jobject calling_obj, jstring jobz, jint m, jint n, jfloatArray a, jint lda, jfloatArray s, jfloatArray u, jint ldu, jfloatArray vt, jint ldvt, jintArray info)
 {
-	char * jni_jobz = (char *) env->GetStringUTFChars(jobz, JNI_FALSE);
+    jboolean isCopy = JNI_TRUE;
 
-	jfloat *jni_a = (jfloat *)env->GetPrimitiveArrayCritical(a, JNI_FALSE);
+	char * jni_jobz = (char *) env->GetStringUTFChars(jobz, &isCopy);
+
+	jfloat *jni_a = (jfloat *)env->GetPrimitiveArrayCritical(a, &isCopy);
 	check_memory(env, jni_a);
 
-	jfloat *jni_s = (jfloat *)env->GetPrimitiveArrayCritical(s, JNI_FALSE);
+	jfloat *jni_s = (jfloat *)env->GetPrimitiveArrayCritical(s, &isCopy);
 	check_memory(env, jni_s);
 
-	jfloat *jni_u = (jfloat *)env->GetPrimitiveArrayCritical(u, JNI_FALSE);
+	jfloat *jni_u = (jfloat *)env->GetPrimitiveArrayCritical(u, &isCopy);
 	check_memory(env, jni_u);
 
-	jfloat *jni_vt = (jfloat *)env->GetPrimitiveArrayCritical(vt, JNI_FALSE);
+	jfloat *jni_vt = (jfloat *)env->GetPrimitiveArrayCritical(vt, &isCopy);
 	check_memory(env, jni_vt);
 
-        jint *jni_info = (jint *)env->GetPrimitiveArrayCritical(info, JNI_FALSE);
+        jint *jni_info = (jint *)env->GetPrimitiveArrayCritical(info, &isCopy);
 	check_memory(env, jni_info);
 
 	//MP
@@ -88,7 +92,7 @@ JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_sgesdd
 	//env->MonitorExit(calling_obj);
 
 	env->ReleaseStringUTFChars(jobz, jni_jobz);
-	env->ReleasePrimitiveArrayCritical(a, jni_a, 0);
+	env->ReleasePrimitiveArrayCritical(a, jni_a, JNI_ABORT);
 	env->ReleasePrimitiveArrayCritical(s, jni_s, 0);
 	env->ReleasePrimitiveArrayCritical(u, jni_u, 0);
 	env->ReleasePrimitiveArrayCritical(vt, jni_vt, 0);
@@ -141,16 +145,18 @@ JNIEXPORT void JNICALL
 Java_ru_inhell_aida_acml_ACML_sgemm 
 	(JNIEnv *env, jobject calling_obj, jstring transa, jstring transb, jint m, jint n, jint k, jfloat alpha, jfloatArray a, jint lda, jfloatArray b, jint ldb, jfloat beta, jfloatArray c, jint ldc)
 {
-    char *jni_transa = (char *)env->GetStringUTFChars(transa, JNI_FALSE);
-    char *jni_transb = (char *)env->GetStringUTFChars(transb, JNI_FALSE);
+    jboolean isCopy = JNI_TRUE;
 
-    jfloat *jni_a = (jfloat *)env->GetPrimitiveArrayCritical(a, JNI_FALSE);
+    char *jni_transa = (char *)env->GetStringUTFChars(transa, &isCopy);
+    char *jni_transb = (char *)env->GetStringUTFChars(transb, &isCopy);
+
+    jfloat *jni_a = (jfloat *)env->GetPrimitiveArrayCritical(a, &isCopy);
 	check_memory(env, jni_a);
 
-	jfloat *jni_b = (jfloat *)env->GetPrimitiveArrayCritical(b, JNI_FALSE);
+	jfloat *jni_b = (jfloat *)env->GetPrimitiveArrayCritical(b, &isCopy);
 	check_memory(env, jni_b);
 
-	jfloat *jni_c = (jfloat *)env->GetPrimitiveArrayCritical(c, JNI_FALSE);
+	jfloat *jni_c = (jfloat *)env->GetPrimitiveArrayCritical(c, &isCopy);
 	check_memory(env, jni_c);
 
 	//MP
@@ -162,8 +168,8 @@ Java_ru_inhell_aida_acml_ACML_sgemm
 
 	env->ReleaseStringUTFChars(transa, jni_transa);
 	env->ReleaseStringUTFChars(transb, jni_transb);
-	env->ReleasePrimitiveArrayCritical(a, jni_a, 0);
-	env->ReleasePrimitiveArrayCritical(b, jni_b, 0);
+	env->ReleasePrimitiveArrayCritical(a, jni_a, JNI_ABORT);
+	env->ReleasePrimitiveArrayCritical(b, jni_b, JNI_ABORT);
 	env->ReleasePrimitiveArrayCritical(c, jni_c, 0);
 }
 
@@ -208,13 +214,16 @@ Java_ru_inhell_aida_acml_ACML_vssa
     (JNIEnv *env, jobject calling_obj, jint n, jint l, jint p, jintArray pp, jint m, jfloatArray timeseries,
         jfloatArray forecast, jint svd)
 	{
-	    jint *jni_pp = (jint *)env->GetPrimitiveArrayCritical(pp, JNI_FALSE);
+	    jboolean isCopy = JNI_TRUE;
+
+	    jint *jni_pp = (jint *)env->GetPrimitiveArrayCritical(pp, &isCopy);
 	    check_memory(env, jni_pp);
 
-	    jfloat *jni_timeseries = (jfloat *)env->GetPrimitiveArrayCritical(timeseries, JNI_FALSE);
+
+	    jfloat *jni_timeseries = (jfloat *)env->GetPrimitiveArrayCritical(timeseries, &isCopy);
 	    check_memory(env, jni_timeseries);
 
-	    jfloat *jni_forecast = (jfloat *)env->GetPrimitiveArrayCritical(forecast, JNI_FALSE);
+	    jfloat *jni_forecast = (jfloat *)env->GetPrimitiveArrayCritical(forecast, &isCopy);
 	    check_memory(env, jni_forecast);
 
 	    int k = n - l + 1;
@@ -241,7 +250,7 @@ Java_ru_inhell_aida_acml_ACML_vssa
 	    float *rxrt = new float[ld * ld];
 	    float *pr = new float[ld * ld];
 
-	    float *yd = new float[l-1)];
+	    float *yd = new float[l-1];
 	    float *zi = new float[l];
 
 	    for (int j = 0; j < k; ++j){
@@ -317,8 +326,8 @@ Java_ru_inhell_aida_acml_ACML_vssa
 
         diagonalAveraging(z, l, n + m, jni_forecast);
 
-        env->ReleasePrimitiveArrayCritical(pp, jni_pp, 0);
-        env->ReleasePrimitiveArrayCritical(timeseries, jni_timeseries, 0);
+        env->ReleasePrimitiveArrayCritical(pp, jni_pp, JNI_ABORT);
+        env->ReleasePrimitiveArrayCritical(timeseries, jni_timeseries, JNI_ABORT);
         env->ReleasePrimitiveArrayCritical(forecast, jni_forecast, 0);
 
         delete[] x;

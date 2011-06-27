@@ -94,6 +94,7 @@ public class BasicAnalysisSSA {
             time = System.currentTimeMillis();
         }
 
+        //todo changed X after jni
         if (RANDOM.nextBoolean()){
             ACML.jni().sgesvd("S", "S", L, K, r.X, L, r.S, r.U, L, r.VT, K, new int[1]);
         }else {

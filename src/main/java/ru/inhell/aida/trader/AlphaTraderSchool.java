@@ -49,7 +49,7 @@ public class AlphaTraderSchool {
     public static final DateFormat dateFormat = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.SHORT, SimpleDateFormat.SHORT);
 
     private final static int COUNT = 50000;
-    private final static int THREAD = 3;
+    private final static int THREAD = 5;
 
     static FileWriter fileWriter;
 
@@ -301,19 +301,19 @@ public class AlphaTraderSchool {
     private static void fullSearch(){
         Random random = new Random();
 
-        ExecutorService executor = Executors.newFixedThreadPool(1);
+        ExecutorService executor = Executors.newFixedThreadPool(THREAD);
 
         int index = 0;
 
         int n = 100;
 
 //        for (int n = 512; n < 513; n += 10) {
-            for (int l = 5; l < n; ++l) {
+            for (int l = 22; l < n; ++l) {
                 for (int p = 1; p < l; ++p) {
-                    for (int mi = 4; mi < l; mi++) {
+                    for (int mi = 3; mi <= 3; mi++) {
 //                        for (float f=0.001f ;f < 0.01f; f += 0.001f) {
-                            for (int t = 5; t < 8; ++t) {
-                                executor.execute(getFullSearch((++index)%THREAD, n, l, p, mi, 0.002f, t));
+                            for (int t = 4; t <= 4; ++t) {
+                                executor.execute(getFullSearch((++index)%THREAD, n, l, p, mi, 1.002f, t));
                             }
 //                        }
                     }
@@ -329,7 +329,7 @@ public class AlphaTraderSchool {
 
             @Override
             public void run() {
-                study2(threadNum, "", "GZM1", "GZM1", n, l, p, null, mi + 1, true, true, f, false, 3, false, false, 0, t, mi, 2);
+                study2(threadNum, "", "GZM1", "GZM1", n, l, p, null, mi + 1, true, true, f, false, 3, false, false, 0, t, mi, 4);
             }
         };
     }
@@ -746,6 +746,9 @@ public class AlphaTraderSchool {
             case 3: return VectorForecastUtil.isMin(forecast, n, m)
                     || VectorForecastUtil.isMin(forecast, n - 1, m)
                     || VectorForecastUtil.isMin(forecast, n + 1, m);
+            case 4: return VectorForecastUtil.isMin(forecast, n-1, m)
+                    || VectorForecastUtil.isMin(forecast, n-2, m)
+                    || VectorForecastUtil.isMin(forecast, n-3, m);
         }
 
         throw new IllegalArgumentException();

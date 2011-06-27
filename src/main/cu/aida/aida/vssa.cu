@@ -5,6 +5,7 @@
 #include <cuda_runtime.h>
 #include <cublas_v2.h>
 #include <culapackdevice.h>
+#include <culablasdevice.h>
 
 void checkStatus(culaStatus status)
 {
@@ -89,37 +90,50 @@ __global__ void transposeMatrixFast(float* inputMatrix, float* outputMatrix, int
 __global__ void vector_add(const float *A, const float *B, float *C, int N)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
-
+	
     if (i < N){
-        C[i] = A[i] + B[i];
+        C[i] = A[i] + B[i];		 
     }
 }
 
-__global__ void calc_pi(float *pi, float *u, float *r, float *vd, float *v2, int l, int m){
-	int i = blockDim.x * blockIdx.x + threadIdx.x;
+//pi[i] = u[l-1 + i*l];
+__global__ void calc_pi(float *u, float *v2, int l, int m){
+	float v2_local = 0;
 
-	if (i < m){
-		pi[i] = u[l-1 + i*l];
-	    v2 += pi[i] * pi[i];
+	if (blockIdx.x == 0 && threadIdx.x == 0){
+		for (int i = 0; i < m; i++){			
+			v2_local += u[l-1 + i*l] * u[l-1 + i*l];
+		}
+
+		v2[0] = v2_local;		
 	}
 }
 
-__global__ void calc_r(float *pi, float *r, float *ra, float *vd, int ld, int m){
-    int i = blockDim.x * blockIdx.x + threadIdx.x;
-    int j = blockDim.y * blockIdx.y + threadIdx.y;
+__global__ void calc_r(float *vd, float *u, float *r, float *ra, float *v2, int ld, int m){
+    int j = blockDim.x * blockIdx.x + threadIdx.x;
 
-    if (i < m && j < ld){
-        ra[i] += vd[j + i*ld] * pi[i];
-        r[j] += ra[i] / (1-v2); //todo +=
+	float r_local = 0;
+
+	if (j < ld){
+		for (int i = 0; i < m; ++i){        
+            r_local += vd[j + i*ld] * u[ld + i*(ld+1)];
+        }
+
+		r[j] = r_local;
+		ra[j] = r_local/(1-v2[0]);
     }
 }
 
 __global__ void calc_zi(float *zi, float *r, float *yd, int ld){
-    int i = blockDim.x * blockIdx.x + threadIdx.x;
+	if (blockIdx.x == 0 && threadIdx.x == 0){
+		float zi_local = 0;
 
-    if (i < ld){
-        zi[ld] += r[j] * yd[j];
-    }
+		for (int i = 0; i < ld; ++i){
+			zi_local += r[i] * yd[i];
+		}
+
+		zi[ld] = zi_local;
+	}
 }
 
 __device__ float getSum(float *y, int rows, int cols, int first, int last, int k){
@@ -132,23 +146,43 @@ __device__ float getSum(float *y, int rows, int cols, int first, int last, int k
     return sum;
 }
 
-__global__ void diagonalAveraging(float *z, int rows, int cols, float *g, int begin_pos){
+__global__ void diagonalAveraging(float *y, int rows, int cols, float *g, int begin){
     int i = blockDim.x * blockIdx.x + threadIdx.x;
 
-    int l1 = l;
+    int l1 = rows;
     int k1 = cols;
     int n = l1 + k1 - 1;
 
-    if (k < l1 - 1){
-        g[begin + k] = getSum(y, rows, cols, 1, k + 1, k) / (k + 1);
-    }else if (k >= l1 - 1 && k < k1){
-        g[begin + k] = getSum(y, rows, cols, 1, l1, k) / l1;
-    }else if (k >= k1 && k < n){
-        g[begin + k] = getSum(y, rows, cols, k - k1 + 2, n - k1 + 1, k) / (n - k);
+    if (i < l1 - 1){
+        g[begin + i] = getSum(y, rows, cols, 1, i + 1, i) / (i + 1);
+    }else if (i >= l1 - 1 && i < k1){
+        g[begin + i] = getSum(y, rows, cols, 1, l1, i) / l1;
+    }else if (i >= k1 && i < n){
+        g[begin + i] = getSum(y, rows, cols, i - k1 + 2, n - k1 + 1, i) / (n - i);
     }
 }
 
-void vssa(int n, int l, int p, int* pp, int m, float* timeseries, float* forecast, int count){
+void printArray(float *a, int size){
+	printf("\n");
+
+	for (int i=0; i < size; ++i){
+		printf("%10.4f",  a[i]);
+		
+		if ((i+1)%16==0) printf("\n");
+	}
+
+	printf("\n");
+}
+
+void d_printArray(float *d_a, int size){
+	float *a = (float *)malloc(size * sizeof(float));
+
+	cudaMemcpy(a, d_a, size * sizeof(float), cudaMemcpyDeviceToHost);
+
+	printArray(a, size);
+}
+
+extern "C" __declspec(dllexport) void vssa(int n, int l, int p, int* pp, int m, float* timeseries, float* forecast, int count){
 	cudaError_t err;
     culaStatus status;
 	cublasStatus_t stat ;
@@ -164,9 +198,9 @@ void vssa(int n, int l, int p, int* pp, int m, float* timeseries, float* forecas
 	err = cudaMalloc(&d_timeseries, (n+count)*sizeof(float));
 	checkCudaError(err);
 
-	err = cudaMemcpy(d_timeseries, timeseries, (n+count)*sizeof(float), cudaMemcpyHostToDevice);
+	err = cudaMemcpy(d_timeseries, timeseries, (n+count-1)*sizeof(float), cudaMemcpyHostToDevice);
 	checkCudaError(err);
-
+	
 	//Init and copy forecast 
 	float* d_forecast;
 	
@@ -189,6 +223,8 @@ void vssa(int n, int l, int p, int* pp, int m, float* timeseries, float* forecas
 	float *s;
 	err = cudaMalloc(&s, l*sizeof(float));
 	checkCudaError(err);
+
+	float *s_h = (float *)malloc(l*sizeof(float));	
 
 	float *u;
 	err = cudaMalloc(&u, l*l*sizeof(float));
@@ -215,7 +251,7 @@ void vssa(int n, int l, int p, int* pp, int m, float* timeseries, float* forecas
 	checkCudaError(err);
 
 	float *xii;
-	err = cudaMalloc(&xii, l*sizeof(float));
+	err = cudaMalloc(&xii, l*k*sizeof(float));
 	checkCudaError(err);
 
 	float *pi;
@@ -261,14 +297,17 @@ void vssa(int n, int l, int p, int* pp, int m, float* timeseries, float* forecas
 	float *yd;
 	err = cudaMalloc(&yd, ld*sizeof(float));
 	checkCudaError(err);
-
+	
 	int threads_x = BLOCK_ROWS*BLOCK_ROWS;
-	int grid_m = m/threads_x;
-	int grid_ld = ld/threads_x;
-	int grid_ld2 = ld*ld/threads_x;
-	int grid_lk = l*k/threads_x;
-	int grid_f_size = f_size/threads_x;
-	dim3 grid_m_ld(m/BLOCK_ROWS, ld/BLOCK_ROWS);
+		
+	int grid_m = (m + threads_x - 1)/threads_x;
+	int grid_ld = (ld + threads_x - 1)/threads_x;
+	int grid_ld2 = (ld*ld + threads_x - 1)/threads_x;
+	int grid_l_k = (l*k + threads_x - 1)/threads_x;
+	int grid_f_size = (f_size + threads_x - 1)/threads_x;
+
+	dim3 grid_k_k((k + BLOCK_ROWS - 1) / BLOCK_ROWS, (k + BLOCK_ROWS - 1) / BLOCK_ROWS, 1);		
+	dim3 grid_m_ld((m + BLOCK_ROWS - 1)/BLOCK_ROWS, (ld + BLOCK_ROWS - 1)/BLOCK_ROWS);
     dim3 threads_x_y(BLOCK_ROWS, BLOCK_ROWS);
 
 	//Execute vssa for count points
@@ -277,83 +316,86 @@ void vssa(int n, int l, int p, int* pp, int m, float* timeseries, float* forecas
 		for (int j = 0; j < k; ++j){
 			err = cudaMemcpy(x + j*l, d_timeseries + (j + index), l * sizeof(float), cudaMemcpyDeviceToDevice);
 			checkCudaError(err);
-        }
-
+        }	
+		
 		//Execute SVD
 		status = culaDeviceSgesvd('S', 'S', l, k, x, l, s, u, l, vt, k); //todo S vs A
         checkStatus(status);
 
-		dim3 grid(k / BLOCK_ROWS, k / BLOCK_ROWS, 1);
-		dim3 threads(BLOCK_ROWS, BLOCK_ROWS, 1);
-		transposeMatrixFast<<<grid, threads>>>(v, vt, k, k);
-
+		//copy s to host
+		err = cudaMemcpy(s_h, s, l * sizeof(float), cudaMemcpyDeviceToHost);
+		checkStatus(status);		
+						
+		transposeMatrixFast<<<grid_k_k, threads_x_y>>>(vt, v, k, k);
+		cudaDeviceSynchronize();
+				
 		//Init Xi
 		err = cudaMemset(xi, 0, l*k*sizeof(float));
 		checkCudaError(err);
-
+		
+		//Alpha and beta const
+		const float alpha_one = 1.0f;
+		const float beta_zero = 0.0f;	
+		
 		for (int ii=0; ii < p; ++ii){
             int i = pp[ii];
 
             err = cudaMemcpy(ui, u + i*l, l * sizeof(float), cudaMemcpyDeviceToDevice);
 			checkCudaError(err);
 						
-			err = cudaMemcpy(vi, vt + i*k, k * sizeof(float), cudaMemcpyDeviceToDevice);
+			err = cudaMemcpy(vi, v + i*k, k * sizeof(float), cudaMemcpyDeviceToDevice);
 			checkCudaError(err);
+												
+            stat = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_T, l, k, 1, &s_h[i], ui, l, vi, k, &beta_zero, xii, l); //todo v vs vt			
+            checkCublasStatus(stat);			
 			
-            stat = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_T, l, k, 1, &s[i], ui, l, vi, k, 0, xii, l); //todo v vs vt
-            checkCublasStatus(stat);
-
-			vector_add<<<grid_l_k, threads_x>>>(xi, xii, xi, l*k); //todo xi+=
-        }
+			vector_add<<<grid_l_k, threads_x>>>(xi, xii, xi, l*k);
+			cudaDeviceSynchronize();						
+        }		
 
 		//Calculate Pr matrix
-		err = cudaMemset(v2, 0, sizeof(float));
-		checkCudaError(err);
-
-		err = cudaMemset(r, 0, ld*sizeof(float));
-		checkCudaError(err);
-
 		for (int i=0; i < m; ++i){
 			err = cudaMemcpy(vd + i*ld, u + i*l, ld * sizeof(float), cudaMemcpyDeviceToDevice);
 			checkCudaError(err);
 		}
-
-		calc_pi<<<grid_m, threads_x>>>(pi, u, r, vd, v2, l, m);
-
-		calc_r<<<grid_m_ld, threads_x_y>>>(pi, r, ra, vd, v2, ld, m);
-
-        stat = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_T, ld, ld, m, 1, vd, ld, vd, ld, 0, vdxvdt, ld);
+		
+		calc_pi<<<grid_m, threads_x>>>(u, v2, l, m);
+		cudaDeviceSynchronize();
+		
+		calc_r<<<grid_ld, threads_x>>>(vd, u, r, ra, v2, ld, m);
+		cudaDeviceSynchronize();
+				
+        stat = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_T, ld, ld, m, &alpha_one, vd, ld, vd, ld, &beta_zero, vdxvdt, ld);
 		checkCublasStatus(stat);
 
-        stat = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, ld, ld, 1, 1, ra, ld, r, ld, 0, rxrt, ld);
+        stat = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_T, ld, ld, 1, &alpha_one, ra, ld, r, ld, &beta_zero, rxrt, ld);
 		checkCublasStatus(stat);
 
 		vector_add<<<grid_ld2, threads_x>>>(vdxvdt, rxrt, pr, ld*ld);
-
+		cudaDeviceSynchronize();
+		
 		//Calculate Z
-		err = cudaMemcpu(z, xi, (long)l*k*sizeof(float), cudaMemcpyDeviceToDevice);
+		err = cudaMemcpy(z, xi, l*k*sizeof(float), cudaMemcpyDeviceToDevice);
 		checkCudaError(err);
-
+								
 		for (int i = k; i < n + m; ++i){
-		    err = cudaMemcpy(yd, z + 1 + (i-1)*l, ld * sizeof(float), cudaMemcpyDeviceToDevice);
+		    err = cudaMemcpy(yd, z + (1 + (i-1)*l), ld * sizeof(float), cudaMemcpyDeviceToDevice);
 		    checkCudaError(err);
-
-		    err = cudaMemset(zi, 0, l*sizeof(float));
-		    checkCudaError(err);
-
-		    stat = cublasSgemm(CUBLAS_OP_N, CUBLAS_OP_N, ld, 1, ld, 1, pr, ld, yd, ld, 0, zi, ld);
-		    checkCublasStatus(stat);
-
-		    calc_zi<<<grid_ld, threads_x>>>(zi, r, yd, ld);
-
+			
+		    stat = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, ld, 1, ld, &alpha_one, pr, ld, yd, ld, &beta_zero, zi, ld);
+		    checkCublasStatus(stat);						
+			
+		    calc_zi<<<1, 1>>>(zi, ra, yd, ld);
+			cudaDeviceSynchronize();
+			
 		    err = cudaMemcpy(z + i*l, zi, l * sizeof(float), cudaMemcpyDeviceToDevice);
 		    checkCudaError(err);
 		}
-
+		
 		diagonalAveraging<<<grid_f_size, threads_x>>>(z, l, n + m, d_forecast, f_size*index);
 	}
 
-    err = cudaMemcpy(d_forecast, forecast, f_size*count*sizeof(float), cudaMemcpyDeviceToHost);
+    err = cudaMemcpy(forecast, d_forecast, f_size*count*sizeof(float), cudaMemcpyDeviceToHost);
     checkCudaError(err);
 
     cudaFree(d_timeseries);
@@ -381,6 +423,31 @@ void vssa(int n, int l, int p, int* pp, int m, float* timeseries, float* forecas
 
     cublasDestroy(handle);
     culaShutdown();
+}
+
+int main(int argc, char** argv){
+	printf("Hello Cuda 0!");
+
+	float *ts = new float[32];
+
+	for (int i = 0; i < 32; ++i){
+		ts[i] = i;
+	}
+
+	float f[32+8+2-1];
+
+	int n = 32;
+	int l = 8;	
+	int p = 2;
+	int pp[2] = {0,1};
+	int m = 2;
+	
+	vssa(n, l, p, pp, m, ts, f, 1);
+
+	printArray(f, 32+8+2-1);
+
+	printf("Hello Cuda 1!");
+	return 0;
 }
 
 
