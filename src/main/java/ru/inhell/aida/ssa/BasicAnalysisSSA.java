@@ -95,11 +95,11 @@ public class BasicAnalysisSSA {
         }
 
         //todo changed X after jni
-        if (RANDOM.nextBoolean()){
+//        if (RANDOM.nextBoolean()){
             ACML.jni().sgesvd("S", "S", L, K, r.X, L, r.S, r.U, L, r.VT, K, new int[1]);
-        }else {
-            ACML.jni().sgesdd("S", L, K, r.X, L, r.S, r.U, L, r.VT, K, new int[1]);
-        }
+//        }else {
+//            ACML.jni().sgesdd("S", L, K, r.X, L, r.S, r.U, L, r.VT, K, new int[1]);
+//        }
 
         if (timing){
             System.out.println("BasicAnalysisSSA.2 " + (System.currentTimeMillis() - time));

@@ -8,6 +8,8 @@ import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.time.*;
 import ru.inhell.aida.acml.ACML;
+import ru.inhell.aida.cuda.CUDA_AIDA;
+import ru.inhell.aida.cuda.CUDA_AIDA_THREAD;
 import ru.inhell.aida.cula.CULA;
 import ru.inhell.aida.entity.*;
 import ru.inhell.aida.inject.AidaInjector;
@@ -48,8 +50,9 @@ import java.util.regex.Pattern;
 public class AlphaTraderSchool {
     public static final DateFormat dateFormat = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.SHORT, SimpleDateFormat.SHORT);
 
-    private final static int COUNT = 50000;
-    private final static int THREAD = 5;
+    private final static int COUNT = 1000;
+    private final static int THREAD = 1;
+    private final static int BUFFER = 1;
 
     static FileWriter fileWriter;
 
@@ -305,20 +308,21 @@ public class AlphaTraderSchool {
 
         int index = 0;
 
-        int n = 100;
+        int n = 1024*5;
+        int l = n/2 + 1;
 
 //        for (int n = 512; n < 513; n += 10) {
-            for (int l = 22; l < n; ++l) {
-                for (int p = 1; p < l; ++p) {
-                    for (int mi = 3; mi <= 3; mi++) {
+//            for (int l = 1024; l < n/2; l += 1024) {
+                for (int p = 512; p > 128; --p) {
+                    for (int mi = 8; mi <= 8; mi++) {
 //                        for (float f=0.001f ;f < 0.01f; f += 0.001f) {
-                            for (int t = 4; t <= 4; ++t) {
+                            for (int t = 5; t <= 5; ++t) {
                                 executor.execute(getFullSearch((++index)%THREAD, n, l, p, mi, 1.002f, t));
                             }
 //                        }
                     }
                 }
-            }
+//            }
 //        }
     }
 
@@ -329,7 +333,8 @@ public class AlphaTraderSchool {
 
             @Override
             public void run() {
-                study2(threadNum, "", "GZM1", "GZM1", n, l, p, null, mi + 1, true, true, f, false, 3, false, false, 0, t, mi, 4);
+                study2(threadNum, "", "GZM1", "GZM1", n, l, p, null, mi + 1, true, true, f, false, 3, false, false, 0,
+                        t, mi, 1);
             }
         };
     }
@@ -477,8 +482,21 @@ public class AlphaTraderSchool {
         float[] allprices = average ? QuoteUtil.getAveragePrices(allQuotes) : QuoteUtil.getClosePrices(allQuotes);
 
         if (svd == 0) {
-            CULA.jni().vssa(n, l, p, pp, m, allprices, allforecast, COUNT);
+            CUDA_AIDA.INSTANCE.vssa(n, l, p, pp, m, allprices, allforecast, COUNT);
         }else if (svd == 1){
+            int buf = BUFFER;
+
+            float[] forecast = new float[f_size*buf];
+            float[] timeseries = new float[n+buf];
+
+            for (int i = 0; i < COUNT/buf; ++i){
+                System.arraycopy(allprices, i*buf, timeseries, 0, n+buf);
+
+                CUDA_AIDA.INSTANCE.vssa(n, l, p, pp, m, timeseries, forecast, buf);
+
+                System.arraycopy(forecast, 0, allforecast, i*buf*f_size, f_size*buf);
+            }
+        }else if (svd == 2){
             float[] forecast = new float[f_size];
             float[] timeseries = new float[n];
 

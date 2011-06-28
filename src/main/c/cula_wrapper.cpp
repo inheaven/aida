@@ -31,6 +31,7 @@ JNIEXPORT void JNICALL
 Java_ru_inhell_aida_cula_CULA_vssa
     (JNIEnv *env, jobject calling_obj, jint n, jint l, jint p, jintArray pp, jint m, jfloatArray timeseries,
         jfloatArray forecast, jint count){
+        jboolean isCopy = JNI_TRUE;
 
 	    culaStatus status;
 
@@ -39,16 +40,16 @@ Java_ru_inhell_aida_cula_CULA_vssa
 	    status = culaInitialize();
         checkStatus(status);
 
-	    jint *jni_pp = (jint *)env->GetPrimitiveArrayCritical(pp, JNI_FALSE);
+	    jint *jni_pp = (jint *)env->GetPrimitiveArrayCritical(pp, &isCopy);
 	    check_memory(env, jni_pp);
 
-	    jfloat *jni_timeseries = (jfloat *)env->GetPrimitiveArrayCritical(timeseries, JNI_FALSE);
+	    jfloat *jni_timeseries = (jfloat *)env->GetPrimitiveArrayCritical(timeseries, &isCopy);
 	    check_memory(env, jni_timeseries);
 
-	    jfloat *jni_forecast = (jfloat *)env->GetPrimitiveArrayCritical(forecast, JNI_FALSE);
+	    jfloat *jni_forecast = (jfloat *)env->GetPrimitiveArrayCritical(forecast, &isCopy);
 	    check_memory(env, jni_forecast);
 
-	    long k = (long)n -(long)l + 1;
+	    int k = n - l + 1;
 	    int ld = l - 1;
 	    int f_size = n + m + l - 1;
 
@@ -81,12 +82,12 @@ Java_ru_inhell_aida_cula_CULA_vssa
 
         for (int index = 0; index < count; ++index){
             for (int j = 0; j < k; ++j){
-                memcpy(x + j*l, jni_timeseries + (j + index), l * sizeof(jfloat));
+                memcpy(x + j*l, jni_timeseries + (j + index), l * sizeof(float));
             }
 
 //            t = getHighResolutionTime();
 
-            status = culaSgesvd('S', 'S', (long)l, k, x, (long)l, s, u, (long)l, vt, k);
+            status = culaSgesvd('S', 'S', l, k, x, l, s, u, l, vt, k);
             checkStatus(status);
 
 //            printf("1. %10.4f ", getHighResolutionTime() - t);
@@ -104,7 +105,7 @@ Java_ru_inhell_aida_cula_CULA_vssa
                     vi[j] = vt[i + j*k];
                 }
 
-                status = culaSgemm('N', 'T', (long)l, k, 1, s[i], ui, (long)l, vi, k, 0, xii, (long)l);
+                status = culaSgemm('N', 'T', l, k, 1, s[i], ui, l, vi, k, 0, xii, l);
                 checkStatus(status);
 
                 for (int j = 0; j < l*k; ++j){
@@ -119,9 +120,9 @@ Java_ru_inhell_aida_cula_CULA_vssa
             float v2 = 0;
 
             for (int i=0; i < m; ++i){
-                memcpy(vd + i*ld, u + i*l, (long)ld * sizeof(float));
+                memcpy(vd + i*ld, u + i*l, ld * sizeof(float));
                 pi[i] = u[l-1 + i*l];
-                v2 += pow(pi[i], 2);
+                v2 += pi[i]*pi[i];
             }
 
             memset(r, 0, ld*sizeof(float));
@@ -152,12 +153,12 @@ Java_ru_inhell_aida_cula_CULA_vssa
                 pr[i] = vdxvdt[i] + rxrt[i];
             }
 
-            memcpy(z, xi, (long)l*k*sizeof(float));
+            memcpy(z, xi, l*k*sizeof(float));
 
 //            t = getHighResolutionTime();
 
             for (int i = k; i < n + m; ++i){
-                memcpy(yd, z + 1 + (i-1)*l, (long)ld * sizeof(float));
+                memcpy(yd, z + (1 + (i-1)*l), ld * sizeof(float));
 
                 status = culaSgemm('N', 'N', ld, 1, ld, 1, pr, ld, yd, ld, 0, zi, ld);
                 checkStatus(status);
@@ -181,8 +182,8 @@ Java_ru_inhell_aida_cula_CULA_vssa
 
 //        t = getHighResolutionTime();
 
-        env->ReleasePrimitiveArrayCritical(pp, jni_pp, 0);
-        env->ReleasePrimitiveArrayCritical(timeseries, jni_timeseries, 0);
+        env->ReleasePrimitiveArrayCritical(pp, jni_pp, JNI_ABORT);
+        env->ReleasePrimitiveArrayCritical(timeseries, jni_timeseries, JNI_ABORT);
         env->ReleasePrimitiveArrayCritical(forecast, jni_forecast, 0);
 
 //        printf("7. %10.4f ", getHighResolutionTime()- t);

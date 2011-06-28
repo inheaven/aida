@@ -17,8 +17,9 @@ void checkStatus(culaStatus status)
     culaGetErrorInfoString(status, culaGetErrorInfo(), buf, sizeof(buf));
     printf("%s\n", buf);
 
-    //culaShutdown();
-    //exit(EXIT_FAILURE);
+    culaShutdown();
+	cudaDeviceReset();
+    exit(EXIT_FAILURE);
 }
 
 
@@ -29,8 +30,9 @@ void checkCudaError(cudaError_t err)
 
     printf("%s\n", cudaGetErrorString(err));
 
-    //culaShutdown();
-    //exit(EXIT_FAILURE);
+    culaShutdown();
+	cudaDeviceReset();
+    exit(EXIT_FAILURE);
 }
 
 void checkCublasStatus(cublasStatus_t stat)
@@ -38,14 +40,15 @@ void checkCublasStatus(cublasStatus_t stat)
 	if (stat != CUBLAS_STATUS_SUCCESS ) {
 		printf ( "CUBLAS Error \n" );
 
-		//culaShutdown();
-		//exit(EXIT_FAILURE);
+		culaShutdown();
+		cudaDeviceReset();
+		exit(EXIT_FAILURE);
 	}	    
 }
 
-#define TILE_DIM    16
 #define BLOCK_ROWS  16
 #define BLOCK_DIM 16
+#define THREADS_SIZE 256
 
 
 // Функция транспонирования матрицы c использования разделяемой памяти
@@ -188,6 +191,14 @@ extern "C" __declspec(dllexport) void vssa(int n, int l, int p, int* pp, int m, 
 	cublasStatus_t stat ;
 	cublasHandle_t handle ;
 
+	//Init Cublas
+	stat = cublasCreate(&handle);
+	checkCublasStatus(stat);
+
+	//Init CULA
+	status = culaInitialize();
+    checkStatus(status);
+
 	int f_size = n + m + l - 1; 
 	int k = n - l + 1;
 	int ld = l - 1;
@@ -198,22 +209,14 @@ extern "C" __declspec(dllexport) void vssa(int n, int l, int p, int* pp, int m, 
 	err = cudaMalloc(&d_timeseries, (n+count)*sizeof(float));
 	checkCudaError(err);
 
-	err = cudaMemcpy(d_timeseries, timeseries, (n+count-1)*sizeof(float), cudaMemcpyHostToDevice);
+	err = cudaMemcpyAsync(d_timeseries, timeseries, (n+count-1)*sizeof(float), cudaMemcpyHostToDevice);
 	checkCudaError(err);
 	
 	//Init and copy forecast 
 	float* d_forecast;
 	
 	err = cudaMalloc(&d_forecast, f_size*count*sizeof(float));
-	checkCudaError(err);
-
-	//Init Cublas
-	stat = cublasCreate(&handle);
-	checkCublasStatus(stat);
-
-	//Init CULA
-	status = culaInitialize();
-    checkStatus(status);
+	checkCudaError(err);	
 	
 	//Init local variable
 	float* x;
@@ -298,7 +301,7 @@ extern "C" __declspec(dllexport) void vssa(int n, int l, int p, int* pp, int m, 
 	err = cudaMalloc(&yd, ld*sizeof(float));
 	checkCudaError(err);
 	
-	int threads_x = BLOCK_ROWS*BLOCK_ROWS;
+	int threads_x = THREADS_SIZE;
 		
 	int grid_m = (m + threads_x - 1)/threads_x;
 	int grid_ld = (ld + threads_x - 1)/threads_x;
@@ -314,23 +317,23 @@ extern "C" __declspec(dllexport) void vssa(int n, int l, int p, int* pp, int m, 
 	for (int index = 0; index < count; ++index){
 		//Populate trajectory matrix
 		for (int j = 0; j < k; ++j){
-			err = cudaMemcpy(x + j*l, d_timeseries + (j + index), l * sizeof(float), cudaMemcpyDeviceToDevice);
+			err = cudaMemcpyAsync(x + j*l, d_timeseries + (j + index), l * sizeof(float), cudaMemcpyDeviceToDevice);
 			checkCudaError(err);
         }	
 		
 		//Execute SVD
-		status = culaDeviceSgesvd('S', 'S', l, k, x, l, s, u, l, vt, k); //todo S vs A
+		status = culaDeviceSgesvd('A', 'S', l, k, x, l, s, u, l, vt, k); //todo S vs A
         checkStatus(status);
 
 		//copy s to host
-		err = cudaMemcpy(s_h, s, l * sizeof(float), cudaMemcpyDeviceToHost);
+		err = cudaMemcpyAsync(s_h, s, l * sizeof(float), cudaMemcpyDeviceToHost);
 		checkStatus(status);		
 						
 		transposeMatrixFast<<<grid_k_k, threads_x_y>>>(vt, v, k, k);
-		cudaDeviceSynchronize();
+		//cudaDeviceSynchronize();
 				
 		//Init Xi
-		err = cudaMemset(xi, 0, l*k*sizeof(float));
+		err = cudaMemsetAsync(xi, 0, l*k*sizeof(float));
 		checkCudaError(err);
 		
 		//Alpha and beta const
@@ -340,31 +343,31 @@ extern "C" __declspec(dllexport) void vssa(int n, int l, int p, int* pp, int m, 
 		for (int ii=0; ii < p; ++ii){
             int i = pp[ii];
 
-            err = cudaMemcpy(ui, u + i*l, l * sizeof(float), cudaMemcpyDeviceToDevice);
+            err = cudaMemcpyAsync(ui, u + i*l, l * sizeof(float), cudaMemcpyDeviceToDevice);
 			checkCudaError(err);
 						
-			err = cudaMemcpy(vi, v + i*k, k * sizeof(float), cudaMemcpyDeviceToDevice);
+			err = cudaMemcpyAsync(vi, v + i*k, k * sizeof(float), cudaMemcpyDeviceToDevice);
 			checkCudaError(err);
 												
             stat = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_T, l, k, 1, &s_h[i], ui, l, vi, k, &beta_zero, xii, l); //todo v vs vt			
             checkCublasStatus(stat);			
 			
 			vector_add<<<grid_l_k, threads_x>>>(xi, xii, xi, l*k);
-			cudaDeviceSynchronize();						
+			//cudaDeviceSynchronize();			
         }		
 
 		//Calculate Pr matrix
 		for (int i=0; i < m; ++i){
-			err = cudaMemcpy(vd + i*ld, u + i*l, ld * sizeof(float), cudaMemcpyDeviceToDevice);
+			err = cudaMemcpyAsync(vd + i*ld, u + i*l, ld * sizeof(float), cudaMemcpyDeviceToDevice);
 			checkCudaError(err);
 		}
 		
 		calc_pi<<<grid_m, threads_x>>>(u, v2, l, m);
-		cudaDeviceSynchronize();
-		
-		calc_r<<<grid_ld, threads_x>>>(vd, u, r, ra, v2, ld, m);
-		cudaDeviceSynchronize();
+		//cudaDeviceSynchronize();
 				
+		calc_r<<<grid_ld, threads_x>>>(vd, u, r, ra, v2, ld, m);
+		//cudaDeviceSynchronize();
+						
         stat = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_T, ld, ld, m, &alpha_one, vd, ld, vd, ld, &beta_zero, vdxvdt, ld);
 		checkCublasStatus(stat);
 
@@ -372,31 +375,31 @@ extern "C" __declspec(dllexport) void vssa(int n, int l, int p, int* pp, int m, 
 		checkCublasStatus(stat);
 
 		vector_add<<<grid_ld2, threads_x>>>(vdxvdt, rxrt, pr, ld*ld);
-		cudaDeviceSynchronize();
+		//cudaDeviceSynchronize();
 		
 		//Calculate Z
-		err = cudaMemcpy(z, xi, l*k*sizeof(float), cudaMemcpyDeviceToDevice);
+		err = cudaMemcpyAsync(z, xi, l*k*sizeof(float), cudaMemcpyDeviceToDevice);
 		checkCudaError(err);
 								
 		for (int i = k; i < n + m; ++i){
-		    err = cudaMemcpy(yd, z + (1 + (i-1)*l), ld * sizeof(float), cudaMemcpyDeviceToDevice);
+		    err = cudaMemcpyAsync(yd, z + (1 + (i-1)*l), ld * sizeof(float), cudaMemcpyDeviceToDevice);
 		    checkCudaError(err);
 			
 		    stat = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, ld, 1, ld, &alpha_one, pr, ld, yd, ld, &beta_zero, zi, ld);
 		    checkCublasStatus(stat);						
 			
 		    calc_zi<<<1, 1>>>(zi, ra, yd, ld);
-			cudaDeviceSynchronize();
+			//cudaDeviceSynchronize();
 			
 		    err = cudaMemcpy(z + i*l, zi, l * sizeof(float), cudaMemcpyDeviceToDevice);
 		    checkCudaError(err);
 		}
 		
-		diagonalAveraging<<<grid_f_size, threads_x>>>(z, l, n + m, d_forecast, f_size*index);
-	}
+		diagonalAveraging<<<grid_f_size, threads_x>>>(z, l, n + m, d_forecast, f_size*index);				
+	}   
 
-    err = cudaMemcpy(forecast, d_forecast, f_size*count*sizeof(float), cudaMemcpyDeviceToHost);
-    checkCudaError(err);
+	err = cudaMemcpy(forecast, d_forecast, count*f_size*sizeof(float), cudaMemcpyDeviceToHost);
+	checkCudaError(err);
 
     cudaFree(d_timeseries);
     cudaFree(d_forecast);
