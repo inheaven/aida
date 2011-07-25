@@ -3,6 +3,7 @@ package ru.inhell.aida.test;
 import ru.inhell.aida.acml.ACML;
 import ru.inhell.aida.cuda.CUDA_AIDA;
 import ru.inhell.aida.cuda.CUDA_AIDA_THREAD;
+import ru.inhell.aida.ssa.BasicAnalysisSSA;
 import ru.inhell.aida.ssa.VectorForecastSSA;
 
 import java.util.Random;
@@ -20,24 +21,25 @@ public class CudaDebug {
     public static void main(String... args) throws ExecutionException, InterruptedException {
         Random random = new Random();
 
-        int n = 1024*2;
-        int count = 10;
+        int n = 1024*3-1;
+        int count = 4;
 
         float[] ts = new float[n + count];
 
         for (int i = 0; i < n; ++i){
             ts[i] = random.nextInt(200);
+//            ts[i] = n;
         }
 
-        int l = n/4 + 1;
-        int p = l/4;
+        int l = n/2;
+        int p = l-1;
         int[] pp = new int[p];
 
         for (int i=0; i<p; ++i){
             pp[i] = i;
         }
 
-        int m = 32;
+        int m = 2;
 
         int f_size = n+l+m-1;
 
@@ -46,21 +48,36 @@ public class CudaDebug {
         float[] f3 = new float[f_size*count];
         float[] f4 = new float[f_size*count];
         float[] f5 = new float[f_size*count];
+        float[] f6 = new float[f_size*count];
 
         ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(5);
 
-        //JAVA
         long time = System.currentTimeMillis();
-        VectorForecastSSA vectorForecastSSA = new VectorForecastSSA(n ,l, p, pp, m);
+
+        //JAVA
+//        VectorForecastSSA vectorForecastSSA = new VectorForecastSSA(n ,l, p, pp, m);
+//        done.set(0);
+//        for (int i=0; i < count; ++i) {
+//            executor.execute(getJava(ts, f_size, f1, vectorForecastSSA, i));
+//        }
+//        while (done.get() < count){
+//            Thread.sleep(10);
+//        }
+//
+//        System.out.println("JAVA: " + (System.currentTimeMillis() - time));
+
+        //SYEV
+        time = System.currentTimeMillis();
+        VectorForecastSSA v2 = new VectorForecastSSA(n ,l, p, pp, m, BasicAnalysisSSA.TYPE.SSYEV);
         done.set(0);
         for (int i=0; i < count; ++i) {
-            executor.execute(getJava(ts, f_size, f1, vectorForecastSSA, i));
+            executor.execute(getJava(ts, f_size, f6, v2, i));
         }
         while (done.get() < count){
             Thread.sleep(10);
         }
 
-        System.out.println("JAVA: " + (System.currentTimeMillis() - time));
+        System.out.println("JAVA SYEV: " + (System.currentTimeMillis() - time));
 
         //C ACML
 //        time = System.currentTimeMillis();
@@ -74,16 +91,16 @@ public class CudaDebug {
 //        System.out.println("ACML: " + (System.currentTimeMillis() - time));
 
         //C ACML DD
-//        time = System.currentTimeMillis();
-//        done.set(0);
-//        for (int i=0; i < count; ++i) {
-//            executor.execute(getC_DD(n, ts, l, p, pp, m, f_size, f5, i));
-//        }
-//        while (done.get() < count){
-//            Thread.sleep(10);
-//        }
-//        System.out.println("ACML_DD: " + (System.currentTimeMillis() - time));
-
+        time = System.currentTimeMillis();
+        done.set(0);
+        for (int i=0; i < count; ++i) {
+            executor.execute(getC_DD(n, ts, l, p, pp, m, f_size, f5, i));
+        }
+        while (done.get() < count){
+            Thread.sleep(10);
+        }
+        System.out.println("ACML_DD: " + (System.currentTimeMillis() - time));
+//
         ScheduledThreadPoolExecutor executor2 = new ScheduledThreadPoolExecutor(10);
 
         //CUDAx1
@@ -102,12 +119,21 @@ public class CudaDebug {
         executor2.shutdown();
 
         //CUDA+
-        time = System.currentTimeMillis();
-        CUDA_AIDA.INSTANCE.vssa(n, l, p, pp, m, ts, f4, count);
-        System.out.println("CUDA: " + (System.currentTimeMillis() - time));
+//        time = System.currentTimeMillis();
+//        CUDA_AIDA_THREAD.get().vssa(n, l, p, pp, m, ts, f4, count);
+//        System.out.println("CUDA: " + (System.currentTimeMillis() - time));
 
         //check
         boolean check;
+
+        check = true;
+        for (int i=0; i < f_size*count; ++i){
+            if (f1[i] - f6[i] > 1){
+                check = false;
+                break;
+            }
+        }
+        System.out.println("JAVA-SYEV Cheked:" + check);
 
         check = true;
         for (int i=0; i < f_size*count; ++i){
@@ -154,7 +180,7 @@ public class CudaDebug {
                     float[] f_temp = new float[f_size];
                     float[] ts_temp = new float[n];
                     System.arraycopy(ts, i, ts_temp, 0, n);
-                    CUDA_AIDA.INSTANCE.vssa(n, l, p, pp, m, ts_temp, f_temp, 1);
+                    CUDA_AIDA_THREAD.get().vssa(n, l, p, pp, m, ts_temp, f_temp, 1);
                     System.arraycopy(f_temp, 0, f3, i*f_size, f_size);
                     done.incrementAndGet();
                 } catch (Throwable e) {

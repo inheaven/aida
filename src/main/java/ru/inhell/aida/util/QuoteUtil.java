@@ -21,6 +21,30 @@ public class QuoteUtil {
         return prices;
     }
 
+    public static float[] getLowPrices(List<Quote> quotes){
+        int size = quotes.size();
+
+        float[] prices = new float[size];
+
+        for (int i = 0; i < quotes.size(); ++i){
+            prices[i] = quotes.get(i).getLow();
+        }
+
+        return prices;
+    }
+
+    public static float[] getHighPrices(List<Quote> quotes){
+        int size = quotes.size();
+
+        float[] prices = new float[size];
+
+        for (int i = 0; i < quotes.size(); ++i){
+            prices[i] = quotes.get(i).getHigh();
+        }
+
+        return prices;
+    }
+
     public static float[] getAveragePrices(List<Quote> quotes){
         int size = quotes.size();
 

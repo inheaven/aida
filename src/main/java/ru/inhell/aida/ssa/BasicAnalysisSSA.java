@@ -3,7 +3,9 @@ package ru.inhell.aida.ssa;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inhell.aida.acml.ACML;
+import ru.inhell.aida.acml.ACML_DLL;
 
+import java.sql.Array;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -13,6 +15,8 @@ import java.util.Random;
  */
 public class BasicAnalysisSSA {
     private static final Logger log = LoggerFactory.getLogger(BasicAnalysisSSA.class);
+
+    public static enum TYPE{SSYEV, SGESDD, SGESVD}
 
     private final static boolean timing = false;
 
@@ -39,6 +43,9 @@ public class BasicAnalysisSSA {
     float[] Ui;
     float[] Vi;
     float[] Xi;
+    float[] XiXit;
+
+    private TYPE type;
 
     /**
      *
@@ -47,14 +54,15 @@ public class BasicAnalysisSSA {
      * @param P - Количество главных компонент
      */
     public BasicAnalysisSSA(int N, int L, int P) {
-        this(N, L, P, new int[0]);
+        this(N, L, P, new int[0], TYPE.SSYEV);
     }
 
-    public BasicAnalysisSSA(int N, int L, int P, int[] PP) {
+    public BasicAnalysisSSA(int N, int L, int P, int[] PP, TYPE type) {
         this.N = N;
         this.L = L;
         this.P = P;
         this.PP = PP;
+        this.type = type;
 
         if (PP.length == 0){
             this.PP = new int[P];
@@ -78,6 +86,7 @@ public class BasicAnalysisSSA {
         Ui = new float[L];
         Vi = new float[K];
         Xi = new float[L * K];
+        XiXit = new float[L*L];
     }
 
     private final static Random RANDOM = new Random();
@@ -94,12 +103,26 @@ public class BasicAnalysisSSA {
             time = System.currentTimeMillis();
         }
 
-        //todo changed X after jni
-//        if (RANDOM.nextBoolean()){
-            ACML.jni().sgesvd("S", "S", L, K, r.X, L, r.S, r.U, L, r.VT, K, new int[1]);
-//        }else {
-//            ACML.jni().sgesdd("S", L, K, r.X, L, r.S, r.U, L, r.VT, K, new int[1]);
-//        }
+        switch (type){
+            case SGESDD:
+                ACML.jni().sgesdd("S", L, K, r.X, L, r.S, r.U, L, r.VT, K, new int[1]);
+                break;
+            case SGESVD:
+                ACML.jni().sgesvd("S", "S", L, K, r.X, L, r.S, r.U, L, r.VT, K, new int[1]);
+                break;
+            case SSYEV:
+                ACML.jni().sgemm("N", "T", L, L, K, 1, r.X, L, r.X, L, 0, Xi, L);
+
+                ACML_DLL.ssyev('V', 'U', L, Xi, L, r.S, new int[1]);
+
+                System.arraycopy(Xi, 0, r.U, 0, L*L);
+
+                for(int i = 0; i < L; ++i){
+                    r.S[i] = r.S[i] > 0 ? (float) Math.sqrt(r.S[i]) : 0;
+                }
+
+                break;
+        }
 
         if (timing){
             System.out.println("BasicAnalysisSSA.2 " + (System.currentTimeMillis() - time));
@@ -111,8 +134,17 @@ public class BasicAnalysisSSA {
         //Восстановление по первым P компонентам
         for (int i : PP){
             System.arraycopy(r.U, L *i, Ui, 0, L);
-            for (int j = 0; j < K; ++j){
-                Vi[j] = r.VT[i + j*K];
+
+            if (type.equals(TYPE.SSYEV)) {
+                if (r.S[i] < 0){
+                    continue;
+                }
+
+                ACML.jni().sgemm("T", "N", L, 1, L, 1/r.S[i], r.X, L, Ui, L, 0, Vi, L);
+            } else {
+                for (int j = 0; j < K; ++j){
+                    Vi[j] = r.VT[i + j*K];
+                }
             }
 
             ACML.jni().sgemm("N", "T", L, K, 1, r.S[i], Ui, L, Vi, K, 0, Xi, L);

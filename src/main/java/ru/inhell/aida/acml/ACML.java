@@ -4,13 +4,13 @@ import org.slf4j.LoggerFactory;
 import ru.inhell.aida.netlib.BLAS;
 import ru.inhell.aida.netlib.LAPACK;
 
-import java.util.logging.Logger;
-
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
  *         Date: 15.11.10 17:32
  */
 public class ACML implements LAPACK, BLAS {
+    private final static org.slf4j.Logger log = LoggerFactory.getLogger(ACML.class);
+
     private static ACML instance;
 
     private boolean loaded;
@@ -28,7 +28,6 @@ public class ACML implements LAPACK, BLAS {
     }
 
     private ACML() {
-        org.slf4j.Logger log = LoggerFactory.getLogger(ACML.class);
 
         if (!loaded){
             try {

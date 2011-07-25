@@ -1,6 +1,5 @@
 package ru.inhell.aida.ssa;
 
-import org.apache.ibatis.logging.stdout.StdOutImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inhell.aida.acml.ACML;
@@ -19,6 +18,7 @@ public class VectorForecastSSA {
     private final int N;
     private final int L;
     private final int P;
+    private final int[] PP;
     private final int Ld;
     private final int M;
     private final int K;
@@ -40,6 +40,7 @@ public class VectorForecastSSA {
 
     private BasicAnalysisSSA basicAnalysis;
 
+
     /**
      *
      * @param N - длина временного интервала
@@ -48,19 +49,30 @@ public class VectorForecastSSA {
      * @param M - длина прогноза
      */
     public VectorForecastSSA(int N, int L, int P, int M) {
-        this(N, L, P, new int[0], M);
+        this(N, L, P, new int[0], M, BasicAnalysisSSA.TYPE.SGESVD);
     }
 
-    public VectorForecastSSA(int N, int L, int P, int[] PP, int M) {
+    public VectorForecastSSA(int N, int L, int P, int[] PP, int M){
+        this(N, L, P, PP, M, BasicAnalysisSSA.TYPE.SGESVD);
+    }
+
+    public VectorForecastSSA(int N, int L, int P, int[] PP, int M, BasicAnalysisSSA.TYPE type) {
         this.N = N;
         this.L = L;
         this.M = M;
+        this.PP = PP;
         this.P = P;
 
         Ld = L - 1;
         K = N - L + 1;
 
-        basicAnalysis = new BasicAnalysisSSA(N, L, P, PP);
+        if (PP.length > 0 && type.equals(BasicAnalysisSSA.TYPE.SSYEV)){
+            for (int i = 0; i < P; ++i){
+                PP[i] = L - PP[i] - 1;
+            }
+        }
+
+        basicAnalysis = new BasicAnalysisSSA(N, L, P, PP, type);
 
         Z = new float[L * (N + M)];
         R = new float[Ld];
@@ -127,6 +139,8 @@ public class VectorForecastSSA {
         float v2 = 0;
 
         for (int i = 0; i < M; ++i){
+//            int index = PP[i];
+
             System.arraycopy(ssa.U, i*L, VD, i*Ld, Ld);
             pi[i] = ssa.U[L-1 + i*L];
             v2 += Math.pow(pi[i], 2);

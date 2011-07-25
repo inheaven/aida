@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include <cuda_runtime.h>
 #include <cublas_v2.h>
@@ -15,7 +16,7 @@ void checkStatus(culaStatus status)
         return;
 
     culaGetErrorInfoString(status, culaGetErrorInfo(), buf, sizeof(buf));
-    printf("%s\n", buf);
+    printf("Cula error: %s\n", buf);
 
     culaShutdown();
 	cudaDeviceReset();
@@ -28,7 +29,7 @@ void checkCudaError(cudaError_t err)
     if(!err)
         return;
 
-    printf("%s\n", cudaGetErrorString(err));
+    printf("Cuda error: %s\n", cudaGetErrorString(err));
 
     culaShutdown();
 	cudaDeviceReset();
@@ -190,14 +191,10 @@ extern "C" __declspec(dllexport) void vssa(int n, int l, int p, int* pp, int m, 
     culaStatus status;
 	cublasStatus_t stat ;
 	cublasHandle_t handle ;
-
+		
 	//Init Cublas
 	stat = cublasCreate(&handle);
 	checkCublasStatus(stat);
-
-	//Init CULA
-	status = culaInitialize();
-    checkStatus(status);
 
 	int f_size = n + m + l - 1; 
 	int k = n - l + 1;
@@ -318,24 +315,27 @@ extern "C" __declspec(dllexport) void vssa(int n, int l, int p, int* pp, int m, 
 		//Populate trajectory matrix
 		for (int j = 0; j < k; ++j){
 			err = cudaMemcpyAsync(x + j*l, d_timeseries + (j + index), l * sizeof(float), cudaMemcpyDeviceToDevice);
-			checkCudaError(err);
+			//checkCudaError(err);
         }	
-		
+				
 		//Execute SVD
-		status = culaDeviceSgesvd('A', 'S', l, k, x, l, s, u, l, vt, k); //todo S vs A
+		status = culaInitialize();
+		checkStatus(status);
+		status = culaDeviceSgesvd('S', 'S', l, k, x, l, s, u, l, vt, k); //todo S vs A
         checkStatus(status);
+		culaShutdown();
 
 		//copy s to host
 		err = cudaMemcpyAsync(s_h, s, l * sizeof(float), cudaMemcpyDeviceToHost);
-		checkStatus(status);		
+		//checkStatus(status);		
 						
 		transposeMatrixFast<<<grid_k_k, threads_x_y>>>(vt, v, k, k);
 		//cudaDeviceSynchronize();
 				
 		//Init Xi
 		err = cudaMemsetAsync(xi, 0, l*k*sizeof(float));
-		checkCudaError(err);
-		
+		//checkCudaError(err);
+				
 		//Alpha and beta const
 		const float alpha_one = 1.0f;
 		const float beta_zero = 0.0f;	
@@ -344,11 +344,11 @@ extern "C" __declspec(dllexport) void vssa(int n, int l, int p, int* pp, int m, 
             int i = pp[ii];
 
             err = cudaMemcpyAsync(ui, u + i*l, l * sizeof(float), cudaMemcpyDeviceToDevice);
-			checkCudaError(err);
+			//checkCudaError(err);
 						
 			err = cudaMemcpyAsync(vi, v + i*k, k * sizeof(float), cudaMemcpyDeviceToDevice);
-			checkCudaError(err);
-												
+			//checkCudaError(err);
+															
             stat = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_T, l, k, 1, &s_h[i], ui, l, vi, k, &beta_zero, xii, l); //todo v vs vt			
             checkCublasStatus(stat);			
 			
@@ -359,9 +359,9 @@ extern "C" __declspec(dllexport) void vssa(int n, int l, int p, int* pp, int m, 
 		//Calculate Pr matrix
 		for (int i=0; i < m; ++i){
 			err = cudaMemcpyAsync(vd + i*ld, u + i*l, ld * sizeof(float), cudaMemcpyDeviceToDevice);
-			checkCudaError(err);
+			//checkCudaError(err);
 		}
-		
+				
 		calc_pi<<<grid_m, threads_x>>>(u, v2, l, m);
 		//cudaDeviceSynchronize();
 				
@@ -379,28 +379,34 @@ extern "C" __declspec(dllexport) void vssa(int n, int l, int p, int* pp, int m, 
 		
 		//Calculate Z
 		err = cudaMemcpyAsync(z, xi, l*k*sizeof(float), cudaMemcpyDeviceToDevice);
-		checkCudaError(err);
+		//checkCudaError(err);
 								
 		for (int i = k; i < n + m; ++i){
 		    err = cudaMemcpyAsync(yd, z + (1 + (i-1)*l), ld * sizeof(float), cudaMemcpyDeviceToDevice);
-		    checkCudaError(err);
+		    //checkCudaError(err);
 			
 		    stat = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, ld, 1, ld, &alpha_one, pr, ld, yd, ld, &beta_zero, zi, ld);
-		    checkCublasStatus(stat);						
+		    //checkCublasStatus(stat);						
 			
 		    calc_zi<<<1, 1>>>(zi, ra, yd, ld);
 			//cudaDeviceSynchronize();
-			
-		    err = cudaMemcpy(z + i*l, zi, l * sizeof(float), cudaMemcpyDeviceToDevice);
-		    checkCudaError(err);
+						
+		    err = cudaMemcpyAsync(z + i*l, zi, l * sizeof(float), cudaMemcpyDeviceToDevice);
+		    //checkCudaError(err);
 		}
 		
 		diagonalAveraging<<<grid_f_size, threads_x>>>(z, l, n + m, d_forecast, f_size*index);				
 	}   
 
+	cudaDeviceSynchronize();
+
 	err = cudaMemcpy(forecast, d_forecast, count*f_size*sizeof(float), cudaMemcpyDeviceToHost);
 	checkCudaError(err);
 
+	free(s_h);
+
+	cublasDestroy(handle);	
+	
     cudaFree(d_timeseries);
     cudaFree(d_forecast);
     cudaFree(x);
@@ -422,34 +428,41 @@ extern "C" __declspec(dllexport) void vssa(int n, int l, int p, int* pp, int m, 
     cudaFree(pr);
     cudaFree(z);
     cudaFree(zi);
-    cudaFree(yd);
-
-    cublasDestroy(handle);
-    culaShutdown();
+    cudaFree(yd);	
 }
 
+#define tn 4000
+#define tl 2000
+#define tp 16
+#define tm 32
+#define tc 2
+
 int main(int argc, char** argv){
-	printf("Hello Cuda 0!");
+	printf("start\n");	
 
-	float *ts = new float[32];
+	float *ts = new float[tn+tc];
 
-	for (int i = 0; i < 32; ++i){
+	for (int i = 0; i < tn+tc; ++i){
 		ts[i] = i;
 	}
 
-	float f[32+8+2-1];
+	float f[(tn+tl+tm-1)*tc];
 
-	int n = 32;
-	int l = 8;	
-	int p = 2;
-	int pp[2] = {0,1};
-	int m = 2;
+	int *pp = new int[tp];
+	for (int i = 0; i < tp; ++i){
+		pp[i] = i;
+	}
 	
-	vssa(n, l, p, pp, m, ts, f, 1);
+	time_t t1 = time (NULL);
 
-	printArray(f, 32+8+2-1);
+	vssa(tn, tl, tp, pp, tm, ts, f, tc);
 
-	printf("Hello Cuda 1!");
+	time_t t2 = time (NULL);
+
+	printf ("time: %ld \n", (t2-t1));		
+
+	printf("finish!");
+
 	return 0;
 }
 

@@ -11,13 +11,17 @@ import org.slf4j.LoggerFactory;
 public class CUDA_AIDA_THREAD {
     private final static Logger log = LoggerFactory.getLogger(CUDA_AIDA_THREAD.class);
 
-    private static ThreadLocal<CUDA_AIDA> instance = new ThreadLocal<>();
+    private static ThreadLocal<CUDA_AIDA_THREAD> instance = new ThreadLocal<CUDA_AIDA_THREAD>();
 
-    public static CUDA_AIDA get(){
-        CUDA_AIDA cuda = instance.get();
+    public CUDA_AIDA_THREAD() {
+        Native.register("cuda_aida");
+    }
+
+    public static CUDA_AIDA_THREAD get(){
+        CUDA_AIDA_THREAD cuda = instance.get();
 
         if (cuda == null){
-            cuda = (CUDA_AIDA) Native.loadLibrary("cuda_aida", CUDA_AIDA.class);
+            cuda = new CUDA_AIDA_THREAD();
 
             log.info("CUDA_AIDA library loaded successfully.");
 
@@ -26,4 +30,6 @@ public class CUDA_AIDA_THREAD {
 
         return cuda;
     }
+
+    public native void vssa(int n, int l, int p, int[] pp, int m, float[] timeseries, float[] forecast, int count);
 }

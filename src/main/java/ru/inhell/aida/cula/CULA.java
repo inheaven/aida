@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 public class CULA {
     private final static Logger log = LoggerFactory.getLogger(CULA.class);
 
-    private static ThreadLocal<CULA> instance = new ThreadLocal<>();
+    private static ThreadLocal<CULA> instance = new ThreadLocal<CULA>();
 
     private CULA() {
         try {
