@@ -230,4 +230,8 @@ public class VectorForecastSSA {
 
         return sum;
     }
+
+    public String getName(){
+        return N + "-" + L + "-" + P;
+    }
 }
