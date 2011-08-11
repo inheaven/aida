@@ -19,7 +19,7 @@ import java.util.Random;
 public class Chaos {
     private static final Random PSEUDO_RANDOM = new Random();
 
-    private static final int COUNT = 100000;
+    private static final int COUNT = 10000;
 
     public static void main(String... args){
         JFrame frame = new JFrame("Jaos");

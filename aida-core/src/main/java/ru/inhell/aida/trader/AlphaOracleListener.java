@@ -77,8 +77,8 @@ public class AlphaOracleListener implements IAlphaOracleListener {
         }
 
         //цена и код фьючерса
-        int currentFuturePrice = (int) currentBean.getCurrent(alphaTrader.getFutureSymbol()).getPrice();
-        int orderFuturePrice = (int) getOrderPrice(prediction, currentFuturePrice);
+        int currentFuturePrice = (int) currentBean.getCurrent(alphaTrader.getFutureSymbol()).getPrice()*1000;
+        int orderFuturePrice = (int) getOrderPrice(prediction, currentFuturePrice)*1000;
 
         //создаем транзакцию
         AlphaTraderData alphaTraderData = new AlphaTraderData(alphaTrader.getId(), DateUtil.nowMsk(),

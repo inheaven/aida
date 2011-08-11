@@ -34,7 +34,7 @@ public class QuikTest {
                         lpstrErrorMessage, 255);
 
                 System.out.println(code);
-                System.out.println(pnExtendedErrorCode.getValue());
+                System.out.println(pnExtendedErrorCode.toString());
                 System.out.println(Native.toString(lpstrErrorMessage));
             }
         });

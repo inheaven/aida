@@ -143,7 +143,7 @@ public class AlphaOracleChart extends JPanel{
                         }
                     }
 
-                    for (int i = 0; i < ao.getVectorForecast().getM()*2; ++i){
+                    for (int i = 0; i < ao.getVectorForecast().getM(); ++i){
                         Date d = alphaOracle.isFiveSecond()
                                 ? DateUtil.getFiveSecondIndexDate(p, i + 1)
                                 : DateUtil.getOneMinuteIndexDate(p, i+1);

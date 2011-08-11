@@ -29,11 +29,17 @@ import java.util.List;
 public class EurUsdOraclePage extends WebPage{
     final static QuotesBean quotesBean = AidaInjector.getInstance(QuotesBean.class);
 //    final static VectorForecastSSA vf1 = new VectorForecastSSA(512, 256, 8, 30);
-    final static VectorForecastSSA vf2 = new VectorForecastSSA(1023, 256, 8, 45);
-    final static VectorForecastSSA vf3 = new VectorForecastSSA(1023, 256, 64, 45);
+    final static VectorForecastSSA vf2 = new VectorForecastSSA(2400, 480, 8
+        , 120);
+    final static VectorForecastSSA vf3 = new VectorForecastSSA(2400, 480, 64, 120);
 
     final int width = 300;
-    final int delta = 45;
+    final int delta = 120;
+
+    final int size = 4800;
+    final int minutes = 5;
+
+    final int update = 5;
 
     public EurUsdOraclePage() {
         final WebMarkupContainer container = new WebMarkupContainer("container");
@@ -71,13 +77,11 @@ public class EurUsdOraclePage extends WebPage{
         final AidaFlotPanel flotPanel = new AidaFlotPanel("flot", model);
         flotPanel.setClickable(false);
 
-        container.add(new AjaxSelfUpdatingTimerBehavior(Duration.seconds(30)) {
+        container.add(new AjaxSelfUpdatingTimerBehavior(Duration.seconds(update)) {
 
 
             @Override
             protected void onPostProcessTarget(AjaxRequestTarget target) {
-                int size = 4096;
-                int minutes = 5;
 
                 List<Quote> allMinute = quotesBean.getQuotes("EDU1", size*minutes);
 

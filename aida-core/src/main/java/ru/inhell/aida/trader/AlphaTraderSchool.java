@@ -52,7 +52,7 @@ import java.util.regex.Pattern;
 public class AlphaTraderSchool {
     public static final DateFormat dateFormat = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.SHORT, SimpleDateFormat.SHORT);
 
-    private final static int COUNT = 7000;
+    private final static int COUNT = 5000;
     private final static int THREAD = 4;
     private final static int THREAD_GPU = 0;
     private final static int BUFFER = 1;
@@ -89,11 +89,11 @@ public class AlphaTraderSchool {
 
 
 
-        randomStudyAll();
+//        randomStudyAll();
 //
-//        fullSearch();
+        fullSearch();
 
-//        study2(0, "", "GZM1", "GZM1", 500, 50, 5, null, 5 + 1, true, true, 1.0012f, false, 3, false, false, 0, 5, 5, 3);
+//        study2(0, "", "EDU1", "EDU1", 520, 10, 4, null, 5, true, true, 1.001f, false, 3, false, false, 0, 10, 5, 2);
 
 //        for (int p = 2; p < 64; p++) {
 //            study2(0, "", "GZM1", "GZM1", 10240, 64, p, null, 5 + 1, true, true, 1.0012f, false, 3, false, false, 0, 5, 5, 0);
@@ -117,16 +117,16 @@ public class AlphaTraderSchool {
 
         long time = System.currentTimeMillis();
 
-        study2(0, "", "SBER03", "SBER03", n, l, p, null, m + 1, true, true, 1.0012f, false, 3, true, false, 0, 5, m, 0);
+        study2(0, "", "SBER03", "SBER03", n, l, p, null, m + 1, true, true, 1.0012f, false, 3, true, false, 0, 5, m, 0, 10);
 
         System.out.println("0: " + (System.currentTimeMillis() - time));
 
         time = System.currentTimeMillis();
-        study2(0, "", "SBER03", "SBER03", n, l, p, null, m + 1, true, true, 1.0012f, false, 3, true, false, 0, 5, m, 1);
+        study2(0, "", "SBER03", "SBER03", n, l, p, null, m + 1, true, true, 1.0012f, false, 3, true, false, 0, 5, m, 1, 10);
         System.out.println("1: " + (System.currentTimeMillis() - time));
 
         time = System.currentTimeMillis();
-        study2(0, "", "SBER03", "SBER03", n, l, p, null, m + 1, true, true, 1.0012f, false, 3, true, false, 0, 5, m, 2);
+        study2(0, "", "SBER03", "SBER03", n, l, p, null, m + 1, true, true, 1.0012f, false, 3, true, false, 0, 5, m, 2, 10);
         System.out.println("2: " + (System.currentTimeMillis() - time));
     }
 
@@ -138,7 +138,7 @@ public class AlphaTraderSchool {
 
             if (vf.getSymbol().equals("GAZP")) {
                 study2(0, vf.getId() + "", "GZM1", "GZM1", vf.getN(), vf.getL(), vf.getP(), new int[0], vf.getM(), true, true,
-                        alphaTrader.getAlphaOracle().getStopFactor(), false,1, false, false, 0, 10, vf.getM(), 0);
+                        alphaTrader.getAlphaOracle().getStopFactor(), false,1, false, false, 0, 10, vf.getM(), 0, 10);
             }
         }
     }
@@ -150,7 +150,7 @@ public class AlphaTraderSchool {
 
         for (AlphaOracleSchool aos : alphaOracleSchools){
             study2(0, "", "GZM1", "GZM1", aos.getN(), aos.getL(), aos.getP(), new int[0], aos.getM(), aos.isAverage(), true,
-                    aos.getStopFactor(), false, 1, false, false, 0, 10, aos.getM(), 0);
+                    aos.getStopFactor(), false, 1, false, false, 0, 10, aos.getM(), 0, 10);
         }
     }
 
@@ -311,33 +311,33 @@ public class AlphaTraderSchool {
 
         int index = 0;
 
-        int n = 1023;
+//        int n = 500;
 //        int l = (n+1)/2;
 
-//        for (int n = 231; n < 1023; n += 8) {
-            for (int l = (n+1)/2; l > 16; l /= 2) {
-                for (int p = l/2; p >= l/4; p--) {
-                    for (int mi = 5; mi <= 5; mi++) {
-                        for (float f=0.002f ;f <= 0.002f; f += 0.001f) {
-                            for (int t = 5; t <= 5; ++t) {
-                                executor.execute(getFullSearch((++index)%THREAD, n, l, p, mi, f, t));
+        for (int n = 200; n <= 1000; n+=10) {
+            for (int l = 10; l < 20; l++) {
+                for (int p = 2; p <= 8; p++) {
+                    for (int mi = 10; mi <= 10; mi++) {
+                        for (float f= 1.002f ; f <= 1.002f; f += 0.001f) {
+                            for (int ts = 15; ts <= 15; ts +=5) {
+                                executor.execute(getFullSearch((++index)%THREAD, n, l, p, mi, f, 5, ts));
                             }
                         }
                     }
                 }
-//            }
+            }
         }
     }
 
     private static Runnable getFullSearch(final int threadNum, final int n, final int l, final int p, final int mi,
-                                          final float f, final int t) {
+                                          final float f, final int t, final int ts) {
         return new Runnable() {
             Random random = new Random();
 
             @Override
             public void run() {
                 study2(threadNum, "", "EDU1", "EDU1", n, l, p, null, mi, true, true, f, false, 3, false, false, 0,
-                        t, mi+3, threadNum < THREAD_GPU ? 2 : 3);
+                        t, mi+3, threadNum < THREAD_GPU ? 2 : 2, ts);
             }
         };
     }
@@ -386,7 +386,7 @@ public class AlphaTraderSchool {
                             pp[i] = ppList.get(i);
                         }
 
-                        study2(random.nextInt(THREAD), "", "EDU1", "EDU1", n, l, pp.length, pp, m, true, true, s, false, 3, false, false, 0, t, m, 3);
+                        study2(random.nextInt(THREAD), "", "EDU1", "EDU1", n, l, pp.length, pp, m, true, true, s, false, 3, false, false, 0, t, m, 3, 10);
 
 //                        study2("", "GAZP", "GAZP", n, l, p, pp, m, true, true, s, anti, d);
 //                        if (random.nextBoolean()) study2("", "GZM1", "GZM1", n, l, p, pp, m, true, true, s, anti, d);
@@ -442,7 +442,7 @@ public class AlphaTraderSchool {
     static float minMoney = 0;
 
     private static void study2(int thread, String prefix, String symbol, String future, int n, int l, int p, int[] pp, int m, boolean average,
-                               boolean useStop, float stopFactor, boolean anti, int d, boolean fiveSec, boolean useMA, int ma, int t, int md, int svd)
+                               boolean useStop, float stopFactor, boolean anti, int d, boolean fiveSec, boolean useMA, int ma, int t, int md, int svd, int ts)
             throws RemoteVSSAException {
         if (pp == null || pp.length < 1){
             pp = new int[p];
@@ -473,7 +473,7 @@ public class AlphaTraderSchool {
         List<Quote> allFutureQuotes = fiveSec ? quotesBean.getQuotes5Sec(future, COUNT + n) : quotesBean.getQuotes(future, COUNT + n);
 
         String name = symbol + "-" + future +"-n" + n + "l" + l +"p" + p + "m" + m + (average?"a":"c") + (useStop?"s":"")
-                + stopFactor + (anti?"A":"") + "d" + d + "ma" + ma + "t" + t + "md" + md + (fiveSec?"five":"");
+                + stopFactor + (anti?"A":"") + "d" + d + "ma" + ma + "t" + t + "md" + md + (fiveSec?"five":"") + "ts" + ts;
 
         TimeSeries balanceTimeSeries = new TimeSeries(name);
         balanceTimeSeries.setNotify(false);
@@ -583,20 +583,20 @@ public class AlphaTraderSchool {
                 end = currentDate;
             }
 
-//            if ((i > 720*720 && money < 0)){
-//                try {
-//                    fileWriter.append(name).append(",,,,,").append("\n");
-//                    balanceDataSet.removeSeries(balanceTimeSeries);
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
+            if ((index > 8000 && money < 0)){
+                try {
+                    fileWriter.append(name).append(",,,,,").append("\n");
+                    balanceDataSet.removeSeries(balanceTimeSeries);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
 //                if (!anti) {
 //                    study2(prefix, symbol, future, n, l, p, pp, m , average, useStop, stopFactor, !anti, d, fiveSec, useMA, ma, t, md);
 //                }
 
-//                return;
-//            }
+                return;
+            }
 
 
 //            if ((index > 5000 && orderCount < 2)){
@@ -659,13 +659,13 @@ public class AlphaTraderSchool {
             //stop trailing
             if (stopPrice != 0){
                 if (quantity > 0){
-                    float min = Floats.min(sub(low, m*2));
+                    float min = Floats.min(sub(low, ts));
 
                     if (stopPrice < min){
                         stopPrice = min;
                     }
                 }else if (quantity < 0){
-                    float max = Floats.max(sub(low, m*2));
+                    float max = Floats.max(sub(high, ts));
 
                     if (stopPrice > max){
                         stopPrice = max;
@@ -690,7 +690,7 @@ public class AlphaTraderSchool {
                     balanceTimeSeries.add(fiveSec ? new Second(currentDate) : new Minute(currentDate), money);
 
 //                    stopPrice = currentPrice/stopFactor;
-                    stopPrice = Floats.min(sub(low, m*2));
+                    stopPrice = Floats.min(sub(low, m));
 
                     balance -= currentFuturePrice;
                     money -= 1.5;
@@ -710,19 +710,19 @@ public class AlphaTraderSchool {
 //                    System.out.println("LONG, " + currentFuturePrice + ", " + dateFormat.format(currentDate) + ", " + money);
                 }
 
-                if (quantity == -1){
-                    balance -= 2*currentFuturePrice;
-
-//                    stopPrice = currentPrice/stopFactor;
-                    stopPrice = Floats.min(sub(low, m*2));
-
-                    orderCount++;
-                    quantity = 1;
-
-                    money = balance + currentFuturePrice - 3;
-                    balanceTimeSeries.add(fiveSec ? new Second(currentDate) : new Minute(currentDate), money);
-//                    System.out.println("LONG, " + currentFuturePrice + ", " + dateFormat.format(currentDate) + ", " + money);
-                }
+//                if (quantity == -1){
+//                    balance -= 2*currentFuturePrice;
+//
+////                    stopPrice = currentPrice/stopFactor;
+//                    stopPrice = Floats.min(sub(low, m*2));
+//
+//                    orderCount++;
+//                    quantity = 1;
+//
+//                    money = balance + currentFuturePrice - 3;
+//                    balanceTimeSeries.add(fiveSec ? new Second(currentDate) : new Minute(currentDate), money);
+////                    System.out.println("LONG, " + currentFuturePrice + ", " + dateFormat.format(currentDate) + ", " + money);
+//                }
             }else if (!closeDay &&  (anti ? isMin(allforecast, n + f_size*index, md, d) : isMax(allforecast, n + f_size*index, md, d))
                     && (!useMA || currentPrice > getMA(prices, ma))){ //SHORT
                 if (quantity == 0){
@@ -730,7 +730,7 @@ public class AlphaTraderSchool {
 //                    System.out.println("SHORT, " + currentFuturePrice + ", " + dateFormat.format(currentDate) + ", " + money);
 
 //                    stopPrice = currentPrice*stopFactor;
-                    stopPrice = Floats.max(sub(high, m*2));
+                    stopPrice = Floats.max(sub(high, m));
 
                     balance += currentFuturePrice;
                     money -= 1.5;
@@ -750,19 +750,19 @@ public class AlphaTraderSchool {
 //                    System.out.println("SHORT, " + currentFuturePrice + ", " + dateFormat.format(currentDate) + ", " + money);
                 }
 
-                if (quantity == 1){
-                    balance += 2*currentFuturePrice;
-
-//                    stopPrice = currentPrice*stopFactor;
-                    stopPrice = Floats.max(sub(high, m*2));
-
-                    orderCount++;
-                    quantity = -1;
-
-                    money = balance - currentFuturePrice - 3;
-                    balanceTimeSeries.add(fiveSec ? new Second(currentDate) : new Minute(currentDate), money);
-//                    System.out.println("SHORT, " + currentFuturePrice + ", " + dateFormat.format(currentDate) + ", " + money);
-                }
+//                if (quantity == 1){
+//                    balance += 2*currentFuturePrice;
+//
+////                    stopPrice = currentPrice*stopFactor;
+//                    stopPrice = Floats.max(sub(high, m*2));
+//
+//                    orderCount++;
+//                    quantity = -1;
+//
+//                    money = balance - currentFuturePrice - 3;
+//                    balanceTimeSeries.add(fiveSec ? new Second(currentDate) : new Minute(currentDate), money);
+////                    System.out.println("SHORT, " + currentFuturePrice + ", " + dateFormat.format(currentDate) + ", " + money);
+//                }
             }
 
             String s = index + ": " + prefix+balanceTimeSeries.getKey() + ", " + money + ", " + orderCount + ", " + stopCount;
@@ -776,22 +776,22 @@ public class AlphaTraderSchool {
 
         balanceTimeSeries.setNotify(true);
 
-//        if (money < maxMoney){
-//            balanceDataSet.removeSeries(balanceTimeSeries);
-//        }
-//
-//        if (money > maxMoney){
-//            maxMoney = money;
-//            try {
-//                TimeSeries ts = (TimeSeries) balanceTimeSeries.clone();
-//                balanceDataSet.removeAllSeries();
-//                balanceDataSet.addSeries(ts);
-//            } catch (CloneNotSupportedException e) {
-//                e.printStackTrace();
-//            }
-//        } else if (money < minMoney){
-//            minMoney = money;
-//        }
+        if (money < maxMoney){
+            balanceDataSet.removeSeries(balanceTimeSeries);
+        }
+
+        if (money > maxMoney){
+            maxMoney = money;
+            try {
+                TimeSeries ts0 = (TimeSeries) balanceTimeSeries.clone();
+                balanceDataSet.removeAllSeries();
+                balanceDataSet.addSeries(ts0);
+            } catch (CloneNotSupportedException e) {
+                e.printStackTrace();
+            }
+        } else if (money < minMoney){
+            minMoney = money;
+        }
 
         String s = prefix+balanceTimeSeries.getKey() + "," + money + "," + orderCount + "," + stopCount + "," + dateFormat.format(start) + "," + dateFormat.format(end);
 

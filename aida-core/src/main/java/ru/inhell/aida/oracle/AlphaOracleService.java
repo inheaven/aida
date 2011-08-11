@@ -1,5 +1,6 @@
 package ru.inhell.aida.oracle;
 
+import com.google.common.primitives.Floats;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.jfree.data.time.FixedMillisecond;
@@ -146,6 +147,9 @@ public class AlphaOracleService {
             //текущий список котировок
             List<Quote> quotes = allQuotes.subList(index, vf.getN() + index);
 
+            float[] low = QuoteUtil.getLowPrices(quotes);
+            float[] high = QuoteUtil.getHighPrices(quotes);
+
             //текущая дата
             Date date = quotes.get(quotes.size()-1).getDate();
 
@@ -179,28 +183,43 @@ public class AlphaOracleService {
 
             //алгоритм векторного прогнозирования
             if (useRemote) {
-                forecast = vectorForecastSSAService.executeRemote(vf.getN(), vf.getL(), vf.getP(), vf.getM() + 1, prices);
+                forecast = vectorForecastSSAService.executeRemote(vf.getN(), vf.getL(), vf.getP(), vf.getM(), prices);
             }else{
-                forecast = vectorForecastSSAService.execute(vf.getN(), vf.getL(), vf.getP(), vf.getM() + 1, prices);
+                forecast = vectorForecastSSAService.execute(vf.getN(), vf.getL(), vf.getP(), vf.getM(), prices);
             }
 
             Prediction prediction = null;
 
             //предсказание на текущую дату
             if (alphaOracle.getStopCount() < alphaOracle.getMaxStopCount()) {
-                if (StopType.F_STOP.equals(alphaOracle.getStopType()) && alphaOracle.isInMarket()){
+                if (alphaOracle.isInMarket()) {
+                    float stopFactor = alphaOracle.getStopFactor();
                     float stopPrice = alphaOracle.getStopPrice();
 
-                    if (Prediction.LONG.equals(alphaOracle.getPrediction()) &&(currentPrice < stopPrice || currentPrice > stopPrice*Math.pow(alphaOracle.getStopFactor(), 5))){
-                        //защитная приостановка - продажа
+                    if (Prediction.LONG.equals(alphaOracle.getPrediction())
+                            &&(currentPrice < stopPrice || currentPrice > stopPrice*Math.pow(stopFactor, 5))){
                         prediction = Prediction.STOP_SELL;
-                    }else if (Prediction.SHORT.equals(alphaOracle.getPrediction()) &&  (currentPrice > stopPrice || currentPrice < stopPrice/Math.pow(alphaOracle.getStopFactor(), 5))){
-                        //защитная приостановка - покупка
+                    }else if (Prediction.SHORT.equals(alphaOracle.getPrediction())
+                            &&  (currentPrice > stopPrice || currentPrice < stopPrice/Math.pow(stopFactor, 5))){
                         prediction = Prediction.STOP_BUY;
+                    }else if (StopType.T_STOP.equals(alphaOracle.getStopType())){ //stop trailing
+                        if (Prediction.LONG.equals(alphaOracle.getPrediction())){
+                            float min = Floats.min(sub(low, 15));
+
+                            if (stopPrice < min){
+                                alphaOracle.setStopPrice(min);
+                            }
+                        }else if (Prediction.SHORT.equals(alphaOracle.getPrediction())){
+                            float max = Floats.max(sub(high, 15));
+
+                            if (stopPrice > max){
+                                alphaOracle.setStopPrice(max);
+                            }
+                        }
                     }
                 }
 
-                if (prediction == null) {
+                if (prediction == null && !alphaOracle.isInMarket()) {
                     if (VectorForecastUtil.isMin(forecast, vf.getN(), vf.getM())
                             || VectorForecastUtil.isMin(forecast, vf.getN()-1, vf.getM())
                             || VectorForecastUtil.isMin(forecast, vf.getN()+1, vf.getM())){
@@ -364,5 +383,13 @@ public class AlphaOracleService {
                 min = 0;
             }
         }
+    }
+
+    private static float[] sub(float[] prices, int count){
+        float[] p = new float[count];
+
+        System.arraycopy(prices, prices.length - count - 1, p, 0, count);
+
+        return p;
     }
 }
