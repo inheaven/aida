@@ -324,7 +324,7 @@ public class AlphaTraderSchool {
 //        int l = (n+1)/2;
 
         for (int n = 120; n <= 6000; n+=60) {
-            for (int l = 30; l <= 120 && l < n/2; l++) {
+            for (int l = 43; l <= 120 && l < n/2; l++) {
                 for (int p = 1; p <= 10; p++) {
                     for (int mi = 5; mi <= 15; mi++) {
                         for (float f= 1.002f ; f <= 1.002f; f += 0.001f) {
@@ -491,9 +491,13 @@ public class AlphaTraderSchool {
 
         String key = symbol + "-" + future +"-n" + n + "l" + l +"p" + p + "m" ;
 
-        TimeSeries balanceTimeSeries = new TimeSeries(name);
-        balanceTimeSeries.setNotify(false);
-        balanceDataSet.addSeries(balanceTimeSeries);
+        TimeSeries balanceTimeSeries = null;
+
+        if (paint) {
+            balanceTimeSeries = new TimeSeries(name);
+            balanceTimeSeries.setNotify(false);
+            balanceDataSet.addSeries(balanceTimeSeries);
+        }
 
         Calendar current = Calendar.getInstance();
 
@@ -810,7 +814,7 @@ public class AlphaTraderSchool {
 //                }
             }
 
-            String s = index + ": " + prefix+balanceTimeSeries.getKey() + ", " + money + ", " + orderCount + ", " + stopCount;
+            String s = index + ": " + name + ", " + money + ", " + orderCount + ", " + stopCount;
             label[thread].setText(s);
 
             if (timing){
@@ -823,13 +827,11 @@ public class AlphaTraderSchool {
 //            balanceDataSet.removeSeries(balanceTimeSeries);
 //        }
 
-        String s = prefix+balanceTimeSeries.getKey() + "," + money + "," + orderCount + "," + stopCount + "," + dateFormat.format(start) + "," + dateFormat.format(end);
+        String s = name + "," + money + "," + orderCount + "," + stopCount + "," + dateFormat.format(start) + "," + dateFormat.format(end);
 
         if (paint){
             chart.setTitle(s);
             balanceTimeSeries.setNotify(true);
-        }else{
-            balanceDataSet.removeSeries(balanceTimeSeries);
         }
 
         if (money > 1800 && !paint) {

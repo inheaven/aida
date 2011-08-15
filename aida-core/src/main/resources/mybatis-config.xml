@@ -28,6 +28,7 @@
         <mapper resource="ru/inhell/aida/quotes/CurrentBean.xml"/>
         <mapper resource="ru/inhell/aida/trader/AlphaTraderBean.xml"/>
         <mapper resource="ru/inhell/aida/quik/TransactionBean.xml"/>
+        <mapper resource="ru/inhell/aida/quik/OrderBean.xml"/>
     </mappers>
 
 

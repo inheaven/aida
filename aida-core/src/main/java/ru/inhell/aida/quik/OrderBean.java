@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import org.apache.ibatis.session.SqlSessionManager;
 import ru.inhell.aida.entity.Order;
 
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -17,7 +18,10 @@ public class OrderBean {
     private SqlSessionManager sm;
 
     @SuppressWarnings({"unchecked"})
-    public List<Order> getOrders(String date){
-        return sm.selectList("selectOrdersByDate", date);
+    public List<Order> getOrders(final String symbol, final String date){
+        return sm.selectList(NS + ".selectOrdersByDate", new HashMap<String, String>(){{
+            put("symbol", symbol);
+            put("date", date);
+        }});
     }
 }

@@ -24,8 +24,8 @@ $(function () {
 
     $(window).bind("resize", function () {
     	// I don't know why but we have to set the parent div's size manually!
-    	flotTarget.width(flotTarget.parent().width()-20);
-    	flotTarget.height(flotTarget.parent().height()-20);
+    	flotTarget.width(flotTarget.parent().width()-40);
+    	flotTarget.height(flotTarget.parent().height()-40);
 
     	// Redraw the graph with the right size
     	plot = $.plot(flotTarget, flotData, flotOptions);

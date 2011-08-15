@@ -3,6 +3,7 @@ package ru.inhell.aida.web;
 import org.apache.wicket.Page;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.wicketstuff.javaee.injection.JavaEEComponentInjector;
+import ru.inhell.aida.web.order.OrderPage;
 
 /**
  * @author Anatoly A. Ivanov java@inhell.ru
@@ -18,6 +19,6 @@ public class AidaWebApplication extends WebApplication{
 
     @Override
     public Class<? extends Page> getHomePage() {
-        return EurUsdOraclePage.class;
+        return OrderPage.class;
     }
 }

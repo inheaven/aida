@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="ru.inhell.aida.quik.TransactionBean">
+<mapper namespace="ru.inhell.aida.quik.OrderBean">
     <resultMap id="orderResultMap" type="ru.inhell.aida.entity.Order">
         <id column="id" property="id"/>
         <result column="date" property="date"/>
@@ -15,8 +15,8 @@
         <result column="transactionId" property="transactionId"/>
     </resultMap>
 
-    <select id="selectOrdersByDate" parameterType="string">
-        select * from `order` where `date` = #{date}
+    <select id="selectOrdersByDate" resultMap="orderResultMap" parameterType="map">
+        select * from `order` where `symbol` = #{symbol} and `date` = #{date}
     </select>
 
 </mapper>
