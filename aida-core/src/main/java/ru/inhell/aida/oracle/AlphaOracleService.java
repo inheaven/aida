@@ -92,7 +92,7 @@ public class AlphaOracleService {
                         return;
                     }
 
-                    if (DateUtil.now().getTime() - last.getTime() < 4*1000){
+                    if (DateUtil.now().getTime() - last.getTime() < 500){
                         return;
                     }
 
@@ -100,13 +100,11 @@ public class AlphaOracleService {
 //                        return;
 //                    }
 
-                    orderSecond = (orderSecond + 5) % 60;
-
-                    last = DateUtil.now();
+                    orderSecond = (orderSecond + 3) % 60;
 
                     predict(alphaOracle, 1, false, USE_REMOTE);
 
-                    log.info(new Date().toString());
+//                    log.info(new Date().toString());
 
                 } catch (Throwable e) {
                     log.error("Ошибка предсказателя", e);
@@ -115,9 +113,35 @@ public class AlphaOracleService {
         };
     }
 
+    private Map<Long, Date> lastPredict = new HashMap<Long, Date>();
+
     public void predict(AlphaOracle alphaOracle, int count, boolean skipIfOracleExists, boolean useRemote)
             throws  RemoteVSSAException {
         alphaOracle = alphaOracleBean.getAlphaOracle(alphaOracle.getId());
+
+        Prediction prediction = null;
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(DateUtil.nowMsk());
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        int minute  = calendar.get(Calendar.MINUTE);
+
+        if (hour == 2 && minute >= 49){
+            if (!alphaOracle.isInMarket()){
+                return;
+            }
+
+            switch (alphaOracle.getPrediction()){
+                case LONG:
+                    prediction = Prediction.STOP_SELL;
+                    break;
+                case SHORT:
+                    prediction = Prediction.STOP_BUY;
+                    break;
+            }
+        } else if (hour > 3 && hour < 10){
+            return;
+        }
 
         VectorForecast vf = alphaOracle.getVectorForecast();
 
@@ -125,23 +149,23 @@ public class AlphaOracleService {
         List<Quote> allQuotes;
 
         if (alphaOracle.getInterval().equals(Interval.FIVE_SECOND)){
-            allQuotes = quotesBean.getQuotes5Sec(vf.getSymbol(), vf.getN() + count + 1);
+            allQuotes = quotesBean.getQuotes5Sec(vf.getSymbol(), vf.getN() + count);
         }else{
-            allQuotes = quotesBean.getQuotes(vf.getSymbol(), vf.getN() + count + 1);
+            allQuotes = quotesBean.getQuotes(vf.getSymbol(), vf.getN() + count);
         }
 
-        long now = DateUtil.nowMsk().getTime();
-        long last = allQuotes.get(allQuotes.size() - 1).getDate().getTime();
+//        long now = DateUtil.nowMsk().getTime();
+//        long last = allQuotes.get(allQuotes.size() - 1).getDate().getTime();
 
         //проверяем время последней котировки
-        if ((now - last < 50*1000 && alphaOracle.getInterval().equals(Interval.ONE_MINUTE))
-                || (now - last < 3*1000 && alphaOracle.getInterval().equals(Interval.FIVE_SECOND))){
-            allQuotes.remove(allQuotes.size() - 1);
-        } else {
-            allQuotes.remove(0);
-        }
+//        if ((now - last < 50*1000 && alphaOracle.getInterval().equals(Interval.ONE_MINUTE))
+//                || (now - last < 3*1000 && alphaOracle.getInterval().equals(Interval.FIVE_SECOND))){
+//            allQuotes.remove(allQuotes.size() - 1);
+//        } else {
+//            allQuotes.remove(0);
+//        }
 
-        float[] forecast;
+        float[] forecast = null;
 
         for (int index = 1; index <= count; ++index) {
             //текущий список котировок
@@ -151,21 +175,22 @@ public class AlphaOracleService {
             float[] high = QuoteUtil.getHighPrices(quotes);
 
             //текущая дата
-            Date date = quotes.get(quotes.size()-1).getDate();
+//            Date date = quotes.get(quotes.size()-1).getDate();
+            Date date = DateUtil.nowMsk();
 
-            log.info(alphaOracle.getName() + " - predict " + dateFormat.format(date));
+//            log.info(alphaOracle.getName() + " - predict " + dateFormat.format(date));
 
             //текущая цена
             float currentPrice = quotes.get(quotes.size()-1).getClose();
 
             //пропускаем если уже есть запись предсказания в базе данных
-            if (skipIfOracleExists && vectorForecastBean.isVectorForecastDataExists(vf.getId(), date)){
-                if (!vectorForecastBean.hasVectorForecastDataExtremum(vf.getId(), date)){
-                    continue;
-                }else if (alphaOracleBean.isAlphaOracleDataExists(alphaOracle.getId(), date)){
-                    continue;
-                }
-            }
+//            if (skipIfOracleExists && vectorForecastBean.isVectorForecastDataExists(vf.getId(), date)){
+//                if (!vectorForecastBean.hasVectorForecastDataExtremum(vf.getId(), date)){
+//                    continue;
+//                }else if (alphaOracleBean.isAlphaOracleDataExists(alphaOracle.getId(), date)){
+//                    continue;
+//                }
+//            }
 
             float[] prices;
 
@@ -181,17 +206,8 @@ public class AlphaOracleService {
                     throw new IllegalArgumentException();
             }
 
-            //алгоритм векторного прогнозирования
-            if (useRemote) {
-                forecast = vectorForecastSSAService.executeRemote(vf.getN(), vf.getL(), vf.getP(), vf.getM(), prices);
-            }else{
-                forecast = vectorForecastSSAService.execute(vf.getN(), vf.getL(), vf.getP(), vf.getM(), prices);
-            }
-
-            Prediction prediction = null;
-
             //предсказание на текущую дату
-            if (alphaOracle.getStopCount() < alphaOracle.getMaxStopCount()) {
+            if (prediction == null && alphaOracle.getStopCount() < alphaOracle.getMaxStopCount()) {
                 if (alphaOracle.isInMarket()) {
                     float stopFactor = alphaOracle.getStopFactor();
                     float stopPrice = alphaOracle.getStopPrice();
@@ -204,25 +220,38 @@ public class AlphaOracleService {
                         prediction = Prediction.STOP_BUY;
                     }else if (StopType.T_STOP.equals(alphaOracle.getStopType())){ //stop trailing
                         if (Prediction.LONG.equals(alphaOracle.getPrediction())){
-                            float min = Floats.min(sub(low, 15));
+                            float min = Floats.min(sub(low, alphaOracle.getTs())) - 0.0002f;
 
                             if (stopPrice < min){
                                 alphaOracle.setStopPrice(min);
+                                alphaOracleBean.save(alphaOracle);
                             }
                         }else if (Prediction.SHORT.equals(alphaOracle.getPrediction())){
-                            float max = Floats.max(sub(high, 15));
+                            float max = Floats.max(sub(high, alphaOracle.getTs())) + 0.0002f;
 
                             if (stopPrice > max){
                                 alphaOracle.setStopPrice(max);
+                                alphaOracleBean.save(alphaOracle);
                             }
                         }
                     }
                 }
 
-                if (prediction == null && !alphaOracle.isInMarket()) {
-                    if (VectorForecastUtil.isMin(forecast, vf.getN(), vf.getM())
-                            || VectorForecastUtil.isMin(forecast, vf.getN()-1, vf.getM())
-                            || VectorForecastUtil.isMin(forecast, vf.getN()+1, vf.getM())){
+                Date last = lastPredict.get(alphaOracle.getId());
+
+                boolean skip = last != null && DateUtil.nowMsk().getTime() - last.getTime() < 30*1000;
+
+                if (!skip && prediction == null && !alphaOracle.isInMarket()) {
+                    //алгоритм векторного прогнозирования
+                    if (useRemote) {
+                        forecast = vectorForecastSSAService.executeRemote(vf.getN(), vf.getL(), vf.getP(), vf.getM(), prices);
+                    }else{
+                        forecast = vectorForecastSSAService.execute(vf.getN(), vf.getL(), vf.getP(), vf.getM(), prices);
+                    }
+
+                    if (VectorForecastUtil.isMin(forecast, vf.getN(), alphaOracle.getMd())
+                            || VectorForecastUtil.isMin(forecast, vf.getN()-1, alphaOracle.getMd())
+                            || VectorForecastUtil.isMin(forecast, vf.getN()+1, alphaOracle.getMd())){
                         //уже в позиции
                         if (!Prediction.LONG.equals(alphaOracle.getPrediction())){
                             //длинная покупка
@@ -230,10 +259,12 @@ public class AlphaOracleService {
 
                             //установка цены защитной приостановки
                             alphaOracle.setStopPrice(currentPrice / alphaOracle.getStopFactor());
+
+                            lastPredict.put(alphaOracle.getId(), DateUtil.nowMsk());
                         }
-                    }else if (VectorForecastUtil.isMax(forecast, vf.getN(), vf.getM())
-                            || VectorForecastUtil.isMax(forecast, vf.getN()-1, vf.getM())
-                            || VectorForecastUtil.isMax(forecast, vf.getN()+1, vf.getM())){
+                    }else if (VectorForecastUtil.isMax(forecast, vf.getN(), alphaOracle.getMd())
+                            || VectorForecastUtil.isMax(forecast, vf.getN()-1, alphaOracle.getMd())
+                            || VectorForecastUtil.isMax(forecast, vf.getN()+1, alphaOracle.getMd())){
                         //уже в позиции
                         if (!Prediction.SHORT.equals(alphaOracle.getPrediction())){
                             //короткая продажа
@@ -241,6 +272,8 @@ public class AlphaOracleService {
 
                             //установка цены защитной приостановки
                             alphaOracle.setStopPrice(currentPrice * alphaOracle.getStopFactor());
+
+                            lastPredict.put(alphaOracle.getId(), DateUtil.nowMsk());
                         }
                     }
                 }
@@ -258,7 +291,9 @@ public class AlphaOracleService {
             }
 
             //сохранение результата векторного прогнозирования
-            vectorForecastBean.save(vf, quotes, forecast);
+            if (forecast != null) {
+                vectorForecastBean.save(vf, quotes, forecast);
+            }
 
             //сохранение предсказания
             if (prediction != null) {

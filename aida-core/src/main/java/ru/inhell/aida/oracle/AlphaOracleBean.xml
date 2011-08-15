@@ -13,6 +13,8 @@
         <result column="max_stop_count" property="maxStopCount"/>
         <result column="score" property="score"/>
         <result column="status" property="status"/>
+        <result column="md" property="md"/>
+        <result column="ts" property="ts"/>
 
         <association column="vector_forecast_id" property="vectorForecast" select="selectVectorForecast"/>
     </resultMap>

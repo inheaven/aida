@@ -4,9 +4,7 @@ import com.sun.jna.Native;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inhell.aida.entity.*;
-import ru.inhell.aida.oracle.AlphaOracleBean;
 import ru.inhell.aida.oracle.IAlphaOracleListener;
-import ru.inhell.aida.quik.QuikMessage;
 import ru.inhell.aida.quik.QuikService;
 import ru.inhell.aida.quik.QuikTransaction;
 import ru.inhell.aida.quik.QuikTransactionException;
@@ -77,8 +75,8 @@ public class AlphaOracleListener implements IAlphaOracleListener {
         }
 
         //цена и код фьючерса
-        int currentFuturePrice = (int) currentBean.getCurrent(alphaTrader.getFutureSymbol()).getPrice()*1000;
-        int orderFuturePrice = (int) getOrderPrice(prediction, currentFuturePrice)*1000;
+        float currentFuturePrice = currentBean.getCurrent(alphaTrader.getFutureSymbol()).getPrice();
+        float orderFuturePrice = getOrderPrice(prediction, currentFuturePrice);
 
         //создаем транзакцию
         AlphaTraderData alphaTraderData = new AlphaTraderData(alphaTrader.getId(), DateUtil.nowMsk(),
@@ -185,23 +183,23 @@ public class AlphaOracleListener implements IAlphaOracleListener {
         switch (prediction){
             case LONG:
             case STOP_BUY:
-                return price *= 1.002;
+                return price *= 1.002f;
             case SHORT:
             case STOP_SELL:
-                return price /= 1.002;
+                return price /= 1.002f;
             default:
                 throw new IllegalArgumentException();
         }
     }
 
-    private Order getOrder(Prediction prediction){
+    private OrderType getOrder(Prediction prediction){
         switch (prediction){
             case LONG:
             case STOP_BUY:
-                return Order.BUY;
+                return OrderType.BUY;
             case SHORT:
             case STOP_SELL:
-                return Order.SELL;
+                return OrderType.SELL;
             default:
                 throw new IllegalArgumentException();
         }

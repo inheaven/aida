@@ -2,6 +2,7 @@ package ru.inhell.aida.ssa;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.inhell.aida.acml.ACML;
 import ru.inhell.aida.inject.AidaInjector;
 
 import java.rmi.AlreadyBoundException;
@@ -21,11 +22,20 @@ public class RemoteVSSA implements IRemoteVSSA{
 
     @Override
     public float[] execute(int n, int l, int p, int m, float[] timeSeries) {
-        VectorForecastSSA vectorForecastSSA = vectorForecastSSAService.getVectorForecastSSA(n, l, p, m);
+        float[] forecast = new float[ n + m + l - 1];
 
-        float[] forecast = new float[vectorForecastSSA.forecastSize()];
+        int[] pp = new int[p];
+        for (int i=0; i<p; ++i){
+            pp[i] = i;
+        }
 
-        vectorForecastSSA.execute(timeSeries, forecast);
+        ACML.jni().vssa(n, l, p, pp, m, timeSeries, forecast, 0);
+
+//        VectorForecastSSA vectorForecastSSA = vectorForecastSSAService.getVectorForecastSSA(n, l, p, m);
+//
+//        float[] forecast = new float[vectorForecastSSA.forecastSize()];
+
+//        vectorForecastSSA.execute(timeSeries, forecast);
 
         return forecast;
     }

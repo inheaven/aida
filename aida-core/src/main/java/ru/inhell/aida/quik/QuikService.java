@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inhell.aida.gui.Aida;
 
+import java.text.DecimalFormat;
+
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
  *         Date: 25.03.11 15:07
@@ -57,11 +59,11 @@ public class QuikService {
         }
     }
 
-    public QuikTransaction buyFutures(long transId, String symbol, int price, int quantity) throws QuikTransactionException {
+    public QuikTransaction buyFutures(long transId, String symbol, float price, int quantity) throws QuikTransactionException {
         return newOrder(transId, ru.inhell.aida.Aida.getAccount(), "SPBFUT", symbol, OPERATION.BUY, price, quantity);
     }
 
-    public QuikTransaction sellFutures(long transId, String symbol, int price, int quantity) throws QuikTransactionException {
+    public QuikTransaction sellFutures(long transId, String symbol, float price, int quantity) throws QuikTransactionException {
         return newOrder(transId, ru.inhell.aida.Aida.getAccount(), "SPBFUT", symbol, OPERATION.SELL, price, quantity);
     }
 
@@ -94,10 +96,10 @@ public class QuikService {
      * @throws QuikTransactionException
      */
     private QuikTransaction newOrder(long transId, String account, String classCode, String symbol, OPERATION operation,
-                                     int price, int quantity) throws QuikTransactionException {
+                                     float price, int quantity) throws QuikTransactionException {
         QuikTransaction qt = new QuikTransaction("ACTION=NEW_ORDER; ACCOUNT=" + account + "; TRANS_ID=" +transId +
                 "; CLASSCODE=" + classCode + "; SECCODE=" + symbol + "; OPERATION=" + operation.code +
-                "; PRICE=" + price + "; QUANTITY=" + quantity);
+                "; PRICE=" + getString(price) + "; QUANTITY=" + quantity);
 
         try {
             qt.result = Trans2Quik.INSTANCE.TRANS2QUIK_SEND_SYNC_TRANSACTION(qt.transaction, qt.replyCode, qt.transId,
@@ -112,5 +114,9 @@ public class QuikService {
         }
 
         return qt;
+    }
+
+    private String getString(float f){
+        return new DecimalFormat("#.####").format(f);
     }
 }

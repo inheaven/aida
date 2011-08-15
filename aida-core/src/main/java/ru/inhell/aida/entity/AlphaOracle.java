@@ -18,6 +18,9 @@ public class AlphaOracle {
     private int maxStopCount;
     private Status status;
 
+    private int md;
+    private int ts;
+
     public AlphaOracle() {
     }
 
@@ -177,4 +180,21 @@ public class AlphaOracle {
     public void setStatus(Status status) {
         this.status = status;
     }
+
+    public int getMd() {
+        return md;
+    }
+
+    public void setMd(int md) {
+        this.md = md;
+    }
+
+    public int getTs() {
+        return ts;
+    }
+
+    public void setTs(int ts) {
+        this.ts = ts;
+    }
 }
+

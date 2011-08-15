@@ -23,10 +23,10 @@ public class Aida {
         JTabbedPane tabbedPane = new JTabbedPane();
         frame.add(tabbedPane);
 
-        oraclePanel = new JPanel(new GridLayout(1,1));
+        oraclePanel = new JPanel(new GridLayout(2,2));
         tabbedPane.addTab("Предсказатели", oraclePanel);
 
-        process(44);
+        process(45, 46);
 
         frame.pack();
         frame.setVisible(true);

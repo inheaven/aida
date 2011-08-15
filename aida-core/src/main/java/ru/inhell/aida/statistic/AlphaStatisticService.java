@@ -3,9 +3,7 @@ package ru.inhell.aida.statistic;
 import com.google.inject.Inject;
 import ru.inhell.aida.entity.*;
 import ru.inhell.aida.oracle.AlphaOracleBean;
-import ru.inhell.aida.oracle.AlphaOracleService;
 import ru.inhell.aida.trader.AlphaTraderBean;
-import ru.inhell.aida.trader.AlphaTraderService;
 import ru.inhell.aida.util.DateUtil;
 
 import java.util.Date;
@@ -31,7 +29,7 @@ public class AlphaStatisticService {
             AlphaTraderData d0 = list.get(i-1);
             AlphaTraderData d1 = list.get(i);
 
-            currentBalance += (d1.getPrice() - d0.getPrice())*d1.getQuantity()*(d1.getOrder().equals(Order.BUY)? 1 : -1);
+            currentBalance += (d1.getPrice() - d0.getPrice())*d1.getQuantity()*(d1.getOrder().equals(OrderType.BUY)? 1 : -1);
         }
 
         return currentBalance;
