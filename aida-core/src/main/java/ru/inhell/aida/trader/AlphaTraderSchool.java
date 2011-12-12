@@ -39,10 +39,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -55,9 +52,9 @@ public class AlphaTraderSchool {
     public static final DateFormat dateFormat = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.SHORT, SimpleDateFormat.SHORT);
 
     private final static int COUNT = 10000;
-    private final static int THREAD = 4;
+    private final static int THREAD = 5;
     private final static int THREAD_GPU = 0;
-    private final static int BUFFER = 1;
+    private final static int BUFFER = 256;
 
     static FileWriter fileWriter;
     static FileWriter fileWriterWin;
@@ -97,9 +94,14 @@ public class AlphaTraderSchool {
 //
         fullSearch();
 
-//        study2(0, "", "EDU1", "EDU1", 70, 32, 4, null, 10, true, true, 1.002f, false, 3, false, false, 0, 5, 7, 2, 5, true);
-//        study2(0, "", "EDU1", "EDU1", 120, 47, 2, null, 10, true, true, 1.002f, false, 3, false, false, 0, 5, 6, 2, 15, true);
+//        study2(0, "", "EDU1", "EDU1", 60, 11, 2, null, 10, true, true, 1.002f, false, 3, false, false, 0, 5, 6, 2, 5, true);
+//        study2(0, "", "EDU1", "EDU1", 120, 47, 2, null, 10, true, true, 1.002f, false, 3, false, false, 0, 5, 15, 2, 15, true);
 //        study2(0, "", "EDU1", "EDU1", 260, 30, 10, null, 10, true, true, 1.002f, false, 3, false, false, 0, 5, 5, 2, 10, true);
+//      EDU1-EDU1-n110l19p5m10as1.002d3ma0t5md5ts15,2378.5938,318,318,26.07.11 23:22,12.08.11 23:48
+//        study2(0, "", "EDU1", "EDU1", 120, 25, 3, null, 15, true, true, 1.002f, false, 3, false, false, 0, 5, 18, 2, 14, true);
+//        study2(0, "", "EDU1", "EDU1", 120, 20, 3, null, 15, true, true, 1.002f, false, 3, false, false, 0, 5, 14, 2, 17, true);
+//        study2(0, "", "EDU1", "EDU1", 140, 18, 2, null, 15, true, true, 1.002f, false, 3, false, false, 0, 5, 13, 2, 14, true);
+//        study2(0, "", "EDU1", "EDU1", 180, 43, 18, null, 15, true, true, 1.002f, false, 3, false, false, 0, 5, 5, 2, 7, true);
 
 
 //        for (int p = 2; p < 64; p++) {
@@ -323,12 +325,12 @@ public class AlphaTraderSchool {
 //        int n = 500;
 //        int l = (n+1)/2;
 
-        for (int n = 120; n <= 6000; n+=60) {
-            for (int l = 43; l <= 120 && l < n/2; l++) {
-                for (int p = 1; p <= 10; p++) {
-                    for (int mi = 5; mi <= 15; mi++) {
+        for (int n = 600; n <= 900; n+=30) {
+            for (int l = 10; l < n/3; l++) {
+                for (int p = 1; p <= l/5; p++) {
+                    for (int mi = 5; mi <= 30; mi += 5) {
                         for (float f= 1.002f ; f <= 1.002f; f += 0.001f) {
-                            for (int ts = 5; ts <= 15; ts++) {
+                            for (int ts = 5; ts <= 30; ts += 5) {
                                 executor.execute(getFullSearch((++index)%THREAD, n, l, p, mi, f, 5, ts));
                             }
                         }
@@ -345,9 +347,11 @@ public class AlphaTraderSchool {
 
             @Override
             public void run() {
-                for (int md = -5; md <= 5 ;++md) {
-                    study2(threadNum, "", "EDU1", "EDU1", n, l, p, null, mi, true, true, f, false, 3, false, false, 0,
-                            t, mi + md, threadNum < THREAD_GPU ? 2 : 2, ts, false);
+                for (int md = 2; md <= mi; ++md) {
+                    for (int d = 3; d<=3; d++) {
+                        study2(threadNum, "", "SRU1", "SRU1", n, l, p, null, mi, true, true, f, false, d, false, false, 0,
+                                t, md, threadNum < THREAD_GPU ? 0 : 3, ts, false);
+                    }
                 }
             }
         };
@@ -453,7 +457,9 @@ public class AlphaTraderSchool {
     static float minMoney = 0;
 
 
-    static Map<String, Object> cache = new HashMap<String, Object>();
+    static Map<String, Object> cache = new ConcurrentHashMap<String, Object>();
+    static Map<String, List<Quote>> cacheQuotes = new ConcurrentHashMap<String, List<Quote>>();
+    static Map<String, Object> cachePrices = new ConcurrentHashMap<String, Object>();
 
     private static void study2(int thread, String prefix, String symbol, String future, int n, int l, int p, int[] pp, int m, boolean average,
                                boolean useStop, float stopFactor, boolean anti, int d, boolean fiveSec, boolean useMA, int ma, int t, int md, int svd, int ts, boolean paint)
@@ -483,8 +489,19 @@ public class AlphaTraderSchool {
 
         Date start = null, end = null;
 
-        List<Quote> allQuotes = fiveSec ? quotesBean.getQuotes5Sec(symbol, COUNT + n) : quotesBean.getQuotes(symbol, COUNT + n);
-        List<Quote> allFutureQuotes = fiveSec ? quotesBean.getQuotes5Sec(future, COUNT + n) : quotesBean.getQuotes(future, COUNT + n);
+        List<Quote> allQuotes = cacheQuotes.get(symbol + n);
+        float[] allprices = (float[]) cachePrices.get(symbol + n);
+
+        if (allQuotes == null){
+            allQuotes = fiveSec ? quotesBean.getQuotes5Sec(symbol, COUNT + n) : quotesBean.getQuotes(symbol, COUNT + n);
+            cacheQuotes.put(symbol + n, allQuotes);
+
+            allprices = average ? QuoteUtil.getAveragePrices(allQuotes) : QuoteUtil.getClosePrices(allQuotes);
+            cachePrices.put(symbol + n, allprices);
+        }
+
+//        List<Quote> allFutureQuotes = fiveSec ? quotesBean.getQuotes5Sec(future, COUNT + n) : quotesBean.getQuotes(future, COUNT + n);
+        List<Quote> allFutureQuotes = allQuotes;
 
         String name = symbol + "-" + future +"-n" + n + "l" + l +"p" + p + "m" + m + (average?"a":"c") + (useStop?"s":"")
                 + stopFactor + (anti?"A":"") + "d" + d + "ma" + ma + "t" + t + "md" + md + (fiveSec?"five":"") + "ts" + ts;
@@ -502,7 +519,10 @@ public class AlphaTraderSchool {
         Calendar current = Calendar.getInstance();
 
         float[] allforecast = new float[f_size*COUNT];
-        float[] allprices = average ? QuoteUtil.getAveragePrices(allQuotes) : QuoteUtil.getClosePrices(allQuotes);
+
+        if (cache.size() > THREAD){
+            cache.clear();
+        }
 
         if (cache.containsKey(key)){
             allforecast = (float[]) cache.get(key);
@@ -574,9 +594,8 @@ public class AlphaTraderSchool {
         if (!cache.containsKey(key)) {
             cache.put(key, allforecast);
         }
-        if (cache.size() > 100){
-            cache.clear();
-        }
+
+
 
         long time;
 
@@ -604,7 +623,8 @@ public class AlphaTraderSchool {
             float currentPrice = currentQuote.getOpen();
             Date currentDate = currentQuote.getDate();
 
-            float currentFuturePrice = allFutureQuotes.get(n+index).getOpen()*10000*2.8f;
+//            float currentFuturePrice = allFutureQuotes.get(n+index).getAverage()*10000*2.8f;
+            float currentFuturePrice = allFutureQuotes.get(n+index).getAverage();
 
             if (index == 0){
                 start = currentDate;
@@ -699,13 +719,13 @@ public class AlphaTraderSchool {
                     float min = Floats.min(sub(low, ts));
 
                     if (stopPrice < min){
-                        stopPrice = min;
+                        stopPrice = min - 0.0010f;
                     }
                 }else if (quantity < 0){
                     float max = Floats.max(sub(high, ts));
 
                     if (stopPrice > max){
-                        stopPrice = max;
+                        stopPrice = max + 0.0010f;
                     }
                 }
             }
@@ -834,8 +854,9 @@ public class AlphaTraderSchool {
             balanceTimeSeries.setNotify(true);
         }
 
-        if (money > 1800 && !paint) {
+        if (money > 2000 && !paint) {
             study2(thread, prefix, symbol, future, n, l, p, pp, m, average, useStop, stopFactor, anti, d, fiveSec, useMA, ma, t, md, svd, ts, true);
+            System.out.println(s);
 
             try {
                 fileWriterWin.append(s).append("\n");
@@ -863,15 +884,15 @@ public class AlphaTraderSchool {
 //            minMoney = money;
 //        }
 
-        try {
-            fileWriter.append(s).append("\n");
-            fileWriter.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            fileWriter.append(s).append("\n");
+//            fileWriter.flush();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
 
-        System.out.println(s);
+//        System.out.println(s);
     }
 
     private static boolean isMin(float[] forecast, int n, int m, int d){
@@ -898,6 +919,9 @@ public class AlphaTraderSchool {
             case 3: return VectorForecastUtil.isMax(forecast, n, m)
                     || VectorForecastUtil.isMax(forecast, n - 1, m)
                     || VectorForecastUtil.isMax(forecast, n + 1, m);
+            case 4: return VectorForecastUtil.isMax(forecast, n - 1, m)
+                    || VectorForecastUtil.isMax(forecast, n - 2, m)
+                    || VectorForecastUtil.isMax(forecast, n - 3, m);
         }
 
         throw new IllegalArgumentException();

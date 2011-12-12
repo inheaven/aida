@@ -38,6 +38,10 @@ public class Quote {
         this.volume = volume;
     }
 
+    public float getAverage(){
+        return (open + low + high + close)/4;
+    }
+
     public Long getId() {
         return id;
     }

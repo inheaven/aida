@@ -71,4 +71,8 @@
             (select sum(price*quantity) FROM alpha_trader_data where alpha_trader_id = #{alphaTraderId} and `order` = 'BUY'
                 and reply_code = 3 and `date` between #{startDate} and #{endDate})
     </select>
+
+    <select id="selectAlphaTraderData" resultMap="alphaTraderDataResultMap" parameterType="long">
+        select * from `alpha_trader_data` where `id` = #{id}
+    </select>
 </mapper>

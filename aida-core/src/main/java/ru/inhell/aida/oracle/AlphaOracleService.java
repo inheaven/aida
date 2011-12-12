@@ -80,6 +80,8 @@ public class AlphaOracleService {
         listeners.add(listener);
     }
 
+    private Random random = new Random();
+
     private Runnable getCommand(final AlphaOracle alphaOracle){
         return new Runnable() {
             private int orderSecond = 0;
@@ -100,7 +102,7 @@ public class AlphaOracleService {
 //                        return;
 //                    }
 
-                    orderSecond = (orderSecond + 3) % 60;
+                    orderSecond = (orderSecond + 3 + random.nextInt(14)) % 60;
 
                     predict(alphaOracle, 1, false, USE_REMOTE);
 
@@ -122,7 +124,7 @@ public class AlphaOracleService {
         Prediction prediction = null;
 
         Calendar calendar = Calendar.getInstance();
-        calendar.setTime(DateUtil.nowMsk());
+        calendar.setTime(DateUtil.now());
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
         int minute  = calendar.get(Calendar.MINUTE);
 
@@ -220,14 +222,14 @@ public class AlphaOracleService {
                         prediction = Prediction.STOP_BUY;
                     }else if (StopType.T_STOP.equals(alphaOracle.getStopType())){ //stop trailing
                         if (Prediction.LONG.equals(alphaOracle.getPrediction())){
-                            float min = Floats.min(sub(low, alphaOracle.getTs())) - 0.0002f;
+                            float min = Floats.min(sub(low, alphaOracle.getTs())) - 0.0010f;
 
                             if (stopPrice < min){
                                 alphaOracle.setStopPrice(min);
                                 alphaOracleBean.save(alphaOracle);
                             }
                         }else if (Prediction.SHORT.equals(alphaOracle.getPrediction())){
-                            float max = Floats.max(sub(high, alphaOracle.getTs())) + 0.0002f;
+                            float max = Floats.max(sub(high, alphaOracle.getTs())) + 0.0010f;
 
                             if (stopPrice > max){
                                 alphaOracle.setStopPrice(max);
@@ -239,9 +241,9 @@ public class AlphaOracleService {
 
                 Date last = lastPredict.get(alphaOracle.getId());
 
-                boolean skip = last != null && DateUtil.nowMsk().getTime() - last.getTime() < 30*1000;
+                boolean skip = last != null && DateUtil.nowMsk().getTime() - last.getTime() < random.nextInt(120)*1000;
 
-                if (!skip && prediction == null && !alphaOracle.isInMarket()) {
+                if (!skip && prediction == null) {
                     //алгоритм векторного прогнозирования
                     if (useRemote) {
                         forecast = vectorForecastSSAService.executeRemote(vf.getN(), vf.getL(), vf.getP(), vf.getM(), prices);

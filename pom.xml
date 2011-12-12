@@ -15,5 +15,6 @@
     <modules>
         <module>aida-core</module>
         <module>aida-web</module>
+        <module>aida-gauge</module>
     </modules>
 </project>

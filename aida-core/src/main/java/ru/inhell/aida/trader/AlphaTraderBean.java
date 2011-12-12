@@ -53,4 +53,8 @@ public class AlphaTraderBean {
     public AlphaTraderData getCurrentAlphaTraderData(Long alphaTraderId){
         return (AlphaTraderData) sm.selectOne(NS + ".selectCurrentAlphaTraderData", alphaTraderId);
     }
+
+    public AlphaTraderData getAlphaTraderData(Long id){
+        return (AlphaTraderData) sm.selectOne(NS + ".selectAlphaTraderData", id);
+    }
 }

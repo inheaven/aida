@@ -40,6 +40,8 @@ public class VectorForecastSSA {
 
     private BasicAnalysisSSA basicAnalysis;
 
+    private BasicAnalysisSSA.TYPE type;
+
 
     /**
      *
@@ -62,6 +64,8 @@ public class VectorForecastSSA {
         this.M = M;
         this.PP = PP;
         this.P = P;
+
+        this.type = type;
 
         Ld = L - 1;
         K = N - L + 1;
@@ -139,10 +143,14 @@ public class VectorForecastSSA {
         float v2 = 0;
 
         for (int i = 0; i < M; ++i){
-//            int index = PP[i];
+            int index = i;
 
-            System.arraycopy(ssa.U, i*L, VD, i*Ld, Ld);
-            pi[i] = ssa.U[L-1 + i*L];
+            if (type.equals(BasicAnalysisSSA.TYPE.SSYEV)){
+                index = L - i - 1;
+            }
+
+            System.arraycopy(ssa.U, index*L, VD, i*Ld, Ld);
+            pi[i] = ssa.U[L-1 + index*L];
             v2 += Math.pow(pi[i], 2);
         }
 

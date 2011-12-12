@@ -49,7 +49,9 @@ public class AlphaOracle {
                 "m" + vectorForecast.getM() +
                 priceType.name().substring(0,1).toLowerCase() +
                 stopType.name().substring(0,1).toLowerCase()
-                +stopFactor;
+                +stopFactor
+                +"md" + md
+                +"ts" + ts;
     }
 
     public boolean isInMarket(){

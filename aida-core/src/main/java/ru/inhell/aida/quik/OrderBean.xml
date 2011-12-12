@@ -12,7 +12,7 @@
         <result column="quantity" property="quantity"/>
         <result column="volume" property="volume"/>
         <result column="status" property="status"/>
-        <result column="transactionId" property="transactionId"/>
+        <result column="transaction_id" property="transactionId"/>
     </resultMap>
 
     <select id="selectOrdersByDate" resultMap="orderResultMap" parameterType="map">
