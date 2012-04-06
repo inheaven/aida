@@ -15,7 +15,7 @@
         <servlet-class>org.apache.wicket.protocol.http.WicketServlet</servlet-class>
         <init-param>
             <param-name>applicationClassName</param-name>
-            <param-value>ru.inhell.aida.web.AidaWebApplication</param-value>
+            <param-value>ru.inhell.aida.gauge.web.GaugeWebApplication</param-value>
         </init-param>
     </servlet>
     <servlet-mapping>
