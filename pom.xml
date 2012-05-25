@@ -20,12 +20,29 @@
                 <enabled>true</enabled>
             </releases>
         </repository>
+        <repository>
+            <id>sonatype</id>
+            <name>Sonatype OSS Snapshots Repository</name>
+            <url>http://oss.sonatype.org/content/groups/public</url>
+        </repository>
+        <repository>
+            <id>nativelibs4java-repo</id>
+            <name>NativeLibs4Java Old Snapshots Repository</name>
+            <url>http://nativelibs4java.sourceforge.net/maven</url>
+        </repository>
+        <repository>
+            <id>wiquery-maven-repo</id>
+            <name>WiQuery repository</name>
+            <url>https://wiquery.googlecode.com/svn/repo/</url>
+        </repository>
     </repositories>
 
     <modules>
         <module>aida-core</module>
         <module>aida-web</module>
         <module>aida-gauge</module>
+        <module>aida-light</module>
+        <module>aida-charts</module>
     </modules>
 
     <dependencyManagement>
@@ -39,7 +56,7 @@
             <dependency>
                 <groupId>org.apache.wicket</groupId>
                 <artifactId>wicket-core</artifactId>
-                <version>1.5.3</version>
+                <version>1.5.6</version>
             </dependency>
 
             <dependency>
@@ -47,19 +64,16 @@
                 <artifactId>flot</artifactId>
                 <version>1.5-RC5.1</version>
             </dependency>
-
             <dependency>
                 <groupId>org.wicketstuff</groupId>
                 <artifactId>javaee-inject</artifactId>
                 <version>1.5-RC5.1</version>
             </dependency>
-
             <dependency>
                 <groupId>org.wicketstuff</groupId>
                 <artifactId>push-timer</artifactId>
                 <version>1.5-RC5.1</version>
             </dependency>
-
             <dependency>
                 <groupId>org.wicketstuff</groupId>
                 <artifactId>jqplot</artifactId>
@@ -67,9 +81,109 @@
             </dependency>
 
             <dependency>
+                <groupId>org.odlabs.wiquery</groupId>
+                <artifactId>wiquery-jquery-ui</artifactId>
+                <version>1.5.6</version>
+            </dependency>
+
+            <dependency>
                 <groupId>com.googlecode.charts4j</groupId>
                 <artifactId>charts4j</artifactId>
                 <version>1.3</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mybatis</groupId>
+                <artifactId>mybatis</artifactId>
+                <version>3.1.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mybatis</groupId>
+                <artifactId>mybatis-guice</artifactId>
+                <version>3.2</version>
+            </dependency>
+
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>5.1.15</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.testng</groupId>
+                <artifactId>testng</artifactId>
+                <version>5.13.1</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>1.6.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-simple</artifactId>
+                <version>1.6.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jul-to-slf4j</artifactId>
+                <version>1.6.1</version>
+            </dependency>
+
+            <dependency>
+                <groupId>net.java.dev.jna</groupId>
+                <artifactId>jna</artifactId>
+                <version>3.4.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>jfree</groupId>
+                <artifactId>jfreechart</artifactId>
+                <version>1.0.13</version>
+            </dependency>
+
+            <dependency>
+                <groupId>jfree</groupId>
+                <artifactId>jcommon</artifactId>
+                <version>1.0.15</version>
+            </dependency>
+
+            <dependency>
+                <groupId>net.sf.opencsv</groupId>
+                <artifactId>opencsv</artifactId>
+                <version>2.1</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.inject</groupId>
+                <artifactId>guice</artifactId>
+                <version>3.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.nativelibs4java</groupId>
+                <artifactId>javacl</artifactId>
+                <version>1.0-beta-6</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.quartz-scheduler</groupId>
+                <artifactId>quartz</artifactId>
+                <version>2.0.1</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>11.0.1</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.nativelibs4java</groupId>
+                <artifactId>bridj</artifactId>
+                <version>0.6.1</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
