@@ -1,6 +1,7 @@
 package ru.inhell.aida.charts.web;
 
 import org.apache.wicket.markup.html.WebPage;
+import org.odlabs.wiquery.core.options.Options;
 import ru.inhell.aida.charts.highcharts.Line;
 
 /**
