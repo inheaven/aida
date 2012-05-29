@@ -15,34 +15,34 @@
     <name>AIDA Web</name>
 
     <dependencies>
+        <!--aida-->
         <dependency>
             <groupId>ru.inhell.aida</groupId>
             <artifactId>aida-core</artifactId>
-            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>ru.inhell.aida</groupId>
+            <artifactId>aida-template</artifactId>
         </dependency>
 
+        <!--wicket-->
         <dependency>
             <groupId>org.apache.wicket</groupId>
             <artifactId>wicket-core</artifactId>
-            <version>1.5.3</version>
         </dependency>
 
         <dependency>
             <groupId>org.wicketstuff</groupId>
             <artifactId>flot</artifactId>
-            <version>1.5-RC5.1</version>
         </dependency>
-
         <dependency>
             <groupId>org.wicketstuff</groupId>
             <artifactId>javaee-inject</artifactId>
-            <version>1.5-RC5.1</version>
         </dependency>
 
         <dependency>
             <groupId>com.googlecode.charts4j</groupId>
             <artifactId>charts4j</artifactId>
-            <version>1.3</version>
         </dependency>
     </dependencies>
 </project>

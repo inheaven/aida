@@ -43,16 +43,34 @@
         <module>aida-gauge</module>
         <module>aida-light</module>
         <module>aida-charts</module>
+        <module>aida-template</module>
     </modules>
 
     <dependencyManagement>
         <dependencies>
+            <!--aida-->
             <dependency>
                 <groupId>ru.inhell.aida</groupId>
                 <artifactId>aida-core</artifactId>
                 <version>1.0</version>
             </dependency>
+            <dependency>
+                <groupId>ru.inhell.aida</groupId>
+                <artifactId>aida-charts</artifactId>
+                <version>1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.inhell.aida</groupId>
+                <artifactId>aida-template</artifactId>
+                <version>1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.inhell.aida</groupId>
+                <artifactId>aida-gauge</artifactId>
+                <version>1.0</version>
+            </dependency>
 
+            <!--wicket-->
             <dependency>
                 <groupId>org.apache.wicket</groupId>
                 <artifactId>wicket-core</artifactId>
@@ -185,6 +203,28 @@
                 <artifactId>bridj</artifactId>
                 <version>0.6.1</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.reflections</groupId>
+                <artifactId>reflections</artifactId>
+                <version>0.9.6</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                    <showDeprecation>true</showDeprecation>
+                    <showWarnings>true</showWarnings>
+                    <fork>true</fork>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
