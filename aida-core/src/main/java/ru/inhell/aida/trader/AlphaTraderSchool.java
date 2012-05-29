@@ -51,8 +51,8 @@ import java.util.regex.Pattern;
 public class AlphaTraderSchool {
     public static final DateFormat dateFormat = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.SHORT, SimpleDateFormat.SHORT);
 
-    private final static int COUNT = 10000;
-    private final static int THREAD = 5;
+    private final static int COUNT = 5000;
+    private final static int THREAD = 3;
     private final static int THREAD_GPU = 0;
     private final static int BUFFER = 256;
 
@@ -325,7 +325,7 @@ public class AlphaTraderSchool {
 //        int n = 500;
 //        int l = (n+1)/2;
 
-        for (int n = 600; n <= 900; n+=30) {
+        for (int n = 300; n <= 900; n+=30) {
             for (int l = 10; l < n/3; l++) {
                 for (int p = 1; p <= l/5; p++) {
                     for (int mi = 5; mi <= 30; mi += 5) {
@@ -349,8 +349,8 @@ public class AlphaTraderSchool {
             public void run() {
                 for (int md = 2; md <= mi; ++md) {
                     for (int d = 3; d<=3; d++) {
-                        study2(threadNum, "", "SRU1", "SRU1", n, l, p, null, mi, true, true, f, false, d, false, false, 0,
-                                t, md, threadNum < THREAD_GPU ? 0 : 3, ts, false);
+                        study2(threadNum, "", "RSH2", "RSH2", n, l, p, null, mi, true, true, f, false, d, false, false, 0,
+                                t, md, threadNum < THREAD_GPU ? 0 : 2, ts, false);
                     }
                 }
             }
@@ -854,7 +854,7 @@ public class AlphaTraderSchool {
             balanceTimeSeries.setNotify(true);
         }
 
-        if (money > 2000 && !paint) {
+        if (money > 1000 && !paint) {
             study2(thread, prefix, symbol, future, n, l, p, pp, m, average, useStop, stopFactor, anti, d, fiveSec, useMA, ma, t, md, svd, ts, true);
             System.out.println(s);
 
