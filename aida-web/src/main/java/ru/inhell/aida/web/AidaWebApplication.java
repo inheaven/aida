@@ -3,6 +3,7 @@ package ru.inhell.aida.web;
 import org.apache.wicket.Page;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.wicketstuff.javaee.injection.JavaEEComponentInjector;
+import ru.inhell.aida.template.test.HelloMenu;
 import ru.inhell.aida.web.order.OrderPage;
 
 /**
@@ -15,6 +16,8 @@ public class AidaWebApplication extends WebApplication{
         super.init();
 
         getComponentInstantiationListeners().add(new JavaEEComponentInjector(this));
+
+        mountPage("/test", HelloMenu.class);
     }
 
     @Override

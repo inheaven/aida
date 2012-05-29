@@ -22,8 +22,21 @@ public class AlphaStatisticPanel extends JPanel {
     private final static DateFormat TIME_FORMAT = DateFormat.getTimeInstance();
 
     private JTable table;
-    private final static String[] COLUMNS_NAMES = {"Название", "Изменение", "Сделка", "Количество", "Цена", "Время", "Заявки", "Остановки",
-            "Баланс", "Оценка", "Баланс (пред.)", "Оценка (пред.)", "Баланс (все)", "Оценка (все)"};
+    private final static String[] COLUMNS_NAMES = {
+            "Название",
+            "Изменение",
+            "Сделка",
+            "Количество",
+            "Цена",
+            "Время",
+            "Заявки",
+            "Остановки",
+            "Баланс",
+            "Оценка",
+            "Баланс (пред.)",
+            "Оценка (пред.)",
+            "Баланс (все)",
+            "Оценка (все)"};
 
     private AlphaTraderBean alphaTraderBean = AidaInjector.getInstance(AlphaTraderBean.class);
     private AlphaStatisticService alphaStatisticService = AidaInjector.getInstance(AlphaStatisticService.class);

@@ -1,5 +1,6 @@
 package ru.inhell.aida.template.web;
 
+import org.apache.wicket.Page;
 import org.reflections.Reflections;
 
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ public class MenuManager {
 
     private List<Menu> menuList;
 
+    @SuppressWarnings("unchecked")
     public MenuManager() {
         menuList = new ArrayList<>();
 
@@ -26,7 +28,7 @@ public class MenuManager {
         for (Class<?> c : classes){
             TemplateMenu templateMenu = c.getAnnotation(TemplateMenu.class);
 
-            menuList.add(new Menu(templateMenu.order(), templateMenu.groupKey(), templateMenu.page()));
+            menuList.add(new Menu(templateMenu.order(), templateMenu.groupKey(), (Class<? extends Page>) c));
         }
 
         menuList = Collections.unmodifiableList(menuList);

@@ -14,5 +14,4 @@ import java.lang.annotation.Target;
 public @interface TemplateMenu{
     int order() default 0;
     String groupKey();
-    Class page();
 }

@@ -1,5 +1,7 @@
 package ru.inhell.aida.template.web;
 
+import org.apache.wicket.Page;
+
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
  *         Date: 29.05.12 17:31
@@ -7,12 +9,12 @@ package ru.inhell.aida.template.web;
 public class Menu {
     private int order;
     private String groupKey;
-    private Class page;
+    private Class<? extends Page> page;
 
     public Menu() {
     }
 
-    public Menu(int order, String groupKey, Class page) {
+    public Menu(int order, String groupKey, Class<? extends Page> page) {
         this.order = order;
         this.groupKey = groupKey;
         this.page = page;
@@ -34,11 +36,11 @@ public class Menu {
         this.groupKey = groupKey;
     }
 
-    public Class getPage() {
+    public Class<? extends Page> getPage() {
         return page;
     }
 
-    public void setPage(Class page) {
+    public void setPage(Class<? extends Page> page) {
         this.page = page;
     }
 }

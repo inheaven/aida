@@ -1,8 +1,14 @@
 package ru.inhell.aida.template.web;
 
+import org.apache.wicket.Page;
 import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.request.resource.PackageResourceReference;
+import org.apache.wicket.resource.loader.IStringResourceLoader;
 
 import java.util.List;
 
@@ -21,16 +27,32 @@ public abstract class AbstractPage extends WebPage{
     }
 
     protected void populateMenu(){
-        List<Menu> menuList = MenuManager.getMenuList();
+        add( new ListView<Menu>("menu_list", MenuManager.getMenuList()) {
+            @Override
+            protected void populateItem(ListItem<Menu> item) {
+                Menu menu = item.getModelObject();
 
-//        getApplication().getResourceReferenceRegistry().getResourceReference()
-        //Iterator<IStringResourceLoader> iter = getStringResourceLoaders().iterator();
+                BookmarkablePageLink link = new BookmarkablePageLink<Void>("link", menu.getPage());
+                link.add(new Label("label", AbstractPage.this.getString(menu.getPage(), "template_menu")));
 
+                item.add(link);
+            }
+        });
+    }
 
+    protected String getString(Class<? extends Page> page, String key){
+        List<IStringResourceLoader> loaders = getApplication().getResourceSettings().getStringResourceLoaders();
 
-        for (Menu menu : menuList){
+        for (IStringResourceLoader loader : loaders){
+            String s = loader.loadStringResource(page, key, getLocale(), null, null);
 
+            if (s != null){
+                return s;
+            }
 
         }
+
+        return "[" + key + "]";
     }
+
 }

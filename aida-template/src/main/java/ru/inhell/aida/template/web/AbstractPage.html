@@ -1,5 +1,5 @@
-<!DOCTYPE html>
-<html xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns:wicket="http://git-wip-us.apache.org/repos/asf/wicket/repo?p=wicket.git;a=blob_plain;f=wicket-core/src/main/resources/META-INF/wicket-1.5.xsd;hb=master">
 <head>
     <title><wicket:message key="title"/></title>
 </head>
@@ -7,12 +7,16 @@
 <body>
 <div class="menu">
     <ul>
-        <li wicket:id="menu"></li>
+        <li wicket:id="menu_list">
+            <a wicket:id="link">
+                <span wicket:id="label"></span>
+            </a>
+        </li>
     </ul>
 
 </div>
 <div class="content">
-
+    <wicket:child/>
 </div>
 </body>
 
