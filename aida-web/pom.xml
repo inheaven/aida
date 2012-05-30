@@ -37,7 +37,7 @@
         </dependency>
         <dependency>
             <groupId>org.wicketstuff</groupId>
-            <artifactId>javaee-inject</artifactId>
+            <artifactId>wicketstuff-javaee-inject</artifactId>
         </dependency>
 
         <dependency>

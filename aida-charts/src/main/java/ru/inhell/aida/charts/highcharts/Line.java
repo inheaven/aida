@@ -1,14 +1,10 @@
 package ru.inhell.aida.charts.highcharts;
 
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.request.resource.PackageResourceReference;
 import org.odlabs.wiquery.core.IWiQueryPlugin;
-import org.odlabs.wiquery.core.javascript.JsScope;
 import org.odlabs.wiquery.core.javascript.JsStatement;
-import org.odlabs.wiquery.core.options.ListItemOptions;
 import org.odlabs.wiquery.core.options.Options;
-import org.odlabs.wiquery.core.options.StringOption;
 import org.odlabs.wiquery.ui.commons.WiQueryUIPlugin;
 
 /**
@@ -29,7 +25,7 @@ public class Line extends WebMarkupContainer implements IWiQueryPlugin{
 
     @Override
     public void renderHead(IHeaderResponse response) {
-        response.renderJavaScriptReference(new PackageResourceReference(Line.class, "highcharts.js"));
+//        response.render(new PackageResourceReference(Line.class, "highcharts.js"));
     }
 
     @Override

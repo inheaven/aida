@@ -1,13 +1,14 @@
 package ru.inhell.aida.template.web;
 
 import org.apache.wicket.Page;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.request.resource.PackageResourceReference;
+import org.apache.wicket.request.resource.CssResourceReference;
 import org.apache.wicket.resource.loader.IStringResourceLoader;
 
 import java.util.List;
@@ -23,7 +24,7 @@ public abstract class AbstractPage extends WebPage{
 
     @Override
     public void renderHead(IHeaderResponse response) {
-        response.renderCSSReference(new PackageResourceReference(AbstractPage.class, "style.css"));
+        response.render(CssHeaderItem.forReference(new CssResourceReference(AbstractPage.class, "style.css")));
     }
 
     protected void populateMenu(){
@@ -45,6 +46,8 @@ public abstract class AbstractPage extends WebPage{
 
         for (IStringResourceLoader loader : loaders){
             String s = loader.loadStringResource(page, key, getLocale(), null, null);
+
+//            getString()
 
             if (s != null){
                 return s;

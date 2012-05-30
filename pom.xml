@@ -27,6 +27,13 @@
             <url>http://oss.sonatype.org/content/groups/public</url>
         </repository>
         <repository>
+            <id>wicketstuff-core-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
             <id>nativelibs4java-repo</id>
             <name>NativeLibs4Java Old Snapshots Repository</name>
             <url>http://nativelibs4java.sourceforge.net/maven</url>
@@ -75,7 +82,7 @@
             <dependency>
                 <groupId>org.apache.wicket</groupId>
                 <artifactId>wicket-core</artifactId>
-                <version>1.5.6</version>
+                <version>6.0.0-beta2</version>
             </dependency>
 
             <dependency>
@@ -85,8 +92,8 @@
             </dependency>
             <dependency>
                 <groupId>org.wicketstuff</groupId>
-                <artifactId>javaee-inject</artifactId>
-                <version>1.5-RC5.1</version>
+                <artifactId>wicketstuff-javaee-inject</artifactId>
+                <version>6.0.0-beta1.1</version>
             </dependency>
             <dependency>
                 <groupId>org.wicketstuff</groupId>
@@ -98,6 +105,13 @@
                 <artifactId>jqplot</artifactId>
                 <version>1.5.3.1</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.odlabs.wiquery</groupId>
+                <artifactId>wiquery-core</artifactId>
+                <version>1.5.6</version>
+            </dependency>
+
 
             <dependency>
                 <groupId>org.odlabs.wiquery</groupId>
