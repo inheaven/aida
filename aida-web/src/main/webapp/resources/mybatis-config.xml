@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <typeHandlers>
+        <typeHandler javaType="ru.inhell.aida.common.entity.TransactionType"
+                     handler="ru.inhell.aida.common.entity.TransactionTypeHandler"/>
+    </typeHandlers>
+
+    <environments default="local">
+        <environment id="local">
+            <transactionManager type="MANAGED"/>
+            <dataSource type="JNDI">
+                <property name="data_source" value="jdbc/aidaResource"/>
+            </dataSource>
+        </environment>
+    </environments>
+
+    <mappers>
+        <mapper resource="ru/inhell/aida/oracle/AlphaOracleBean.xml"/>
+        <mapper resource="ru/inhell/aida/oracle/VectorForecastBean.xml"/>
+        <mapper resource="ru/inhell/aida/oracle/AlphaOracleSchoolBean.xml"/>
+        <mapper resource="ru/inhell/aida/quotes/QuotesBean.xml"/>
+        <mapper resource="ru/inhell/aida/quotes/AllTradeBean.xml"/>
+        <mapper resource="ru/inhell/aida/quotes/CurrentBean.xml"/>
+        <mapper resource="ru/inhell/aida/trader/AlphaTraderBean.xml"/>
+        <mapper resource="ru/inhell/aida/quik/TransactionBean.xml"/>
+        <mapper resource="ru/inhell/aida/quik/OrderBean.xml"/>
+    </mappers>
+</configuration>

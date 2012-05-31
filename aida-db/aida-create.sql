@@ -17,10 +17,9 @@ CREATE TABLE `all_trades_session` (
 create table  `all_trades` (
   `id` bigint(20) unsigned not null auto_increment,
   `transaction_id` bigint(20) unsigned not null,
-  `date` varchar(10) not null,
-  `time` time not null,
+  `date` datetime not null,
   `symbol` varchar(8) not null,
-  `price` decimal(15,6) not null,
+  `price` decimal(10,4) not null,
   `quantity` int(10) unsigned not null,
   `volume` decimal(15,2) not null,
   `transaction` varchar(10) not null,
@@ -32,49 +31,47 @@ create table  `all_trades` (
 ) engine=innodb default charset=cp1251;
 
 create table `quotes_1min`(
-   `id` bigint unsigned not null auto_increment,
-   `symbol` varchar(10) not null,
-   `date` datetime not null,
-   `open` decimal(15,6) not null,
-   `high` decimal(15,6) not null,
-   `low` decimal(15,6) not null,
-   `close` decimal(15,6) not null,
-   `volume` decimal(15,2) not null,
-   `created` timestamp default current_timestamp,
-   primary key (`id`),
-   unique key `key_symbol_date` (`symbol`, `date`)
- ) engine=innodb default charset=cp1251;
+  `id` bigint unsigned not null auto_increment,
+  `symbol` varchar(10) not null,
+  `date` datetime not null,
+  `open` decimal(15,6) not null,
+  `high` decimal(15,6) not null,
+  `low` decimal(15,6) not null,
+  `close` decimal(15,6) not null,
+  `volume` decimal(15,2) not null,
+  `created` timestamp default current_timestamp,
+  primary key (`id`),
+  unique key `key_symbol_date` (`symbol`, `date`)
+) engine=innodb default charset=cp1251;
 
 create table `current`(
-   `id` bigint unsigned not null auto_increment,
-   `instrument` varchar(64) not null,
-   `symbol` varchar(10) not null,
-   `date` varchar(10),
-   `time` time,
-   `price` decimal(15,6) not null,
-   `volume` decimal(15,2),
-   `mean` decimal(15,6),
-   `bid` decimal(15,6),
-   `ask` decimal(15,6),
-   `rate` decimal(2,2),
-   `created` timestamp default current_timestamp,
-   primary key (`id`),
-   unique key `key_symbol_date` (`symbol`, `date`)
- ) engine=innodb default charset=cp1251;
-
-
+  `id` bigint unsigned not null auto_increment,
+  `instrument` varchar(64) not null,
+  `symbol` varchar(10) not null,
+  `date` varchar(10),
+  `time` time,
+  `price` decimal(15,6) not null,
+  `volume` decimal(15,2),
+  `mean` decimal(15,6),
+  `bid` decimal(15,6),
+  `ask` decimal(15,6),
+  `rate` decimal(2,2),
+  `created` timestamp default current_timestamp,
+  primary key (`id`),
+  unique key `key_symbol_date` (`symbol`, `date`)
+) engine=innodb default charset=cp1251;
 
 create table `vector_forecast`(
-   `id` bigint unsigned not null auto_increment,
-   `symbol` varchar(10) not null,
-   `interval` varchar(10) not null,
-   `n` int(10) not null,
-   `l` int(10) not null,
-   `p` int(10) not null,
-   `m` int(10) not null,
-   `created` timestamp default current_timestamp,
-   primary key (`id`),
-   unique key `key_unique` (`symbol`, `interval`, `n`, `l`, `p`, `m`)
+  `id` bigint unsigned not null auto_increment,
+  `symbol` varchar(10) not null,
+  `interval` varchar(10) not null,
+  `n` int(10) not null,
+  `l` int(10) not null,
+  `p` int(10) not null,
+  `m` int(10) not null,
+  `created` timestamp default current_timestamp,
+  primary key (`id`),
+  unique key `key_unique` (`symbol`, `interval`, `n`, `l`, `p`, `m`)
 ) engine=innodb default charset=cp1251;
 
 create table `vector_forecast_data`(
@@ -173,7 +170,7 @@ create table `transaction` (
   `quantity` int(10) unsigned not null,
   `volume` decimal(15,2) not null,
   primary key (`id`)
-) engine=innodb auto_increment=1303 default charset=cp1251;
+) engine=innodb default charset=cp1251;
 
 create table  `order` (
   `id` bigint(20) unsigned not null auto_increment,

@@ -47,7 +47,7 @@ public abstract class AbstractPage extends WebPage{
         for (IStringResourceLoader loader : loaders){
             String s = loader.loadStringResource(page, key, getLocale(), null, null);
 
-//            getString()
+//            getString() todo cache?
 
             if (s != null){
                 return s;
