@@ -42,6 +42,9 @@
             <id>wiquery-maven-repo</id>
             <name>WiQuery repository</name>
             <url>https://wiquery.googlecode.com/svn/repo/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </repository>
     </repositories>
 
@@ -52,6 +55,7 @@
         <module>aida-light</module>
         <module>aida-charts</module>
         <module>aida-template</module>
+        <module>aida-matrix</module>
     </modules>
 
     <dependencyManagement>
