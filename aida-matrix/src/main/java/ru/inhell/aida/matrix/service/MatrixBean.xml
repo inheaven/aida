@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ru.inhell.aida.matrix.service.MatrixBean">
+    <resultMap id="matrixResultMap" type="ru.inhell.aida.matrix.entity.Matrix">
+        <id column="id"/>
+        <result column="date"/>
+        <result column="price"/>
+        <result column="sum_quantity"/>
+        <result column="sum_volume"/>
+        <result column="transaction"/>
+    </resultMap>
+
+    <select id="selectMatrixList" parameterType="ru.inhell.aida.common.entity.FilterWrapper">
+        select
+          id, `date`, sum(quantity) as sum_quantity, sum(volume) as sum_volume, `transaction`,
+            hour(`date`)*60 + minute(`date`) as m, hour(date) as h
+        from
+          all_trades
+        where
+          symbol = #{symbol} and `date` between #{start} and #{end}
+        <if test="type = 'ONE_MINUTE'">
+            group by m, price, `transaction`
+        </if>
+        <if test="type = 'ONE_MINUTE'">
+            group by h, price, `transaction`
+        </if>
+    </select>
+</mapper>

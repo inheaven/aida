@@ -13,5 +13,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface TemplateMenu{
     int order() default 0;
-    String groupKey();
+    String groupKey() default "";
+    String titleKey() default "template_menu";
 }

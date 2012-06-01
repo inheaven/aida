@@ -16,5 +16,9 @@
             <groupId>ru.inhell.aida</groupId>
             <artifactId>aida-common</artifactId>
         </dependency>
+        <dependency>
+            <groupId>ru.inhell.aida</groupId>
+            <artifactId>aida-template</artifactId>
+        </dependency>
     </dependencies>
 </project>

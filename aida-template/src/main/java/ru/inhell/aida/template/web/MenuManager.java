@@ -26,9 +26,9 @@ public class MenuManager {
         Set<Class<?>> classes = reflections.getTypesAnnotatedWith(TemplateMenu.class);
 
         for (Class<?> c : classes){
-            TemplateMenu templateMenu = c.getAnnotation(TemplateMenu.class);
+            TemplateMenu tm = c.getAnnotation(TemplateMenu.class);
 
-            menuList.add(new Menu(templateMenu.order(), templateMenu.groupKey(), (Class<? extends Page>) c));
+            menuList.add(new Menu(tm.order(), tm.groupKey(), tm.titleKey(), (Class<? extends Page>) c));
         }
 
         menuList = Collections.unmodifiableList(menuList);

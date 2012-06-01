@@ -34,7 +34,7 @@ public abstract class AbstractPage extends WebPage{
                 Menu menu = item.getModelObject();
 
                 BookmarkablePageLink link = new BookmarkablePageLink<Void>("link", menu.getPage());
-                link.add(new Label("label", AbstractPage.this.getString(menu.getPage(), "template_menu")));
+                link.add(new Label("label", AbstractPage.this.getString(menu.getPage(), menu.getTitleKey())));
 
                 item.add(link);
             }

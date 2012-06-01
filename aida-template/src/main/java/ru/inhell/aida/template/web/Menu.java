@@ -9,14 +9,16 @@ import org.apache.wicket.Page;
 public class Menu {
     private int order;
     private String groupKey;
+    private String titleKey;
     private Class<? extends Page> page;
 
     public Menu() {
     }
 
-    public Menu(int order, String groupKey, Class<? extends Page> page) {
+    public Menu(int order, String groupKey, String titleKey, Class<? extends Page> page) {
         this.order = order;
         this.groupKey = groupKey;
+        this.titleKey = titleKey;
         this.page = page;
     }
 
@@ -34,6 +36,14 @@ public class Menu {
 
     public void setGroupKey(String groupKey) {
         this.groupKey = groupKey;
+    }
+
+    public String getTitleKey() {
+        return titleKey;
+    }
+
+    public void setTitleKey(String titleKey) {
+        this.titleKey = titleKey;
     }
 
     public Class<? extends Page> getPage() {

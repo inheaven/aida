@@ -46,6 +46,9 @@ public class SqlSessionFactoryBean {
 
             Configuration configuration = parser.parse();
 
+            //Underscore
+            configuration.setMapUnderscoreToCamelCase(true);
+
             //XmlMapper
             addAnnotationMappers(configuration);
 
