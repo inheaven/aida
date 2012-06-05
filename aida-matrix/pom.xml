@@ -20,5 +20,9 @@
             <groupId>ru.inhell.aida</groupId>
             <artifactId>aida-template</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.odlabs.wiquery</groupId>
+            <artifactId>wiquery-jquery-ui</artifactId>
+        </dependency>
     </dependencies>
 </project>

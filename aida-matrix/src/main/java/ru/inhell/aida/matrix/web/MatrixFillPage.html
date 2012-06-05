@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.inheaven.ru">
+<head>
+    <title>MatrixFillPage</title>
+</head>
+
+<body>
+<form wicket:id="form">
+    <input type="text" wicket:id="symbol"/>
+    <div wicket:id="start"></div>
+    <div wicket:id="end"></div>
+    <input type="button" wicket:id="submit" value="Запустить"/>
+    <input type="button" wicket:id="cancel" value="Отменить"/>
+</form>
+<div wicket:id="container">
+    <table>
+        <tr>
+            <td>Обработано:</td>
+            <td wicket:id="processed"></td>
+        </tr>
+        <tr>
+            <td>Пропущено:</td>
+            <td wicket:id="skipped"></td>
+        </tr>
+        <tr>
+            <td>Ошибка:</td>
+            <td wicket:id="error"></td>
+        </tr>
+
+    </table>
+
+</div>
+
+</body>
+
+</html>
