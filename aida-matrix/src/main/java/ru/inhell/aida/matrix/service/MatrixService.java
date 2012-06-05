@@ -30,6 +30,7 @@ public class MatrixService {
     @Asynchronous
     public Future<String> populateMatrixTable(String symbol, Date start, Date end, MatrixPeriodType periodType,
                                     IProcessListener<Matrix> listener, ProcessCommand command){
+        command.start();
         log.info("Началась обработка");
 
         Matrix matrix = null;
@@ -102,6 +103,7 @@ public class MatrixService {
             listener.error(matrix, e);
         }
 
+        command.done();
         log.info("Обработка закончилась");
 
         return new AsyncResult<>("PROCESSED");

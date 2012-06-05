@@ -7,13 +7,27 @@ import java.io.Serializable;
  *         Date: 05.06.12 15:34
  */
 public class ProcessCommand implements Serializable{
-    private boolean cancel = false;
+    private boolean cancel;
+    private boolean done;
+
+    public void start(){
+        cancel =false;
+        done = false;
+    }
+
+    public void cancel(){
+        cancel = true;
+    }
+
+    public void done(){
+        done = true;
+    }
 
     public boolean isCancel() {
         return cancel;
     }
 
-    public void setCancel(boolean cancel) {
-        this.cancel = cancel;
+    public boolean isDone() {
+        return done;
     }
 }

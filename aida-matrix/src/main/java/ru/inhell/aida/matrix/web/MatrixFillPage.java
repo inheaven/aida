@@ -112,12 +112,17 @@ public class MatrixFillPage extends AbstractPage{
                     }
                 };
 
-                command.setCancel(false);
-
                 matrixService.populateMatrixTable(symbol.getModelObject(), start.getModelObject(), end.getModelObject(),
                         type.getModelObject(), listener, command);
 
-                timerBehavior = new AjaxSelfUpdatingTimerBehavior(Duration.ONE_SECOND);
+                timerBehavior = new AjaxSelfUpdatingTimerBehavior(Duration.ONE_SECOND){
+                    @Override
+                    protected void onPostProcessTarget(AjaxRequestTarget target) {
+                        if (command.isCancel() || command.isDone()){
+                            stop(target);
+                        }
+                    }
+                };
                 container.add(timerBehavior);
             }
         };
@@ -127,8 +132,7 @@ public class MatrixFillPage extends AbstractPage{
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 if (timerBehavior != null){
-                    command.setCancel(true);
-                    timerBehavior.stop(target);
+                    command.cancel();
                 }
             }
 
