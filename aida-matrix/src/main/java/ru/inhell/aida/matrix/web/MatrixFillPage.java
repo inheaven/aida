@@ -112,6 +112,8 @@ public class MatrixFillPage extends AbstractPage{
                     }
                 };
 
+                command.setCancel(false);
+
                 matrixService.populateMatrixTable(symbol.getModelObject(), start.getModelObject(), end.getModelObject(),
                         type.getModelObject(), listener, command);
 

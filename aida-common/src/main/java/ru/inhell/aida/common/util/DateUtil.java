@@ -18,7 +18,7 @@ public class DateUtil {
         SimpleDateFormat simpleDateFormat = SIMPLE_DATE_FORMAT_THREAD_LOCAL.get();
 
         if (simpleDateFormat == null){
-            simpleDateFormat = new SimpleDateFormat("dd.MM.yy hh:mm:ss");
+            simpleDateFormat = new SimpleDateFormat("dd.MM.yy HH:mm:ss");
             SIMPLE_DATE_FORMAT_THREAD_LOCAL.set(simpleDateFormat);
         }
 

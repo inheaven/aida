@@ -61,7 +61,7 @@ public class MatrixService {
                 endCalendar.setTime(date);
 
                 //skip non trading time
-                if (endCalendar.get(Calendar.HOUR_OF_DAY) < 10){
+                if (endCalendar.get(Calendar.HOUR_OF_DAY) < 9){
                     continue;
                 }
 
