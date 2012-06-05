@@ -7,6 +7,5 @@ import ru.inhell.aida.template.web.TemplateMenu;
  * @author Anatoly Ivanov java@inheaven.ru
  *         Date: 29.05.12 20:38
  */
-@TemplateMenu(groupKey = "test")
 public class HelloMenu extends AbstractPage {
 }

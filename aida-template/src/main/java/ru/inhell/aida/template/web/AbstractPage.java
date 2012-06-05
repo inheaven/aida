@@ -55,7 +55,7 @@ public abstract class AbstractPage extends WebPage{
 
         }
 
-        return "[" + key + "]";
+        return "[" + page.getSimpleName() + "]";
     }
 
 }

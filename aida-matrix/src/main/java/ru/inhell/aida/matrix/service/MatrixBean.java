@@ -1,5 +1,6 @@
 package ru.inhell.aida.matrix.service;
 
+import org.apache.wicket.page.RequestAdapter;
 import ru.inhell.aida.common.entity.EntityWrapper;
 import ru.inhell.aida.common.mybatis.XmlMapper;
 import ru.inhell.aida.common.service.AbstractBean;
@@ -7,6 +8,8 @@ import ru.inhell.aida.matrix.entity.Matrix;
 import ru.inhell.aida.matrix.entity.MatrixPeriodType;
 
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import java.util.Date;
 import java.util.List;
 
@@ -29,8 +32,13 @@ public class MatrixBean extends AbstractBean{
         return sqlSession().selectOne("selectMatrix", EntityWrapper.of(matrix).add("period_type", periodType.name()));
     }
 
+    public Long getMatrixId(Matrix matrix, MatrixPeriodType periodType){
+        return sqlSession().selectOne("selectMatrixId", EntityWrapper.of(matrix).add("period_type", periodType.name()));
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void save(Matrix matrix, MatrixPeriodType periodType){
-        sqlSession().insert("insertMatrix", EntityWrapper.of(matrix).add("period_type", periodType));
+        sqlSession().insert("insertMatrix", EntityWrapper.of(matrix).add("period_type", periodType.name()));
     }
 
     public List<Matrix> getMatrixList(String symbol, Date start, Date end, MatrixPeriodType periodType){

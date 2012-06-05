@@ -11,6 +11,6 @@ import ru.inhell.aida.template.web.TemplateMenu;
 @TemplateMenu()
 public class MatrixTestPage extends AbstractPage{
     public MatrixTestPage() {
-        add(new MatrixPanel("matrix"));
+//        add(new MatrixPanel("matrix"));
     }
 }

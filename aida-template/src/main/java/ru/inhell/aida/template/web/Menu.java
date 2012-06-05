@@ -2,11 +2,13 @@ package ru.inhell.aida.template.web;
 
 import org.apache.wicket.Page;
 
+import java.io.Serializable;
+
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
  *         Date: 29.05.12 17:31
  */
-public class Menu {
+public class Menu implements Serializable {
     private int order;
     private String groupKey;
     private String titleKey;

@@ -21,8 +21,10 @@ public class TransactionTypeHandler extends BaseTypeHandler<TransactionType> {
         switch (parameter) {
             case BUY:
                 ps.setString(i, BUY_STRING);
+                break;
             case SELL:
                 ps.setString(i, SELL_STRING);
+                break;
         }
     }
 

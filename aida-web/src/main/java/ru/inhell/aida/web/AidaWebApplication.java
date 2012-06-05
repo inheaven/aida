@@ -3,6 +3,8 @@ package ru.inhell.aida.web;
 import org.apache.wicket.Page;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.wicketstuff.javaee.injection.JavaEEComponentInjector;
+import org.wicketstuff.javaee.naming.global.ModuleJndiNamingStrategy;
+import ru.inhell.aida.common.service.GlassfishJndiNamingStrategy;
 import ru.inhell.aida.template.test.HelloMenu;
 import ru.inhell.aida.web.order.OrderPage;
 
@@ -15,7 +17,7 @@ public class AidaWebApplication extends WebApplication{
     protected void init() {
         super.init();
 
-        getComponentInstantiationListeners().add(new JavaEEComponentInjector(this));
+        getComponentInstantiationListeners().add(new JavaEEComponentInjector(this, new GlassfishJndiNamingStrategy()));
 
         mountPage("/test", HelloMenu.class);
     }

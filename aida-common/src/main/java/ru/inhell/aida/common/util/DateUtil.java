@@ -1,5 +1,6 @@
 package ru.inhell.aida.common.util;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -11,6 +12,23 @@ import static java.util.Calendar.MINUTE;
  *         Date: 16.03.11 19:11
  */
 public class DateUtil {
+    private final static ThreadLocal<SimpleDateFormat> SIMPLE_DATE_FORMAT_THREAD_LOCAL = new ThreadLocal<>();
+
+    public static SimpleDateFormat simpleDateFormat(){
+        SimpleDateFormat simpleDateFormat = SIMPLE_DATE_FORMAT_THREAD_LOCAL.get();
+
+        if (simpleDateFormat == null){
+            simpleDateFormat = new SimpleDateFormat("dd.MM.yy hh:mm:ss");
+            SIMPLE_DATE_FORMAT_THREAD_LOCAL.set(simpleDateFormat);
+        }
+
+        return simpleDateFormat;
+    }
+
+    public static String getString(Date date){
+        return simpleDateFormat().format(date);
+    }
+
     public static Date now(){
         return new Date();
     }

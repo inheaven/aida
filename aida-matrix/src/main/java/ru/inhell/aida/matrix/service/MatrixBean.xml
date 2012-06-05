@@ -3,49 +3,58 @@
 
 <mapper namespace="ru.inhell.aida.matrix.service.MatrixBean">
     <resultMap id="matrixResultMap" type="ru.inhell.aida.matrix.entity.Matrix">
-        <id column="id"/>
-        <result column="date"/>
-        <result column="price"/>
-        <result column="sum_quantity"/>
-        <result column="sum_volume"/>
-        <result column="transaction"/>
+        <id column="id" property="id"/>
+        <result column="symbol" property="symbol"/>
+        <result column="date" property="date"/>
+        <result column="price" property="price"/>
+        <result column="sum_quantity" property="sumQuantity"/>
+        <result column="sum_volume" property="sumVolume"/>
+        <result column="transaction"  property="transaction"/>
     </resultMap>
 
     <select id="selectMatrixListFromAllTrades" parameterType="ru.inhell.aida.common.entity.EntityWrapper"
             resultMap="matrixResultMap">
         select
-          id, `date`, sum(quantity) as sum_quantity, sum(volume) as sum_volume, `transaction`,
-            hour(`date`)*60 + minute(`date`) as m, hour(date) as h
+          id, `symbol`, `price`, `date`, sum(quantity) as sum_quantity, sum(volume) as sum_volume, `transaction`,
+            minute(`date`) as m, hour(date) as h
         from
           all_trades
         where
           symbol = #{map.symbol} and `date` between #{map.start} and #{map.end}
-        <if test="map.period_type = 'ONE_MINUTE'">group by m, price, `transaction`</if>
-        <if test="map.period_type = 'ONE_HOUR'">group by h, price, `transaction`</if>
+        <if test="map.period_type == 'ONE_MINUTE'">group by h, m, price, `transaction`</if>
+        <if test="map.period_type == 'ONE_HOUR'">group by h, price, `transaction`</if>
     </select>
 
-    <select id="selectMatrix" parameterMap="ru.inhell.aida.common.entity.EntityWrapper" resultMap="matrixResultMap">
+    <select id="selectMatrix" parameterType="ru.inhell.aida.common.entity.EntityWrapper" resultMap="matrixResultMap">
         select * from
-        <if test="map.period_type = 'ONE_MINUTE'">`matrix_1m`</if>
-        <if test="map.period_type = 'ONE_HOUR'">`matrix_1h`</if>
+        <if test="map.period_type == 'ONE_MINUTE'">`matrix_1m`</if>
+        <if test="map.period_type == 'ONE_HOUR'">`matrix_1h`</if>
         where `symbol` = #{object.symbol} and `date` = #{object.date} and `price` = #{object.price}
           and `transaction` = #{object.transaction}
     </select>
 
-    <insert id="insertMatrix" parameterMap="ru.inhell.aida.common.entity.EntityWrapper">
+    <select id="selectMatrixId" parameterType="ru.inhell.aida.common.entity.EntityWrapper" resultType="long">
+        select `id` from
+        <if test="map.period_type == 'ONE_MINUTE'">`matrix_1m`</if>
+        <if test="map.period_type == 'ONE_HOUR'">`matrix_1h`</if>
+        where `symbol` = #{object.symbol} and `date` = #{object.date} and `price` = #{object.price}
+          and `transaction` = #{object.transaction}
+    </select>
+
+    <insert id="insertMatrix" parameterType="ru.inhell.aida.common.entity.EntityWrapper">
         insert into
-        <if test="map.period_type = 'ONE_MINUTE'">`matrix_1m`</if>
-        <if test="map.period_type = 'ONE_HOUR'">`matrix_1h`</if>
+        <if test="map.period_type == 'ONE_MINUTE'">`matrix_1m`</if>
+        <if test="map.period_type == 'ONE_HOUR'">`matrix_1h`</if>
         (`symbol`, `date`, `price`, `transaction`, `sum_quantity`, `sum_volume`)
         values
         (#{object.symbol}, #{object.date}, #{object.price}, #{object.transaction}, #{object.sumQuantity},
           #{object.sumVolume})
     </insert>
 
-    <select id="selectMatrixList" parameterMap="ru.inhell.aida.common.entity.EntityWrapper" resultMap="matrixResultMap">
+    <select id="selectMatrixList" parameterType="ru.inhell.aida.common.entity.EntityWrapper" resultMap="matrixResultMap">
         select * from
-        <if test="map.period_type = 'ONE_MINUTE'">`matrix_1m`</if>
-        <if test="map.period_type = 'ONE_HOUR'">`matrix_1h`</if>
+        <if test="map.period_type == 'ONE_MINUTE'">`matrix_1m`</if>
+        <if test="map.period_type == 'ONE_HOUR'">`matrix_1h`</if>
         where symbol = #{map.symbol} and `date` between #{map.start} and #{map.end}
     </select>
 </mapper>
