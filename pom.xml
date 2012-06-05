@@ -87,17 +87,17 @@
                 <artifactId>aida-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>ru.inhell.aida</groupId>
+                <artifactId>aida-matrix</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <!--wicket-->
             <dependency>
                 <groupId>org.apache.wicket</groupId>
                 <artifactId>wicket-core</artifactId>
                 <version>6.0.0-beta2</version>
-            </dependency>
-            <dependency>
-            	<groupId>org.apache.wicket</groupId>
-            	<artifactId>wicket-datetime</artifactId>
-            	<version>6.0.0-beta2</version>
             </dependency>
 
             <dependency>
@@ -124,14 +124,12 @@
             <dependency>
                 <groupId>org.odlabs.wiquery</groupId>
                 <artifactId>wiquery-core</artifactId>
-                <version>1.5.6</version>
+                <version>6.0-SNAPSHOT</version>
             </dependency>
-
-
             <dependency>
                 <groupId>org.odlabs.wiquery</groupId>
                 <artifactId>wiquery-jquery-ui</artifactId>
-                <version>1.5.6</version>
+                <version>6.0-SNAPSHOT</version>
             </dependency>
 
             <dependency>

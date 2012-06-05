@@ -1,7 +1,6 @@
 package ru.inhell.aida.trader;
 
 import com.google.common.primitives.Floats;
-import org.apache.ibatis.logging.stdout.StdOutImpl;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -11,7 +10,6 @@ import org.jfree.data.time.*;
 import ru.inhell.aida.acml.ACML;
 import ru.inhell.aida.cuda.CUDA_AIDA;
 import ru.inhell.aida.cuda.CUDA_AIDA_THREAD;
-import ru.inhell.aida.cula.CULA;
 import ru.inhell.aida.entity.*;
 import ru.inhell.aida.inject.AidaInjector;
 import ru.inhell.aida.oracle.AlphaOracleBean;
@@ -22,18 +20,14 @@ import ru.inhell.aida.quotes.QuotesBean;
 import ru.inhell.aida.ssa.BasicAnalysisSSA;
 import ru.inhell.aida.ssa.RemoteVSSAException;
 import ru.inhell.aida.ssa.VectorForecastSSA;
-import ru.inhell.aida.ssa.VectorForecastSSAService;
-import ru.inhell.aida.util.DateUtil;
+import ru.inhell.aida.common.util.DateUtil;
 import ru.inhell.aida.util.QuoteUtil;
 import ru.inhell.aida.util.VectorForecastUtil;
 
-import javax.management.monitor.StringMonitor;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.Rectangle2D;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.sql.Array;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -41,8 +35,6 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author Anatoly A. Ivanov java@inhell.ru

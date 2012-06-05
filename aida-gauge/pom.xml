@@ -10,7 +10,6 @@
     <groupId>ru.inhell.aida</groupId>
     <artifactId>aida-gauge</artifactId>
     <version>1.0</version>
-    <packaging>war</packaging>
 
     <name>aida-gauge</name>
 

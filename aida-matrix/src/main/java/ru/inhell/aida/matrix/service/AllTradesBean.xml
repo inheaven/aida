@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ru.inhell.aida.matrix.service.AllTradesBean">
+    <resultMap id="allTradeResultMap" type="ru.inhell.aida.common.entity.AllTrades">
+        <id column="id"/>
+        <result column="transaction_id"/>
+        <result column="symbol"/>
+        <result column="date"/>
+        <result column="price"/>
+        <result column="quantity"/>
+        <result column="volume"/>
+        <result column="transaction"/>
+    </resultMap>
+
+    <select id="selectAllTrades" resultMap="allTradeResultMap" parameterType="ru.inhell.aida.common.entity.EntityWrapper">
+        select * from `all_trades` where `symbol` = #{symbol}  and `date` between #{start} and #{end}
+    </select>
+</mapper>

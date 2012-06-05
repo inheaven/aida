@@ -186,3 +186,33 @@ create table  `order` (
   `transaction_id` bigint(20) unsigned not null,
   primary key (`id`)
 ) engine=innodb default charset=cp1251;
+
+create table `matrix_1m`(
+  `id` bigint(20) unsigned not null auto_increment,
+  `symbol` varchar(8) not null,
+  `date` datetime not null,
+  `price` decimal(10,4) not null,
+  `sum_quantity` int(10) unsigned not null,
+  `sum_volume` decimal(15,2) not null,
+  `transaction` varchar(10) not null,
+  `created` timestamp not null default current_timestamp,
+  primary key (`id`),
+  unique key `unique_key` (`symbol`, `date`, `price`, `transaction`),
+  key `key_date` (`date`),
+  key `key_symbol` (`symbol`)
+) engine=innodb charset=cp1251;
+
+create table `matrix_1h`(
+  `id` bigint(20) unsigned not null auto_increment,
+  `symbol` varchar(8) not null,
+  `date` datetime not null,
+  `price` decimal(10,4) not null,
+  `sum_quantity` int(10) unsigned not null,
+  `sum_volume` decimal(15,2) not null,
+  `transaction` varchar(10) not null,
+  `created` timestamp not null default current_timestamp,
+  primary key (`id`),
+  unique key `unique_key` (`symbol`, `date`, `price`, `transaction`),
+  key `key_date` (`date`),
+  key `key_symbol` (`symbol`)
+) engine=innodb charset=cp1251;

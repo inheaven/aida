@@ -8,7 +8,7 @@ import java.util.Map;
  * @author Anatoly A. Ivanov java@inheaven.ru
  *         Date: 01.06.12 15:38
  */
-public class FilterWrapper<T extends Serializable> implements Serializable{
+public class EntityWrapper<T extends Serializable> implements Serializable{
     private T object;
 
     protected int first;
@@ -18,28 +18,28 @@ public class FilterWrapper<T extends Serializable> implements Serializable{
 
     private Map<String, Object> map;
 
-    public FilterWrapper() {
+    public EntityWrapper() {
     }
 
-    public FilterWrapper(T object) {
+    public EntityWrapper(T object) {
         this.object = object;
     }
 
-    public FilterWrapper(T object, int first, int count) {
+    public EntityWrapper(T object, int first, int count) {
         this.object = object;
         this.first = first;
         this.count = count;
     }
 
-    public static <T extends Serializable> FilterWrapper<T> of(T object){
-        return new FilterWrapper<>(object);
+    public static <T extends Serializable> EntityWrapper<T> of(T object){
+        return new EntityWrapper<>(object);
     }
 
-    public static <T extends Serializable> FilterWrapper<T> of(T object, int first, int count){
-        return new FilterWrapper<>(object, first, count);
+    public static <T extends Serializable> EntityWrapper<T> of(T object, int first, int count){
+        return new EntityWrapper<>(object, first, count);
     }
 
-    public FilterWrapper<T> add(String key, Object value){
+    public EntityWrapper<T> add(String key, Object value){
         if (map == null){
             map = new HashMap<>();
         }

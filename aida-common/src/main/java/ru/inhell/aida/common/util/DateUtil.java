@@ -1,10 +1,7 @@
-package ru.inhell.aida.util;
-
-import ru.inhell.aida.entity.VectorForecast;
+package ru.inhell.aida.common.util;
 
 import java.util.Calendar;
 import java.util.Date;
-import java.util.TimeZone;
 
 import static java.util.Calendar.HOUR_OF_DAY;
 import static java.util.Calendar.MINUTE;

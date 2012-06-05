@@ -2,11 +2,9 @@ package ru.inhell.aida.trader;
 
 import com.google.inject.Inject;
 import org.apache.ibatis.session.SqlSessionManager;
-import ru.inhell.aida.entity.AlphaOracleData;
 import ru.inhell.aida.entity.AlphaTrader;
 import ru.inhell.aida.entity.AlphaTraderData;
 import ru.inhell.aida.entity.AlphaTraderFilter;
-import ru.inhell.aida.util.DateUtil;
 
 import java.util.List;
 

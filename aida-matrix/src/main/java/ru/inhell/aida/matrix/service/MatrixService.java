@@ -17,38 +17,44 @@ public class MatrixService {
     @EJB
     private MatrixBean matrixBean;
 
-    private Map<MatrixCacheKey, Matrix> cache = new ConcurrentHashMap<>();
-    private Map<MatrixPeriodCacheKey, List<Matrix>> cachePeriod = new ConcurrentHashMap<>();
-
-    public List<Matrix> getMatrixList(String symbol, Date start,  Date end, MatrixPeriodType type){
-        MatrixPeriodCacheKey key = new MatrixPeriodCacheKey(symbol, start, end, type);
-
-        List<Matrix> list = cachePeriod.get(key);
-
-        if (list == null){
-            list = new ArrayList<>();
-
-            //todo add scan from local cache and load necessary data
-            List<Matrix> db = matrixBean.getMatrixList(symbol, start, end, type);
-
-            for (Matrix m : db){
-                MatrixCacheKey k = new MatrixCacheKey(m.getSymbol(), m.getDate(), m.getTransaction());
-
-                Matrix cm = cache.get(k);
-
-                if (cm == null){
-                    cm = m;
-                    cache.put(k, m);
-                }
-
-                list.add(cm);
-            }
-
-            list = Collections.unmodifiableList(list);
-
-            cachePeriod.put(key, list);
+    public void populateMatrixTable(String symbol, Date start, Date end, MatrixPeriodType periodType){
+        long next;
+        switch (periodType) {
+            case ONE_MINUTE:
+                next = 1000;
+                break;
+            case ONE_HOUR:
+                next = 1000*60;
+                break;
+            default:
+                throw new IllegalArgumentException();
         }
 
-        return list;
+        Calendar calendar = Calendar.getInstance();
+
+        //clear second
+        calendar.setTime(start);
+        calendar.set(Calendar.SECOND, 0);
+
+        for (Date date = calendar.getTime(); date.before(end); date.setTime(date.getTime() + next)){
+            calendar.setTime(date);
+
+            //skip non trading time
+            if (calendar.get(Calendar.HOUR_OF_DAY) < 10){
+                continue;
+            }
+
+            calendar.set(Calendar.SECOND, 59);
+
+            List<Matrix> list = matrixBean.getMatrixListFromAllTrades(symbol, date, calendar.getTime(), periodType);
+
+            for (Matrix m : list){
+                Matrix db = matrixBean.getMatrix(m, periodType);
+
+                if (db == null){
+                    matrixBean.save(m, periodType);
+                }
+            }
+        }
     }
 }

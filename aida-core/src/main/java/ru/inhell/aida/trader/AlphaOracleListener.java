@@ -9,7 +9,7 @@ import ru.inhell.aida.quik.QuikService;
 import ru.inhell.aida.quik.QuikTransaction;
 import ru.inhell.aida.quik.QuikTransactionException;
 import ru.inhell.aida.quotes.CurrentBean;
-import ru.inhell.aida.util.DateUtil;
+import ru.inhell.aida.common.util.DateUtil;
 
 import java.util.Date;
 import java.util.List;

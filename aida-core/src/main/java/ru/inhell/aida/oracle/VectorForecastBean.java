@@ -3,7 +3,7 @@ package ru.inhell.aida.oracle;
 import com.google.inject.Inject;
 import org.apache.ibatis.session.SqlSessionManager;
 import ru.inhell.aida.entity.*;
-import ru.inhell.aida.util.DateUtil;
+import ru.inhell.aida.common.util.DateUtil;
 import ru.inhell.aida.util.VectorForecastUtil;
 
 import java.util.ArrayList;

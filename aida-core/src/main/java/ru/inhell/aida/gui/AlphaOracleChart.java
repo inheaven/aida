@@ -19,7 +19,7 @@ import ru.inhell.aida.oracle.AlphaOracleService;
 import ru.inhell.aida.oracle.IAlphaOracleListener;
 import ru.inhell.aida.oracle.VectorForecastBean;
 import ru.inhell.aida.quotes.QuotesBean;
-import ru.inhell.aida.util.DateUtil;
+import ru.inhell.aida.common.util.DateUtil;
 
 import javax.swing.*;
 import java.awt.*;

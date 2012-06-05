@@ -1,19 +1,14 @@
 package ru.inhell.aida.web.order;
 
-import com.googlecode.charts4j.*;
 import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.util.ListModel;
-import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.wicketstuff.flot.*;
 import org.wicketstuff.flot.Color;
 import ru.inhell.aida.entity.AlphaTraderData;
 import ru.inhell.aida.entity.Order;
-import ru.inhell.aida.entity.Transaction;
 import ru.inhell.aida.inject.AidaInjector;
 import ru.inhell.aida.quik.OrderBean;
-import ru.inhell.aida.quik.TransactionBean;
 import ru.inhell.aida.trader.AlphaTraderBean;
 import ru.inhell.aida.util.DateUtil;
 import ru.inhell.aida.web.AidaFlotPanel;

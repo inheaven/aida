@@ -4,7 +4,7 @@ import com.google.inject.Inject;
 import ru.inhell.aida.entity.*;
 import ru.inhell.aida.oracle.AlphaOracleBean;
 import ru.inhell.aida.trader.AlphaTraderBean;
-import ru.inhell.aida.util.DateUtil;
+import ru.inhell.aida.common.util.DateUtil;
 
 import java.util.Date;
 import java.util.List;

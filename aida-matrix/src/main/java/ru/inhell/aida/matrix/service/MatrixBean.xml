@@ -11,19 +11,41 @@
         <result column="transaction"/>
     </resultMap>
 
-    <select id="selectMatrixList" parameterType="ru.inhell.aida.common.entity.FilterWrapper">
+    <select id="selectMatrixListFromAllTrades" parameterType="ru.inhell.aida.common.entity.EntityWrapper"
+            resultMap="matrixResultMap">
         select
           id, `date`, sum(quantity) as sum_quantity, sum(volume) as sum_volume, `transaction`,
             hour(`date`)*60 + minute(`date`) as m, hour(date) as h
         from
           all_trades
         where
-          symbol = #{symbol} and `date` between #{start} and #{end}
-        <if test="type = 'ONE_MINUTE'">
-            group by m, price, `transaction`
-        </if>
-        <if test="type = 'ONE_MINUTE'">
-            group by h, price, `transaction`
-        </if>
+          symbol = #{map.symbol} and `date` between #{map.start} and #{map.end}
+        <if test="map.period_type = 'ONE_MINUTE'">group by m, price, `transaction`</if>
+        <if test="map.period_type = 'ONE_HOUR'">group by h, price, `transaction`</if>
+    </select>
+
+    <select id="selectMatrix" parameterMap="ru.inhell.aida.common.entity.EntityWrapper" resultMap="matrixResultMap">
+        select * from
+        <if test="map.period_type = 'ONE_MINUTE'">`matrix_1m`</if>
+        <if test="map.period_type = 'ONE_HOUR'">`matrix_1h`</if>
+        where `symbol` = #{object.symbol} and `date` = #{object.date} and `price` = #{object.price}
+          and `transaction` = #{object.transaction}
+    </select>
+
+    <insert id="insertMatrix" parameterMap="ru.inhell.aida.common.entity.EntityWrapper">
+        insert into
+        <if test="map.period_type = 'ONE_MINUTE'">`matrix_1m`</if>
+        <if test="map.period_type = 'ONE_HOUR'">`matrix_1h`</if>
+        (`symbol`, `date`, `price`, `transaction`, `sum_quantity`, `sum_volume`)
+        values
+        (#{object.symbol}, #{object.date}, #{object.price}, #{object.transaction}, #{object.sumQuantity},
+          #{object.sumVolume})
+    </insert>
+
+    <select id="selectMatrixList" parameterMap="ru.inhell.aida.common.entity.EntityWrapper" resultMap="matrixResultMap">
+        select * from
+        <if test="map.period_type = 'ONE_MINUTE'">`matrix_1m`</if>
+        <if test="map.period_type = 'ONE_HOUR'">`matrix_1h`</if>
+        where symbol = #{map.symbol} and `date` between #{map.start} and #{map.end}
     </select>
 </mapper>

@@ -6,7 +6,7 @@ import ru.inhell.aida.entity.AlphaOracle;
 import ru.inhell.aida.entity.AlphaOracleData;
 import ru.inhell.aida.entity.AlphaOracleFilter;
 import ru.inhell.aida.entity.AlphaOracleScore;
-import ru.inhell.aida.util.DateUtil;
+import ru.inhell.aida.common.util.DateUtil;
 
 import java.util.Date;
 import java.util.HashMap;
