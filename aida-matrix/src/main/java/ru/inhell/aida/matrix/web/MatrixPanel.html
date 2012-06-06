@@ -4,12 +4,23 @@
     <title>MatrixPanel</title>
 </head>
 <body>
-<table>
-    <tr wicket:id="prices">
-        <td wicket:id="dates">
-            <span wicket:id="buy"></span>|<span wicket:id="sell"></span>
-        </td>
-    </tr>
-</table>
+<wicket:panel>
+    <table>
+        <tr wicket:id="prices">
+            <td wicket:id="price_left"></td>
+            <td wicket:id="dates">
+                <span wicket:id="buy"></span><span wicket:id="sell"></span>
+            </td>
+            <td wicket:id="price_right"></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td wicket:id="dates_label">
+                <span wicket:id="label"/>
+            </td>
+            <td></td>
+        </tr>
+    </table>
+</wicket:panel>
 </body>
 </html>

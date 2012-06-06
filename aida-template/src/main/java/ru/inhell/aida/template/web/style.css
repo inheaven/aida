@@ -1,7 +1,15 @@
-.menu{
-    float: left;
-    width: 150px;
-    margin-left: 20px;
+ul.menu {
+}
+
+ul.menu li{
+	display: inline;
+	width: auto;
+}
+
+ul.menu li a {
+	display: block;
+	padding: 10px;
+	float: left;
 }
 
 .content{

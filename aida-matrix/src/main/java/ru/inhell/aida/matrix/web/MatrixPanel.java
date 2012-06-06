@@ -4,15 +4,16 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import ru.inhell.aida.common.util.DateUtil;
 import ru.inhell.aida.matrix.entity.Matrix;
-import ru.inhell.aida.matrix.entity.MatrixPeriodType;
+import ru.inhell.aida.matrix.entity.MatrixControl;
 import ru.inhell.aida.matrix.entity.MatrixQuantity;
 import ru.inhell.aida.matrix.entity.MatrixTable;
-import ru.inhell.aida.matrix.service.MatrixService;
+import ru.inhell.aida.matrix.service.MatrixBean;
 
 import javax.ejb.EJB;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -22,147 +23,78 @@ import java.util.List;
  */
 public class MatrixPanel extends Panel {
     @EJB
-    private MatrixService matrixService;
+    private MatrixBean matrixBean;
 
-    private String symbol;
-    private Date start;
-    private int columnCount;
-    private int rowCount;
-    private MatrixPeriodType periodType;
-    private long timeStep;
-    private float priceStep;
+    private MatrixControl control;
+    private IModel<MatrixTable> tableModel;
 
-    public MatrixPanel(String id, String symbol, Date start, int columnCount, int rowCount, MatrixPeriodType periodType,
-                       long timeStep, float priceStep) {
+    public MatrixPanel(String id, final MatrixControl control) {
         super(id);
-        this.symbol = symbol;
-        this.start = start;
-        this.columnCount = columnCount;
-        this.rowCount = rowCount;
-        this.periodType = periodType;
-        this.timeStep = timeStep;
-        this.priceStep = priceStep;
+        this.control = control;
+
+        tableModel = new LoadableDetachableModel<MatrixTable>() {
+            @Override
+            protected MatrixTable load() {
+                long start = (control.getStart().getTime()/control.getTimeStep())* control.getTimeStep();
+                long end = start + control.getColumnCount()*control.getTimeStep();
+
+                List<Matrix> matrixList = matrixBean.getMatrixList(control.getSymbol(), new Date(start), new Date(end),
+                        control.getPeriodType());
+
+                return MatrixTable.of(matrixList, control.getTimeStep(), control.getPriceStep());
+            }
+        };
+        setDefaultModel(tableModel);
 
         init();
     }
 
     private void init(){
-        List<Matrix> matrixList = new ArrayList<>(); //todo get from service
-
-        final MatrixTable matrixTable = MatrixTable.of(matrixList);
-
         ListView prices = new ListView<Float>("prices",
                 new LoadableDetachableModel<List<? extends Float>>() {
                     @Override
                     protected List<? extends Float> load() {
-                        return getPriceSeries(matrixTable.getMinPrice(), matrixTable.getMaxPrice());
+                        MatrixTable matrixTable = tableModel.getObject();
+
+                        return control.getPriceSeries(matrixTable.getMinPrice(), matrixTable.getMaxPrice());
                     }
                 }) {
             @Override
             protected void populateItem(ListItem<Float> priceItem) {
                 final Float price = priceItem.getModelObject();
 
-                ListView dates = new ListView<Long>("dates",
-                        new LoadableDetachableModel<List<? extends Long>>() {
-                            @Override
-                            protected List<? extends Long> load() {
-                                return getDateSeries();
-                            }
-                        }) {
+                priceItem.add(new Label("price_left", price + ""));
+                priceItem.add(new Label("price_right", price + ""));
+
+                ListView dates = new ListView<Long>("dates", control.getDateSeries()) {
                     @Override
                     protected void populateItem(ListItem<Long> dateItem) {
                         Long date = dateItem.getModelObject();
 
-                        MatrixQuantity quantity = matrixTable.get(date, price);
+                        MatrixQuantity quantity = tableModel.getObject().get(date, price);
 
-                        dateItem.add(new Label("buy", quantity.getBuyQuantity() + ""));
-                        dateItem.add(new Label("sell", quantity.getSellQuantity() + ""));
+                        String buy = "";
+                        String sell = "";
+
+                        if (quantity != null){
+                            buy = quantity.getBuyQuantity() + "/";
+                            sell = quantity.getSellQuantity() + "";
+                        }
+
+                        dateItem.add(new Label("buy", buy));
+                        dateItem.add(new Label("sell", sell));
                     }
                 };
                 priceItem.add(dates);
-
-
-
             }
         };
         add(prices);
 
-
-    }
-
-    private List<Long> getDateSeries(){
-        List<Long> series = new ArrayList<>(columnCount);
-
-        long time = start.getTime();
-
-        for (int i = 0; i < columnCount; ++i){
-            series.add(time);
-
-            time += timeStep;
-        }
-
-        return series;
-    }
-
-    private List<Float> getPriceSeries(float minPrice, float maxPrice){
-        List<Float> series = new ArrayList<>();
-
-        int row = (int) ((maxPrice - minPrice) / priceStep);
-
-        float price;
-
-        if (row < rowCount){
-            price = minPrice - priceStep*(rowCount - row)/2;
-        }else {
-            price = maxPrice - priceStep*rowCount;
-        }
-
-        for (int i = 0; i < rowCount; ++i){
-            series.add(price);
-
-            price += priceStep;
-        }
-
-        return series;
-    }
-
-    public String getSymbol() {
-        return symbol;
-    }
-
-    public void setSymbol(String symbol) {
-        this.symbol = symbol;
-    }
-
-    public Date getStart() {
-        return start;
-    }
-
-    public void setStart(Date start) {
-        this.start = start;
-    }
-
-    public int getColumnCount() {
-        return columnCount;
-    }
-
-    public void setColumnCount(int columnCount) {
-        this.columnCount = columnCount;
-    }
-
-    public int getRowCount() {
-        return rowCount;
-    }
-
-    public void setRowCount(int rowCount) {
-        this.rowCount = rowCount;
-    }
-
-    public MatrixPeriodType getPeriodType() {
-        return periodType;
-    }
-
-    public void setPeriodType(MatrixPeriodType periodType) {
-        this.periodType = periodType;
+        add(new ListView<Long>("dates_label", control.getDateSeries()) {
+            @Override
+            protected void populateItem(ListItem<Long> item) {
+                item.add(new Label("label", DateUtil.getString(new Date(item.getModelObject()))));
+            }
+        });
     }
 }

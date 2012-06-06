@@ -35,8 +35,8 @@ public class MatrixTable {
         for (Matrix matrix : matrixList){
             updateMaxMin(matrix);
 
-            long time = (matrix.getDate().getTime()/ timeStep)*(timeStep + 1);
-            float price = ((long)(matrix.getPrice()/priceStep))*(priceStep + 1);
+            long time = (matrix.getDate().getTime()/ timeStep)*timeStep;
+            float price = ((long)(matrix.getPrice()/priceStep))*priceStep;
 
             MatrixQuantity quantity = hashBasedTable.get(time, price);
 
@@ -64,12 +64,8 @@ public class MatrixTable {
         }
     }
 
-    public static MatrixTable of(List<Matrix> matrixList, long dateStep, float priceStep){
-        return new MatrixTable(matrixList, dateStep, priceStep);
-    }
-
-    public static MatrixTable of(List<Matrix> matrixList){
-        return of(matrixList, 1, 1);
+    public static MatrixTable of(List<Matrix> matrixList, long timeStep, float priceStep){
+        return new MatrixTable(matrixList, timeStep, priceStep);
     }
 
     private void updateMaxMin(Matrix matrix){
