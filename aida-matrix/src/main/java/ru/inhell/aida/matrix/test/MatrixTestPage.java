@@ -18,6 +18,6 @@ public class MatrixTestPage extends AbstractPage{
         Calendar calendar = Calendar.getInstance();
         calendar.set(2012, Calendar.FEBRUARY, 6, 12, 0, 0);
 
-        add(new MatrixPanel("matrix", new MatrixControl("GAZP", calendar.getTime(), 20, 20, MatrixPeriodType.ONE_MINUTE, 1000*60, 0.25f)));
+        add(new MatrixPanel("matrix", new MatrixControl("GAZP", calendar.getTime(), 10, 20, MatrixPeriodType.ONE_MINUTE, 1000*60*10, 0.25f)));
     }
 }

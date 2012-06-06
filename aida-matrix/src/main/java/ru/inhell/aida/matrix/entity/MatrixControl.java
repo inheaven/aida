@@ -79,12 +79,12 @@ public class MatrixControl implements Serializable {
             price = maxPrice - priceStep*rowCount;
         }
 
-        price = ((long)(price/priceStep))*priceStep;
+        price = ((long)(price/priceStep))*priceStep + priceStep*rowCount;
 
         for (int i = 0; i < rowCount; ++i){
             series.add(price);
 
-            price += priceStep;
+            price -= priceStep;
         }
 
         return series;
