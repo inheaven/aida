@@ -1,5 +1,8 @@
 package ru.inhell.aida.matrix.web;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.atmosphere.EventBus;
+import org.apache.wicket.atmosphere.Subscribe;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -90,11 +93,22 @@ public class MatrixPanel extends Panel {
         };
         add(prices);
 
-        add(new ListView<Long>("dates_label", control.getDateSeries()) {
+        add(new ListView<Long>("dates_label",
+                new LoadableDetachableModel<List<? extends Long>>() {
+                    @Override
+                    protected List<? extends Long> load() {
+                        return control.getDateSeries();
+                    }
+                }) {
             @Override
             protected void populateItem(ListItem<Long> item) {
                 item.add(new Label("label", DateUtil.getString(new Date(item.getModelObject()))));
             }
         });
+    }
+
+    @Subscribe
+    public void receiveMessage(AjaxRequestTarget target, String message){
+        target.add(this);
     }
 }

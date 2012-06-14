@@ -1,6 +1,7 @@
 package ru.inhell.aida.web;
 
 import org.apache.wicket.Page;
+import org.apache.wicket.atmosphere.EventBus;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.wicketstuff.javaee.injection.JavaEEComponentInjector;
 import org.wicketstuff.javaee.naming.global.ModuleJndiNamingStrategy;
@@ -16,6 +17,8 @@ public class AidaWebApplication extends WebApplication{
     @Override
     protected void init() {
         super.init();
+
+//        new EventBus(this);
 
         getComponentInstantiationListeners().add(new JavaEEComponentInjector(this, new GlassfishJndiNamingStrategy()));
 
