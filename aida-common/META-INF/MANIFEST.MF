@@ -1,0 +1,6 @@
+Manifest-Version: 1.0.0
+Bundle-ManifestVersion: 2
+Bundle-Name: aida-common
+Bundle-SymbolicName: aida-common
+Bundle-Version: 1.0.0
+Export-EJB: ALL

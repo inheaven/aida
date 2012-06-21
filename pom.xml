@@ -22,17 +22,18 @@
             </releases>
         </repository>
         <repository>
-            <id>sonatype</id>
-            <name>Sonatype OSS Snapshots Repository</name>
-            <url>http://oss.sonatype.org/content/groups/public</url>
-        </repository>
-        <repository>
             <id>wicketstuff-core-snapshots</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
         </repository>
+        <repository>
+            <id>sonatype</id>
+            <name>Sonatype OSS Snapshots Repository</name>
+            <url>http://oss.sonatype.org/content/groups/public</url>
+        </repository>
+
         <repository>
             <id>nativelibs4java-repo</id>
             <name>NativeLibs4Java Old Snapshots Repository</name>
@@ -46,7 +47,29 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
+        <repository>
+            <id>nuxeo-repo</id>
+            <name>nuxeo</name>
+            <url>https://maven.nuxeo.org/nexus/content/groups/public/</url>
+        </repository>
     </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>ops4j.releases</id>
+            <url>http://repository.ops4j.org/maven2</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+        <pluginRepository>
+            <id>ops4j.snapshots</id>
+            <url>http://repository.ops4j.org/mvn-snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </pluginRepository>
+    </pluginRepositories>
 
     <modules>
         <module>aida-core</module>
