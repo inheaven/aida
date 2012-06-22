@@ -1,11 +1,10 @@
 package ru.inhell.aida.matrix.service;
 
-import org.apache.wicket.page.RequestAdapter;
 import ru.inhell.aida.common.entity.EntityWrapper;
-import ru.inhell.aida.common.mybatis.XmlMapper;
-import ru.inhell.aida.common.service.AbstractBean;
+import ru.inhell.aida.mybatis.AbstractMyBatisBean;
 import ru.inhell.aida.matrix.entity.Matrix;
 import ru.inhell.aida.matrix.entity.MatrixPeriodType;
+import ru.inhell.aida.mybatis.XmlMapper;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -19,7 +18,7 @@ import java.util.List;
  */
 @XmlMapper
 @Stateless
-public class MatrixBean extends AbstractBean{
+public class MatrixBean extends AbstractMyBatisBean {
     public List<Matrix> getMatrixListFromAllTrades(String symbol, Date start, Date end, MatrixPeriodType periodType){
         return sqlSession().selectList("selectMatrixListFromAllTrades",  new EntityWrapper()
                 .add("symbol", symbol)

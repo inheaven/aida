@@ -2,8 +2,8 @@ package ru.inhell.aida.matrix.service;
 
 import ru.inhell.aida.common.entity.AllTrades;
 import ru.inhell.aida.common.entity.EntityWrapper;
-import ru.inhell.aida.common.mybatis.XmlMapper;
-import ru.inhell.aida.common.service.AbstractBean;
+import ru.inhell.aida.mybatis.AbstractMyBatisBean;
+import ru.inhell.aida.mybatis.XmlMapper;
 
 import javax.ejb.Stateless;
 import java.util.Date;
@@ -15,7 +15,7 @@ import java.util.List;
  */
 @XmlMapper
 @Stateless
-public class AllTradesBean extends AbstractBean {
+public class AllTradesBean extends AbstractMyBatisBean {
 
     public List<AllTrades> getAllTrades(String symbol, Date start, Date end){
         return sqlSession().selectList(".selectAllTrades", new EntityWrapper()

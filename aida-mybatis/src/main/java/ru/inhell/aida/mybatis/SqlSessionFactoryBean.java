@@ -1,4 +1,4 @@
-package ru.inhell.aida.common.mybatis;
+package ru.inhell.aida.mybatis;
 
 import org.apache.ibatis.builder.xml.XMLConfigBuilder;
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
@@ -26,7 +26,7 @@ import java.util.Set;
  */
 @Startup
 @Singleton
-public class SqlSessionFactoryBean {
+public class SqlSessionFactoryBean{
     private static final Logger log = LoggerFactory.getLogger(SqlSessionFactoryBean.class);
 
     private SqlSessionManager sessionManager;
@@ -49,9 +49,6 @@ public class SqlSessionFactoryBean {
             //Underscore
             configuration.setMapUnderscoreToCamelCase(true);
 
-            //XmlMapper
-            addAnnotationMappers(configuration);
-
             sessionManager = SqlSessionManager.newInstance(builder.build(configuration));
         } catch (Exception e) {
             throw ExceptionFactory.wrapException("Error building SqlSession.", e);
@@ -67,7 +64,9 @@ public class SqlSessionFactoryBean {
         }
     }
 
-    private void addAnnotationMappers(Configuration configuration){
+    public void addAnnotationMappers(Class _class){
+        Configuration configuration = sessionManager.getConfiguration();
+
         Reflections reflections = new Reflections("ru.inhell.aida");
 
         Set<Class<?>> set = reflections.getTypesAnnotatedWith(XmlMapper.class);
@@ -78,7 +77,8 @@ public class SqlSessionFactoryBean {
 
                 ErrorContext.instance().resource(resource);
                 InputStream inputStream = Resources.getResourceAsStream(resource);
-                XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, resource, configuration.getSqlFragments());
+                XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, resource,
+                        configuration.getSqlFragments());
                 mapperParser.parse();
             } catch (IOException e) {
                 log.error("Ресурс не найден", e);

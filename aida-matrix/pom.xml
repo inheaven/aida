@@ -18,8 +18,13 @@
         </dependency>
         <dependency>
             <groupId>ru.inhell.aida</groupId>
+            <artifactId>aida-mybatis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ru.inhell.aida</groupId>
             <artifactId>aida-template</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.odlabs.wiquery</groupId>
             <artifactId>wiquery-jquery-ui</artifactId>
@@ -31,6 +36,15 @@
         <dependency>
             <groupId>org.apache.wicket</groupId>
             <artifactId>wicket-datetime</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis</artifactId>
         </dependency>
     </dependencies>
 </project>

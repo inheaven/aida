@@ -1,4 +1,4 @@
-package ru.inhell.aida.common.mybatis;
+package ru.inhell.aida.mybatis;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

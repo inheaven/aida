@@ -1,7 +1,6 @@
-package ru.inhell.aida.common.service;
+package ru.inhell.aida.mybatis;
 
 import org.apache.ibatis.session.SqlSession;
-import ru.inhell.aida.common.mybatis.SqlSessionFactoryBean;
 
 import javax.ejb.EJB;
 
@@ -9,7 +8,7 @@ import javax.ejb.EJB;
  * @author Anatoly A. Ivanov java@inheaven.ru
  *         Date: 31.05.12 18:10
  */
-public abstract class AbstractBean {
+public abstract class AbstractMyBatisBean {
     @EJB
     private SqlSessionFactoryBean sqlSessionFactoryBean;
 

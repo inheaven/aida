@@ -80,6 +80,7 @@
         <module>aida-template</module>
         <module>aida-matrix</module>
         <module>aida-common</module>
+        <module>aida-mybatis</module>
     </modules>
 
     <dependencyManagement>
@@ -113,6 +114,11 @@
             <dependency>
                 <groupId>ru.inhell.aida</groupId>
                 <artifactId>aida-matrix</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.inhell.aida</groupId>
+                <artifactId>aida-mybatis</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -277,6 +283,13 @@
                 <groupId>org.apache.wicket</groupId>
                 <artifactId>wicket-atmosphere</artifactId>
                 <version>0.1</version>
+            </dependency>
+
+            <!--OSGi-->
+            <dependency>
+                <groupId>org.osgi</groupId>
+                <artifactId>org.osgi.core</artifactId>
+                <version>4.2.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
