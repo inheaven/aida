@@ -1,0 +1,7 @@
+Manifest-Version: 1.0.0
+Bundle-ManifestVersion: 2
+Bundle-Name: aida-template
+Bundle-SymbolicName: aida-template
+Bundle-Version: 1.0.0
+Export-Package: ru.inhell.aida.template.*
+Export-EJB: ALL

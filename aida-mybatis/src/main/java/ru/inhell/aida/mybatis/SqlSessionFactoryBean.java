@@ -9,6 +9,8 @@ import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.apache.ibatis.session.SqlSessionManager;
 import org.reflections.Reflections;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,10 +66,12 @@ public class SqlSessionFactoryBean{
         }
     }
 
-    public void addAnnotationMappers(Class _class){
+    @SuppressWarnings("EjbProhibitedPackageUsageInspection")
+    public void addAnnotationMappers(ClassLoader classLoader){
         Configuration configuration = sessionManager.getConfiguration();
 
-        Reflections reflections = new Reflections("ru.inhell.aida");
+        Reflections reflections = new Reflections(new ConfigurationBuilder()
+                .addUrls(ClasspathHelper.forPackage("ru.inhell.aida", classLoader)));
 
         Set<Class<?>> set = reflections.getTypesAnnotatedWith(XmlMapper.class);
 
