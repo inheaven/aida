@@ -2,7 +2,6 @@ package ru.inhell.aida.mybatis;
 
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleListener;
-import org.osgi.framework.wiring.BundleWiring;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,13 +18,10 @@ public class Listener implements BundleListener {
 
     @Override
     public void bundleChanged(BundleEvent bundleEvent) {
-        if (bundleEvent.getType() == BundleEvent.STARTED){
+        if (bundleEvent.getType() == BundleEvent.RESOLVED){
             try {
                 SqlSessionFactoryBean sqlSessionFactoryBean = (SqlSessionFactoryBean) new InitialContext().lookup(JNDI);
-
-                BundleWiring bundleWiring = (BundleWiring)bundleEvent.getBundle().adapt(BundleWiring.class);
-
-                sqlSessionFactoryBean.addAnnotationMappers(bundleWiring.getClassLoader());
+                sqlSessionFactoryBean.addAnnotationMappers(bundleEvent);
             } catch (Exception e) {
                 log.error("Ошибка сканирования сервисов MyBatis", e);
             }

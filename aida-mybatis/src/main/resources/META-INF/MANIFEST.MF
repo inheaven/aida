@@ -1,8 +1,0 @@
-Manifest-Version: 1.0.0
-Bundle-ManifestVersion: 2
-Bundle-Name: aida-mybatis
-Bundle-SymbolicName: aida-mybatis
-Bundle-Version: 1.0.0
-Bundle-Activator: ru.inhell.aida.mybatis.Activator
-Export-Package: ru.inhell.aida.mybatis.*
-Export-EJB: ALL

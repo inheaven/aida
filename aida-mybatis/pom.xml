@@ -27,6 +27,7 @@
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
         </dependency>
+
         <dependency>
             <groupId>javassist</groupId>
             <artifactId>javassist</artifactId>
@@ -45,6 +46,12 @@
                 <artifactId>maven-bundle-plugin</artifactId>
                 <extensions>true</extensions>
                 <version>2.3.7</version>
+                <configuration>
+                    <instructions>
+                        <Export-EJB>ALL</Export-EJB>
+                        <Bundle-Activator>ru.inhell.aida.mybatis.Activator</Bundle-Activator>
+                    </instructions>
+                </configuration>
             </plugin>
         </plugins>
     </build>

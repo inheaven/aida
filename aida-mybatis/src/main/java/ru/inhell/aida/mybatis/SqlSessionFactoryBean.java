@@ -8,9 +8,8 @@ import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.apache.ibatis.session.SqlSessionManager;
-import org.reflections.Reflections;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.wiring.BundleWiring;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +19,7 @@ import javax.ejb.Startup;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import java.util.Set;
+import java.util.Collection;
 
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
@@ -67,26 +66,41 @@ public class SqlSessionFactoryBean{
     }
 
     @SuppressWarnings("EjbProhibitedPackageUsageInspection")
-    public void addAnnotationMappers(ClassLoader classLoader){
-        Configuration configuration = sessionManager.getConfiguration();
+    public void addAnnotationMappers(BundleEvent bundleEvent){
+        BundleWiring bundleWiring = (BundleWiring)bundleEvent.getBundle().adapt(BundleWiring.class);
 
-        Reflections reflections = new Reflections(new ConfigurationBuilder()
-                .addUrls(ClasspathHelper.forPackage("ru.inhell.aida", classLoader)));
+        Collection<String> res = bundleWiring.listResources("ru/inhell/aida/", "*", BundleWiring.LISTRESOURCES_RECURSE);
 
-        Set<Class<?>> set = reflections.getTypesAnnotatedWith(XmlMapper.class);
+        for (String r : res){
+            if (r.contains(".class")){
+                try{
+                    Class<?> mappedClass = bundleWiring.getClassLoader().loadClass(r.replace("/",".").replace(".class", ""));
 
-        for (Class<?> c : set){
-            try {
-                String resource = c.getName().replace('.', '/') + ".xml";
-
-                ErrorContext.instance().resource(resource);
-                InputStream inputStream = Resources.getResourceAsStream(resource);
-                XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, resource,
-                        configuration.getSqlFragments());
-                mapperParser.parse();
-            } catch (IOException e) {
-                log.error("Ресурс не найден", e);
+                    if (mappedClass.getAnnotation(XmlMapper.class) != null){
+                        addMappedClass(mappedClass);
+                    }
+                } catch (ClassNotFoundException e) {
+                    log.error("Ошибка загрузки класса", e);
+                }
             }
+        }
+    }
+
+    private void addMappedClass(Class _class){
+        try {
+            Configuration configuration = sessionManager.getConfiguration();
+
+            String resource = _class.getName().replace('.', '/') + ".xml";
+
+            ErrorContext.instance().resource(resource);
+            InputStream inputStream = Resources.getResourceAsStream(resource);
+            XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, resource,
+                    configuration.getSqlFragments());
+            mapperParser.parse();
+
+            log.info("Class " + _class.getName() + " is mapped.");
+        } catch (IOException e) {
+            log.error("Ресурс не найден", e);
         }
     }
 }
