@@ -10,7 +10,7 @@ import javax.ejb.EJB;
  */
 public abstract class AbstractMyBatisBean {
     @EJB
-    private SqlSessionFactoryBean sqlSessionFactoryBean;
+    private SqlSessionFactoryService sqlSessionFactoryBean;
 
     public SqlSession sqlSession(){
         return sqlSessionFactoryBean.getSessionManager();

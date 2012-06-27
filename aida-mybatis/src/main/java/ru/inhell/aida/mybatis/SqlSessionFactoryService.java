@@ -9,9 +9,10 @@ import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.apache.ibatis.session.SqlSessionManager;
 import org.osgi.framework.BundleEvent;
-import org.osgi.framework.wiring.BundleWiring;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.inhell.aida.common.service.IProcedure;
+import ru.inhell.aida.common.util.OsgiUtil;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
@@ -19,7 +20,6 @@ import javax.ejb.Startup;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import java.util.Collection;
 
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
@@ -27,8 +27,8 @@ import java.util.Collection;
  */
 @Startup
 @Singleton
-public class SqlSessionFactoryBean{
-    private static final Logger log = LoggerFactory.getLogger(SqlSessionFactoryBean.class);
+public class SqlSessionFactoryService {
+    private static final Logger log = LoggerFactory.getLogger(SqlSessionFactoryService.class);
 
     private SqlSessionManager sessionManager;
 
@@ -66,24 +66,13 @@ public class SqlSessionFactoryBean{
     }
 
     @SuppressWarnings("EjbProhibitedPackageUsageInspection")
-    public void addAnnotationMappers(BundleEvent bundleEvent){
-        BundleWiring bundleWiring = (BundleWiring)bundleEvent.getBundle().adapt(BundleWiring.class);
-
-        Collection<String> res = bundleWiring.listResources("ru/inhell/aida/", "*", BundleWiring.LISTRESOURCES_RECURSE);
-
-        for (String r : res){
-            if (r.contains(".class")){
-                try{
-                    Class<?> mappedClass = bundleWiring.getClassLoader().loadClass(r.replace("/",".").replace(".class", ""));
-
-                    if (mappedClass.getAnnotation(XmlMapper.class) != null){
-                        addMappedClass(mappedClass);
-                    }
-                } catch (ClassNotFoundException e) {
-                    log.error("Ошибка загрузки класса", e);
-                }
+    public void addAnnotationMappers(BundleEvent event){
+        OsgiUtil.scanAnnotation(event, XmlMapper.class, new IProcedure<Class<?>>() {
+            @Override
+            public void apply(Class<?> c) {
+                addMappedClass(c);
             }
-        }
+        });
     }
 
     private void addMappedClass(Class _class){
@@ -98,7 +87,7 @@ public class SqlSessionFactoryBean{
                     configuration.getSqlFragments());
             mapperParser.parse();
 
-            log.info("Class " + _class.getName() + " is mapped.");
+            log.info("Class {} is mapped.", _class.getName());
         } catch (IOException e) {
             log.error("Ресурс не найден", e);
         }

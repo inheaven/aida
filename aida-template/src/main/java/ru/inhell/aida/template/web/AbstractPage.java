@@ -11,6 +11,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.request.resource.CssResourceReference;
 import org.apache.wicket.resource.loader.IStringResourceLoader;
 
+import javax.ejb.EJB;
 import java.util.List;
 
 /**
@@ -18,6 +19,9 @@ import java.util.List;
  *         Date: 29.05.12 16:44
  */
 public abstract class AbstractPage extends WebPage{
+    @EJB
+    private MenuService menuService;
+
     protected AbstractPage() {
         populateMenu();
     }
@@ -28,7 +32,7 @@ public abstract class AbstractPage extends WebPage{
     }
 
     protected void populateMenu(){
-        add( new ListView<Menu>("menu_list", MenuManager.getMenuList()) {
+        add( new ListView<Menu>("menu_list", menuService.getMenuList()) {
             @Override
             protected void populateItem(ListItem<Menu> item) {
                 Menu menu = item.getModelObject();

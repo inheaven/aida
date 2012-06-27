@@ -14,13 +14,13 @@ import javax.naming.InitialContext;
 public class Listener implements BundleListener {
     private final static Logger log = LoggerFactory.getLogger(Listener.class);
 
-    private final static String JNDI = "java:global/ru.inhell.aida.mybatis_1.0.0/SqlSessionFactoryBean";
+    private final static String JNDI = "java:global/ru.inhell.aida.mybatis_1.0.0/SqlSessionFactoryService";
 
     @Override
     public void bundleChanged(BundleEvent bundleEvent) {
         if (bundleEvent.getType() == BundleEvent.RESOLVED){
             try {
-                SqlSessionFactoryBean sqlSessionFactoryBean = (SqlSessionFactoryBean) new InitialContext().lookup(JNDI);
+                SqlSessionFactoryService sqlSessionFactoryBean = (SqlSessionFactoryService) new InitialContext().lookup(JNDI);
                 sqlSessionFactoryBean.addAnnotationMappers(bundleEvent);
             } catch (Exception e) {
                 log.error("Ошибка сканирования сервисов MyBatis", e);

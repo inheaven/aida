@@ -37,6 +37,11 @@
             <groupId>org.wicketstuff</groupId>
             <artifactId>wicketstuff-javaee-inject</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
