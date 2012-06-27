@@ -21,14 +21,18 @@ public class Listener implements BundleListener {
 
     @Override
     public void bundleChanged(BundleEvent event) {
+        String name = event.getBundle().getSymbolicName();
+
         try {
-            if (event.getType() == BundleEvent.INSTALLED || event.getType() == BundleEvent.UPDATED){
-                getMenuService().addMenu(event);
-            }else if (event.getType() == BundleEvent.UNINSTALLED){
-                getMenuService().removeMenu(event);
+            if (name.contains("aida") && !name.contains("template")) {
+                if (event.getType() == BundleEvent.STARTED){
+                    getMenuService().addMenu(event);
+                }else if (event.getType() == BundleEvent.STOPPED){
+                    getMenuService().removeMenu(event);
+                }
             }
 
-           log.info("Bundle {}: {}",event.getBundle().getSymbolicName(), OsgiUtil.getTypeString(event));
+            log.info("Bundle {}: {}",event.getBundle().getSymbolicName(), OsgiUtil.getTypeString(event));
 
         } catch (NamingException e) {
             log.error("Ошибка добавления меню", e);

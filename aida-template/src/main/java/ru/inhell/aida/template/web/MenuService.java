@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import ru.inhell.aida.common.service.IProcedure;
 import ru.inhell.aida.common.util.OsgiUtil;
 
-import javax.ejb.Singleton;
+import javax.ejb.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +16,7 @@ import java.util.List;
  *         Date: 29.05.12 17:27
  */
 @Singleton
+@TransactionManagement(value = TransactionManagementType.BEAN)
 public class MenuService {
     private static final Logger log = LoggerFactory.getLogger(MenuService.class);
 
@@ -35,7 +36,20 @@ public class MenuService {
     }
 
     public void removeMenu(BundleEvent event){
-        //todo bundle wiring is null
+        OsgiUtil.scanAnnotation(event, TemplateMenu.class, new IProcedure<Class<?>>() {
+            @Override
+            public void apply(Class<?> c) {
+                for (int i = 0, menuListSize = menuList.size(); i < menuListSize; i++) {
+                    Menu menu = menuList.get(i);
+                    if (menu.getPage().equals(c)) {
+                        menuList.remove(menu);
+                        break;
+                    }
+                }
+
+                log.info("Menu {} removed.", c.getName());
+            }
+        });
     }
 
     public List<Menu> getMenuList(){

@@ -15,8 +15,7 @@ import ru.inhell.aida.common.service.IProcedure;
 import ru.inhell.aida.common.util.OsgiUtil;
 
 import javax.annotation.PostConstruct;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
+import javax.ejb.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -27,6 +26,7 @@ import java.io.Reader;
  */
 @Startup
 @Singleton
+@TransactionManagement(value = TransactionManagementType.BEAN)
 public class SqlSessionFactoryService {
     private static final Logger log = LoggerFactory.getLogger(SqlSessionFactoryService.class);
 

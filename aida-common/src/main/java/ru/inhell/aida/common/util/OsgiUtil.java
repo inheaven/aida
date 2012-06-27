@@ -21,18 +21,20 @@ public class OsgiUtil {
 
         Collection<String> res = bundleWiring.listResources("ru/inhell/aida/", "*", BundleWiring.LISTRESOURCES_RECURSE);
 
-        for (String r : res){
-            if (r.contains(".class")){
-                try{
-                    Class<?> c = bundleWiring.getClassLoader().loadClass(r.replace("/",".").replace(".class", ""));
+        if (res != null) {
+            for (String r : res){
+                if (r.contains(".class")){
+                    try{
+                        Class<?> c = bundleWiring.getClassLoader().loadClass(r.replace("/", ".").replace(".class", ""));
 
-                    Annotation annotation = c.getAnnotation(annotationClass);
+                        Annotation annotation = c.getAnnotation(annotationClass);
 
-                    if (annotation != null){
-                        procedure.apply(c);
+                        if (annotation != null){
+                            procedure.apply(c);
+                        }
+                    } catch (ClassNotFoundException e) {
+                        log.error("Ошибка сканирования", e);
                     }
-                } catch (ClassNotFoundException e) {
-                    log.error("Ошибка сканирования", e);
                 }
             }
         }

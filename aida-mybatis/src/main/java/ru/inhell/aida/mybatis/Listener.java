@@ -17,11 +17,13 @@ public class Listener implements BundleListener {
     private final static String JNDI = "java:global/ru.inhell.aida.mybatis_1.0.0/SqlSessionFactoryService";
 
     @Override
-    public void bundleChanged(BundleEvent bundleEvent) {
-        if (bundleEvent.getType() == BundleEvent.RESOLVED){
+    public void bundleChanged(BundleEvent event) {
+        String name = event.getBundle().getSymbolicName();
+
+        if (event.getType() == BundleEvent.STARTED && name.contains("aida") && !name.contains("mybatis")){
             try {
                 SqlSessionFactoryService sqlSessionFactoryBean = (SqlSessionFactoryService) new InitialContext().lookup(JNDI);
-                sqlSessionFactoryBean.addAnnotationMappers(bundleEvent);
+                sqlSessionFactoryBean.addAnnotationMappers(event);
             } catch (Exception e) {
                 log.error("Ошибка сканирования сервисов MyBatis", e);
             }
