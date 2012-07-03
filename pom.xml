@@ -52,6 +52,16 @@
             <name>nuxeo</name>
             <url>https://maven.nuxeo.org/nexus/content/groups/public/</url>
         </repository>
+        <repository>
+            <id>typesafe</id>
+            <url>http://repo.typesafe.com/typesafe/releases/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
     </repositories>
 
     <pluginRepositories>
@@ -133,7 +143,40 @@
                 <artifactId>wicket-datetime</artifactId>
                 <version>6.0.0-beta2</version>
             </dependency>
+            <dependency>
+                <groupId>org.apache.wicket</groupId>
+                <artifactId>wicket-atmosphere</artifactId>
+                <version>0.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.wicket</groupId>
+                <artifactId>wicket-ioc</artifactId>
+                <version>6.0.0-beta2</version>
+            </dependency>
 
+            <!--ATMOSPHERE-->
+            <dependency>
+                <groupId>org.atmosphere</groupId>
+                <artifactId>atmosphere-runtime</artifactId>
+                <version>1.0.0.beta2a</version>
+            </dependency>
+            <dependency>
+                <groupId>org.atmosphere</groupId>
+                <artifactId>atmosphere-compat-jbossweb</artifactId>
+                <version>1.0.0.beta2a</version>
+            </dependency>
+            <dependency>
+                <groupId>org.atmosphere</groupId>
+                <artifactId>atmosphere-compat-tomcat</artifactId>
+                <version>1.0.0.beta2a</version>
+            </dependency>
+            <dependency>
+                <groupId>org.atmosphere</groupId>
+                <artifactId>atmosphere-compat-tomcat7</artifactId>
+                <version>1.0.0.beta2a</version>
+            </dependency>
+
+            <!--WICKET STUFF-->
             <dependency>
                 <groupId>org.wicketstuff</groupId>
                 <artifactId>flot</artifactId>
@@ -143,16 +186,6 @@
                 <groupId>org.wicketstuff</groupId>
                 <artifactId>wicketstuff-javaee-inject</artifactId>
                 <version>6.0.0-beta1.1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wicketstuff</groupId>
-                <artifactId>push-timer</artifactId>
-                <version>1.5-RC5.1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wicketstuff</groupId>
-                <artifactId>jqplot</artifactId>
-                <version>1.5.3.1</version>
             </dependency>
 
             <dependency>
@@ -176,12 +209,6 @@
                 <groupId>org.mybatis</groupId>
                 <artifactId>mybatis</artifactId>
                 <version>3.1.1</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.mybatis</groupId>
-                <artifactId>mybatis-guice</artifactId>
-                <version>3.2</version>
             </dependency>
 
             <dependency>
@@ -282,12 +309,6 @@
                 <groupId>javax</groupId>
                 <artifactId>javaee-api</artifactId>
                 <version>6.0</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.wicket</groupId>
-                <artifactId>wicket-atmosphere</artifactId>
-                <version>0.1</version>
             </dependency>
 
             <!--OSGi-->

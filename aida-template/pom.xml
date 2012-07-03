@@ -24,6 +24,11 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.wicket</groupId>
+            <artifactId>wicket-ioc</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
         </dependency>
@@ -46,6 +51,7 @@
                     <instructions>
                         <Export-EJB>ALL</Export-EJB>
                         <Bundle-Activator>ru.inhell.aida.template.Activator</Bundle-Activator>
+                        <DynamicImport-Package>*</DynamicImport-Package>
                     </instructions>
                 </configuration>
 

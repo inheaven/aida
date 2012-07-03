@@ -127,6 +127,11 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wicketstuff</groupId>
+            <artifactId>flot</artifactId>
+            <version>1.5-RC5.1</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -60,7 +60,6 @@
                 <configuration>
                     <instructions>
                         <Export-EJB>ALL</Export-EJB>
-                        <DynamicImport-Package>*</DynamicImport-Package>
                     </instructions>
                 </configuration>
             </plugin>

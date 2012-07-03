@@ -4,10 +4,8 @@ import org.apache.wicket.Page;
 import org.apache.wicket.atmosphere.EventBus;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.wicketstuff.javaee.injection.JavaEEComponentInjector;
-import org.wicketstuff.javaee.naming.global.ModuleJndiNamingStrategy;
 import ru.inhell.aida.common.service.GlassfishJndiNamingStrategy;
 import ru.inhell.aida.template.test.HelloMenu;
-import ru.inhell.aida.web.order.OrderPage;
 
 /**
  * @author Anatoly A. Ivanov java@inhell.ru
@@ -18,7 +16,7 @@ public class AidaWebApplication extends WebApplication{
     protected void init() {
         super.init();
 
-//        new EventBus(this);
+        new EventBus(this);
 
         getComponentInstantiationListeners().add(new JavaEEComponentInjector(this, new GlassfishJndiNamingStrategy()));
 
@@ -27,6 +25,6 @@ public class AidaWebApplication extends WebApplication{
 
     @Override
     public Class<? extends Page> getHomePage() {
-        return OrderPage.class;
+        return HomePage.class;
     }
 }

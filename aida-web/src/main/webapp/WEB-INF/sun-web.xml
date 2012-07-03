@@ -4,4 +4,5 @@
         "http://www.sun.com/software/appserver/dtds/sun-web-app_3_0-0.dtd">
 <sun-web-app>
     <context-root>/aida</context-root>
+    <!--<class-loader delegate="true"/>-->
 </sun-web-app>
