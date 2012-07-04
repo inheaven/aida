@@ -48,19 +48,19 @@
             <artifactId>atmosphere-runtime</artifactId>
         </dependency>
 
-        <!--<dependency>-->
-            <!--<groupId>org.wicketstuff</groupId>-->
-            <!--<artifactId>wicketstuff-javaee-inject</artifactId>-->
-        <!--</dependency>-->
         <dependency>
-            <groupId>asm</groupId>
-            <artifactId>asm-util</artifactId>
-            <version>3.3.1</version>
+            <groupId>org.wicketstuff</groupId>
+            <artifactId>wicketstuff-javaee-inject</artifactId>
         </dependency>
 
         <dependency>
             <groupId>javax</groupId>
             <artifactId>javaee-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
         </dependency>
     </dependencies>
 

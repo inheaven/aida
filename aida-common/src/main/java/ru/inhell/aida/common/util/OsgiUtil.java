@@ -1,6 +1,8 @@
 package ru.inhell.aida.common.util;
 
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
+import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.wiring.BundleWiring;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,5 +79,13 @@ public class OsgiUtil {
         }
 
         return type;
+    }
+
+    public static String getModuleName(Bundle bundle){
+        return bundle.getSymbolicName() + "_" + bundle.getVersion();
+    }
+
+    public static String getModuleName(Class _class){
+        return getModuleName(FrameworkUtil.getBundle(_class));
     }
 }
