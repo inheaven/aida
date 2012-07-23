@@ -12,6 +12,7 @@ import org.apache.wicket.request.resource.CssResourceReference;
 import org.apache.wicket.resource.loader.IStringResourceLoader;
 
 import javax.ejb.EJB;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,7 +33,7 @@ public abstract class AbstractPage extends WebPage{
     }
 
     protected void populateMenu(){
-        add( new ListView<Menu>("menu_list", menuService.getMenuList()) {
+        add( new ListView<Menu>("menu_list", new ArrayList<>(menuService.getMenuMap().values())) {
             @Override
             protected void populateItem(ListItem<Menu> item) {
                 Menu menu = item.getModelObject();

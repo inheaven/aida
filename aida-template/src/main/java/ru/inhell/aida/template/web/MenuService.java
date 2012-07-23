@@ -7,9 +7,11 @@ import org.slf4j.LoggerFactory;
 import ru.inhell.aida.common.service.IProcedure;
 import ru.inhell.aida.common.util.OsgiUtil;
 
-import javax.ejb.*;
-import java.util.ArrayList;
-import java.util.List;
+import javax.ejb.Singleton;
+import javax.ejb.TransactionManagement;
+import javax.ejb.TransactionManagementType;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
@@ -20,7 +22,7 @@ import java.util.List;
 public class MenuService {
     private static final Logger log = LoggerFactory.getLogger(MenuService.class);
 
-    private List<Menu> menuList = new ArrayList<>();
+    private Map<Class, Menu> menuMap = new HashMap<>();
 
     @SuppressWarnings("unchecked")
     public void addMenu(BundleEvent event){
@@ -28,7 +30,7 @@ public class MenuService {
             @Override
             public void apply(Class<?> c) {
                 TemplateMenu tm = c.getAnnotation(TemplateMenu.class);
-                menuList.add(new Menu(tm.order(), tm.groupKey(), tm.titleKey(), (Class<? extends Page>) c));
+                menuMap.put(c, new Menu(tm.order(), tm.groupKey(), tm.titleKey(), (Class<? extends Page>) c));
 
                 log.info("Menu {} loaded.", c.getName());
             }
@@ -39,20 +41,14 @@ public class MenuService {
         OsgiUtil.scanAnnotation(event, TemplateMenu.class, new IProcedure<Class<?>>() {
             @Override
             public void apply(Class<?> c) {
-                for (int i = 0, menuListSize = menuList.size(); i < menuListSize; i++) {
-                    Menu menu = menuList.get(i);
-                    if (menu.getPage().equals(c)) {
-                        menuList.remove(menu);
-                        break;
-                    }
-                }
+                menuMap.remove(c);
 
                 log.info("Menu {} removed.", c.getName());
             }
         });
     }
 
-    public List<Menu> getMenuList(){
-        return menuList;
+    public Map<Class, Menu> getMenuMap(){
+        return menuMap;
     }
 }
