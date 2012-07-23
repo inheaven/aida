@@ -9,7 +9,7 @@ import javax.ejb.EJB;
  *         Date: 31.05.12 18:10
  */
 public abstract class AbstractMyBatisBean {
-    @EJB
+    @EJB(beanName = "SqlSessionFactoryService", lookup = "java:global/ru.inhell.aida.mybatis_1.0.0/SqlSessionFactoryService")
     private SqlSessionFactoryService sqlSessionFactoryBean;
 
     public SqlSession sqlSession(){

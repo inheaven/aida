@@ -1,7 +1,6 @@
 package ru.inhell.aida.matrix.web;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.atmosphere.EventBus;
 import org.apache.wicket.atmosphere.Subscribe;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -26,7 +25,7 @@ import java.util.List;
  */
 public class MatrixPanel extends Panel {
     @EJB
-    private MatrixBean matrixBean;
+    private transient MatrixBean matrixBean;
 
     private MatrixControl control;
     private IModel<MatrixTable> tableModel;
