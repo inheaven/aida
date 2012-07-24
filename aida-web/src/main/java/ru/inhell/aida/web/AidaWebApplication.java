@@ -4,6 +4,7 @@ import org.apache.wicket.Page;
 import org.apache.wicket.atmosphere.EventBus;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.wicketstuff.javaee.injection.JavaEEComponentInjector;
+import ru.inhell.aida.common.osgi.OsgiClassResolver;
 import ru.inhell.aida.common.service.OsgiJndiNamingStrategy;
 import ru.inhell.aida.template.test.HelloMenu;
 
@@ -19,6 +20,7 @@ public class AidaWebApplication extends WebApplication{
         new EventBus(this);
 
         getComponentInstantiationListeners().add(new JavaEEComponentInjector(this, new OsgiJndiNamingStrategy()));
+        getApplicationSettings().setClassResolver(new OsgiClassResolver());
 
         mountPage("/test", HelloMenu.class);
     }

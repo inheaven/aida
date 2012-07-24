@@ -25,7 +25,7 @@ import java.util.List;
  */
 public class MatrixPanel extends Panel {
     @EJB
-    private transient MatrixBean matrixBean;
+    private MatrixBean matrixBean;
 
     private MatrixControl control;
     private IModel<MatrixTable> tableModel;
