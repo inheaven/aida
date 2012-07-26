@@ -1,7 +1,5 @@
 package ru.inhell.aida.matrix.web;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.atmosphere.Subscribe;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -104,10 +102,5 @@ public class MatrixPanel extends Panel {
                 item.add(new Label("label", DateUtil.getString(new Date(item.getModelObject()))));
             }
         });
-    }
-
-    @Subscribe
-    public void receiveMessage(AjaxRequestTarget target, String message){
-        target.add(this);
     }
 }

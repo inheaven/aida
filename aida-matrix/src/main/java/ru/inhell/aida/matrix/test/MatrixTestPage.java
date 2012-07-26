@@ -52,7 +52,7 @@ public class MatrixTestPage extends AbstractPage{
 
             @Override
             public void run() {
-                eventBus.post(t += 1000 * 60);
+                eventBus.post(new Date(t += 600000));
             }
         }, 2, 2, TimeUnit.SECONDS);
 
@@ -72,8 +72,8 @@ public class MatrixTestPage extends AbstractPage{
     }
 
     @Subscribe
-    public void receiveMessage(AjaxRequestTarget target, long time){
-        control.setStart(new Date(time));
+    public void receiveMessage(AjaxRequestTarget target, Date time){
+        control.setStart(time);
 
         target.add(matrixPanel);
     }

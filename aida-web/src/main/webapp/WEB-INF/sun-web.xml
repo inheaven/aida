@@ -4,5 +4,6 @@
         "http://www.sun.com/software/appserver/dtds/sun-web-app_3_0-0.dtd">
 <sun-web-app>
     <context-root>/aida</context-root>
-    <!--<class-loader delegate="true"/>-->
+    <class-loader delegate="true"/>
+    <parameter-encoding default-charset="UTF-8"/>
 </sun-web-app>

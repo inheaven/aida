@@ -29,6 +29,8 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import ru.inhell.aida.template.web.TemplateMenu;
 
+import java.util.Date;
+
 @TemplateMenu()
 public class HomePage extends WebPage
 {
@@ -48,29 +50,29 @@ public class HomePage extends WebPage
 		Form<Void> form = new Form<Void>("form");
 		add(form);
 		form.add(input = new TextField<String>("input", Model.of("")));
-		form.add(new AjaxSubmitLink("send", form)
-		{
-			private static final long serialVersionUID = 1L;
+		form.add(new AjaxSubmitLink("send", form) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form)
-			{
-				EventBus.get().post(input.getModelObject());
-			}
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                EventBus.get().post(input.getModelObject());
+            }
 
-			@Override
-			protected void onError(AjaxRequestTarget target, Form<?> form)
-			{
-			}
-		});
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+            }
+        });
 
-		//setVersioned(false);
+        setOutputMarkupPlaceholderTag(true);
+        setOutputMarkupId(true);
+
+        setVersioned(false);
 	}
 
 	@Subscribe
-	public void updateTime(AjaxRequestTarget target, long event)
+	public void updateTime(AjaxRequestTarget target, Date event)
 	{
-		timeLabel.setDefaultModelObject(event);
+		timeLabel.setDefaultModelObject(event.toString());
 		target.add(timeLabel);
 	}
 

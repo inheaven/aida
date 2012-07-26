@@ -12,11 +12,11 @@
 
     <servlet>
         <servlet-name>atmosphere</servlet-name>
-        <servlet-class>org.atmosphere.cpr.AtmosphereServlet</servlet-class>
-        <!--<init-param>
+        <servlet-class>org.atmosphere.cpr.MeteorServlet</servlet-class>
+        <init-param>
             <param-name>org.atmosphere.servlet</param-name>
             <param-value>org.apache.wicket.protocol.http.WicketServlet</param-value>
-        </init-param>-->
+        </init-param>
         <!--<init-param>
             <param-name>org.atmosphere.filter</param-name>
             <param-value>org.apache.wicket.protocol.http.WicketFilter</param-value>
@@ -27,6 +27,10 @@
         </init-param>
         <init-param>
             <param-name>org.atmosphere.useWebSocket</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <init-param>
+            <param-name>org.atmosphere.useNative</param-name>
             <param-value>true</param-value>
         </init-param>
         <init-param>

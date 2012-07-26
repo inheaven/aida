@@ -13,20 +13,29 @@ import ru.inhell.aida.template.test.HelloMenu;
  *         Date: 25.07.11 23:09
  */
 public class AidaWebApplication extends WebApplication{
+    private EventBus eventBus;
+
     @Override
     protected void init() {
         super.init();
 
-        new EventBus(this);
+        this.eventBus = new EventBus(this);
 
         getComponentInstantiationListeners().add(new JavaEEComponentInjector(this, new OsgiJndiNamingStrategy()));
         getApplicationSettings().setClassResolver(new OsgiClassResolver());
 
         mountPage("/test", HelloMenu.class);
+        mountPage("/atm", ru.inhell.aida.matrix.test.HomePage.class);
+
+        getDebugSettings().setDevelopmentUtilitiesEnabled(true);
     }
 
     @Override
     public Class<? extends Page> getHomePage() {
         return HomePage.class;
+    }
+
+    public EventBus getEventBus() {
+        return eventBus;
     }
 }
