@@ -47,4 +47,11 @@ public class MatrixBean extends AbstractMyBatisBean {
                 .add("end", end)
                 .add("period_type", periodType.name()));
     }
+
+    public List<Matrix> getMatrixStartList(String symbol, Date start, MatrixPeriodType periodType){
+        return sqlSession().selectList("selectMatrixStartList",  new EntityWrapper()
+                .add("symbol", symbol)
+                .add("start", start)
+                .add("period_type", periodType.name()));
+    }
 }

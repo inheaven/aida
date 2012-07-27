@@ -57,4 +57,11 @@
         <if test="map.period_type == 'ONE_HOUR'">`matrix_1h`</if>
         where symbol = #{map.symbol} and `date` between #{map.start} and #{map.end}
     </select>
+
+    <select id="selectMatrixStartList" parameterType="ru.inhell.aida.common.entity.EntityWrapper" resultMap="matrixResultMap">
+        select * from
+        <if test="map.period_type == 'ONE_MINUTE'">`matrix_1m`</if>
+        <if test="map.period_type == 'ONE_HOUR'">`matrix_1h`</if>
+        where symbol = #{map.symbol} and `date` > #{map.start}
+    </select>
 </mapper>
