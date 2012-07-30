@@ -200,6 +200,7 @@
                 <version>6.0-SNAPSHOT</version>
             </dependency>
 
+            <!--charts4j-->
             <dependency>
                 <groupId>com.googlecode.charts4j</groupId>
                 <artifactId>charts4j</artifactId>
@@ -213,18 +214,21 @@
                 <version>3.1.1</version>
             </dependency>
 
+            <!--MySQL-->
             <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
                 <version>5.1.15</version>
             </dependency>
 
+            <!--TEST-->
             <dependency>
                 <groupId>org.testng</groupId>
                 <artifactId>testng</artifactId>
                 <version>5.13.1</version>
             </dependency>
 
+            <!--LOG-->
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
@@ -240,7 +244,13 @@
                 <artifactId>jul-to-slf4j</artifactId>
                 <version>1.6.1</version>
             </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>1.0.6</version>
+            </dependency>
 
+            <!--JNA-->
             <dependency>
                 <groupId>net.java.dev.jna</groupId>
                 <artifactId>jna</artifactId>
@@ -312,6 +322,7 @@
                 <artifactId>javaee-api</artifactId>
                 <version>6.0</version>
             </dependency>
+
 
             <!--OSGi-->
             <dependency>

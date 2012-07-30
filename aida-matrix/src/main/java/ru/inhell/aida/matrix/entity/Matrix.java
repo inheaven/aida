@@ -16,6 +16,7 @@ public class Matrix extends AbstractEntity{
     private int sumQuantity;
     private float sumVolume;
     private TransactionType transaction;
+    private Date created;
 
     public Date getDate() {
         return date;
@@ -63,5 +64,13 @@ public class Matrix extends AbstractEntity{
 
     public void setTransaction(TransactionType transaction) {
         this.transaction = transaction;
+    }
+
+    public Date getCreated() {
+        return created;
+    }
+
+    public void setCreated(Date created) {
+        this.created = created;
     }
 }

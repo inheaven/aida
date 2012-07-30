@@ -1,0 +1,17 @@
+<configuration debug="true">
+    <!-- <jvm-options>-Dlogback.configurationFile=${com.sun.aas.instanceRoot}/config/logback.xml</jvm-options>-->
+    <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator"/>
+
+    <appender name="STDOUT_INFO" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <encoder>
+            <pattern>%n%d %-5level %logger - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT_INFO"/>
+    </root>
+</configuration>

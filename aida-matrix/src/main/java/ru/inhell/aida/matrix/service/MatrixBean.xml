@@ -10,6 +10,7 @@
         <result column="sum_quantity" property="sumQuantity"/>
         <result column="sum_volume" property="sumVolume"/>
         <result column="transaction"  property="transaction"/>
+        <result column="created" property="created"/>
     </resultMap>
 
     <select id="selectMatrixListFromAllTrades" parameterType="ru.inhell.aida.common.entity.EntityWrapper"
