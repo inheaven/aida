@@ -2,8 +2,6 @@ package ru.inhell.aida.matrix.test;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.atmosphere.EventBus;
-import org.apache.wicket.atmosphere.Subscribe;
 import ru.inhell.aida.common.web.IUpdateListener;
 import ru.inhell.aida.matrix.entity.MatrixControl;
 import ru.inhell.aida.matrix.entity.MatrixPeriodType;
@@ -13,9 +11,6 @@ import ru.inhell.aida.template.web.AbstractPage;
 import ru.inhell.aida.template.web.TemplateMenu;
 
 import java.util.Calendar;
-import java.util.Date;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
@@ -43,19 +38,6 @@ public class MatrixTestPage extends AbstractPage{
             }
         }));
 
-        final long time = control.getStart().getTime();
-
-        final EventBus eventBus = EventBus.get();
-
-        Executors.newScheduledThreadPool(1).scheduleWithFixedDelay(new Runnable() {
-            long t = time;
-
-            @Override
-            public void run() {
-                eventBus.post(new Date(t += 600000));
-            }
-        }, 2, 2, TimeUnit.SECONDS);
-
         add(new AjaxLink("start") {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
@@ -71,10 +53,4 @@ public class MatrixTestPage extends AbstractPage{
         });
     }
 
-    @Subscribe
-    public void receiveMessage(AjaxRequestTarget target, Date time){
-        control.setStart(time);
-
-        target.add(matrixPanel);
-    }
 }

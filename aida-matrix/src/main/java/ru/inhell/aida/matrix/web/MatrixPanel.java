@@ -9,7 +9,7 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import ru.inhell.aida.common.util.DateUtil;
 import ru.inhell.aida.matrix.entity.Matrix;
 import ru.inhell.aida.matrix.entity.MatrixControl;
-import ru.inhell.aida.matrix.entity.MatrixQuantity;
+import ru.inhell.aida.matrix.entity.MatrixCell;
 import ru.inhell.aida.matrix.entity.MatrixTable;
 import ru.inhell.aida.matrix.service.MatrixBean;
 
@@ -46,10 +46,6 @@ public class MatrixPanel extends Panel {
         };
         setDefaultModel(tableModel);
 
-        init();
-    }
-
-    private void init(){
         ListView prices = new ListView<Float>("prices",
                 new LoadableDetachableModel<List<? extends Float>>() {
                     @Override
@@ -71,14 +67,14 @@ public class MatrixPanel extends Panel {
                     protected void populateItem(ListItem<Long> dateItem) {
                         Long date = dateItem.getModelObject();
 
-                        MatrixQuantity quantity = tableModel.getObject().get(date, price);
+                        MatrixCell cell = tableModel.getObject().get(date, price);
 
                         String buy = "";
                         String sell = "";
 
-                        if (quantity != null){
-                            buy = quantity.getBuyQuantity() + "/";
-                            sell = quantity.getSellQuantity() + "";
+                        if (cell != null){
+                            buy = cell.getBuyQuantity() + "/";
+                            sell = cell.getSellQuantity() + "";
                         }
 
                         dateItem.add(new Label("buy", buy));

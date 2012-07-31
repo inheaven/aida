@@ -4,11 +4,11 @@ package ru.inhell.aida.matrix.entity;
  * @author Anatoly A. Ivanov java@inheaven.ru
  *         Date: 05.06.12 17:28
  */
-public class MatrixQuantity {
+public class MatrixCell {
     private int buyQuantity;
     private int sellQuantity;
 
-    public MatrixQuantity(int buyQuantity, int sellQuantity) {
+    public MatrixCell(int buyQuantity, int sellQuantity) {
         this.buyQuantity = buyQuantity;
         this.sellQuantity = sellQuantity;
     }

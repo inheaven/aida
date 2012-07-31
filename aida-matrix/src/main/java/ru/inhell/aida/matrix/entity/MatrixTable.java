@@ -9,7 +9,7 @@ import java.util.List;
  *         Date: 05.06.12 16:21
  */
 public class MatrixTable {
-    private HashBasedTable<Long, Float, MatrixQuantity> hashBasedTable = HashBasedTable.create();
+    private HashBasedTable<Long, Float, MatrixCell> hashBasedTable = HashBasedTable.create();
 
     private float minPrice = Float.MAX_VALUE;
     private float maxPrice = Float.MIN_VALUE;
@@ -20,52 +20,48 @@ public class MatrixTable {
     private long timeStep;
     private float priceStep;
 
-    public MatrixTable(List<Matrix> matrixList, long timeStep, float priceStep){
+    public MatrixTable(long timeStep, float priceStep){
         this.timeStep = timeStep;
         this.priceStep = priceStep;
-
-        populate(matrixList);
     }
 
-    public void populate(List<Matrix> matrixList){
-        if (!hashBasedTable.isEmpty()){
-            hashBasedTable.clear();
-        }
-
+    public MatrixTable add(List<Matrix> matrixList){
         for (Matrix matrix : matrixList){
             updateMaxMin(matrix);
 
             long time = (matrix.getDate().getTime()/ timeStep)*timeStep;
-            float price = ((long)(matrix.getPrice()/priceStep))*priceStep;
+            float price = ((long)(matrix.getPrice()*100/(priceStep*100)))*priceStep;
 
-            MatrixQuantity quantity = hashBasedTable.get(time, price);
+            MatrixCell cell = hashBasedTable.get(time, price);
 
-            if (quantity != null){
+            if (cell != null){
                 switch (matrix.getTransaction()) {
                     case BUY:
-                        quantity.setBuyQuantity(quantity.getBuyQuantity() + matrix.getSumQuantity());
+                        cell.setBuyQuantity(cell.getBuyQuantity() + matrix.getSumQuantity());
                         break;
                     case SELL:
-                        quantity.setSellQuantity(quantity.getSellQuantity() + matrix.getSumQuantity());
+                        cell.setSellQuantity(cell.getSellQuantity() + matrix.getSumQuantity());
                         break;
                 }
             }else {
                 switch (matrix.getTransaction()) {
                     case BUY:
-                        quantity = new MatrixQuantity(matrix.getSumQuantity(), 0);
+                        cell = new MatrixCell(matrix.getSumQuantity(), 0);
                         break;
                     case SELL:
-                        quantity = new MatrixQuantity(0, matrix.getSumQuantity());
+                        cell = new MatrixCell(0, matrix.getSumQuantity());
                         break;
                 }
 
-                hashBasedTable.put(time, price, quantity);
+                hashBasedTable.put(time, price, cell);
             }
         }
+
+        return this;
     }
 
     public static MatrixTable of(List<Matrix> matrixList, long timeStep, float priceStep){
-        return new MatrixTable(matrixList, timeStep, priceStep);
+        return new MatrixTable(timeStep, priceStep).add(matrixList);
     }
 
     private void updateMaxMin(Matrix matrix){
@@ -86,7 +82,7 @@ public class MatrixTable {
         }
     }
 
-    public MatrixQuantity get(Long date, Float price) {
+    public MatrixCell get(Long date, Float price) {
         return hashBasedTable.get(date, price);
     }
 
