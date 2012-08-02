@@ -11,24 +11,22 @@ import java.util.List;
  *         Date: 06.06.12 16:11
  */
 public class MatrixControl implements Serializable {
-    private String symbol;
+    private MatrixType matrixType;
     private Date start;
-    private int columnCount;
-    private int rowCount;
-    private MatrixPeriodType periodType;
+    private int columns;
+    private int rows;
     private long timeStep;
     private float priceStep;
 
     public MatrixControl() {
     }
 
-    public MatrixControl(String symbol, Date start, int columnCount, int rowCount, MatrixPeriodType periodType,
+    public MatrixControl(String symbol, Date start, int columns, int rows, MatrixPeriodType periodType,
                          long timeStep, float priceStep) {
-        this.symbol = symbol;
+        matrixType = new MatrixType(symbol, periodType);
         this.start = start;
-        this.columnCount = columnCount;
-        this.rowCount = rowCount;
-        this.periodType = periodType;
+        this.columns = columns;
+        this.rows = rows;
         this.timeStep = timeStep;
         this.priceStep = priceStep;
     }
@@ -37,7 +35,7 @@ public class MatrixControl implements Serializable {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(start);
 
-        switch (periodType) {
+        switch (matrixType.getPeriodType()) {
             case ONE_MINUTE:
                 calendar.set(Calendar.SECOND, 0);
                 calendar.set(Calendar.MILLISECOND, 0);
@@ -53,11 +51,11 @@ public class MatrixControl implements Serializable {
     }
 
     public List<Long> getDateSeries(){
-        List<Long> series = new ArrayList<>(columnCount);
+        List<Long> series = new ArrayList<>(columns);
 
         long time = getZeroStart();
 
-        for (int i = 0; i < columnCount; ++i){
+        for (int i = 0; i < columns; ++i){
             series.add(time);
 
             time += timeStep;
@@ -73,15 +71,15 @@ public class MatrixControl implements Serializable {
 
         float price;
 
-        if (row < rowCount){
-            price = minPrice - priceStep*(rowCount - row)/2;
+        if (row < rows){
+            price = minPrice - priceStep*(rows - row)/2;
         }else {
-            price = maxPrice - priceStep*rowCount;
+            price = maxPrice - priceStep* rows;
         }
 
-        price = ((long)(price/priceStep))*priceStep + priceStep*rowCount;
+        price = ((long)(price/priceStep))*priceStep + priceStep* rows;
 
-        for (int i = 0; i < rowCount; ++i){
+        for (int i = 0; i < rows; ++i){
             series.add(price);
 
             price -= priceStep;
@@ -90,12 +88,12 @@ public class MatrixControl implements Serializable {
         return series;
     }
 
-    public String getSymbol() {
-        return symbol;
+    public MatrixType getMatrixType() {
+        return matrixType;
     }
 
-    public void setSymbol(String symbol) {
-        this.symbol = symbol;
+    public void setMatrixType(MatrixType matrixType) {
+        this.matrixType = matrixType;
     }
 
     public Date getStart() {
@@ -106,28 +104,20 @@ public class MatrixControl implements Serializable {
         this.start = start;
     }
 
-    public int getColumnCount() {
-        return columnCount;
+    public int getColumns() {
+        return columns;
     }
 
-    public void setColumnCount(int columnCount) {
-        this.columnCount = columnCount;
+    public void setColumns(int columns) {
+        this.columns = columns;
     }
 
-    public int getRowCount() {
-        return rowCount;
+    public int getRows() {
+        return rows;
     }
 
-    public void setRowCount(int rowCount) {
-        this.rowCount = rowCount;
-    }
-
-    public MatrixPeriodType getPeriodType() {
-        return periodType;
-    }
-
-    public void setPeriodType(MatrixPeriodType periodType) {
-        this.periodType = periodType;
+    public void setRows(int rows) {
+        this.rows = rows;
     }
 
     public long getTimeStep() {

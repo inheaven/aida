@@ -2,9 +2,8 @@ package ru.inhell.aida.common.service;
 
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
- *         Date: 05.06.12 15:33
+ *         Date: 30.07.12 16:28
  */
-public interface IProcessListener<T>  extends ISimpleProcessListener<T>{
-    void skipped(T o);
-    void error(T o, Exception e);
+public interface IProcessListener<T> {
+    void processed(T o);
 }

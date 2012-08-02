@@ -1,14 +1,16 @@
 package ru.inhell.aida.matrix.entity;
 
 import com.google.common.collect.HashBasedTable;
+import ru.inhell.aida.common.service.IProcessListener;
 
+import java.util.Date;
 import java.util.List;
 
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
  *         Date: 05.06.12 16:21
  */
-public class MatrixTable {
+public class MatrixTable implements IProcessListener<List<Matrix>> {
     private HashBasedTable<Long, Float, MatrixCell> hashBasedTable = HashBasedTable.create();
 
     private float minPrice = Float.MAX_VALUE;
@@ -17,22 +19,46 @@ public class MatrixTable {
     private long maxTime = Long.MIN_VALUE;
     private long minTime = Long.MAX_VALUE;
 
-    private long timeStep;
-    private float priceStep;
+    private MatrixControl control;
+    private IMatrixLoader loader;
 
-    public MatrixTable(long timeStep, float priceStep){
-        this.timeStep = timeStep;
-        this.priceStep = priceStep;
+    public MatrixTable(MatrixControl control, IMatrixLoader loader){
+        this.control = control;
+
+        controlChanged();
+    }
+
+    public void controlChanged(){
+        hashBasedTable.clear();
+
+        long start = (control.getStart().getTime()/control.getTimeStep())* control.getTimeStep();
+        long end = start + control.getColumns()*control.getTimeStep();
+
+        add(loader.load(control.getMatrixType(), new Date(start), new Date(end)));
+    }
+
+    private long getTime(Matrix matrix){
+        return  (matrix.getDate().getTime()/ control.getTimeStep())*control.getTimeStep();
+    }
+
+    private float getPrice(Matrix matrix){
+        return ((long)(matrix.getPrice()*100/(control.getPriceStep()*100)))*control.getPriceStep();
     }
 
     public MatrixTable add(List<Matrix> matrixList){
+        //set zero if updated
+        for (Matrix matrix : matrixList){
+            MatrixCell cell = hashBasedTable.get(getTime(matrix), getPrice(matrix));
+
+            if (cell != null){
+                cell.clear();
+            }
+        }
+
         for (Matrix matrix : matrixList){
             updateMaxMin(matrix);
 
-            long time = (matrix.getDate().getTime()/ timeStep)*timeStep;
-            float price = ((long)(matrix.getPrice()*100/(priceStep*100)))*priceStep;
-
-            MatrixCell cell = hashBasedTable.get(time, price);
+            MatrixCell cell = hashBasedTable.get(getTime(matrix), getPrice(matrix));
 
             if (cell != null){
                 switch (matrix.getTransaction()) {
@@ -53,15 +79,11 @@ public class MatrixTable {
                         break;
                 }
 
-                hashBasedTable.put(time, price, cell);
+                hashBasedTable.put(getTime(matrix), getPrice(matrix), cell);
             }
         }
 
         return this;
-    }
-
-    public static MatrixTable of(List<Matrix> matrixList, long timeStep, float priceStep){
-        return new MatrixTable(timeStep, priceStep).add(matrixList);
     }
 
     private void updateMaxMin(Matrix matrix){
@@ -86,6 +108,11 @@ public class MatrixTable {
         return hashBasedTable.get(date, price);
     }
 
+    @Override
+    public void processed(List<Matrix> matrixList) {
+        add(matrixList);
+    }
+
     public float getMinPrice() {
         return minPrice;
     }
@@ -102,11 +129,7 @@ public class MatrixTable {
         return minTime;
     }
 
-    public long getTimeStep() {
-        return timeStep;
-    }
-
-    public float getPriceStep() {
-        return priceStep;
+    public MatrixControl getControl() {
+        return control;
     }
 }

@@ -7,9 +7,8 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import ru.inhell.aida.common.util.DateUtil;
-import ru.inhell.aida.matrix.entity.Matrix;
-import ru.inhell.aida.matrix.entity.MatrixControl;
 import ru.inhell.aida.matrix.entity.MatrixCell;
+import ru.inhell.aida.matrix.entity.MatrixControl;
 import ru.inhell.aida.matrix.entity.MatrixTable;
 import ru.inhell.aida.matrix.service.MatrixBean;
 
@@ -35,13 +34,7 @@ public class MatrixPanel extends Panel {
         tableModel = new LoadableDetachableModel<MatrixTable>() {
             @Override
             protected MatrixTable load() {
-                long start = (control.getStart().getTime()/control.getTimeStep())* control.getTimeStep();
-                long end = start + control.getColumnCount()*control.getTimeStep();
-
-                List<Matrix> matrixList = matrixBean.getMatrixList(control.getSymbol(), new Date(start), new Date(end),
-                        control.getPeriodType());
-
-                return MatrixTable.of(matrixList, control.getTimeStep(), control.getPriceStep());
+                return null; //todo
             }
         };
         setDefaultModel(tableModel);

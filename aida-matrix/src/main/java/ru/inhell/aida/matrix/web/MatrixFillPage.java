@@ -14,14 +14,13 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.time.Duration;
 import org.odlabs.wiquery.ui.datepicker.DatePicker;
-import ru.inhell.aida.common.service.IProcessListener;
+import ru.inhell.aida.common.service.IComplexProcessListener;
 import ru.inhell.aida.common.service.ProcessCommand;
 import ru.inhell.aida.common.util.DateUtil;
 import ru.inhell.aida.matrix.entity.Matrix;
 import ru.inhell.aida.matrix.entity.MatrixPeriodType;
 import ru.inhell.aida.matrix.service.MatrixService;
 import ru.inhell.aida.template.web.AbstractPage;
-import ru.inhell.aida.template.web.TemplateMenu;
 
 import javax.ejb.EJB;
 import java.util.Arrays;
@@ -92,7 +91,7 @@ public class MatrixFillPage extends AbstractPage{
         Button submit = new Button("submit"){
             @Override
             public void onSubmit() {
-                IProcessListener<Matrix> listener = new IProcessListener<Matrix>() {
+                IComplexProcessListener<Matrix> listener = new IComplexProcessListener<Matrix>() {
                     int processedCount = 0;
                     int skippedCount = 0;
 

@@ -13,6 +13,11 @@ public class MatrixCell {
         this.sellQuantity = sellQuantity;
     }
 
+    public void clear(){
+        buyQuantity = 0;
+        sellQuantity = 0;
+    }
+
     public int getBuyQuantity() {
         return buyQuantity;
     }

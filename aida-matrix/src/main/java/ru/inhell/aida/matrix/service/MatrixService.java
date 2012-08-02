@@ -2,7 +2,7 @@ package ru.inhell.aida.matrix.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.inhell.aida.common.service.IProcessListener;
+import ru.inhell.aida.common.service.IComplexProcessListener;
 import ru.inhell.aida.common.service.ProcessCommand;
 import ru.inhell.aida.matrix.entity.Matrix;
 import ru.inhell.aida.matrix.entity.MatrixPeriodType;
@@ -29,7 +29,7 @@ public class MatrixService {
 
     @Asynchronous
     public Future<String> populateMatrixTable(String symbol, Date start, Date end, MatrixPeriodType periodType,
-                                    IProcessListener<Matrix> listener, ProcessCommand command){
+                                    IComplexProcessListener<Matrix> listener, ProcessCommand command){
         command.start();
         log.info("Началась обработка");
 
