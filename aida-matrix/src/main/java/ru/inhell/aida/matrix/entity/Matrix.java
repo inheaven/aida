@@ -13,8 +13,8 @@ public class Matrix extends AbstractEntity{
     private Date date;
     private String symbol;
     private float price;
-    private int sumQuantity;
-    private float sumVolume;
+    private int quantity;
+    private float volume;
     private TransactionType transaction;
     private Date created;
 
@@ -42,20 +42,20 @@ public class Matrix extends AbstractEntity{
         this.price = price;
     }
 
-    public int getSumQuantity() {
-        return sumQuantity;
+    public int getQuantity() {
+        return quantity;
     }
 
-    public void setSumQuantity(int sumQuantity) {
-        this.sumQuantity = sumQuantity;
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
     }
 
-    public float getSumVolume() {
-        return sumVolume;
+    public float getVolume() {
+        return volume;
     }
 
-    public void setSumVolume(float sumVolume) {
-        this.sumVolume = sumVolume;
+    public void setVolume(float volume) {
+        this.volume = volume;
     }
 
     public TransactionType getTransaction() {

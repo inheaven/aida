@@ -37,19 +37,19 @@ public class MatrixTable {
             if (cell != null){
                 switch (matrix.getTransaction()) {
                     case BUY:
-                        cell.setBuyQuantity(cell.getBuyQuantity() + matrix.getSumQuantity());
+                        cell.setBuyQuantity(cell.getBuyQuantity() + matrix.getQuantity());
                         break;
                     case SELL:
-                        cell.setSellQuantity(cell.getSellQuantity() + matrix.getSumQuantity());
+                        cell.setSellQuantity(cell.getSellQuantity() + matrix.getQuantity());
                         break;
                 }
             }else {
                 switch (matrix.getTransaction()) {
                     case BUY:
-                        cell = new MatrixCell(matrix.getSumQuantity(), 0);
+                        cell = new MatrixCell(matrix.getQuantity(), 0);
                         break;
                     case SELL:
-                        cell = new MatrixCell(0, matrix.getSumQuantity());
+                        cell = new MatrixCell(0, matrix.getQuantity());
                         break;
                 }
 

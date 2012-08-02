@@ -7,8 +7,8 @@
         <result column="symbol" property="symbol"/>
         <result column="date" property="date"/>
         <result column="price" property="price"/>
-        <result column="sum_quantity" property="sumQuantity"/>
-        <result column="sum_volume" property="sumVolume"/>
+        <result column="quantity" property="quantity"/>
+        <result column="volume" property="volume"/>
         <result column="transaction"  property="transaction"/>
         <result column="created" property="created"/>
     </resultMap>
@@ -16,7 +16,7 @@
     <select id="selectMatrixListFromAllTrades" parameterType="ru.inhell.aida.common.entity.EntityWrapper"
             resultMap="matrixResultMap">
         select
-          id, `symbol`, `price`, `date`, sum(quantity) as sum_quantity, sum(volume) as sum_volume, `transaction`,
+          id, `symbol`, `price`, `date`, sum(quantity) as quantity, sum(volume) as volume, `transaction`,
             minute(`date`) as m, hour(date) as h
         from
           all_trades
@@ -48,8 +48,8 @@
         <if test="map.period_type == 'ONE_HOUR'">`matrix_1h`</if>
         (`symbol`, `date`, `price`, `transaction`, `sum_quantity`, `sum_volume`)
         values
-        (#{object.symbol}, #{object.date}, #{object.price}, #{object.transaction}, #{object.sumQuantity},
-          #{object.sumVolume})
+        (#{object.symbol}, #{object.date}, #{object.price}, #{object.transaction}, #{object.quantity},
+          #{object.volume})
     </insert>
 
     <select id="selectMatrixList" parameterType="ru.inhell.aida.common.entity.EntityWrapper" resultMap="matrixResultMap">

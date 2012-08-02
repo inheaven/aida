@@ -31,7 +31,7 @@ import java.util.Date;
  * @author Anatoly A. Ivanov java@inheaven.ru
  *         Date: 05.06.12 14:52
  */
-@TemplateMenu
+//@TemplateMenu
 public class MatrixFillPage extends AbstractPage{
     @EJB
     private MatrixService matrixService;
