@@ -1,6 +1,6 @@
 package ru.inhell.aida.matrix.entity;
 
-import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.TreeBasedTable;
 import ru.inhell.aida.common.service.IProcessListener;
 
 import java.util.Date;
@@ -11,7 +11,7 @@ import java.util.List;
  *         Date: 05.06.12 16:21
  */
 public class MatrixTable implements IProcessListener<List<Matrix>> {
-    private HashBasedTable<Long, Float, MatrixCell> hashBasedTable = HashBasedTable.create();
+    private TreeBasedTable<Long, Float, MatrixCell> table = TreeBasedTable.create();
 
     private float minPrice = Float.MAX_VALUE;
     private float maxPrice = Float.MIN_VALUE;
@@ -22,14 +22,21 @@ public class MatrixTable implements IProcessListener<List<Matrix>> {
     private MatrixControl control;
     private IMatrixLoader loader;
 
+    private int tableColumns;
+    private int tableRows;
+
+    private int tableColumnsDelta;
+    private int tableRowsDelta;
+
     public MatrixTable(MatrixControl control, IMatrixLoader loader){
         this.control = control;
+        this.loader = loader;
 
         controlChanged();
     }
 
     public void controlChanged(){
-        hashBasedTable.clear();
+        table.clear();
 
         long start = (control.getStart().getTime()/control.getTimeStep())* control.getTimeStep();
         long end = start + control.getColumns()*control.getTimeStep();
@@ -46,19 +53,20 @@ public class MatrixTable implements IProcessListener<List<Matrix>> {
     }
 
     public MatrixTable add(List<Matrix> matrixList){
-        //set zero if updated
+        //clear cell if updated
         for (Matrix matrix : matrixList){
-            MatrixCell cell = hashBasedTable.get(getTime(matrix), getPrice(matrix));
+            MatrixCell cell = table.get(getTime(matrix), getPrice(matrix));
 
             if (cell != null){
                 cell.clear();
             }
         }
 
+        //group matrix by cell
         for (Matrix matrix : matrixList){
             updateMaxMin(matrix);
 
-            MatrixCell cell = hashBasedTable.get(getTime(matrix), getPrice(matrix));
+            MatrixCell cell = table.get(getTime(matrix), getPrice(matrix));
 
             if (cell != null){
                 switch (matrix.getTransaction()) {
@@ -79,12 +87,21 @@ public class MatrixTable implements IProcessListener<List<Matrix>> {
                         break;
                 }
 
-                hashBasedTable.put(getTime(matrix), getPrice(matrix), cell);
+                table.put(getTime(matrix), getPrice(matrix), cell);
             }
         }
 
+        //update table size
+        tableColumns = table.columnKeySet().size();
+        tableRows = table.rowKeySet().size();
+
+        //update table delta
+        tableColumnsDelta = tableColumns - control.getColumns();
+        tableRowsDelta = tableRows - control.getRows();
+
         return this;
     }
+
 
     private void updateMaxMin(Matrix matrix){
         float price = matrix.getPrice();
@@ -105,8 +122,9 @@ public class MatrixTable implements IProcessListener<List<Matrix>> {
     }
 
     public MatrixCell get(Long date, Float price) {
-        return hashBasedTable.get(date, price);
+        return table.get(date, price);
     }
+
 
     @Override
     public void processed(List<Matrix> matrixList) {
