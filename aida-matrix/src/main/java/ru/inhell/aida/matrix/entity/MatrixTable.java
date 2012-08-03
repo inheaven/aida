@@ -3,30 +3,23 @@ package ru.inhell.aida.matrix.entity;
 import com.google.common.collect.TreeBasedTable;
 import ru.inhell.aida.common.service.IProcessListener;
 
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
  *         Date: 05.06.12 16:21
  */
 public class MatrixTable implements IProcessListener<List<Matrix>> {
-    private TreeBasedTable<Long, Float, MatrixCell> table = TreeBasedTable.create();
+    private TreeBasedTable<Float, Long, MatrixCell> table = TreeBasedTable.create();
 
-    private float minPrice = Float.MAX_VALUE;
-    private float maxPrice = Float.MIN_VALUE;
+    private float minPrice;
+    private float maxPrice;
 
-    private long maxTime = Long.MIN_VALUE;
-    private long minTime = Long.MAX_VALUE;
+    private long maxTime;
+    private long minTime;
 
     private MatrixControl control;
     private IMatrixLoader loader;
-
-    private int tableColumns;
-    private int tableRows;
-
-    private int tableColumnsDelta;
-    private int tableRowsDelta;
 
     public MatrixTable(MatrixControl control, IMatrixLoader loader){
         this.control = control;
@@ -52,72 +45,77 @@ public class MatrixTable implements IProcessListener<List<Matrix>> {
         return ((long)(matrix.getPrice()*100/(control.getPriceStep()*100)))*control.getPriceStep();
     }
 
-    public MatrixTable add(List<Matrix> matrixList){
-        //clear cell if updated
-        for (Matrix matrix : matrixList){
-            MatrixCell cell = table.get(getTime(matrix), getPrice(matrix));
+    private void crop(){
+        //columns
+        int deltaColumn = table.columnKeySet().size() - control.getColumns();
 
-            if (cell != null){
-                cell.clear();
+        if (deltaColumn > 0){
+            Iterator<Long> iterator = table.columnKeySet().iterator();
+
+            for (int i=0; i < deltaColumn; ++i){
+                table.columnKeySet().remove(iterator.next());
             }
         }
 
+        //rows
+        int deltaRows = table.rowKeySet().size() - control.getRows();
+
+        if (deltaRows > 0){
+            Float last = table.rowKeySet().last();
+
+
+
+        }
+    }
+
+    public MatrixTable add(List<Matrix> matrixList){
         //group matrix by cell
         for (Matrix matrix : matrixList){
-            updateMaxMin(matrix);
+            MatrixCell cell = table.get(getPrice(matrix), getTime(matrix));
 
-            MatrixCell cell = table.get(getTime(matrix), getPrice(matrix));
-
-            if (cell != null){
-                switch (matrix.getTransaction()) {
-                    case BUY:
-                        cell.setBuyQuantity(cell.getBuyQuantity() + matrix.getQuantity());
-                        break;
-                    case SELL:
-                        cell.setSellQuantity(cell.getSellQuantity() + matrix.getQuantity());
-                        break;
-                }
-            }else {
-                switch (matrix.getTransaction()) {
-                    case BUY:
-                        cell = new MatrixCell(matrix.getQuantity(), 0);
-                        break;
-                    case SELL:
-                        cell = new MatrixCell(0, matrix.getQuantity());
-                        break;
-                }
-
-                table.put(getTime(matrix), getPrice(matrix), cell);
+            if (cell == null){
+                cell = new MatrixCell();
+                table.put(getPrice(matrix), getTime(matrix), cell);
             }
+
+            cell.add(matrix);
         }
 
-        //update table size
-        tableColumns = table.columnKeySet().size();
-        tableRows = table.rowKeySet().size();
+        //crop
+        crop();
 
-        //update table delta
-        tableColumnsDelta = tableColumns - control.getColumns();
-        tableRowsDelta = tableRows - control.getRows();
+        //Max and Min
+        updateMaxMin();
 
         return this;
     }
 
+    private void updateMaxMin(){
+        minPrice = Float.MAX_VALUE;
+        maxPrice = Float.MIN_VALUE;
 
-    private void updateMaxMin(Matrix matrix){
-        float price = matrix.getPrice();
-        if (price > maxPrice){
-            maxPrice = price;
-        }
-        if (price < minPrice){
-            minPrice = price;
-        }
+        maxTime = Long.MIN_VALUE;
+        minTime = Long.MAX_VALUE;
 
-        long time = matrix.getDate().getTime();
-        if (time > maxTime){
-            maxTime = time;
-        }
-        if (time < minTime){
-            minTime = time;
+
+        for (MatrixCell cell : table.values()){
+            for (Matrix matrix : cell.values()){
+                float price = matrix.getPrice();
+                if (price > maxPrice){
+                    maxPrice = price;
+                }
+                if (price < minPrice){
+                    minPrice = price;
+                }
+
+                long time = matrix.getDate().getTime();
+                if (time > maxTime){
+                    maxTime = time;
+                }
+                if (time < minTime){
+                    minTime = time;
+                }
+            }
         }
     }
 

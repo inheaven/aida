@@ -1,36 +1,50 @@
 package ru.inhell.aida.matrix.entity;
 
+import ru.inhell.aida.common.entity.TransactionType;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
  *         Date: 05.06.12 17:28
  */
 public class MatrixCell {
-    private int buyQuantity;
-    private int sellQuantity;
+    private Map<Long, Matrix> matrixMap = new HashMap<>();
 
-    public MatrixCell(int buyQuantity, int sellQuantity) {
-        this.buyQuantity = buyQuantity;
-        this.sellQuantity = sellQuantity;
+    public MatrixCell() {
     }
 
-    public void clear(){
-        buyQuantity = 0;
-        sellQuantity = 0;
+    public void add(Matrix matrix){
+        matrixMap.put(matrix.getId(), matrix);
     }
 
     public int getBuyQuantity() {
+        int buyQuantity = 0;
+
+        for (Matrix matrix : matrixMap.values()){
+            if (TransactionType.BUY.equals(matrix.getTransaction())){
+                buyQuantity += matrix.getQuantity();
+            }
+        }
+
         return buyQuantity;
     }
 
-    public void setBuyQuantity(int buyQuantity) {
-        this.buyQuantity = buyQuantity;
-    }
-
     public int getSellQuantity() {
+        int sellQuantity = 0;
+
+        for (Matrix matrix : matrixMap.values()){
+            if (TransactionType.SELL.equals(matrix.getTransaction())){
+                sellQuantity += matrix.getQuantity();
+            }
+        }
+
         return sellQuantity;
     }
 
-    public void setSellQuantity(int sellQuantity) {
-        this.sellQuantity = sellQuantity;
+    public Collection<Matrix> values(){
+        return matrixMap.values();
     }
 }
