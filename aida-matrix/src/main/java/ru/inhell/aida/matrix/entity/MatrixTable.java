@@ -6,7 +6,6 @@ import ru.inhell.aida.common.service.IProcessListener;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -72,13 +71,18 @@ public class MatrixTable implements IProcessListener<List<Matrix>>, Serializable
         boolean cropped = false;
 
         if (deltaColumn > 0){
-            Iterator<Long> iterator = table.columnKeySet().iterator();
+            List<Long> times = getTimes();
+            List<Long> remove = new ArrayList<>();
 
             for (int i=0; i < deltaColumn; ++i){
-                table.columnKeySet().remove(iterator.next());
-
-                cropped = true;
+                remove.add(times.get(i));
             }
+
+            for (Long time : remove){
+                table.columnKeySet().remove(time);
+            }
+
+            cropped = true;
         }
 
         return cropped;
@@ -178,6 +182,8 @@ public class MatrixTable implements IProcessListener<List<Matrix>>, Serializable
                 startPrice = minPrice;
             }
         }
+
+        startPrice = table.rowKeySet().tailSet(startPrice).first();
 
         List<Float> prices = new ArrayList<>(control.getRows());
 

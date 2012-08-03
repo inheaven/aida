@@ -22,10 +22,10 @@ public class MatrixTestPage extends AbstractPage{
 
     public MatrixTestPage() {
         Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.MINUTE, -150);
-        calendar.set(2012, Calendar.FEBRUARY, 6, 12, 0, 0);
+        calendar.set(Calendar.DAY_OF_MONTH, 3);
+        calendar.set(Calendar.HOUR_OF_DAY, 12);
 
-        control = new MatrixControl("RIU2", calendar.getTime(), 20, 20, MatrixPeriodType.ONE_MINUTE, 1000*60*10, 1f);
+        control = new MatrixControl("RIU2", calendar.getTime(), 30, 30, MatrixPeriodType.ONE_MINUTE, 1000*60, 50f);
 
         matrixPanel = new MatrixPanel("matrix", control, true);
         matrixPanel.setOutputMarkupId(true);

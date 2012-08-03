@@ -11,7 +11,6 @@ import ru.inhell.aida.matrix.entity.MatrixType;
 import javax.annotation.Resource;
 import javax.ejb.*;
 import javax.ejb.Timer;
-import javax.inject.Singleton;
 import java.util.*;
 
 /**
@@ -44,7 +43,11 @@ public class MatrixTimerService {
             timerMap.put(type, timer);
 
             //init start date
-            dateMap.put(type, new Date());
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.DAY_OF_MONTH, 3);
+            calendar.set(Calendar.HOUR_OF_DAY, 13);   //todo msk -3
+
+            dateMap.put(type, calendar.getTime());
         }
     }
 
@@ -67,17 +70,27 @@ public class MatrixTimerService {
         Collection<IProcessListener<List<Matrix>>> listeners = listenerMap.get(type);
 
         if (listeners != null && !listeners.isEmpty()){
-            List<Matrix> list = matrixBean.getMatrixStartList(type.getSymbol(), dateMap.get(type), type.getPeriodType());
+            //List<Matrix> list = matrixBean.getMatrixStartList(type.getSymbol(), dateMap.get(type), type.getPeriodType());
+
+            Date end = new Date(dateMap.get(type).getTime() + 1000*60);
+            List<Matrix> list = matrixBean.getMatrixList(type.getSymbol(), dateMap.get(type), end, type.getPeriodType());
 
             if (!list.isEmpty()){
                 //invoke listeners
                 for (IProcessListener<List<Matrix>> listener : listeners){
-                    listener.processed(list);
+                    try {
+                        listener.processed(list);
+                    } catch (Exception e) {
+                        log.error("WTF", e);
+                    }
                 }
 
                 //update start date
-                dateMap.put(type, list.get(list.size() - 1).getCreated());
+                //dateMap.put(type, list.get(list.size() - 1).getCreated());
+
             }
+
+            dateMap.put(type, end); //todo debug
         }else {
             log.warn("Чета слушателей нет, таймер то не выключился");
         }

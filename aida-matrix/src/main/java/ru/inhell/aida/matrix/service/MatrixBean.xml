@@ -63,6 +63,6 @@
         select * from
         <if test="map.period_type == 'ONE_MINUTE'">`matrix_1m`</if>
         <if test="map.period_type == 'ONE_HOUR'">`matrix_1h`</if>
-        where symbol = #{map.symbol} and `date` > #{map.start}
+        where symbol = #{map.symbol} and `created` > #{map.start}
     </select>
 </mapper>

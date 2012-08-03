@@ -3,6 +3,7 @@ package ru.inhell.aida.matrix.web;
 import com.google.common.collect.HashBasedTable;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.atmosphere.AtmosphereBehavior;
 import org.apache.wicket.atmosphere.EventBus;
 import org.apache.wicket.atmosphere.Subscribe;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -11,12 +12,16 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.atmosphere.cpr.AtmosphereResourceEvent;
 import ru.inhell.aida.common.util.DateUtil;
+import ru.inhell.aida.common.util.EjbUtil;
+import ru.inhell.aida.common.util.OsgiUtil;
 import ru.inhell.aida.matrix.entity.*;
 import ru.inhell.aida.matrix.service.MatrixBean;
 import ru.inhell.aida.matrix.service.MatrixTimerService;
 
 import javax.ejb.EJB;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -42,7 +47,8 @@ public class MatrixPanel extends Panel {
         final MatrixTable matrixTable = new MatrixTable(control,  new IMatrixLoader() {
             @Override
             public List<Matrix> load(MatrixType matrixType, Date start, Date end) {
-                return matrixBean.getMatrixList(matrixType.getSymbol(), start, end, matrixType.getPeriodType());
+                return EjbUtil.getEjb(OsgiUtil.getModuleName(MatrixBean.class), MatrixBean.class)
+                        .getMatrixList(matrixType.getSymbol(), start, end, matrixType.getPeriodType());
             }
         });
 
@@ -56,7 +62,10 @@ public class MatrixPanel extends Panel {
                 new LoadableDetachableModel<List<Float>>() {
                     @Override
                     protected List<Float> load() {
-                        return matrixTable.getPrices();
+                        List<Float> prices = matrixTable.getPrices();
+                        Collections.reverse(prices);
+
+                        return prices;
                     }
                 }) {
             @Override
@@ -119,11 +128,10 @@ public class MatrixPanel extends Panel {
         };
         container.add(dateLabels);
 
-        //Event Bus
-        final EventBus eventBus = EventBus.get();
-
         //Matrix Table Listener
         matrixTable.addListener(new IMatrixTableListener() {
+            private transient EventBus eventBus = EventBus.get();
+
             @Override
             public void onChange(MatrixEvent event) {
                 eventBus.post(event);
@@ -132,7 +140,21 @@ public class MatrixPanel extends Panel {
 
         //Matrix Timer Service
         if (realtime){
-            matrixTimerService.addListener(control.getMatrixType(), matrixTable);
+            add(new AtmosphereBehavior(){
+                @Override
+                public void onResourceRequested() {
+                    super.onResourceRequested();
+
+                    matrixTimerService.addListener(control.getMatrixType(), matrixTable);
+                }
+
+                @Override
+                public void onDisconnect(AtmosphereResourceEvent event) {
+                    super.onDisconnect(event);
+
+                    matrixTimerService.removeListener(control.getMatrixType(), matrixTable);
+                }
+            });
         }
     }
 

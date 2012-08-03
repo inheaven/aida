@@ -1,6 +1,5 @@
 package ru.inhell.aida.matrix.web;
 
-import com.google.common.collect.Lists;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
@@ -11,13 +10,11 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.CompoundPropertyModel;
-import org.odlabs.wiquery.ui.datepicker.DatePicker;
 import ru.inhell.aida.common.web.IUpdateListener;
 import ru.inhell.aida.matrix.entity.MatrixControl;
 import ru.inhell.aida.matrix.entity.MatrixPeriodType;
 
 import java.util.Arrays;
-import java.util.Date;
 
 /**
  * @author Anatoly A. Ivanov java@inhell.ru
@@ -34,11 +31,11 @@ public class MatrixControlPanel extends Panel{
         Form form = new Form<>("form", new CompoundPropertyModel<>(control));
         add(form);
 
-        form.add(new TextField<>("symbol"));
+        form.add(new TextField<>("matrixType.symbol"));
         form.add(DateTextField.forDatePattern("start", "dd.MM.yy HH:mm"));
-        form.add(new TextField<>("columnCount", Integer.class));
-        form.add(new TextField<>("rowCount", Integer.class));
-        form.add(new DropDownChoice<>("periodType", Arrays.asList(MatrixPeriodType.values()),
+        form.add(new TextField<>("columns", Integer.class));
+        form.add(new TextField<>("rows", Integer.class));
+        form.add(new DropDownChoice<>("matrixType.periodType", Arrays.asList(MatrixPeriodType.values()),
                 new IChoiceRenderer<MatrixPeriodType>() {
                     @Override
                     public Object getDisplayValue(MatrixPeriodType object) {

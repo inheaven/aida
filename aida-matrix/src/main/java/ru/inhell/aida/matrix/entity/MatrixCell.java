@@ -2,6 +2,7 @@ package ru.inhell.aida.matrix.entity;
 
 import ru.inhell.aida.common.entity.TransactionType;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,7 +11,7 @@ import java.util.Map;
  * @author Anatoly A. Ivanov java@inheaven.ru
  *         Date: 05.06.12 17:28
  */
-public class MatrixCell {
+public class MatrixCell implements Serializable {
     private Map<Long, Matrix> matrixMap = new HashMap<>();
 
     private float price;

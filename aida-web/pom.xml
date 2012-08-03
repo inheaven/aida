@@ -79,7 +79,7 @@
                 <configuration>
                     <instructions>
                         <Export-EJB>ALL</Export-EJB>
-                        <_wab>C:/Anatoly/Java/aida/aida-web/src/main/webapp</_wab>
+                        <_wab>./src/main/webapp</_wab>
                         <Web-ContextPath>/aida</Web-ContextPath>
                         <Import-Package>*,org.apache.catalina, org.atmosphere.cpr</Import-Package>
                         <DynamicImport-Package>*</DynamicImport-Package>
