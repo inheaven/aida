@@ -1,7 +1,6 @@
 package ru.inhell.aida.matrix.test;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import ru.inhell.aida.common.web.IUpdateListener;
 import ru.inhell.aida.matrix.entity.MatrixControl;
 import ru.inhell.aida.matrix.entity.MatrixPeriodType;
@@ -23,11 +22,12 @@ public class MatrixTestPage extends AbstractPage{
 
     public MatrixTestPage() {
         Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.MINUTE, -150);
         calendar.set(2012, Calendar.FEBRUARY, 6, 12, 0, 0);
 
-        control = new MatrixControl("GAZP", calendar.getTime(), 10, 20, MatrixPeriodType.ONE_MINUTE, 1000*60*10, 0.25f);
+        control = new MatrixControl("RIU2", calendar.getTime(), 20, 20, MatrixPeriodType.ONE_MINUTE, 1000*60*10, 1f);
 
-        matrixPanel = new MatrixPanel("matrix", control);
+        matrixPanel = new MatrixPanel("matrix", control, true);
         matrixPanel.setOutputMarkupId(true);
         add(matrixPanel);
 
@@ -37,20 +37,6 @@ public class MatrixTestPage extends AbstractPage{
                 target.add(matrixPanel);
             }
         }));
-
-        add(new AjaxLink("start") {
-            @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-
-            }
-        });
-
-        add(new AjaxLink("stop") {
-            @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-
-            }
-        });
     }
 
 }

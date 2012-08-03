@@ -13,7 +13,12 @@ import java.util.Map;
 public class MatrixCell {
     private Map<Long, Matrix> matrixMap = new HashMap<>();
 
-    public MatrixCell() {
+    private float price;
+    private long time;
+
+    public MatrixCell(float price, long time) {
+        this.price = price;
+        this.time = time;
     }
 
     public void add(Matrix matrix){
@@ -46,5 +51,13 @@ public class MatrixCell {
 
     public Collection<Matrix> values(){
         return matrixMap.values();
+    }
+
+    public float getPrice() {
+        return price;
+    }
+
+    public long getTime() {
+        return time;
     }
 }

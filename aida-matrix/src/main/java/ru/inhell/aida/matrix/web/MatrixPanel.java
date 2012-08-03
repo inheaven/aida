@@ -1,16 +1,20 @@
 package ru.inhell.aida.matrix.web;
 
+import com.google.common.collect.HashBasedTable;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.atmosphere.EventBus;
+import org.apache.wicket.atmosphere.Subscribe;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import ru.inhell.aida.common.util.DateUtil;
-import ru.inhell.aida.matrix.entity.MatrixCell;
-import ru.inhell.aida.matrix.entity.MatrixControl;
-import ru.inhell.aida.matrix.entity.MatrixTable;
+import ru.inhell.aida.matrix.entity.*;
 import ru.inhell.aida.matrix.service.MatrixBean;
+import ru.inhell.aida.matrix.service.MatrixTimerService;
 
 import javax.ejb.EJB;
 import java.util.Date;
@@ -24,28 +28,35 @@ public class MatrixPanel extends Panel {
     @EJB
     private MatrixBean matrixBean;
 
-    private MatrixControl control;
-    private IModel<MatrixTable> tableModel;
+    @EJB
+    private MatrixTimerService matrixTimerService;
 
-    public MatrixPanel(String id, final MatrixControl control) {
+    private  HashBasedTable<Float, Long, Component> componentTable = HashBasedTable.create();
+
+    private WebMarkupContainer container;
+
+    public MatrixPanel(String id, final MatrixControl control, boolean realtime) {
         super(id);
-        this.control = control;
 
-        tableModel = new LoadableDetachableModel<MatrixTable>() {
+        //Matrix Table
+        final MatrixTable matrixTable = new MatrixTable(control,  new IMatrixLoader() {
             @Override
-            protected MatrixTable load() {
-                return null; //todo
+            public List<Matrix> load(MatrixType matrixType, Date start, Date end) {
+                return matrixBean.getMatrixList(matrixType.getSymbol(), start, end, matrixType.getPeriodType());
             }
-        };
-        setDefaultModel(tableModel);
+        });
 
+        //Ajax Container
+        container = new WebMarkupContainer("container");
+        container.setOutputMarkupId(true);
+        add(container);
+
+        //Matrix
         ListView prices = new ListView<Float>("prices",
-                new LoadableDetachableModel<List<? extends Float>>() {
+                new LoadableDetachableModel<List<Float>>() {
                     @Override
-                    protected List<? extends Float> load() {
-                        MatrixTable matrixTable = tableModel.getObject();
-
-                        return control.getPriceSeries(matrixTable.getMinPrice(), matrixTable.getMaxPrice());
+                    protected List<Float> load() {
+                        return matrixTable.getPrices();
                     }
                 }) {
             @Override
@@ -55,41 +66,88 @@ public class MatrixPanel extends Panel {
                 priceItem.add(new Label("price_left", price + ""));
                 priceItem.add(new Label("price_right", price + ""));
 
-                ListView dates = new ListView<Long>("dates", control.getDateSeries()) {
+                ListView dates = new ListView<Long>("times", matrixTable.getTimes()) {
                     @Override
                     protected void populateItem(ListItem<Long> dateItem) {
-                        Long date = dateItem.getModelObject();
+                        final Long time = dateItem.getModelObject();
 
-                        MatrixCell cell = tableModel.getObject().get(date, price);
+                        WebMarkupContainer container = new WebMarkupContainer("container");
+                        container.setOutputMarkupId(true);
+                        dateItem.add(container);
 
-                        String buy = "";
-                        String sell = "";
+                        //component table
+                        componentTable.put(price, time, container);
 
-                        if (cell != null){
-                            buy = cell.getBuyQuantity() + "/";
-                            sell = cell.getSellQuantity() + "";
-                        }
+                        //buy
+                        container.add(new Label("buy", new LoadableDetachableModel<String>() {
+                            @Override
+                            protected String load() {
+                                MatrixCell cell = matrixTable.get(price, time);
 
-                        dateItem.add(new Label("buy", buy));
-                        dateItem.add(new Label("sell", sell));
+                                return cell != null ? cell.getBuyQuantity() + "" : "";
+                            }
+                        }));
+
+                        //sell
+                        container.add(new Label("sell", new LoadableDetachableModel<String>() {
+                            @Override
+                            protected String load() {
+                                MatrixCell cell = matrixTable.get(price, time);
+
+                                return cell != null ? cell.getSellQuantity() + "" : "";
+                            }
+                        }));
                     }
                 };
                 priceItem.add(dates);
             }
         };
-        add(prices);
+        container.add(prices);
 
-        add(new ListView<Long>("dates_label",
-                new LoadableDetachableModel<List<? extends Long>>() {
+        //Date Labels
+        ListView dateLabels = new ListView<Long>("date_labels",
+                new LoadableDetachableModel<List<Long>>() {
                     @Override
-                    protected List<? extends Long> load() {
-                        return control.getDateSeries();
+                    protected List<Long> load() {
+                        return matrixTable.getTimes();
                     }
                 }) {
             @Override
             protected void populateItem(ListItem<Long> item) {
                 item.add(new Label("label", DateUtil.getString(new Date(item.getModelObject()))));
             }
+        };
+        container.add(dateLabels);
+
+        //Event Bus
+        final EventBus eventBus = EventBus.get();
+
+        //Matrix Table Listener
+        matrixTable.addListener(new IMatrixTableListener() {
+            @Override
+            public void onChange(MatrixEvent event) {
+                eventBus.post(event);
+            }
         });
+
+        //Matrix Timer Service
+        if (realtime){
+            matrixTimerService.addListener(control.getMatrixType(), matrixTable);
+        }
+    }
+
+    @Subscribe
+    public void matrixTableChanged(AjaxRequestTarget target, MatrixEvent event){
+        if (event.isCropped()){
+            target.add(container);
+        }else {
+            for (MatrixCell cell : event.getMatrixCells()){
+                Component component = componentTable.get(cell.getPrice(), cell.getTime());
+
+                if (component != null) {
+                    target.add(component);
+                }
+            }
+        }
     }
 }

@@ -1,10 +1,7 @@
 package ru.inhell.aida.matrix.entity;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
@@ -21,7 +18,7 @@ public class MatrixControl implements Serializable {
     public MatrixControl() {
     }
 
-    public MatrixControl(String symbol, Date start, int columns, int rows, MatrixPeriodType periodType,
+    public MatrixControl(String symbol, Date start, int rows, int columns, MatrixPeriodType periodType,
                          long timeStep, float priceStep) {
         matrixType = new MatrixType(symbol, periodType);
         this.start = start;
@@ -29,63 +26,6 @@ public class MatrixControl implements Serializable {
         this.rows = rows;
         this.timeStep = timeStep;
         this.priceStep = priceStep;
-    }
-
-    public long getZeroStart(){
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(start);
-
-        switch (matrixType.getPeriodType()) {
-            case ONE_MINUTE:
-                calendar.set(Calendar.SECOND, 0);
-                calendar.set(Calendar.MILLISECOND, 0);
-                break;
-            case ONE_HOUR:
-                calendar.set(Calendar.MINUTE, 0);
-                calendar.set(Calendar.SECOND, 0);
-                calendar.set(Calendar.MILLISECOND, 0);
-                break;
-        }
-
-        return calendar.getTimeInMillis();
-    }
-
-    public List<Long> getDateSeries(){
-        List<Long> series = new ArrayList<>(columns);
-
-        long time = getZeroStart();
-
-        for (int i = 0; i < columns; ++i){
-            series.add(time);
-
-            time += timeStep;
-        }
-
-        return series;
-    }
-
-    public List<Float> getPriceSeries(float minPrice, float maxPrice){
-        List<Float> series = new ArrayList<>();
-
-        int row = (int) ((maxPrice - minPrice) / priceStep);
-
-        float price;
-
-        if (row < rows){
-            price = minPrice - priceStep*(rows - row)/2;
-        }else {
-            price = maxPrice - priceStep* rows;
-        }
-
-        price = ((long)(price/priceStep))*priceStep + priceStep* rows;
-
-        for (int i = 0; i < rows; ++i){
-            series.add(price);
-
-            price -= priceStep;
-        }
-
-        return series;
     }
 
     public MatrixType getMatrixType() {

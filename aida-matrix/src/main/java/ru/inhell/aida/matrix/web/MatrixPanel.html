@@ -6,18 +6,21 @@
 </head>
 <body>
 <wicket:panel>
-    <table>
+    <table wicket:id="container">
         <tr wicket:id="prices">
             <td wicket:id="price_left"></td>
-            <td wicket:id="dates">
-                <span wicket:id="buy"></span><span wicket:id="sell"></span>
+            <td wicket:id="times">
+                <div wicket:id="container">
+                    <span wicket:id="buy"></span>&nbsp;<span wicket:id="sell"></span>
+                </div>
+
             </td>
             <td wicket:id="price_right"></td>
         </tr>
         <tr>
             <td></td>
-            <td wicket:id="dates_label">
-                <span wicket:id="label"/>
+            <td wicket:id="date_labels">
+                <span wicket:id="label"></span>
             </td>
             <td></td>
         </tr>

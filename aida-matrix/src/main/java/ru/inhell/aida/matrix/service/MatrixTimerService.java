@@ -4,7 +4,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.inhell.aida.common.service.ISimpleProcessListener;
+import ru.inhell.aida.common.service.IProcessListener;
 import ru.inhell.aida.matrix.entity.Matrix;
 import ru.inhell.aida.matrix.entity.MatrixType;
 
@@ -31,11 +31,11 @@ public class MatrixTimerService {
     @Resource
     private TimerService timerService;
 
-    private Multimap<MatrixType, ISimpleProcessListener<List<Matrix>>> listenerMap = HashMultimap.create();
+    private Multimap<MatrixType, IProcessListener<List<Matrix>>> listenerMap = HashMultimap.create();
     private Map<MatrixType, Timer> timerMap = new HashMap<>();
     private Map<MatrixType, Date> dateMap = new HashMap<>();
 
-    public void addListener(MatrixType type, ISimpleProcessListener<List<Matrix>> listener){
+    public void addListener(MatrixType type, IProcessListener<List<Matrix>> listener){
         listenerMap.put(type, listener);
 
         if (!timerMap.containsKey(type)){
@@ -48,7 +48,7 @@ public class MatrixTimerService {
         }
     }
 
-    public void removeListener(MatrixType type, ISimpleProcessListener<List<Matrix>> listener){
+    public void removeListener(MatrixType type, IProcessListener<List<Matrix>> listener){
         listenerMap.remove(type, listener);
 
         if (!listenerMap.containsKey(type)){
@@ -64,14 +64,14 @@ public class MatrixTimerService {
     public void onTimer(Timer timer){
         MatrixType type = (MatrixType) timer.getInfo();
 
-        Collection<ISimpleProcessListener<List<Matrix>>> listeners = listenerMap.get(type);
+        Collection<IProcessListener<List<Matrix>>> listeners = listenerMap.get(type);
 
         if (listeners != null && !listeners.isEmpty()){
             List<Matrix> list = matrixBean.getMatrixStartList(type.getSymbol(), dateMap.get(type), type.getPeriodType());
 
             if (!list.isEmpty()){
                 //invoke listeners
-                for (ISimpleProcessListener<List<Matrix>> listener : listeners){
+                for (IProcessListener<List<Matrix>> listener : listeners){
                     listener.processed(list);
                 }
 
