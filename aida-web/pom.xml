@@ -24,10 +24,6 @@
             <groupId>ru.inhell.aida</groupId>
             <artifactId>aida-template</artifactId>
         </dependency>
-        <dependency>
-            <groupId>ru.inhell.aida</groupId>
-            <artifactId>aida-matrix</artifactId>
-        </dependency>
 
         <!--wicket-->
         <dependency>

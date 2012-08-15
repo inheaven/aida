@@ -22,7 +22,7 @@ import java.util.*;
 public class MatrixTimerService {
     private final static Logger log = LoggerFactory.getLogger(MatrixTimerService.class);
 
-    public static final long INTERVAL_DURATION = 500;
+    public static final long INTERVAL_DURATION = 1000;
 
     @EJB
     private MatrixBean matrixBean;

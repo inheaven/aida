@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.wicketstuff.javaee.injection.JavaEEComponentInjector;
 import ru.inhell.aida.common.osgi.OsgiClassResolver;
 import ru.inhell.aida.common.service.OsgiJndiNamingStrategy;
-import ru.inhell.aida.template.test.HelloMenu;
 
 /**
  * @author Anatoly A. Ivanov java@inhell.ru
@@ -27,9 +26,6 @@ public class AidaWebApplication extends WebApplication{
 
         getComponentInstantiationListeners().add(new JavaEEComponentInjector(this, new OsgiJndiNamingStrategy()));
         getApplicationSettings().setClassResolver(new OsgiClassResolver());
-
-        mountPage("/test", HelloMenu.class);
-        mountPage("/atm", ru.inhell.aida.matrix.test.HomePage.class);
 
         getDebugSettings().setDevelopmentUtilitiesEnabled(true);
 

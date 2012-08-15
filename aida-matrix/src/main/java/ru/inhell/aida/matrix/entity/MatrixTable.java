@@ -3,7 +3,6 @@ package ru.inhell.aida.matrix.entity;
 import com.google.common.collect.TreeBasedTable;
 import ru.inhell.aida.common.service.IProcessListener;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -12,7 +11,7 @@ import java.util.List;
  * @author Anatoly A. Ivanov java@inheaven.ru
  *         Date: 05.06.12 16:21
  */
-public class MatrixTable implements IProcessListener<List<Matrix>>, Serializable {
+public class MatrixTable implements IProcessListener<List<Matrix>> {
     private TreeBasedTable<Float, Long, MatrixCell> table = TreeBasedTable.create();
 
     private float minPrice;
