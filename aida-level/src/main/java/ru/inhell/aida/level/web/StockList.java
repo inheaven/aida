@@ -35,7 +35,7 @@ public class StockList extends WebPage{
                 new LoadableDetachableModel<List<? extends Level>>() {
                     @Override
                     protected List<? extends Level> load() {
-                        return stockBean.getLevels(stockModel.getObject());
+                        return stockBean.getLevels(stockModel.getObject().getId());
                     }
                 }) {
             @Override

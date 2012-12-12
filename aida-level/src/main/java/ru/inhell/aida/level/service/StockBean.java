@@ -21,9 +21,9 @@ public class StockBean {
         return em.createQuery("select s from Stock s", Stock.class).getResultList();
     }
 
-    public List<Level> getLevels(Stock stock){
-        return em.createQuery("select l from Level l where l.stock =:stock", Level.class)
-                .setParameter("stock", stock)
+    public List<Level> getLevels(Long stockId){
+        return em.createQuery("select l from Level l where l.stock.id =:stockId", Level.class)
+                .setParameter("stockId", stockId)
                 .getResultList();
     }
 }
