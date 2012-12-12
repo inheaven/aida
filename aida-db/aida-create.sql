@@ -26,7 +26,7 @@ create table  `all_trades` (
   `created` timestamp default current_timestamp,
   primary key (`id`),
   key `key_transaction` (`transaction_id`),
-  key `key_date_time` (`date`,`time`),
+  key `key_date` (`date`),
   key `key_symbol` (`symbol`)
 ) engine=innodb default charset=cp1251;
 
@@ -216,3 +216,5 @@ create table `matrix_1h`(
   key `key_date` (`date`),
   key `key_symbol` (`symbol`)
 ) engine=innodb charset=cp1251;
+
+
