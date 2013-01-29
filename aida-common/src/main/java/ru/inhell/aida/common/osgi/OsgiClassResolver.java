@@ -49,7 +49,12 @@ public class OsgiClassResolver implements IClassResolver {
 		return this.wrappedClassResolver.getResources(name);
 	}
 
-	/**
+    @Override
+    public ClassLoader getClassLoader() {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    /**
 	 * {@inheritDoc}
 	 *
 	 * @see org.apache.wicket.application.IClassResolver#resolveClass(java.lang.String)

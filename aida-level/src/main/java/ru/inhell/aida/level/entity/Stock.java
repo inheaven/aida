@@ -2,6 +2,7 @@ package ru.inhell.aida.level.entity;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -9,7 +10,7 @@ import java.util.List;
  *         Date: 12.12.12 16:15
  */
 @Entity
-@Table(name = "level_stock")
+@Table
 public class Stock implements Serializable{
     @Id
     private Long id;
@@ -21,15 +22,20 @@ public class Stock implements Serializable{
     private int lot;
 
     @Column
-    private boolean buy;
+    private boolean buy = true;
 
     @Column
-    private boolean active;
+    private boolean active = true;
 
-    @OneToMany
-    private List<Level> levels;
+    @OneToMany(mappedBy = "stock", cascade = CascadeType.ALL)
+    private List<Level> levels = new ArrayList<>();
 
     public Stock() {
+    }
+
+    public Stock(String symbol, int lot) {
+        this.symbol = symbol;
+        this.lot = lot;
     }
 
     public Long getId() {

@@ -6,7 +6,7 @@ import org.apache.wicket.model.util.ListModel;
 import org.wicketstuff.flot.*;
 import org.wicketstuff.flot.Color;
 import ru.inhell.aida.entity.AlphaTraderData;
-import ru.inhell.aida.entity.Order;
+import ru.inhell.aida.common.entity.Order;
 import ru.inhell.aida.inject.AidaInjector;
 import ru.inhell.aida.quik.OrderBean;
 import ru.inhell.aida.trader.AlphaTraderBean;

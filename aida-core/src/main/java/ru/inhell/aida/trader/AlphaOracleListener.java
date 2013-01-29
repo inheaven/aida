@@ -3,6 +3,7 @@ package ru.inhell.aida.trader;
 import com.sun.jna.Native;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.inhell.aida.common.entity.OrderType;
 import ru.inhell.aida.entity.*;
 import ru.inhell.aida.oracle.IAlphaOracleListener;
 import ru.inhell.aida.quik.QuikService;

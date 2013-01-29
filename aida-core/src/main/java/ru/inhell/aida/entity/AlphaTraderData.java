@@ -1,5 +1,7 @@
 package ru.inhell.aida.entity;
 
+import ru.inhell.aida.common.entity.OrderType;
+
 import java.util.Date;
 
 /**

@@ -43,7 +43,7 @@ public class StockList extends WebPage{
                 Level level = item.getModelObject();
 
                 item.add(new Label("index", item.getIndex() + ""));
-                item.add(new Label("lot", level.getLot() + ""));
+//                item.add(new Label("lot", level.getLot() + ""));
                 item.add(new Label("buyPrice", level.getBuyPrice() + ""));
                 item.add(new Label("sellPrice", level.getSellPrice() + ""));
             }

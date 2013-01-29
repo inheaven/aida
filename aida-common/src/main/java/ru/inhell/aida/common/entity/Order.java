@@ -1,4 +1,4 @@
-package ru.inhell.aida.entity;
+package ru.inhell.aida.common.entity;
 
 /**
  * @author Anatoly A. Ivanov java@inhell.ru

@@ -2,7 +2,7 @@ package ru.inhell.aida.quik;
 
 import com.google.inject.Inject;
 import org.apache.ibatis.session.SqlSessionManager;
-import ru.inhell.aida.entity.Order;
+import ru.inhell.aida.common.entity.Order;
 
 import java.util.HashMap;
 import java.util.List;

@@ -1,6 +1,7 @@
 package ru.inhell.aida.statistic;
 
 import com.google.inject.Inject;
+import ru.inhell.aida.common.entity.OrderType;
 import ru.inhell.aida.entity.*;
 import ru.inhell.aida.oracle.AlphaOracleBean;
 import ru.inhell.aida.trader.AlphaTraderBean;

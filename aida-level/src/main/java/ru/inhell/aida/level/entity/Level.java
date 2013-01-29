@@ -8,13 +8,19 @@ import java.io.Serializable;
  *         Date: 12.12.12 16:21
  */
 @Entity
-@Table(name = "level")
+@Table
 public class Level implements Serializable {
     @Id
     private Long id;
 
     @Column
-    private int lot;
+    private int index;
+
+    @Column
+    private int planLot;
+
+    @Column
+    private int activeLot;
 
     @Column
     private float buyPrice;
@@ -23,7 +29,22 @@ public class Level implements Serializable {
     private float sellPrice;
 
     @ManyToOne
+    @JoinColumn(name = "stock_id")
     private Stock stock;
+
+    public Level() {
+    }
+
+    public Level(int index) {
+        this.index = index;
+    }
+
+    public Level(int index, int planLot, float buyPrice, float sellPrice) {
+        this.index = index;
+        this.planLot = planLot;
+        this.buyPrice = buyPrice;
+        this.sellPrice = sellPrice;
+    }
 
     public Long getId() {
         return id;
@@ -33,12 +54,28 @@ public class Level implements Serializable {
         this.id = id;
     }
 
-    public int getLot() {
-        return lot;
+    public int getIndex() {
+        return index;
     }
 
-    public void setLot(int lot) {
-        this.lot = lot;
+    public void setIndex(int index) {
+        this.index = index;
+    }
+
+    public int getPlanLot() {
+        return planLot;
+    }
+
+    public void setPlanLot(int planLot) {
+        this.planLot = planLot;
+    }
+
+    public int getActiveLot() {
+        return activeLot;
+    }
+
+    public void setActiveLot(int activeLot) {
+        this.activeLot = activeLot;
     }
 
     public float getBuyPrice() {
