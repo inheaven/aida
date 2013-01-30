@@ -6,7 +6,7 @@ import org.ujmp.core.calculation.Calculation;
 import org.ujmp.core.enums.FileFormat;
 import org.ujmp.core.enums.ValueType;
 import org.ujmp.gui.plot.MatrixPlot;
-import ru.inhell.aida.mybatis.SqlSessionFactory;
+import ru.inhell.aida.common.mybatis.SqlSessionFactory;
 import ru.inhell.aida.ssa.VectorForecastSSA;
 import ru.inhell.stock.core.VSSA;
 

@@ -10,7 +10,7 @@ import org.ujmp.core.enums.FileFormat;
 import ru.inhell.aida.entity.Quote;
 import ru.inhell.aida.entity.VectorForecast;
 import ru.inhell.aida.entity.VectorForecastData;
-import ru.inhell.aida.mybatis.SqlSessionFactory;
+import ru.inhell.aida.common.mybatis.SqlSessionFactory;
 
 import java.io.IOException;
 import java.text.ParseException;

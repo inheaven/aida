@@ -2,7 +2,7 @@ package ru.inhell.aida.quotes;
 
 import au.com.bytecode.opencsv.CSVReader;
 import ru.inhell.aida.entity.Quote;
-import ru.inhell.aida.inject.AidaInjector;
+import ru.inhell.aida.common.inject.AidaInjector;
 
 import java.io.*;
 import java.text.ParseException;

@@ -1,4 +1,4 @@
-package ru.inhell.aida.mybatis;
+package ru.inhell.aida.common.mybatis;
 
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSessionManager;

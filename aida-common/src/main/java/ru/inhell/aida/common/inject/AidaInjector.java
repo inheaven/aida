@@ -1,4 +1,4 @@
-package ru.inhell.aida.inject;
+package ru.inhell.aida.common.inject;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;

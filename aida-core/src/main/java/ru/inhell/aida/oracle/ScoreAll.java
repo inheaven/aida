@@ -2,7 +2,7 @@ package ru.inhell.aida.oracle;
 
 import ru.inhell.aida.entity.AlphaOracle;
 import ru.inhell.aida.entity.Status;
-import ru.inhell.aida.inject.AidaInjector;
+import ru.inhell.aida.common.inject.AidaInjector;
 import ru.inhell.aida.ssa.RemoteVSSAException;
 
 import java.util.Calendar;

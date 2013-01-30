@@ -13,7 +13,7 @@ import org.jfree.data.xy.DefaultHighLowDataset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inhell.aida.entity.*;
-import ru.inhell.aida.inject.AidaInjector;
+import ru.inhell.aida.common.inject.AidaInjector;
 import ru.inhell.aida.oracle.AlphaOracleBean;
 import ru.inhell.aida.oracle.AlphaOracleService;
 import ru.inhell.aida.oracle.IAlphaOracleListener;

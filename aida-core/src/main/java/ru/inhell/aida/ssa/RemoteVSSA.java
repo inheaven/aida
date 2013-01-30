@@ -3,7 +3,7 @@ package ru.inhell.aida.ssa;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inhell.aida.acml.ACML;
-import ru.inhell.aida.inject.AidaInjector;
+import ru.inhell.aida.common.inject.AidaInjector;
 
 import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;

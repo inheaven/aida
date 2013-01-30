@@ -1,8 +1,8 @@
-package ru.inhell.aida.inject;
+package ru.inhell.aida.common.inject;
 
 import com.google.inject.AbstractModule;
 import org.apache.ibatis.session.SqlSessionManager;
-import ru.inhell.aida.mybatis.SqlSessionFactory;
+import ru.inhell.aida.common.mybatis.SqlSessionFactory;
 
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru

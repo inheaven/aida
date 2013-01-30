@@ -11,7 +11,7 @@ import ru.inhell.aida.acml.ACML;
 import ru.inhell.aida.cuda.CUDA_AIDA;
 import ru.inhell.aida.cuda.CUDA_AIDA_THREAD;
 import ru.inhell.aida.entity.*;
-import ru.inhell.aida.inject.AidaInjector;
+import ru.inhell.aida.common.inject.AidaInjector;
 import ru.inhell.aida.oracle.AlphaOracleBean;
 import ru.inhell.aida.oracle.AlphaOracleSchoolBean;
 import ru.inhell.aida.oracle.AlphaOracleService;

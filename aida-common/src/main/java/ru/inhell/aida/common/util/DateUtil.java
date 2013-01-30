@@ -150,4 +150,13 @@ public class DateUtil {
 
         return c.getTime();
     }
+
+    @SuppressWarnings("MagicConstant")
+    public static Date getDate(int year, int month, int day){
+        Calendar calendar = Calendar.getInstance();
+        calendar.clear();
+        calendar.set(year, month-1, day);
+
+        return calendar.getTime();
+    }
 }

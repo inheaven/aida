@@ -2,7 +2,7 @@ package ru.inhell.aida.test;
 
 import org.testng.annotations.Test;
 import ru.inhell.aida.entity.AlphaOracle;
-import ru.inhell.aida.inject.AidaInjector;
+import ru.inhell.aida.common.inject.AidaInjector;
 import ru.inhell.aida.oracle.AlphaOracleBean;
 import ru.inhell.aida.oracle.AlphaOracleService;
 

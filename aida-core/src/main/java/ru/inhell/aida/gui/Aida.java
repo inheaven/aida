@@ -1,6 +1,6 @@
 package ru.inhell.aida.gui;
 
-import ru.inhell.aida.inject.AidaInjector;
+import ru.inhell.aida.common.inject.AidaInjector;
 import ru.inhell.aida.quik.QuikException;
 import ru.inhell.aida.quik.QuikService;
 import ru.inhell.aida.trader.AlphaTraderService;

@@ -13,7 +13,7 @@ import org.wicketstuff.flot.Color;
 import org.wicketstuff.flot.DataSet;
 import org.wicketstuff.flot.LineGraphType;
 import ru.inhell.aida.entity.Quote;
-import ru.inhell.aida.inject.AidaInjector;
+import ru.inhell.aida.common.inject.AidaInjector;
 import ru.inhell.aida.quotes.QuotesBean;
 import ru.inhell.aida.ssa.VectorForecastSSA;
 import ru.inhell.aida.util.QuoteUtil;

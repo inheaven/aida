@@ -2,7 +2,7 @@ package ru.inhell.aida.gui;
 
 import ru.inhell.aida.entity.AlphaTrader;
 import ru.inhell.aida.entity.AlphaTraderData;
-import ru.inhell.aida.inject.AidaInjector;
+import ru.inhell.aida.common.inject.AidaInjector;
 import ru.inhell.aida.statistic.AlphaStatisticService;
 import ru.inhell.aida.trader.AlphaTraderBean;
 

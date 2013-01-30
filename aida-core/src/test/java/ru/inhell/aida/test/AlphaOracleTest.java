@@ -11,7 +11,7 @@ import ru.inhell.aida.entity.Interval;
 import ru.inhell.aida.entity.VectorForecast;
 import ru.inhell.aida.entity.VectorForecastData;
 import ru.inhell.aida.entity.VectorForecastFilter;
-import ru.inhell.aida.mybatis.SqlSessionFactory;
+import ru.inhell.aida.common.mybatis.SqlSessionFactory;
 import ru.inhell.aida.ssa.VectorForecastSSA;
 
 import java.io.IOException;
