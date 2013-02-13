@@ -31,7 +31,7 @@ public class QuotesService {
 
             while ((line = reader.readNext()) != null){
                 bars.add(new Bar(dateFormat.parse(line[2]+line[3]), parseFloat(line[4]), parseFloat(line[5]),
-                        parseFloat(line[6]), parseFloat(line[7]), parseFloat(line[8])));
+                        parseFloat(line[6]), parseFloat(line[7]), 0));
             }
         } catch (Exception e) {
             e.printStackTrace();

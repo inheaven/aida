@@ -19,28 +19,27 @@ public class StrategyTester {
     private static FileWriter fileWriter;
 
     public static void main(String... args) throws IOException {
-        fileWriter = new FileWriter("C:\\Anatoly\\Java\\aida\\out\\out.txt");
+        fileWriter = new FileWriter("E:\\AIDA\\import\\out.txt");
 
         new StrategyTester().testStrategies();
     }
 
     public void testStrategies() throws IOException {
         QuotesService quotesService = new QuotesService();
-        List<Bar> bars = quotesService.loadBars("C:\\Anatoly\\Java\\aida\\import\\SRH3_130109_130130.txt");
+        List<Bar> bars = quotesService.loadBars("E:\\AIDA\\import\\SPFB.SBRF-3.13_130108_130213.txt");
 
-        String h = "delta,shift,takeprofit,count,gross,net";
+        String h = "date, delta,shift,takeprofit,count,gross,net";
 
         System.out.println(h);
         fileWriter.append(h).append('\n');
 
-        for(int d = 5; d <= 10; d++){
-            for (int t = 10; t <= 10; t++){
+        for(int d = 2; d <= 2; d++){
+            for (int t = 12; t <= 12; t++){
                 for (int s = 0; s <= 0; s++){
                     testStrategy(bars, d, s, t, 1);
                 }
             }
         }
-
 
         fileWriter.flush();
     }
@@ -50,16 +49,27 @@ public class StrategyTester {
 
         Map<Integer, Level> levels = new HashMap<>();
 
-        Date startDate = DateUtil.getDate(2013, 1, 29);
+        Date startDate = new Date();
 
         List<Integer> buyIndex = new ArrayList<>();
 
         for (Bar bar : bars){
             buyIndex.clear();
 
-//            if (!DateUtil.isSameDay(startDate, bar.getDate())){
-//                continue;
-//            }
+            if (!DateUtil.isSameDay(startDate, bar.getDate())){
+                startDate = bar.getDate();
+
+                int gross = count*takeprofit*lot;
+                int net = gross - (int) (count*lot*1.4);
+
+                String s = DateUtil.getDayString(startDate) + "," + delta + "," + shift + "," + takeprofit + "," + count +"," +  gross+ "," + net;
+
+                fileWriter.append(s).append('\n');
+                System.out.println(s);
+
+
+                count = 0;
+            }
 
             //buy
             for (int i = (int) ((bar.getLow()-shift)/delta) + 1; i <= (bar.getHigh()-shift)/delta; ++i){
@@ -90,13 +100,5 @@ public class StrategyTester {
                 }
             }
         }
-
-        int gross = count*takeprofit*lot;
-        int net = gross - (int) (count*lot*1.4);
-
-        String s = delta + "," + shift + "," + takeprofit + "," + count +"," +  gross+ "," + net;
-
-        fileWriter.append(s).append('\n');
-        System.out.println(s);
     }
 }

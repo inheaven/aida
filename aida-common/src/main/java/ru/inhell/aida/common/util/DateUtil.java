@@ -13,6 +13,7 @@ import static java.util.Calendar.MINUTE;
  */
 public class DateUtil {
     private final static ThreadLocal<SimpleDateFormat> SIMPLE_DATE_FORMAT_THREAD_LOCAL = new ThreadLocal<>();
+    private final static ThreadLocal<SimpleDateFormat> SIMPLE_DAY_FORMAT_THREAD_LOCAL = new ThreadLocal<>();
 
     public static SimpleDateFormat simpleDateFormat(){
         SimpleDateFormat simpleDateFormat = SIMPLE_DATE_FORMAT_THREAD_LOCAL.get();
@@ -25,8 +26,23 @@ public class DateUtil {
         return simpleDateFormat;
     }
 
+    public static SimpleDateFormat simpleDayFormat(){
+        SimpleDateFormat simpleDateFormat = SIMPLE_DATE_FORMAT_THREAD_LOCAL.get();
+
+        if (simpleDateFormat == null){
+            simpleDateFormat = new SimpleDateFormat("dd.MM.yy");
+            SIMPLE_DATE_FORMAT_THREAD_LOCAL.set(simpleDateFormat);
+        }
+
+        return simpleDateFormat;
+    }
+
     public static String getString(Date date){
         return simpleDateFormat().format(date);
+    }
+
+    public static String getDayString(Date date){
+        return simpleDayFormat().format(date);
     }
 
     public static Date now(){
