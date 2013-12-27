@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+import static java.util.Calendar.DAY_OF_YEAR;
 import static java.util.Calendar.HOUR_OF_DAY;
 import static java.util.Calendar.MINUTE;
 
@@ -64,6 +65,21 @@ public class DateUtil {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
         calendar.add(MINUTE, index);
+
+        return calendar.getTime();
+    }
+
+    public static Calendar getCalendar(Date date){
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+
+        return calendar;
+    }
+
+    public static Date addDay(Date date, int shift){
+        Calendar calendar = getCalendar(date);
+
+        calendar.add(DAY_OF_YEAR, -1);
 
         return calendar.getTime();
     }

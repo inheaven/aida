@@ -6,10 +6,14 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+import org.random.rjgodoy.trng.MH_SecureRandom;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SecureRandom;
 import java.util.Random;
 
 /**
@@ -18,12 +22,24 @@ import java.util.Random;
  */
 public class Chaos {
     private static final Random PSEUDO_RANDOM = new Random();
+    private static SecureRandom srandom;
+    private static SecureRandom random = new SecureRandom();
+
+    static {
+        try {
+            System.setProperty("org.random.rjgodoy.trng.user", "heaven@inheaven.ru");
+            srandom = new MH_SecureRandom();
+        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     private static final int COUNT = 10000;
 
     public static void main(String... args){
         JFrame frame = new JFrame("Jaos");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         JPanel panel = new JPanel(new BorderLayout());
         frame.add(panel);
@@ -49,9 +65,12 @@ public class Chaos {
                     s.setNotify(false);
 
                     int price = 0;
+                    double p = 0;
 
                     for (int i = 0; i < COUNT; ++i) {
-                        price += nextBoolean() ? 1 : -1;
+                        p = random.nextDouble();
+
+                        price += (p > 0.5d ? p - 0.5 : -p)*100;
 
                         s.add(i, price);
                     }
@@ -68,6 +87,6 @@ public class Chaos {
     }
 
     private static boolean nextBoolean(){
-        return PSEUDO_RANDOM.nextBoolean();
+        return random.nextBoolean();
     }
 }
