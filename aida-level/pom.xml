@@ -11,7 +11,7 @@
     <artifactId>aida-level</artifactId>
     <packaging>war</packaging>
 
-    <name>AIDA Level</name>
+    <name>aida-level</name>
 
     <dependencies>
         <dependency>

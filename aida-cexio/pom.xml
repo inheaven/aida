@@ -7,26 +7,16 @@
         <version>1.0</version>
     </parent>
 
-    <groupId>ru.inhell.aida</groupId>
-    <artifactId>aida-gauge</artifactId>
+    <artifactId>aida-cexio</artifactId>
     <version>1.0</version>
+    <packaging>war</packaging>
 
-    <name>aida-gauge</name>
+    <name>aida-cexio</name>
 
     <dependencies>
         <dependency>
-            <groupId>ru.inhell.aida</groupId>
-            <artifactId>aida-core</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.apache.wicket</groupId>
             <artifactId>wicket-core</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.wicketstuff</groupId>
-            <artifactId>wicketstuff-flot</artifactId>
         </dependency>
 
         <dependency>
@@ -35,8 +25,17 @@
         </dependency>
 
         <dependency>
-            <groupId>com.google.inject</groupId>
-            <artifactId>guice</artifactId>
+            <groupId>org.hibernate.javax.persistence</groupId>
+            <artifactId>hibernate-jpa-2.1-api</artifactId>
         </dependency>
-    </dependencies>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-entitymanager</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>de.agilecoders.wicket</groupId>
+            <artifactId>wicket-bootstrap-core</artifactId>
+        </dependency>
+    </dependencies>      
 </project>

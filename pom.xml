@@ -92,6 +92,7 @@
         <module>aida-common</module>
         <module>aida-mybatis</module>
         <module>aida-level</module>
+        <module>aida-cexio</module>
     </modules>
 
     <dependencyManagement>
@@ -132,61 +133,71 @@
                 <artifactId>aida-mybatis</artifactId>
                 <version>${project.version}</version>
             </dependency>
+             <dependency>
+                <groupId>ru.inhell.aida</groupId>
+                <artifactId>aida-cexio</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <!--WICKET-->
             <dependency>
                 <groupId>org.apache.wicket</groupId>
                 <artifactId>wicket-core</artifactId>
-                <version>6.4.0</version>
+                <version>6.12.0</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.wicket</groupId>
                 <artifactId>wicket-datetime</artifactId>
-                <version>6.4.0</version>
+                <version>6.12.0</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.wicket</groupId>
                 <artifactId>wicket-atmosphere</artifactId>
-                <version>0.2</version>
+                <version>0.15</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.wicket</groupId>
                 <artifactId>wicket-ioc</artifactId>
-                <version>6.4.0</version>
+                <version>6.12.0</version>
             </dependency>
 
             <!--ATMOSPHERE-->
             <dependency>
                 <groupId>org.atmosphere</groupId>
                 <artifactId>atmosphere-runtime</artifactId>
-                <version>1.1.0.beta2</version>
+                <version>2.1.0-RC2</version>
             </dependency>
             <dependency>
                 <groupId>org.atmosphere</groupId>
                 <artifactId>atmosphere-compat-jbossweb</artifactId>
-                <version>1.1.0.beta2</version>
+                <version>2.1.0-RC2</version>
             </dependency>
             <dependency>
                 <groupId>org.atmosphere</groupId>
                 <artifactId>atmosphere-compat-tomcat</artifactId>
-                <version>1.1.0.beta2</version>
+                <version>2.1.0-RC2</version>
             </dependency>
             <dependency>
                 <groupId>org.atmosphere</groupId>
                 <artifactId>atmosphere-compat-tomcat7</artifactId>
-                <version>1.1.0.beta2</version>
+                <version>2.1.0-RC2</version>
             </dependency>
 
             <!--WICKET STUFF-->
             <dependency>
                 <groupId>org.wicketstuff</groupId>
-                <artifactId>flot</artifactId>
-                <version>1.5-RC5.1</version>
+                <artifactId>wicketstuff-flot</artifactId>
+                <version>6.12.0</version>
             </dependency>
             <dependency>
                 <groupId>org.wicketstuff</groupId>
                 <artifactId>wicketstuff-javaee-inject</artifactId>
-                <version>6.0.0-beta1.1</version>
+                <version>6.12.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wicketstuff</groupId>
+                <artifactId>wicketstuff-editable-grid</artifactId>
+                <version>6.12.0</version>
             </dependency>
 
             <!--WIQUERY-->
@@ -201,6 +212,13 @@
                 <version>6.0.0</version>
             </dependency>
 
+            <!--WICKET BOOTSTRAP-->
+            <dependency>
+                <groupId>de.agilecoders.wicket</groupId>
+                <artifactId>wicket-bootstrap-core</artifactId>
+                <version>0.8.4</version>
+            </dependency>
+
             <!--MYBATIS-->
             <dependency>
                 <groupId>org.mybatis</groupId>
@@ -211,8 +229,13 @@
             <!--Hibernate-->
             <dependency>
                 <groupId>org.hibernate</groupId>
-                <artifactId>hibernate-core</artifactId>
-                <version>4.1.7.Final</version>
+                <artifactId>hibernate-entitymanager</artifactId>
+                <version>4.3.0.Final</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate.javax.persistence</groupId>
+                <artifactId>hibernate-jpa-2.1-api</artifactId>
+                <version>1.0.0.Final</version>
             </dependency>
 
             <!--MySQL-->
