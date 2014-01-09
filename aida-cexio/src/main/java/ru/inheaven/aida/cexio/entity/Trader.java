@@ -35,6 +35,7 @@ public class Trader extends AbstractEntity{
     @Temporal(TemporalType.TIMESTAMP)
     private Date date;
 
+    @PrePersist
     @PreUpdate
     protected void preUpdate(){
         date = new Date();

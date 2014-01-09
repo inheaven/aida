@@ -1,11 +1,9 @@
 package ru.inheaven.aida.cexio.service;
 
+import ru.inheaven.aida.cexio.entity.JsonApi;
 import ru.inheaven.aida.cexio.entity.Ticker;
 
 import javax.ejb.Singleton;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.WebTarget;
 
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
@@ -13,12 +11,24 @@ import javax.ws.rs.client.WebTarget;
  */
 @Singleton
 public class TraderService {
-    public void getTicker(){
-        Client client = ClientBuilder.newClient();
-        WebTarget target = client.target("https://cex.io").path("api/ticker/GHS/BTC");
+    private JsonApi<Ticker> TICKER_GHS_BTC = new JsonApi<>("https://cex.io/api/ticker/GHS/BTC", Ticker.class);
+    private JsonApi<Ticker> TICKER_LTC_BTC = new JsonApi<>("https://cex.io/api/ticker/LTC/BTC", Ticker.class);
+    private JsonApi<Ticker> TICKER_NMC_BTC = new JsonApi<>("https://cex.io/api/ticker/NMC/BTC", Ticker.class);
+    private JsonApi<Ticker> TICKER_GHS_NMC = new JsonApi<>("https://cex.io/api/ticker/GHS/NMC", Ticker.class);
 
-        Ticker ticker = target.request().get(Ticker.class);
+    public Ticker getTicker(String name){
+        switch (name){
+            case "GHS/BTC":
+                return TICKER_GHS_BTC.get();
+            case "LTC/BTC":
+                return TICKER_LTC_BTC.get();
+            case "NMC/BTC":
+                return TICKER_NMC_BTC.get();
+            case "GHS/NMC":
+                return TICKER_GHS_NMC.get();
 
-        System.out.println(ticker);
+            default:
+                return null;
+        }
     }
 }
