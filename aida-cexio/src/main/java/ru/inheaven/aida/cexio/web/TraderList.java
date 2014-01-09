@@ -1,5 +1,7 @@
 package ru.inheaven.aida.cexio.web;
 
+import de.agilecoders.wicket.core.markup.html.bootstrap.button.BootstrapLink;
+import de.agilecoders.wicket.core.markup.html.bootstrap.button.Buttons;
 import de.agilecoders.wicket.core.markup.html.bootstrap.image.IconType;
 import de.agilecoders.wicket.core.markup.html.bootstrap.navbar.NavbarAjaxLink;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -12,6 +14,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import ru.inheaven.aida.cexio.entity.Trader;
 import ru.inheaven.aida.cexio.service.TraderBean;
+import ru.inheaven.aida.cexio.service.TraderService;
 
 import javax.ejb.EJB;
 import java.util.ArrayList;
@@ -24,6 +27,9 @@ import java.util.List;
 public class TraderList extends AbstractPage{
     @EJB
     private TraderBean traderBean;
+
+    @EJB
+    private TraderService traderService;
 
     public TraderList() {
         List<IColumn<Trader, String>> list = new ArrayList<>();
@@ -57,5 +63,12 @@ public class TraderList extends AbstractPage{
         table.addTopToolbar(new HeadersToolbar<>(table, null));
 
         add(table);
+
+        add(new BootstrapLink<String>("test", Buttons.Type.Link) {
+            @Override
+            public void onClick() {
+                traderService.getTicker();
+            }
+        }.setIconType(IconType.warningsign).setInverted(false).setLabel(Model.of("test")));
     }
 }
