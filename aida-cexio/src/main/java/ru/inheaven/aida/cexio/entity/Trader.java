@@ -1,7 +1,6 @@
 package ru.inheaven.aida.cexio.entity;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
+import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -12,7 +11,7 @@ import java.util.Date;
 @Entity
 public class Trader extends AbstractEntity{
     @Column(nullable = false)
-    private String marker;
+    private String market;
 
     @Column(nullable = false)
     private String name;
@@ -33,14 +32,20 @@ public class Trader extends AbstractEntity{
     private BigDecimal spread;
 
     @Column(nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
     private Date date;
 
-    public String getMarker() {
-        return marker;
+    @PreUpdate
+    protected void preUpdate(){
+        date = new Date();
     }
 
-    public void setMarker(String marker) {
-        this.marker = marker;
+    public String getMarket() {
+        return market;
+    }
+
+    public void setMarket(String marker) {
+        this.market = marker;
     }
 
     public String getName() {

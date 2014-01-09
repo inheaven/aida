@@ -5,8 +5,8 @@ import de.agilecoders.wicket.core.settings.BootstrapSettings;
 import org.apache.wicket.Application;
 import org.apache.wicket.Page;
 import org.apache.wicket.protocol.http.WebApplication;
-
-import javax.persistence.Persistence;
+import org.wicketstuff.javaee.injection.JavaEEComponentInjector;
+import org.wicketstuff.javaee.naming.IJndiNamingStrategy;
 
 /**
  * @author Anatoly Ivanov java@inheaven.ru
@@ -27,7 +27,11 @@ public class CexioWebApplication extends WebApplication {
         getMarkupSettings().setCompressWhitespace(true);
         getMarkupSettings().setDefaultMarkupEncoding("UTF-8");
 
-
-        Persistence.createEntityManagerFactory("AIDA");
+        getComponentInstantiationListeners().add(new JavaEEComponentInjector(this, new IJndiNamingStrategy() {
+            @Override
+            public String calculateName(String ejbName, Class<?> ejbType) {
+                return "java:module/" + (ejbName == null ? ejbType.getSimpleName() : ejbName);
+            }
+        }));
     }
 }

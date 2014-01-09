@@ -204,12 +204,12 @@
             <dependency>
                 <groupId>org.odlabs.wiquery</groupId>
                 <artifactId>wiquery-core</artifactId>
-                <version>6.0.0</version>
+                <version>6.9.1</version>
             </dependency>
             <dependency>
                 <groupId>org.odlabs.wiquery</groupId>
                 <artifactId>wiquery-jquery-ui</artifactId>
-                <version>6.0.0</version>
+                <version>6.9.1</version>
             </dependency>
 
             <!--WICKET BOOTSTRAP-->
@@ -236,6 +236,13 @@
                 <groupId>org.hibernate.javax.persistence</groupId>
                 <artifactId>hibernate-jpa-2.1-api</artifactId>
                 <version>1.0.0.Final</version>
+            </dependency>
+
+            <!--Eclipce Link-->
+            <dependency>
+                <groupId>org.eclipse.persistence</groupId>
+                <artifactId>eclipselink</artifactId>
+                <version>2.5.2-M1</version>
             </dependency>
 
             <!--MySQL-->
@@ -344,7 +351,7 @@
             <dependency>
                 <groupId>javax</groupId>
                 <artifactId>javaee-api</artifactId>
-                <version>6.0</version>
+                <version>7.0</version>
             </dependency>
 
 
