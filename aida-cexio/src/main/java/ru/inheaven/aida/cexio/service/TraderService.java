@@ -11,10 +11,14 @@ import javax.ejb.Singleton;
  */
 @Singleton
 public class TraderService {
-    private JsonApi<Ticker> TICKER_GHS_BTC = new JsonApi<>("https://cex.io/api/ticker/GHS/BTC", Ticker.class);
-    private JsonApi<Ticker> TICKER_LTC_BTC = new JsonApi<>("https://cex.io/api/ticker/LTC/BTC", Ticker.class);
-    private JsonApi<Ticker> TICKER_NMC_BTC = new JsonApi<>("https://cex.io/api/ticker/NMC/BTC", Ticker.class);
-    private JsonApi<Ticker> TICKER_GHS_NMC = new JsonApi<>("https://cex.io/api/ticker/GHS/NMC", Ticker.class);
+    private final static String API_SECRET = "2YJZlmVNrVKK9xBR6dkFplOuIfo";
+    private final static String API_KEY = "jLXE67YpeJAAvOMdXcAGaMp2iys";
+    private final static String USERNAME = "inheaven";
+
+    private JsonApi<Ticker> TICKER_GHS_BTC = new JsonApi<>("http://inheaven.ru/cex.io.php?GHS_BTC", Ticker.class);
+    private JsonApi<Ticker> TICKER_LTC_BTC = new JsonApi<>("http://inheaven.ru/cex.io.php?LTC_BTC", Ticker.class);
+    private JsonApi<Ticker> TICKER_NMC_BTC = new JsonApi<>("http://inheaven.ru/cex.io.php?NMC_BTC", Ticker.class);
+    private JsonApi<Ticker> TICKER_GHS_NMC = new JsonApi<>("http://inheaven.ru/cex.io.php?GHS_NMC", Ticker.class);
 
     public Ticker getTicker(String name){
         switch (name){
@@ -31,4 +35,6 @@ public class TraderService {
                 return null;
         }
     }
+
+
 }

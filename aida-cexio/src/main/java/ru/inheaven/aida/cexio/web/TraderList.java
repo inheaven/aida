@@ -21,6 +21,7 @@ import org.apache.wicket.util.time.Duration;
 import ru.inheaven.aida.cexio.entity.Trader;
 import ru.inheaven.aida.cexio.service.TraderBean;
 import ru.inheaven.aida.cexio.service.TraderService;
+import ru.inheaven.aida.cexio.util.SignatureUtil;
 
 import javax.ejb.EJB;
 import java.util.ArrayList;
@@ -68,7 +69,7 @@ public class TraderList extends AbstractPage{
                 Label label = new Label(componentId, new LoadableDetachableModel<String>() {
                     @Override
                     protected String load() {
-                        return traderService.getTicker(rowModel.getObject().getName()).getLast().toPlainString();
+                        return traderService.getTicker(rowModel.getObject().getName()).getLast().setScale(8).toPlainString();
                     }
                 });
                 label.add(new AjaxSelfUpdatingTimerBehavior(Duration.seconds(1)));
@@ -103,7 +104,7 @@ public class TraderList extends AbstractPage{
         add(new BootstrapLink<String>("test", Buttons.Type.Link) {
             @Override
             public void onClick() {
-                traderService.getTicker("");
+                System.out.println(SignatureUtil.getSignature(SignatureUtil.getNonce()));
             }
         }.setIconType(IconType.warningsign).setInverted(false).setLabel(Model.of("test")));
     }
