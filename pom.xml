@@ -11,6 +11,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.test.skip>true</maven.test.skip>
+        <wicket.version>6.14.0</wicket.version>
     </properties>
 
     <repositories>
@@ -156,94 +157,80 @@
             <dependency>
                 <groupId>org.apache.wicket</groupId>
                 <artifactId>wicket-core</artifactId>
-                <version>6.12.0</version>
+                <version>${wicket.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.wicket</groupId>
                 <artifactId>wicket-datetime</artifactId>
-                <version>6.12.0</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.wicket</groupId>
-                <artifactId>wicket-atmosphere</artifactId>
-                <version>0.15</version>
+                <version>${wicket.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.wicket</groupId>
                 <artifactId>wicket-ioc</artifactId>
-                <version>6.12.0</version>
+                <version>${wicket.version}</version>
             </dependency>
+
 
             <!--ATMOSPHERE-->
             <dependency>
                 <groupId>org.atmosphere</groupId>
                 <artifactId>atmosphere-runtime</artifactId>
-                <version>2.1.0-RC2</version>
+                <version>2.1.1</version>
             </dependency>
             <dependency>
-                <groupId>org.atmosphere</groupId>
-                <artifactId>atmosphere-compat-jbossweb</artifactId>
-                <version>2.1.0-RC2</version>
-            </dependency>
-            <dependency>
-                <groupId>org.atmosphere</groupId>
-                <artifactId>atmosphere-compat-tomcat</artifactId>
-                <version>2.1.0-RC2</version>
-            </dependency>
-            <dependency>
-                <groupId>org.atmosphere</groupId>
-                <artifactId>atmosphere-compat-tomcat7</artifactId>
-                <version>2.1.0-RC2</version>
+                <groupId>org.apache.wicket</groupId>
+                <artifactId>wicket-atmosphere</artifactId>
+                <version>0.16</version>
             </dependency>
 
             <!--WICKET STUFF-->
             <dependency>
                 <groupId>org.wicketstuff</groupId>
                 <artifactId>wicketstuff-flot</artifactId>
-                <version>6.12.0</version>
+                <version>${wicket.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.wicketstuff</groupId>
                 <artifactId>wicketstuff-javaee-inject</artifactId>
-                <version>6.12.0</version>
+                <version>${wicket.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.wicketstuff</groupId>
                 <artifactId>wicketstuff-editable-grid</artifactId>
-                <version>6.12.0</version>
+                <version>${wicket.version}</version>
             </dependency>
 
             <!--WIQUERY-->
             <dependency>
                 <groupId>org.odlabs.wiquery</groupId>
                 <artifactId>wiquery-core</artifactId>
-                <version>6.9.1</version>
+                <version>6.13.0</version>
             </dependency>
             <dependency>
                 <groupId>org.odlabs.wiquery</groupId>
                 <artifactId>wiquery-jquery-ui</artifactId>
-                <version>6.9.1</version>
+                <version>6.13.0</version>
             </dependency>
 
             <!--WICKET BOOTSTRAP-->
             <dependency>
                 <groupId>de.agilecoders.wicket</groupId>
                 <artifactId>wicket-bootstrap-core</artifactId>
-                <version>0.8.4</version>
+                <version>0.9.2</version>
             </dependency>
 
             <!--MYBATIS-->
             <dependency>
                 <groupId>org.mybatis</groupId>
                 <artifactId>mybatis</artifactId>
-                <version>3.1.1</version>
+                <version>3.2.5</version>
             </dependency>
 
             <!--Hibernate-->
             <dependency>
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-entitymanager</artifactId>
-                <version>4.3.0.Final</version>
+                <version>4.3.4.Final</version>
             </dependency>
             <dependency>
                 <groupId>org.hibernate.javax.persistence</groupId>
@@ -255,7 +242,7 @@
             <dependency>
                 <groupId>org.eclipse.persistence</groupId>
                 <artifactId>eclipselink</artifactId>
-                <version>2.5.2-M1</version>
+                <version>2.5.1</version>
             </dependency>
 
             <!--MySQL-->

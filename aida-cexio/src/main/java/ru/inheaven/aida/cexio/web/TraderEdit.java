@@ -3,7 +3,7 @@ package ru.inheaven.aida.cexio.web;
 import de.agilecoders.wicket.core.markup.html.bootstrap.button.BootstrapButton;
 import de.agilecoders.wicket.core.markup.html.bootstrap.button.Buttons;
 import de.agilecoders.wicket.core.markup.html.bootstrap.form.BootstrapForm;
-import de.agilecoders.wicket.core.markup.html.bootstrap.form.ControlGroup;
+import de.agilecoders.wicket.core.markup.html.bootstrap.form.FormGroup;
 import de.agilecoders.wicket.core.markup.html.bootstrap.form.FormType;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.CompoundPropertyModel;
@@ -33,13 +33,13 @@ public class TraderEdit extends AbstractPage{
         form.type(FormType.Horizontal);
         add(form);
 
-        form.add(new ControlGroup("market", of("Рынок")).add(new TextField<>("market")));
-        form.add(new ControlGroup("name", of("Товар")).add(new TextField("name")));
-        form.add(new ControlGroup("high", of("Верх")).add(new TextField<>("high")));
-        form.add(new ControlGroup("low", of("Низ")).add(new TextField<>("low")));
-        form.add(new ControlGroup("open", of("Цена")).add(new TextField<>("open")));
-        form.add(new ControlGroup("volume", of("Объем")).add(new TextField<>("volume")));
-        form.add(new ControlGroup("spread", of("Спред")).add(new TextField<>("spread")));
+        form.add(new FormGroup("market", of("Рынок")).add(new TextField<>("market")));
+        form.add(new FormGroup("name", of("Товар")).add(new TextField("name")));
+        form.add(new FormGroup("high", of("Верх")).add(new TextField<>("high")));
+        form.add(new FormGroup("low", of("Низ")).add(new TextField<>("low")));
+        form.add(new FormGroup("open", of("Цена")).add(new TextField<>("open")));
+        form.add(new FormGroup("volume", of("Объем")).add(new TextField<>("volume")));
+        form.add(new FormGroup("spread", of("Спред")).add(new TextField<>("spread")));
 
         form.add(new BootstrapButton("save", of("Сохранить"), Buttons.Type.Primary){
             @Override

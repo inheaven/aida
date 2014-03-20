@@ -2,7 +2,7 @@ package ru.inheaven.aida.cexio.web;
 
 import de.agilecoders.wicket.core.markup.html.bootstrap.button.BootstrapLink;
 import de.agilecoders.wicket.core.markup.html.bootstrap.button.Buttons;
-import de.agilecoders.wicket.core.markup.html.bootstrap.image.IconType;
+import de.agilecoders.wicket.core.markup.html.bootstrap.image.GlyphIconType;
 import de.agilecoders.wicket.core.markup.html.bootstrap.navbar.NavbarAjaxLink;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
@@ -21,7 +21,6 @@ import org.apache.wicket.util.time.Duration;
 import ru.inheaven.aida.cexio.entity.Trader;
 import ru.inheaven.aida.cexio.service.TraderBean;
 import ru.inheaven.aida.cexio.service.TraderService;
-import ru.inheaven.aida.cexio.util.SignatureUtil;
 
 import javax.ejb.EJB;
 import java.util.ArrayList;
@@ -45,7 +44,7 @@ public class TraderList extends AbstractPage{
             public void onClick() {
                 setResponsePage(TraderEdit.class);
             }
-        }.setIconType(IconType.plus).setInverted(false).setLabel(Model.of("Добавить")));
+        }.setIconType(GlyphIconType.plus).setLabel(Model.of("Добавить")));
 
         List<IColumn<Trader, String>> list = new ArrayList<>();
 
@@ -85,7 +84,7 @@ public class TraderList extends AbstractPage{
                     public void onClick(AjaxRequestTarget target) {
                         setResponsePage(TraderEdit.class, new PageParameters().add("id", rowModel.getObject().getId()));
                     }
-                }.setIconType(IconType.edit));
+                }.setIconType(GlyphIconType.edit));
             }
         });
 
@@ -104,8 +103,8 @@ public class TraderList extends AbstractPage{
         add(new BootstrapLink<String>("test", Buttons.Type.Link) {
             @Override
             public void onClick() {
-                System.out.println(SignatureUtil.getSignature(SignatureUtil.getNonce()));
+                System.out.println("Hello World!");
             }
-        }.setIconType(IconType.warningsign).setInverted(false).setLabel(Model.of("test")));
+        }.setIconType(GlyphIconType.warningsign).setLabel(Model.of("test")));
     }
 }

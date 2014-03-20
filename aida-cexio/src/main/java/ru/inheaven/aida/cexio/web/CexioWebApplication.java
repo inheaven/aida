@@ -4,6 +4,7 @@ import de.agilecoders.wicket.core.Bootstrap;
 import de.agilecoders.wicket.core.settings.BootstrapSettings;
 import org.apache.wicket.Application;
 import org.apache.wicket.Page;
+import org.apache.wicket.atmosphere.EventBus;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.wicketstuff.javaee.injection.JavaEEComponentInjector;
 import org.wicketstuff.javaee.naming.IJndiNamingStrategy;
@@ -21,6 +22,8 @@ public class CexioWebApplication extends WebApplication {
     @Override
     protected void init() {
         super.init();
+
+        new EventBus(this);
 
         Bootstrap.install(Application.get(), new BootstrapSettings());
 
