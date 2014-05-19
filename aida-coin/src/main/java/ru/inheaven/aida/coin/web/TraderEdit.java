@@ -1,4 +1,4 @@
-package ru.inheaven.aida.cexio.web;
+package ru.inheaven.aida.coin.web;
 
 import de.agilecoders.wicket.core.markup.html.bootstrap.button.BootstrapButton;
 import de.agilecoders.wicket.core.markup.html.bootstrap.button.Buttons;
@@ -9,8 +9,8 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import ru.inheaven.aida.cexio.entity.Trader;
-import ru.inheaven.aida.cexio.service.TraderBean;
+import ru.inheaven.aida.coin.entity.Trader;
+import ru.inheaven.aida.coin.service.TraderBean;
 
 import javax.ejb.EJB;
 

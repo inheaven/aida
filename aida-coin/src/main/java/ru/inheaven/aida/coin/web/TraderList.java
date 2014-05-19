@@ -1,4 +1,4 @@
-package ru.inheaven.aida.cexio.web;
+package ru.inheaven.aida.coin.web;
 
 import de.agilecoders.wicket.core.markup.html.bootstrap.button.BootstrapLink;
 import de.agilecoders.wicket.core.markup.html.bootstrap.button.Buttons;
@@ -18,9 +18,9 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.time.Duration;
-import ru.inheaven.aida.cexio.entity.Trader;
-import ru.inheaven.aida.cexio.service.TraderBean;
-import ru.inheaven.aida.cexio.service.TraderService;
+import ru.inheaven.aida.coin.entity.Trader;
+import ru.inheaven.aida.coin.service.TraderBean;
+import ru.inheaven.aida.coin.service.TraderService;
 
 import javax.ejb.EJB;
 import java.util.ArrayList;

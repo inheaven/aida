@@ -1,6 +1,6 @@
-package ru.inheaven.aida.cexio.service;
+package ru.inheaven.aida.coin.service;
 
-import ru.inheaven.aida.cexio.entity.Trader;
+import ru.inheaven.aida.coin.entity.Trader;
 
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;

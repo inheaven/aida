@@ -1,4 +1,4 @@
-package ru.inheaven.aida.cexio.web;
+package ru.inheaven.aida.coin.web;
 
 import de.agilecoders.wicket.core.Bootstrap;
 import de.agilecoders.wicket.core.settings.BootstrapSettings;

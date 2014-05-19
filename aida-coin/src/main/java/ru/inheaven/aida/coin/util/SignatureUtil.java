@@ -1,4 +1,4 @@
-package ru.inheaven.aida.cexio.util;
+package ru.inheaven.aida.coin.util;
 
 import org.apache.commons.codec.binary.Base64;
 

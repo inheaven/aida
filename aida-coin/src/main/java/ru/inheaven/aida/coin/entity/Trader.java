@@ -1,4 +1,4 @@
-package ru.inheaven.aida.cexio.entity;
+package ru.inheaven.aida.coin.entity;
 
 import javax.persistence.*;
 import java.math.BigDecimal;

@@ -7,11 +7,11 @@
         <version>1.0</version>
     </parent>
 
-    <artifactId>aida-cexio</artifactId>
+    <artifactId>aida-coin</artifactId>
     <version>1.0</version>
     <packaging>war</packaging>
 
-    <name>aida-cexio</name>
+    <name>aida-coin</name>
 
     <dependencies>
         <dependency>

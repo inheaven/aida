@@ -1,4 +1,4 @@
-package ru.inheaven.aida.cexio.web;
+package ru.inheaven.aida.coin.web;
 
 import de.agilecoders.wicket.core.markup.html.bootstrap.html.HtmlTag;
 import de.agilecoders.wicket.core.markup.html.bootstrap.navbar.Navbar;

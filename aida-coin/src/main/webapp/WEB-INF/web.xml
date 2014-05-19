@@ -12,7 +12,7 @@
 
         <init-param>
             <param-name>applicationClassName</param-name>
-            <param-value>ru.inheaven.aida.cexio.web.CexioWebApplication</param-value>
+            <param-value>ru.inheaven.aida.coin.web.CexioWebApplication</param-value>
         </init-param>
 
         <init-param>

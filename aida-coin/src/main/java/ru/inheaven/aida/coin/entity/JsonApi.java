@@ -1,4 +1,4 @@
-package ru.inheaven.aida.cexio.entity;
+package ru.inheaven.aida.coin.entity;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.SyncInvoker;

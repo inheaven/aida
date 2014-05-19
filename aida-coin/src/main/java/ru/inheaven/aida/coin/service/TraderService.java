@@ -1,7 +1,7 @@
-package ru.inheaven.aida.cexio.service;
+package ru.inheaven.aida.coin.service;
 
-import ru.inheaven.aida.cexio.entity.JsonApi;
-import ru.inheaven.aida.cexio.entity.Ticker;
+import ru.inheaven.aida.coin.entity.JsonApi;
+import ru.inheaven.aida.coin.entity.Ticker;
 
 import javax.ejb.Singleton;
 
