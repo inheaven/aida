@@ -93,7 +93,7 @@
         <module>aida-common</module>
         <module>aida-mybatis</module>
         <module>aida-level</module>
-        <module>aida-cexio</module>
+        <module>aida-coin</module>
     </modules>
 
     <dependencyManagement>
@@ -136,7 +136,7 @@
             </dependency>
              <dependency>
                 <groupId>ru.inhell.aida</groupId>
-                <artifactId>aida-cexio</artifactId>
+                <artifactId>aida-coin</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -391,8 +391,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.3.2</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                     <showDeprecation>true</showDeprecation>
                     <showWarnings>true</showWarnings>
                     <fork>true</fork>
