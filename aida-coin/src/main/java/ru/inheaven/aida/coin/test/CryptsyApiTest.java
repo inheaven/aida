@@ -21,9 +21,9 @@ public class CryptsyApiTest {
         Object o = ClientBuilder.newClient().target("https://api.cryptsy.com/api")
                 .request()
                 .header("Key", PUB)
-                .header("Sign", SignatureUtil.getHmacSHA512("method=getinfo&nonce=" + nonce, SECRET))
+                .header("Sign", SignatureUtil.getHmacSHA512("method=getmarkets&nonce=" + nonce, SECRET))
                 .post(Entity.form(new Form()
-                        .param("method", "getinfo")
+                        .param("method", "getmarkets")
                         .param("nonce", nonce)))
                 .readEntity(String.class);
 

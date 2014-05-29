@@ -2,6 +2,6 @@
 <atmosphere-handlers>
 	<atmosphere-handler context-root="/*"
 		class-name="org.atmosphere.handler.ReflectorServletProcessor">
-		<property name="filterClassName" value="org.apache.wicket.protocol.http.WicketFilter" />
+		<property name="servletClassName" value="org.apache.wicket.protocol.http.WicketServlet" />
 	</atmosphere-handler>
 </atmosphere-handlers> 

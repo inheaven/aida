@@ -4,30 +4,37 @@
          xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
          version="3.1">
 
-    <display-name>aida-cexio</display-name>
+    <display-name>aida-coin</display-name>
 
     <servlet>
-        <servlet-name>aida-cexio-servlet</servlet-name>
+        <servlet-name>aida-coin-servlet</servlet-name>
         <servlet-class>org.atmosphere.cpr.AtmosphereServlet</servlet-class>
 
         <init-param>
             <param-name>applicationClassName</param-name>
-            <param-value>ru.inheaven.aida.coin.web.CexioWebApplication</param-value>
+            <param-value>ru.inheaven.aida.coin.web.AidaCoinWebApplication</param-value>
         </init-param>
 
-        <init-param>
+       <init-param>
             <param-name>filterMappingUrlPattern</param-name>
             <param-value>/*</param-value>
         </init-param>
 
         <init-param>
+            <param-name>org.atmosphere.useWebSocket</param-name>
+            <param-value>true</param-value>
+        </init-param>
+
+       <init-param>
             <param-name>org.atmosphere.websocket.WebSocketProtocol</param-name>
             <param-value>org.atmosphere.websocket.protocol.EchoProtocol</param-value>
         </init-param>
+
+        <async-supported>true</async-supported>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>aida-cexio-servlet</servlet-name>
+        <servlet-name>aida-coin-servlet</servlet-name>
         <url-pattern>/*</url-pattern>
     </servlet-mapping>
 

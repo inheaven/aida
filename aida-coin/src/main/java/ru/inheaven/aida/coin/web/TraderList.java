@@ -6,6 +6,8 @@ import de.agilecoders.wicket.core.markup.html.bootstrap.image.GlyphIconType;
 import de.agilecoders.wicket.core.markup.html.bootstrap.navbar.NavbarAjaxLink;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
+import org.apache.wicket.atmosphere.EventBus;
+import org.apache.wicket.atmosphere.Subscribe;
 import org.apache.wicket.datetime.markup.html.basic.DateLabel;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
@@ -19,6 +21,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.time.Duration;
 import ru.inheaven.aida.coin.entity.Trader;
+import ru.inheaven.aida.coin.service.ManagedService;
 import ru.inheaven.aida.coin.service.TraderBean;
 import ru.inheaven.aida.coin.service.TraderService;
 
@@ -36,7 +39,7 @@ public class TraderList extends AbstractPage{
     private TraderBean traderBean;
 
     @EJB
-    private TraderService traderService;
+    private ManagedService managedService;
 
     public TraderList() {
         add(new BootstrapLink<String>("add", Buttons.Type.Link) {
@@ -65,13 +68,7 @@ public class TraderList extends AbstractPage{
         list.add(new AbstractColumn<Trader, String>(Model.of("Цена")) {
             @Override
             public void populateItem(Item<ICellPopulator<Trader>> cellItem, String componentId, final IModel<Trader> rowModel) {
-                Label label = new Label(componentId, new LoadableDetachableModel<String>() {
-                    @Override
-                    protected String load() {
-                        return traderService.getTicker(rowModel.getObject().getName()).getLast().setScale(8).toPlainString();
-                    }
-                });
-                label.add(new AjaxSelfUpdatingTimerBehavior(Duration.seconds(1)));
+                Label label = new Label(componentId, "event bus test");
                 label.setOutputMarkupId(true);
                 cellItem.add(label);
             }
@@ -98,13 +95,31 @@ public class TraderList extends AbstractPage{
         table.addTopToolbar(new HeadersToolbar<>(table, null));
         add(table);
 
+        add( new Label("test_label", Model.of("subscribe")){
+            @Subscribe
+            public void onEvent(AjaxRequestTarget target, String ticker){
+                setDefaultModelObject(ticker);
 
+                target.add(this);
+            }
+        }.setOutputMarkupId(true));
+
+        add( new Label("test_label_date", Model.of("")){
+            @Subscribe
+            public void onEvent(AjaxRequestTarget target, Date date){
+                setDefaultModelObject(date.toString());
+
+                target.add(this);
+            }
+        }.setOutputMarkupId(true));
 
         add(new BootstrapLink<String>("test", Buttons.Type.Link) {
             @Override
             public void onClick() {
-                System.out.println("Hello World!");
+                managedService.startTestTickerUpdateManagedService(EventBus.get());
             }
         }.setIconType(GlyphIconType.warningsign).setLabel(Model.of("test")));
     }
+
+
 }
