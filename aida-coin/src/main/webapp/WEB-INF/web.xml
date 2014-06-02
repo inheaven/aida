@@ -6,36 +6,19 @@
 
     <display-name>aida-coin</display-name>
 
-    <servlet>
-        <servlet-name>aida-coin-servlet</servlet-name>
-        <servlet-class>org.atmosphere.cpr.AtmosphereServlet</servlet-class>
+    <filter>
+        <filter-name>aida-coin</filter-name>
+        <filter-class>org.apache.wicket.protocol.ws.javax.JavaxWebSocketFilter</filter-class>
 
         <init-param>
             <param-name>applicationClassName</param-name>
             <param-value>ru.inheaven.aida.coin.web.AidaCoinWebApplication</param-value>
         </init-param>
+    </filter>
 
-       <init-param>
-            <param-name>filterMappingUrlPattern</param-name>
-            <param-value>/*</param-value>
-        </init-param>
-
-        <init-param>
-            <param-name>org.atmosphere.useWebSocket</param-name>
-            <param-value>true</param-value>
-        </init-param>
-
-       <init-param>
-            <param-name>org.atmosphere.websocket.WebSocketProtocol</param-name>
-            <param-value>org.atmosphere.websocket.protocol.EchoProtocol</param-value>
-        </init-param>
-
-        <async-supported>true</async-supported>
-    </servlet>
-
-    <servlet-mapping>
-        <servlet-name>aida-coin-servlet</servlet-name>
+    <filter-mapping>
+        <filter-name>aida-coin</filter-name>
         <url-pattern>/*</url-pattern>
-    </servlet-mapping>
+    </filter-mapping>
 
 </web-app>

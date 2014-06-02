@@ -18,7 +18,7 @@ public abstract class AbstractPage extends WebPage {
         add(new HtmlTag("html", new Locale("ru")));
 
         Navbar navbar = new Navbar("navbar");
-        navbar.brandName(Model.of("AIDA-CEX·IO"));
+        navbar.brandName(Model.of("AIDA-COINS"));
         add(navbar);
 
         navbar.addComponents(NavbarComponents.transform(Navbar.ComponentPosition.LEFT,

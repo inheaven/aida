@@ -1,6 +1,10 @@
 package ru.inheaven.aida.coin.service;
 
-import org.apache.wicket.atmosphere.EventBus;
+import org.apache.wicket.Application;
+import org.apache.wicket.protocol.ws.IWebSocketSettings;
+import org.apache.wicket.protocol.ws.WebSocketSettings;
+import org.apache.wicket.protocol.ws.api.WebSocketPushBroadcaster;
+import org.apache.wicket.protocol.ws.api.message.IWebSocketPushMessage;
 
 import javax.annotation.Resource;
 import javax.ejb.EJB;
@@ -22,11 +26,20 @@ public class ManagedService {
     @EJB
     private TraderService traderService;
 
-    public void startTestTickerUpdateManagedService(EventBus eventBus){
+    public void startTestTickerUpdateManagedService(){
         managedScheduledExecutorService.schedule(new Runnable() {
             @Override
             public void run() {
-                eventBus.post(new Date().toString());
+                Application application = Application.get("aida-coin");
+                IWebSocketSettings webSocketSettings = WebSocketSettings.Holder.get(application);
+
+                WebSocketPushBroadcaster broadcaster = new WebSocketPushBroadcaster(webSocketSettings.getConnectionRegistry());
+                broadcaster.broadcastAll(application, new IWebSocketPushMessage() {
+                    @Override
+                    public String toString() {
+                        return new Date().toString();
+                    }
+                });
             }
         }, new Trigger() {
             @Override

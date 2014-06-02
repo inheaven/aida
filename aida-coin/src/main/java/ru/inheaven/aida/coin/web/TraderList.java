@@ -5,25 +5,29 @@ import de.agilecoders.wicket.core.markup.html.bootstrap.button.Buttons;
 import de.agilecoders.wicket.core.markup.html.bootstrap.image.GlyphIconType;
 import de.agilecoders.wicket.core.markup.html.bootstrap.navbar.NavbarAjaxLink;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
-import org.apache.wicket.atmosphere.EventBus;
-import org.apache.wicket.atmosphere.Subscribe;
 import org.apache.wicket.datetime.markup.html.basic.DateLabel;
+import org.apache.wicket.event.IEvent;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.protocol.ws.IWebSocketSettings;
+import org.apache.wicket.protocol.ws.WebSocketSettings;
+import org.apache.wicket.protocol.ws.api.WebSocketBehavior;
+import org.apache.wicket.protocol.ws.api.WebSocketPushBroadcaster;
+import org.apache.wicket.protocol.ws.api.WebSocketRequestHandler;
+import org.apache.wicket.protocol.ws.api.event.WebSocketPushPayload;
+import org.apache.wicket.protocol.ws.api.message.ConnectedMessage;
+import org.apache.wicket.protocol.ws.api.message.IWebSocketPushMessage;
+import org.apache.wicket.protocol.ws.api.message.TextMessage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.time.Duration;
 import ru.inheaven.aida.coin.entity.Trader;
 import ru.inheaven.aida.coin.service.ManagedService;
 import ru.inheaven.aida.coin.service.TraderBean;
-import ru.inheaven.aida.coin.service.TraderService;
 
 import javax.ejb.EJB;
 import java.util.ArrayList;
@@ -40,6 +44,8 @@ public class TraderList extends AbstractPage{
 
     @EJB
     private ManagedService managedService;
+
+    private Label testLabel;
 
     public TraderList() {
         add(new BootstrapLink<String>("add", Buttons.Type.Link) {
@@ -79,7 +85,7 @@ public class TraderList extends AbstractPage{
                 cellItem.add(new NavbarAjaxLink(componentId, Model.of("Редактировать")) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        setResponsePage(TraderEdit.class, new PageParameters().add("id", rowModel.getObject().getId()));
+                        setResponsePage(new TraderEdit(new PageParameters().add("id", rowModel.getObject().getId())));
                     }
                 }.setIconType(GlyphIconType.edit));
             }
@@ -95,30 +101,53 @@ public class TraderList extends AbstractPage{
         table.addTopToolbar(new HeadersToolbar<>(table, null));
         add(table);
 
-        add( new Label("test_label", Model.of("subscribe")){
-            @Subscribe
-            public void onEvent(AjaxRequestTarget target, String ticker){
-                setDefaultModelObject(ticker);
+        testLabel =  new Label("test_label", Model.of("subscribe"));
+        testLabel.setOutputMarkupId(true);
+        add(testLabel);
 
-                target.add(this);
+        add(new WebSocketBehavior() {
+            @Override
+            protected void onMessage(WebSocketRequestHandler handler, TextMessage message) {
+                testLabel.setDefaultModelObject(message.getText());
+
+                handler.add(testLabel);
             }
-        }.setOutputMarkupId(true));
 
-        add( new Label("test_label_date", Model.of("")){
-            @Subscribe
-            public void onEvent(AjaxRequestTarget target, Date date){
-                setDefaultModelObject(date.toString());
-
-                target.add(this);
+            @Override
+            protected void onConnect(ConnectedMessage message) {
+                System.out.println("CONNECTED!!!");
             }
-        }.setOutputMarkupId(true));
+        });
 
         add(new BootstrapLink<String>("test", Buttons.Type.Link) {
             @Override
             public void onClick() {
-                managedService.startTestTickerUpdateManagedService(EventBus.get());
+                managedService.startTestTickerUpdateManagedService();
+
+                IWebSocketSettings webSocketSettings = WebSocketSettings.Holder.get(getApplication());
+
+                WebSocketPushBroadcaster broadcaster = new WebSocketPushBroadcaster(webSocketSettings.getConnectionRegistry());
+                broadcaster.broadcastAll(getApplication(), new IWebSocketPushMessage() {
+                    @Override
+                    public String toString() {
+                        return new Date().toString();
+                    }
+                });
+
+
             }
         }.setIconType(GlyphIconType.warningsign).setLabel(Model.of("test")));
+    }
+
+    @Override
+    public void onEvent(IEvent<?> event) {
+        if (event.getPayload() instanceof WebSocketPushPayload) {
+            WebSocketPushPayload wsEvent = (WebSocketPushPayload) event.getPayload();
+
+            wsEvent.getHandler().add(testLabel);
+
+            testLabel.setDefaultModelObject(wsEvent.getMessage().toString());
+        }
     }
 
 
