@@ -71,5 +71,16 @@
             <version>2.8</version>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.xeiam.xchange</groupId>
+            <artifactId>xchange-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.xeiam.xchange</groupId>
+            <artifactId>xchange-bittrex</artifactId>
+        </dependency>
+
     </dependencies>      
 </project>
