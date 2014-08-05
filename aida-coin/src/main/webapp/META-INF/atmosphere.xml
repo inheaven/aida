@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<atmosphere-handlers>
-	<atmosphere-handler context-root="/*"
-		class-name="org.atmosphere.handler.ReflectorServletProcessor">
-		<property name="servletClassName" value="org.apache.wicket.protocol.http.WicketServlet" />
-	</atmosphere-handler>
-</atmosphere-handlers> 

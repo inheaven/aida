@@ -20,6 +20,10 @@ public class TraderBean {
         return em.createQuery("select t from Trader t", Trader.class).getResultList();
     }
 
+    public List<String> getTraderPairs(){
+        return em.createQuery("select t.pair from Trader t", String.class).getResultList();
+    }
+
     public Trader getTrader(Long id){
         return em.createQuery("select t from Trader t where t.id = :id", Trader.class).setParameter("id", id).getSingleResult();
     }

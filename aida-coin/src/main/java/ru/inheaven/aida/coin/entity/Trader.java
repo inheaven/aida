@@ -11,19 +11,17 @@ import java.util.Date;
 @Entity
 public class Trader extends AbstractEntity{
     @Column(nullable = false)
-    private String market;
+    @Enumerated(EnumType.STRING)
+    private Exchanges exchange;
 
     @Column(nullable = false)
-    private String name;
+    private String pair;
 
     @Column(nullable = false, precision = 19, scale = 8)
     private BigDecimal high;
 
     @Column(nullable = false, precision = 19, scale = 8)
     private BigDecimal low;
-
-    @Column(nullable = false, precision = 19, scale = 8)
-    private BigDecimal open;
 
     @Column(nullable = false, precision = 19,  scale = 8)
     private BigDecimal volume;
@@ -41,20 +39,20 @@ public class Trader extends AbstractEntity{
         date = new Date();
     }
 
-    public String getMarket() {
-        return market;
+    public Exchanges getExchange() {
+        return exchange;
     }
 
-    public void setMarket(String marker) {
-        this.market = marker;
+    public void setExchange(Exchanges exchange) {
+        this.exchange = exchange;
     }
 
-    public String getName() {
-        return name;
+    public String getPair() {
+        return pair;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setPair(String pair) {
+        this.pair = pair;
     }
 
     public BigDecimal getHigh() {
@@ -71,14 +69,6 @@ public class Trader extends AbstractEntity{
 
     public void setLow(BigDecimal low) {
         this.low = low;
-    }
-
-    public BigDecimal getOpen() {
-        return open;
-    }
-
-    public void setOpen(BigDecimal open) {
-        this.open = open;
     }
 
     public BigDecimal getVolume() {

@@ -6,7 +6,6 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import org.random.rjgodoy.trng.MH_SecureRandom;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,14 +24,14 @@ public class Chaos {
     private static SecureRandom srandom;
     private static SecureRandom random = new SecureRandom();
 
-    static {
-        try {
-            System.setProperty("org.random.rjgodoy.trng.user", "heaven@inheaven.ru");
-            srandom = new MH_SecureRandom();
-        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-            e.printStackTrace();
-        }
-    }
+//    static {
+//        try {
+//            System.setProperty("org.random.rjgodoy.trng.user", "heaven@inheaven.ru");
+//            srandom = new MH_SecureRandom();
+//        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
 
     private static final int COUNT = 10000;

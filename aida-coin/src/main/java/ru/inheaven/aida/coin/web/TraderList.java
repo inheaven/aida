@@ -1,38 +1,45 @@
 package ru.inheaven.aida.coin.web;
 
+import com.xeiam.xchange.dto.marketdata.Ticker;
 import de.agilecoders.wicket.core.markup.html.bootstrap.button.BootstrapLink;
 import de.agilecoders.wicket.core.markup.html.bootstrap.button.Buttons;
 import de.agilecoders.wicket.core.markup.html.bootstrap.image.GlyphIconType;
 import de.agilecoders.wicket.core.markup.html.bootstrap.navbar.NavbarAjaxLink;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.datetime.markup.html.basic.DateLabel;
-import org.apache.wicket.event.IEvent;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.internal.HtmlHeaderContainer;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.protocol.ws.IWebSocketSettings;
-import org.apache.wicket.protocol.ws.WebSocketSettings;
 import org.apache.wicket.protocol.ws.api.WebSocketBehavior;
-import org.apache.wicket.protocol.ws.api.WebSocketPushBroadcaster;
 import org.apache.wicket.protocol.ws.api.WebSocketRequestHandler;
-import org.apache.wicket.protocol.ws.api.event.WebSocketPushPayload;
-import org.apache.wicket.protocol.ws.api.message.ConnectedMessage;
 import org.apache.wicket.protocol.ws.api.message.IWebSocketPushMessage;
-import org.apache.wicket.protocol.ws.api.message.TextMessage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.convert.ConversionException;
+import org.apache.wicket.util.convert.IConverter;
+import org.odlabs.wiquery.core.javascript.JsStatement;
+import org.odlabs.wiquery.ui.effects.HighlightEffect;
+import org.odlabs.wiquery.ui.effects.HighlightEffectJavaScriptResourceReference;
+import ru.inheaven.aida.coin.entity.ExchangeMessage;
+import ru.inheaven.aida.coin.entity.ExchangePair;
+import ru.inheaven.aida.coin.entity.Exchanges;
 import ru.inheaven.aida.coin.entity.Trader;
-import ru.inheaven.aida.coin.service.ManagedService;
 import ru.inheaven.aida.coin.service.TraderBean;
+import ru.inheaven.aida.coin.service.TraderService;
 
 import javax.ejb.EJB;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.*;
 
 /**
  * @author Anatoly Ivanov java@inheaven.ru
@@ -43,11 +50,14 @@ public class TraderList extends AbstractPage{
     private TraderBean traderBean;
 
     @EJB
-    private ManagedService managedService;
+    private TraderService traderService;
 
-    private Label testLabel;
+    private Map<ExchangePair, Component> lastMap = new HashMap<>();
 
     public TraderList() {
+        //start service
+        traderService.getBittrexExchange();
+
         add(new BootstrapLink<String>("add", Buttons.Type.Link) {
             @Override
             public void onClick() {
@@ -57,28 +67,33 @@ public class TraderList extends AbstractPage{
 
         List<IColumn<Trader, String>> list = new ArrayList<>();
 
-        list.add(new PropertyColumn<Trader, String>(Model.of("Рынок"), "market"));
-        list.add(new PropertyColumn<Trader, String>(Model.of("Товар"), "name"));
-        list.add(new PropertyColumn<Trader, String>(Model.of("Открыто"), "open"));
-        list.add(new PropertyColumn<Trader, String>(Model.of("Верх"), "high"));
-        list.add(new PropertyColumn<Trader, String>(Model.of("Низ"), "low"));
-        list.add(new PropertyColumn<Trader, String>(Model.of("Объем"), "volume"));
-        list.add(new PropertyColumn<Trader, String>(Model.of("Спред"), "spread"));
+        list.add(new PropertyColumn<>(Model.of("Рынок"), "exchange"));
+        list.add(new PropertyColumn<>(Model.of("Монета"), "pair"));
+        list.add(new PropertyColumn<>(Model.of("Верх"), "high"));
+        list.add(new PropertyColumn<>(Model.of("Низ"), "low"));
+        list.add(new PropertyColumn<>(Model.of("Объем"), "volume"));
+        list.add(new PropertyColumn<>(Model.of("Спред"), "spread"));
         list.add(new AbstractColumn<Trader, String>(Model.of("Дата")){
 
             @Override
             public void populateItem(Item<ICellPopulator<Trader>> cellItem, String componentId, IModel<Trader> rowModel) {
-                cellItem.add(DateLabel.forDateStyle(componentId, new PropertyModel<Date>(rowModel, "date"), "MM"));
+                cellItem.add(DateLabel.forDateStyle(componentId, new PropertyModel<>(rowModel, "date"), "SS"));
             }
         });
         list.add(new AbstractColumn<Trader, String>(Model.of("Цена")) {
             @Override
             public void populateItem(Item<ICellPopulator<Trader>> cellItem, String componentId, final IModel<Trader> rowModel) {
-                Label label = new Label(componentId, "event bus test");
+                Trader trader = rowModel.getObject();
+
+                Label label = new Label(componentId, Model.of("0"));
                 label.setOutputMarkupId(true);
+
                 cellItem.add(label);
+
+                lastMap.put(new ExchangePair(trader.getExchange(), trader.getPair()), label);
             }
         });
+
         list.add(new AbstractColumn<Trader, String>(Model.of("")) {
             @Override
             public void populateItem(final Item<ICellPopulator<Trader>> cellItem, String componentId, final IModel<Trader> rowModel) {
@@ -101,54 +116,54 @@ public class TraderList extends AbstractPage{
         table.addTopToolbar(new HeadersToolbar<>(table, null));
         add(table);
 
-        testLabel =  new Label("test_label", Model.of("subscribe"));
-        testLabel.setOutputMarkupId(true);
-        add(testLabel);
-
-        add(new WebSocketBehavior() {
+        table.add(new WebSocketBehavior() {
             @Override
-            protected void onMessage(WebSocketRequestHandler handler, TextMessage message) {
-                testLabel.setDefaultModelObject(message.getText());
+            protected void onPush(WebSocketRequestHandler handler, IWebSocketPushMessage message) {
+                if (message instanceof ExchangeMessage) {
+                    ExchangeMessage exchangeMessage = (ExchangeMessage) message;
 
-                handler.add(testLabel);
-            }
+                    if (exchangeMessage.getPayload() instanceof Ticker) {
+                        Ticker ticker = (Ticker) exchangeMessage.getPayload();
 
-            @Override
-            protected void onConnect(ConnectedMessage message) {
-                System.out.println("CONNECTED!!!");
+                        Component component = lastMap.get(ExchangePair.of(((ExchangeMessage) message).getExchange(),
+                                ticker.getCurrencyPair()));
+
+                        if (component != null){
+                            int compare = ticker.getLast().compareTo(new BigDecimal(component.getDefaultModelObjectAsString()));
+
+                            if (compare != 0){
+                                String color = compare > 0 ? "'#A9F5A9'" : "'#F5A9A9'";
+
+                                handler.appendJavaScript(new JsStatement().$(component)
+                                        .chain("effect", "\"highlight\"", "{color: " + color + "}")
+                                        .render());
+
+                                component.setDefaultModelObject(ticker.getLast().toString());
+
+                                handler.add(component);
+                            }
+                        }
+                    }
+                }
             }
         });
+
+        Label testLabel =  new Label("test_label", Model.of("subscribe"));
+        testLabel.setOutputMarkupId(true);
+        add(testLabel);
 
         add(new BootstrapLink<String>("test", Buttons.Type.Link) {
             @Override
             public void onClick() {
-                managedService.startTestTickerUpdateManagedService();
-
-                IWebSocketSettings webSocketSettings = WebSocketSettings.Holder.get(getApplication());
-
-                WebSocketPushBroadcaster broadcaster = new WebSocketPushBroadcaster(webSocketSettings.getConnectionRegistry());
-                broadcaster.broadcastAll(getApplication(), new IWebSocketPushMessage() {
-                    @Override
-                    public String toString() {
-                        return new Date().toString();
-                    }
-                });
-
 
             }
         }.setIconType(GlyphIconType.warningsign).setLabel(Model.of("test")));
     }
 
     @Override
-    public void onEvent(IEvent<?> event) {
-        if (event.getPayload() instanceof WebSocketPushPayload) {
-            WebSocketPushPayload wsEvent = (WebSocketPushPayload) event.getPayload();
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
 
-            wsEvent.getHandler().add(testLabel);
-
-            testLabel.setDefaultModelObject(wsEvent.getMessage().toString());
-        }
+        response.render(JavaScriptHeaderItem.forReference(HighlightEffectJavaScriptResourceReference.get()));
     }
-
-
 }
