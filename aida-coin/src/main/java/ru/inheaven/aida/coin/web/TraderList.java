@@ -88,7 +88,12 @@ public class TraderList extends AbstractPage{
         list.add(new TraderColumn(of("Цена"), lastMap));
         list.add(new TraderColumn(of("Покупка"), buyMap));
         list.add(new TraderColumn(of("Продажа"), sellMap));
-        list.add(new PropertyColumn<>(of("Работа"), "running"));
+        list.add(new AbstractColumn<Trader, String>(of("Работа")){
+            @Override
+            public void populateItem(Item<ICellPopulator<Trader>> cellItem, String componentId, IModel<Trader> rowModel) {
+                cellItem.add(new Label(componentId, Model.of(rowModel.getObject().isRunning() ? "Да" : "Нет")));
+            }
+        });
 
         list.add(new AbstractColumn<Trader, String>(of("")) {
             @Override
