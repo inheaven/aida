@@ -9,23 +9,23 @@ import java.io.Serializable;
  *         Date: 005 05.08.14 12:41
  */
 public class ExchangePair implements Serializable{
-    private Exchanges exchange;
+    private ExchangeName exchange;
     private String pair;
 
-    public ExchangePair(Exchanges exchange, String pair) {
+    public ExchangePair(ExchangeName exchange, String pair) {
         this.exchange = exchange;
         this.pair = pair;
     }
 
-    public static ExchangePair of(Exchanges exchange, CurrencyPair currencyPair) {
+    public static ExchangePair of(ExchangeName exchange, CurrencyPair currencyPair) {
         return new ExchangePair(exchange, currencyPair.baseSymbol + "/" + currencyPair.counterSymbol);
     }
 
-    public Exchanges getExchange() {
+    public ExchangeName getExchange() {
         return exchange;
     }
 
-    public void setExchange(Exchanges exchange) {
+    public void setExchange(ExchangeName exchange) {
         this.exchange = exchange;
     }
 

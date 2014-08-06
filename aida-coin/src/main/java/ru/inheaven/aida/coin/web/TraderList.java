@@ -1,10 +1,16 @@
 package ru.inheaven.aida.coin.web;
 
+import com.google.common.base.Throwables;
 import com.xeiam.xchange.dto.marketdata.Ticker;
+import com.xeiam.xchange.dto.trade.LimitOrder;
+import com.xeiam.xchange.dto.trade.OpenOrders;
 import de.agilecoders.wicket.core.markup.html.bootstrap.button.BootstrapLink;
 import de.agilecoders.wicket.core.markup.html.bootstrap.button.Buttons;
+import de.agilecoders.wicket.core.markup.html.bootstrap.common.NotificationPanel;
+import de.agilecoders.wicket.core.markup.html.bootstrap.dialog.Alert;
 import de.agilecoders.wicket.core.markup.html.bootstrap.image.GlyphIconType;
 import de.agilecoders.wicket.core.markup.html.bootstrap.navbar.NavbarAjaxLink;
+import de.agilecoders.wicket.core.markup.html.bootstrap.table.TableBehavior;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.datetime.markup.html.basic.DateLabel;
@@ -13,33 +19,31 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.internal.HtmlHeaderContainer;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.protocol.ws.api.WebSocketBehavior;
 import org.apache.wicket.protocol.ws.api.WebSocketRequestHandler;
 import org.apache.wicket.protocol.ws.api.message.IWebSocketPushMessage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.convert.ConversionException;
-import org.apache.wicket.util.convert.IConverter;
+import org.apache.wicket.util.convert.converter.BigDecimalConverter;
 import org.odlabs.wiquery.core.javascript.JsStatement;
-import org.odlabs.wiquery.ui.effects.HighlightEffect;
 import org.odlabs.wiquery.ui.effects.HighlightEffectJavaScriptResourceReference;
 import ru.inheaven.aida.coin.entity.ExchangeMessage;
 import ru.inheaven.aida.coin.entity.ExchangePair;
-import ru.inheaven.aida.coin.entity.Exchanges;
 import ru.inheaven.aida.coin.entity.Trader;
 import ru.inheaven.aida.coin.service.TraderBean;
 import ru.inheaven.aida.coin.service.TraderService;
 
 import javax.ejb.EJB;
 import java.math.BigDecimal;
-import java.math.BigInteger;
+import java.text.NumberFormat;
 import java.util.*;
+import java.util.function.BiConsumer;
+
+import static org.apache.wicket.model.Model.of;
 
 /**
  * @author Anatoly Ivanov java@inheaven.ru
@@ -53,51 +57,43 @@ public class TraderList extends AbstractPage{
     private TraderService traderService;
 
     private Map<ExchangePair, Component> lastMap = new HashMap<>();
+    private Map<ExchangePair, Component> buyMap = new HashMap<>();
+    private Map<ExchangePair, Component> sellMap = new HashMap<>();
+
+    private NotificationPanel notificationPanel;
 
     public TraderList() {
         //start service
         traderService.getBittrexExchange();
+
+        notificationPanel = new NotificationPanel("notification");
+        notificationPanel.setOutputMarkupId(true);
+        add(notificationPanel);
 
         add(new BootstrapLink<String>("add", Buttons.Type.Link) {
             @Override
             public void onClick() {
                 setResponsePage(TraderEdit.class);
             }
-        }.setIconType(GlyphIconType.plus).setLabel(Model.of("Добавить")));
+        }.setIconType(GlyphIconType.plus).setLabel(of("Добавить")));
 
         List<IColumn<Trader, String>> list = new ArrayList<>();
 
-        list.add(new PropertyColumn<>(Model.of("Рынок"), "exchange"));
-        list.add(new PropertyColumn<>(Model.of("Монета"), "pair"));
-        list.add(new PropertyColumn<>(Model.of("Верх"), "high"));
-        list.add(new PropertyColumn<>(Model.of("Низ"), "low"));
-        list.add(new PropertyColumn<>(Model.of("Объем"), "volume"));
-        list.add(new PropertyColumn<>(Model.of("Спред"), "spread"));
-        list.add(new AbstractColumn<Trader, String>(Model.of("Дата")){
+        list.add(new PropertyColumn<>(of("Рынок"), "exchange"));
+        list.add(new PropertyColumn<>(of("Монета"), "pair"));
+        list.add(new PropertyColumn<>(of("Верх"), "high"));
+        list.add(new PropertyColumn<>(of("Низ"), "low"));
+        list.add(new PropertyColumn<>(of("Объем"), "volume"));
+        list.add(new PropertyColumn<>(of("Спред"), "spread"));
+        list.add(new TraderColumn(of("Цена"), lastMap));
+        list.add(new TraderColumn(of("Покупка"), buyMap));
+        list.add(new TraderColumn(of("Продажа"), sellMap));
+        list.add(new PropertyColumn<>(of("Работа"), "running"));
 
-            @Override
-            public void populateItem(Item<ICellPopulator<Trader>> cellItem, String componentId, IModel<Trader> rowModel) {
-                cellItem.add(DateLabel.forDateStyle(componentId, new PropertyModel<>(rowModel, "date"), "SS"));
-            }
-        });
-        list.add(new AbstractColumn<Trader, String>(Model.of("Цена")) {
-            @Override
-            public void populateItem(Item<ICellPopulator<Trader>> cellItem, String componentId, final IModel<Trader> rowModel) {
-                Trader trader = rowModel.getObject();
-
-                Label label = new Label(componentId, Model.of("0"));
-                label.setOutputMarkupId(true);
-
-                cellItem.add(label);
-
-                lastMap.put(new ExchangePair(trader.getExchange(), trader.getPair()), label);
-            }
-        });
-
-        list.add(new AbstractColumn<Trader, String>(Model.of("")) {
+        list.add(new AbstractColumn<Trader, String>(of("")) {
             @Override
             public void populateItem(final Item<ICellPopulator<Trader>> cellItem, String componentId, final IModel<Trader> rowModel) {
-                cellItem.add(new NavbarAjaxLink(componentId, Model.of("Редактировать")) {
+                cellItem.add(new NavbarAjaxLink(componentId, of("")) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         setResponsePage(new TraderEdit(new PageParameters().add("id", rowModel.getObject().getId())));
@@ -114,6 +110,8 @@ public class TraderList extends AbstractPage{
         }, 100);
         table.setOutputMarkupId(true);
         table.addTopToolbar(new HeadersToolbar<>(table, null));
+        table.add(new TableBehavior());
+
         add(table);
 
         table.add(new WebSocketBehavior() {
@@ -121,34 +119,63 @@ public class TraderList extends AbstractPage{
             protected void onPush(WebSocketRequestHandler handler, IWebSocketPushMessage message) {
                 if (message instanceof ExchangeMessage) {
                     ExchangeMessage exchangeMessage = (ExchangeMessage) message;
+                    Object payload = exchangeMessage.getPayload();
 
-                    if (exchangeMessage.getPayload() instanceof Ticker) {
+                    if (payload instanceof Ticker) {
                         Ticker ticker = (Ticker) exchangeMessage.getPayload();
 
-                        Component component = lastMap.get(ExchangePair.of(((ExchangeMessage) message).getExchange(),
+                        Component component = lastMap.get(ExchangePair.of(exchangeMessage.getExchange(),
                                 ticker.getCurrencyPair()));
 
-                        if (component != null){
-                            int compare = ticker.getLast().compareTo(new BigDecimal(component.getDefaultModelObjectAsString()));
+                        update(handler, component, ticker.getLast().toString());
 
-                            if (compare != 0){
-                                String color = compare > 0 ? "'#A9F5A9'" : "'#F5A9A9'";
+                    }else if (payload instanceof OpenOrders){
+                        OpenOrders openOrders = (OpenOrders) exchangeMessage.getPayload();
 
-                                handler.appendJavaScript(new JsStatement().$(component)
-                                        .chain("effect", "\"highlight\"", "{color: " + color + "}")
-                                        .render());
+                        Map<ExchangePair, Integer> countBuyMap = new HashMap<>();
+                        Map<ExchangePair, Integer> countSellMap = new HashMap<>();
 
-                                component.setDefaultModelObject(ticker.getLast().toString());
+                        for (ExchangePair ep : buyMap.keySet()){
+                            countBuyMap.put(ep, 0);
+                            countSellMap.put(ep, 0);
+                        }
 
-                                handler.add(component);
+                        for (LimitOrder order : openOrders.getOpenOrders()){
+                            ExchangePair ep = ExchangePair.of(exchangeMessage.getExchange(), order.getCurrencyPair());
+
+                            switch (order.getType()){
+                                case BID:
+                                    countBuyMap.put(ep, countBuyMap.get(ep) + 1);
+                                    break;
+                                case ASK:
+                                    countSellMap.put(ep, countSellMap.get(ep) + 1);
+                                    break;
                             }
                         }
+
+                        countBuyMap.forEach(new BiConsumer<ExchangePair, Integer>() {
+                            @Override
+                            public void accept(ExchangePair exchangePair, Integer integer) {
+                                update(handler, buyMap.get(exchangePair), integer.toString());
+                            }
+                        });
+
+                        countSellMap.forEach(new BiConsumer<ExchangePair, Integer>() {
+                            @Override
+                            public void accept(ExchangePair exchangePair, Integer integer) {
+                                update(handler, sellMap.get(exchangePair), integer.toString());
+                            }
+                        });
+                    }else if (payload instanceof Exception){
+                        error(Throwables.getRootCause((Throwable) payload).getMessage());
+
+                        handler.add(notificationPanel);
                     }
                 }
             }
         });
 
-        Label testLabel =  new Label("test_label", Model.of("subscribe"));
+        Label testLabel =  new Label("test_label", of(""));
         testLabel.setOutputMarkupId(true);
         add(testLabel);
 
@@ -157,7 +184,24 @@ public class TraderList extends AbstractPage{
             public void onClick() {
 
             }
-        }.setIconType(GlyphIconType.warningsign).setLabel(Model.of("test")));
+        }.setIconType(GlyphIconType.warningsign).setLabel(of("test")));
+    }
+
+    private void update(WebSocketRequestHandler handler, Component component, String newValue){
+        if (component != null){
+            int compare = newValue.compareTo(component.getDefaultModelObjectAsString());
+
+            if (compare != 0){
+                String color = compare > 0 ? "'#A9F5A9'" : "'#F5A9A9'";
+
+                handler.appendJavaScript(new JsStatement().$(component)
+                        .chain("effect", "\"highlight\"", "{color: " + color + "}")
+                        .render());
+
+                component.setDefaultModelObject(newValue);
+                handler.add(component);
+            }
+        }
     }
 
     @Override

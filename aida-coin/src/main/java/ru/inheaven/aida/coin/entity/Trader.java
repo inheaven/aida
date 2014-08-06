@@ -12,7 +12,7 @@ import java.util.Date;
 public class Trader extends AbstractEntity{
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private Exchanges exchange;
+    private ExchangeName exchange;
 
     @Column(nullable = false)
     private String pair;
@@ -33,17 +33,20 @@ public class Trader extends AbstractEntity{
     @Temporal(TemporalType.TIMESTAMP)
     private Date date;
 
+    @Column
+    private boolean running = false;
+
     @PrePersist
     @PreUpdate
     protected void preUpdate(){
         date = new Date();
     }
 
-    public Exchanges getExchange() {
+    public ExchangeName getExchange() {
         return exchange;
     }
 
-    public void setExchange(Exchanges exchange) {
+    public void setExchange(ExchangeName exchange) {
         this.exchange = exchange;
     }
 
@@ -93,5 +96,13 @@ public class Trader extends AbstractEntity{
 
     public void setDate(Date date) {
         this.date = date;
+    }
+
+    public boolean isRunning() {
+        return running;
+    }
+
+    public void setRunning(boolean running) {
+        this.running = running;
     }
 }
