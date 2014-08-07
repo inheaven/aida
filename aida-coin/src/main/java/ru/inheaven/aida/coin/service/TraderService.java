@@ -113,8 +113,8 @@ public class TraderService {
             Ticker ticker = getTicker(BITTREX, trader.getPair());
 
             if (trader.isRunning()
-                    && ticker.getLast().compareTo(trader.getHigh()) < 0
-                    && ticker.getLast().compareTo(trader.getLow()) > 0){
+                    && ticker.getLast().compareTo(trader.getHigh()) <= 0
+                    && ticker.getLast().compareTo(trader.getLow()) >= 0){
                 boolean hasOrder = false;
 
                 for (LimitOrder order : getOpenOrders(BITTREX).getOpenOrders()){
