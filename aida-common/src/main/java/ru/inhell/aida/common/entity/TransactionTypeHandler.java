@@ -13,6 +13,9 @@ import java.sql.SQLException;
  *         Date: 31.05.12 17:45
  */
 public class TransactionTypeHandler extends BaseTypeHandler<TransactionType> {
+
+//HELLO MAVEN
+
     public static final String BUY_STRING = "Купля";
     public static final String SELL_STRING = "Продажа";
 
