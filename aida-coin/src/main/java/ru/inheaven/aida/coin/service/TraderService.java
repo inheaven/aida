@@ -102,6 +102,7 @@ public class TraderService {
         }, new FixedRateTrigger(1000L));
     }
 
+    //todo generalize update ticker
     private void updateBittrexTicker() throws IOException {
         PollingMarketDataService marketDataService = getBittrexExchange().getPollingMarketDataService();
 
