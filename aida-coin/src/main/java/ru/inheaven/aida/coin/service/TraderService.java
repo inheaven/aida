@@ -1,8 +1,9 @@
 package ru.inheaven.aida.coin.service;
 
-import com.xeiam.xchange.*;
+import com.xeiam.xchange.Exchange;
+import com.xeiam.xchange.ExchangeFactory;
+import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.bittrex.v1.BittrexExchange;
-import com.xeiam.xchange.bittrex.v1.service.polling.BittrexTradeService;
 import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.dto.Order;
 import com.xeiam.xchange.dto.marketdata.Ticker;
@@ -22,22 +23,14 @@ import ru.inheaven.aida.coin.entity.ExchangePair;
 import ru.inheaven.aida.coin.entity.Trader;
 import ru.inheaven.aida.coin.util.TraderUtil;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import javax.ejb.*;
-import javax.enterprise.concurrent.ManagedScheduledExecutorService;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
-import java.security.SecureRandom;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
-import static java.math.MathContext.DECIMAL32;
-import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.coin.entity.ExchangeName.BITTREX;
 import static ru.inheaven.aida.coin.util.TraderUtil.random20;
 import static ru.inheaven.aida.coin.util.TraderUtil.random50;
@@ -50,11 +43,6 @@ import static ru.inheaven.aida.coin.util.TraderUtil.random50;
 @ConcurrencyManagement(ConcurrencyManagementType.BEAN)
 public class TraderService {
     private Logger log = LoggerFactory.getLogger(TraderService.class);
-
-
-
-    @Resource
-    private ManagedScheduledExecutorService executorService;
 
     @EJB
     private TraderBean traderBean;
@@ -84,22 +72,17 @@ public class TraderService {
         return openOrdersMap.get(exchangeName);
     }
 
-    @PostConstruct
-    protected void startBittrexUpdate(){
-        executorService.schedule(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    updateBittrexTicker();
-                    updateBittrexOpenOrders();
-                    tradeBittrexAlpha();
-                } catch (Exception e) {
-                    log.error("Bittrex update error", e);
+    @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
+    public void startBittrexUpdate(){
+        try {
+            updateBittrexTicker();
+            updateBittrexOpenOrders();
+            tradeBittrexAlpha();
+        } catch (Exception e) {
+            log.error("Bittrex update error", e);
 
-                    broadcast(BITTREX, e);
-                }
-            }
-        }, new FixedRateTrigger(1000L));
+            broadcast(BITTREX, e);
+        }
     }
 
     private void updateBittrexTicker() throws IOException {

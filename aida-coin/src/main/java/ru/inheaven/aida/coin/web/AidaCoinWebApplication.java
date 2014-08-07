@@ -41,10 +41,11 @@ public class AidaCoinWebApplication extends WebApplication {
     protected IConverterLocator newConverterLocator() {
         ConverterLocator locator = (ConverterLocator) super.newConverterLocator();
 
-        locator.set(BigDecimal.class, new BigDecimalConverter(){
+        locator.set(BigDecimal.class, new BigDecimalConverter() {
             @Override
             protected NumberFormat newNumberFormat(Locale locale) {
-                NumberFormat numberFormat =  super.newNumberFormat(locale);
+                NumberFormat numberFormat = super.newNumberFormat(locale);
+                numberFormat.setMinimumFractionDigits(8);
                 numberFormat.setMaximumFractionDigits(8);
 
                 return numberFormat;

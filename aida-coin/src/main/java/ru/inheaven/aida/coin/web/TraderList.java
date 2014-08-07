@@ -7,13 +7,11 @@ import com.xeiam.xchange.dto.trade.OpenOrders;
 import de.agilecoders.wicket.core.markup.html.bootstrap.button.BootstrapLink;
 import de.agilecoders.wicket.core.markup.html.bootstrap.button.Buttons;
 import de.agilecoders.wicket.core.markup.html.bootstrap.common.NotificationPanel;
-import de.agilecoders.wicket.core.markup.html.bootstrap.dialog.Alert;
 import de.agilecoders.wicket.core.markup.html.bootstrap.image.GlyphIconType;
 import de.agilecoders.wicket.core.markup.html.bootstrap.navbar.NavbarAjaxLink;
 import de.agilecoders.wicket.core.markup.html.bootstrap.table.TableBehavior;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.datetime.markup.html.basic.DateLabel;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -23,12 +21,10 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.protocol.ws.api.WebSocketBehavior;
 import org.apache.wicket.protocol.ws.api.WebSocketRequestHandler;
 import org.apache.wicket.protocol.ws.api.message.IWebSocketPushMessage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.convert.converter.BigDecimalConverter;
 import org.odlabs.wiquery.core.javascript.JsStatement;
 import org.odlabs.wiquery.ui.effects.HighlightEffectJavaScriptResourceReference;
 import ru.inheaven.aida.coin.entity.ExchangeMessage;
@@ -38,9 +34,10 @@ import ru.inheaven.aida.coin.service.TraderBean;
 import ru.inheaven.aida.coin.service.TraderService;
 
 import javax.ejb.EJB;
-import java.math.BigDecimal;
-import java.text.NumberFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 
 import static org.apache.wicket.model.Model.of;
@@ -148,13 +145,15 @@ public class TraderList extends AbstractPage{
                         for (LimitOrder order : openOrders.getOpenOrders()){
                             ExchangePair ep = ExchangePair.of(exchangeMessage.getExchange(), order.getCurrencyPair());
 
-                            switch (order.getType()){
-                                case BID:
-                                    countBuyMap.put(ep, countBuyMap.get(ep) + 1);
-                                    break;
-                                case ASK:
-                                    countSellMap.put(ep, countSellMap.get(ep) + 1);
-                                    break;
+                            if (buyMap.get(ep) != null) {
+                                switch (order.getType()){
+                                    case BID:
+                                        countBuyMap.put(ep, countBuyMap.get(ep) + 1);
+                                        break;
+                                    case ASK:
+                                        countSellMap.put(ep, countSellMap.get(ep) + 1);
+                                        break;
+                                }
                             }
                         }
 

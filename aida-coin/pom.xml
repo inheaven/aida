@@ -83,5 +83,48 @@
             <groupId>org.odlabs.wiquery</groupId>
             <artifactId>wiquery-jquery-ui</artifactId>
         </dependency>
-    </dependencies>      
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>deploy101</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.codehaus.cargo</groupId>
+                            <artifactId>cargo-maven2-plugin</artifactId>
+                            <version>1.4.9</version>
+                            <configuration>
+                                <container>
+                                    <containerId>glassfish4x</containerId>
+                                    <type>remote</type>
+                                </container>
+                                <configuration>
+                                    <type>runtime</type>
+                                    <properties>
+                                        <cargo.hostname>localhost</cargo.hostname>
+                                        <cargo.glassfish.domain.name>domain1</cargo.glassfish.domain.name>
+                                        <cargo.remote.username>admin</cargo.remote.username>
+                                        <cargo.remote.password>admin</cargo.remote.password>
+                                    </properties>
+                                </configuration>
+                            </configuration>
+                            <dependencies>
+                                <dependency>
+                                    <groupId>org.glassfish.deployment</groupId>
+                                    <artifactId>deployment-client</artifactId>
+                                    <version>3.2-b06</version>
+                                </dependency>
+                            </dependencies>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
+    </profiles>
 </project>
