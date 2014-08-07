@@ -85,6 +85,7 @@ public class TraderService {
         }
     }
 
+    //todo generalize update ticker
     private void updateBittrexTicker() throws IOException {
         PollingMarketDataService marketDataService = getBittrexExchange().getPollingMarketDataService();
 
