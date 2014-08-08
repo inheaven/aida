@@ -1,6 +1,7 @@
 package ru.inheaven.aida.coin.web;
 
 import com.google.common.base.Throwables;
+import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.OpenOrders;
@@ -54,6 +55,7 @@ public class TraderList extends AbstractPage{
     private TraderService traderService;
 
     private Map<ExchangePair, Component> lastMap = new HashMap<>();
+    private Map<ExchangePair, Component> balanceMap = new HashMap<>();
     private Map<ExchangePair, Component> buyMap = new HashMap<>();
     private Map<ExchangePair, Component> sellMap = new HashMap<>();
 
@@ -83,6 +85,7 @@ public class TraderList extends AbstractPage{
         list.add(new PropertyColumn<>(of("Объем"), "volume"));
         list.add(new PropertyColumn<>(of("Спред"), "spread"));
         list.add(new TraderColumn(of("Цена"), lastMap));
+        list.add(new TraderColumn(of("Баланс"), balanceMap));
         list.add(new TraderColumn(of("Покупка"), buyMap));
         list.add(new TraderColumn(of("Продажа"), sellMap));
         list.add(new AbstractColumn<Trader, String>(of("Работа")){
@@ -123,7 +126,14 @@ public class TraderList extends AbstractPage{
                     ExchangeMessage exchangeMessage = (ExchangeMessage) message;
                     Object payload = exchangeMessage.getPayload();
 
-                    if (payload instanceof Ticker) {
+                    if (payload instanceof AccountInfo){
+                        balanceMap.forEach(new BiConsumer<ExchangePair, Component>() {
+                            @Override
+                            public void accept(ExchangePair exchangePair, Component component) {
+                                update(handler, component, ((AccountInfo) payload).getBalance(exchangePair.getCurrency()).toString());
+                            }
+                        });
+                    }else if (payload instanceof Ticker) {
                         Ticker ticker = (Ticker) exchangeMessage.getPayload();
 
                         Component component = lastMap.get(ExchangePair.of(exchangeMessage.getExchange(),
@@ -188,7 +198,15 @@ public class TraderList extends AbstractPage{
             public void onClick() {
 
             }
+
+            @Override
+            public boolean isVisible() {
+                return false;
+            }
         }.setIconType(GlyphIconType.warningsign).setLabel(of("test")));
+
+        //Chart
+
     }
 
     private void update(WebSocketRequestHandler handler, Component component, String newValue){

@@ -1,6 +1,7 @@
 package ru.inheaven.aida.coin.entity;
 
 import com.xeiam.xchange.currency.CurrencyPair;
+import ru.inheaven.aida.coin.util.TraderUtil;
 
 import java.io.Serializable;
 
@@ -19,6 +20,10 @@ public class ExchangePair implements Serializable{
 
     public static ExchangePair of(ExchangeName exchange, CurrencyPair currencyPair) {
         return new ExchangePair(exchange, currencyPair.baseSymbol + "/" + currencyPair.counterSymbol);
+    }
+
+    public String getCurrency(){
+        return TraderUtil.getCurrency(pair);
     }
 
     public ExchangeName getExchange() {

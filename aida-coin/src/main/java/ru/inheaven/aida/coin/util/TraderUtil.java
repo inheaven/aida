@@ -20,6 +20,12 @@ public class TraderUtil {
         return cp.length == 2 ? new CurrencyPair(cp[0], cp[1]) : null;
     }
 
+    public static String getCurrency(String pair){
+        String[] cp = pair.split("/");
+
+        return cp.length == 2 ? cp[0] : null;
+    }
+
     public static BigDecimal random20(BigDecimal decimal){
         return decimal.multiply(new BigDecimal(1 - random.nextDouble()/5)).setScale(8, ROUND_HALF_UP);
     }

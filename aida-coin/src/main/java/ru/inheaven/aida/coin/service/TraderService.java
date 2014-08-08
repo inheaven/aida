@@ -21,7 +21,6 @@ import ru.inheaven.aida.coin.entity.ExchangeMessage;
 import ru.inheaven.aida.coin.entity.ExchangeName;
 import ru.inheaven.aida.coin.entity.ExchangePair;
 import ru.inheaven.aida.coin.entity.Trader;
-import ru.inheaven.aida.coin.util.TraderUtil;
 
 import javax.ejb.*;
 import java.io.IOException;
@@ -33,8 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static java.math.BigDecimal.ROUND_HALF_DOWN;
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static ru.inheaven.aida.coin.entity.ExchangeName.BITTREX;
-import static ru.inheaven.aida.coin.util.TraderUtil.random20;
-import static ru.inheaven.aida.coin.util.TraderUtil.random50;
+import static ru.inheaven.aida.coin.util.TraderUtil.*;
 
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
@@ -48,10 +46,10 @@ public class TraderService {
     @EJB
     private TraderBean traderBean;
 
+    private Exchange bittrexExchange;
+
     private Map<ExchangePair, Ticker> tickerMap = new ConcurrentHashMap<>();
     private Map<ExchangeName, OpenOrders> openOrdersMap = new ConcurrentHashMap<>();
-
-    private Exchange bittrexExchange;
 
     public Exchange getBittrexExchange(){
         if (bittrexExchange == null){
@@ -74,16 +72,21 @@ public class TraderService {
     }
 
     @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
-    public void startBittrexUpdate(){
+    public void scheduleBittrexUpdate(){
         try {
+            updateBittrexBalance();
             updateBittrexTicker();
             updateBittrexOpenOrders();
             tradeBittrexAlpha();
         } catch (Exception e) {
-            log.error("Bittrex update error", e);
+            log.error("update ticker error", e);
 
             broadcast(BITTREX, e);
         }
+    }
+
+    public void updateBittrexBalance() throws IOException {
+        broadcast(BITTREX, getBittrexExchange().getPollingAccountService().getAccountInfo());
     }
 
     //todo generalize update ticker
@@ -91,9 +94,9 @@ public class TraderService {
         PollingMarketDataService marketDataService = getBittrexExchange().getPollingMarketDataService();
 
         for (String pair : traderBean.getTraderPairs()) {
-            CurrencyPair currencyPair = TraderUtil.getCurrencyPair(pair);
+            CurrencyPair currencyPair = getCurrencyPair(pair);
 
-            if (currencyPair != null) {
+            if (currencyPair != null && !currencyPair.baseSymbol.equals("BTC")) {
                 Ticker ticker = marketDataService.getTicker(currencyPair);
 
                 tickerMap.put(new ExchangePair(BITTREX, pair), ticker);
