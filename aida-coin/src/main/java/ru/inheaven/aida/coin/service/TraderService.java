@@ -1,8 +1,7 @@
 package ru.inheaven.aida.coin.service;
 
-import com.xeiam.xchange.Exchange;
-import com.xeiam.xchange.ExchangeFactory;
-import com.xeiam.xchange.ExchangeSpecification;
+import com.google.common.base.Throwables;
+import com.xeiam.xchange.*;
 import com.xeiam.xchange.bittrex.v1.BittrexExchange;
 import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.dto.Order;
@@ -81,7 +80,7 @@ public class TraderService {
         } catch (Exception e) {
             log.error("update ticker error", e);
 
-            broadcast(BITTREX, e);
+            broadcast(BITTREX, Throwables.getRootCause(e).getMessage());
         }
     }
 
@@ -141,21 +140,27 @@ public class TraderService {
 
                     BigDecimal randomAmount;
 
-                    //BID
-                    randomAmount = random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP));
+                    try {
+                        //BID
+                        randomAmount = random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP));
 
-                    tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.BID,
-                            randomAmount.compareTo(minOrderAmount) > 0 ? randomAmount : minOrderAmount,
-                            ticker.getCurrencyPair(), "", new Date(),
-                            ticker.getLast().subtract(random20(delta))));
+                        tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.BID,
+                                randomAmount.compareTo(minOrderAmount) > 0 ? randomAmount : minOrderAmount,
+                                ticker.getCurrencyPair(), "", new Date(),
+                                ticker.getLast().subtract(random20(delta))));
 
-                    //ASK
-                    randomAmount = random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP));
+                        //ASK
+                        randomAmount = random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP));
 
-                    tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.ASK,
-                            randomAmount.compareTo(minOrderAmount) > 0 ? randomAmount : minOrderAmount,
-                            ticker.getCurrencyPair(), "", new Date(),
-                            ticker.getLast().add(random20(delta))));
+                        tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.ASK,
+                                randomAmount.compareTo(minOrderAmount) > 0 ? randomAmount : minOrderAmount,
+                                ticker.getCurrencyPair(), "", new Date(),
+                                ticker.getLast().add(random20(delta))));
+                    } catch (Exception e) {
+                        log.error("trade error", e);
+
+                        broadcast(BITTREX, trader.getPair() + ": " + Throwables.getRootCause(e).getMessage());
+                    }
                 }
             }
         }

@@ -1,6 +1,5 @@
 package ru.inheaven.aida.coin.web;
 
-import com.google.common.base.Throwables;
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.dto.trade.LimitOrder;
@@ -67,6 +66,7 @@ public class TraderList extends AbstractPage{
         traderService.getBittrexExchange();
 
         notificationPanel = new NotificationPanel("notification");
+        notificationPanel.setMaxMessages(3);
         notificationPanel.setOutputMarkupId(true);
         add(notificationPanel);
 
@@ -181,8 +181,8 @@ public class TraderList extends AbstractPage{
                                 update(handler, sellMap.get(exchangePair), bigDecimal.toString());
                             }
                         });
-                    }else if (payload instanceof Exception){
-                        error(Throwables.getRootCause((Throwable) payload).getMessage());
+                    }else if (payload instanceof String){
+                        error((String)payload);
 
                         handler.add(notificationPanel);
                     }
