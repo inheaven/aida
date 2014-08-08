@@ -125,7 +125,7 @@ public class TraderService {
                 delta = delta.compareTo(minDelta) > 0 ? delta : minDelta;
 
                 BigDecimal level = trader.getHigh().subtract(trader.getLow()).divide(trader.getSpread(), 8, ROUND_HALF_UP);
-                BigDecimal minOrderAmount = new BigDecimal("0.000555").divide(ticker.getLast(), 8, ROUND_HALF_UP);
+                BigDecimal minOrderAmount = new BigDecimal("0.0007").divide(ticker.getLast(), 8, ROUND_HALF_UP);
 
                 for (LimitOrder order : getOpenOrders(BITTREX).getOpenOrders()){
                     if (ticker.getCurrencyPair().equals(order.getCurrencyPair())
