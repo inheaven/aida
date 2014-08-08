@@ -215,7 +215,7 @@ public class TraderList extends AbstractPage{
             int compare = newValue.compareTo(component.getDefaultModelObjectAsString());
 
             if (compare != 0){
-                String color = compare > 0 ? "'#E0F8E0'" : "'#F8E0E0'";
+                String color = compare > 0 ? "'#EFFBEF'" : "'#FBEFEF'";
 
                 handler.appendJavaScript(new JsStatement().$(component)
                         .chain("parent")
