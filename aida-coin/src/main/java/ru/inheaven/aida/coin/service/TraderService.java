@@ -30,6 +30,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static java.math.BigDecimal.ROUND_HALF_DOWN;
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static ru.inheaven.aida.coin.entity.ExchangeName.BITTREX;
 import static ru.inheaven.aida.coin.util.TraderUtil.random20;
@@ -117,9 +118,16 @@ public class TraderService {
                     && ticker.getLast().compareTo(trader.getLow()) >= 0){
                 boolean hasOrder = false;
 
+                BigDecimal delta = trader.getSpread().divide(new BigDecimal("2"), 8, ROUND_HALF_DOWN);
+                BigDecimal minDelta = ticker.getLast().multiply(new BigDecimal("0.015")).setScale(8, ROUND_HALF_DOWN);
+                delta = delta.compareTo(minDelta) > 0 ? delta : minDelta;
+
+                BigDecimal level = trader.getHigh().subtract(trader.getLow()).divide(trader.getSpread(), 8, ROUND_HALF_UP);
+                BigDecimal minOrderAmount = new BigDecimal("0.0005").divide(ticker.getLast(), 8, ROUND_HALF_UP);
+
                 for (LimitOrder order : getOpenOrders(BITTREX).getOpenOrders()){
                     if (ticker.getCurrencyPair().equals(order.getCurrencyPair())
-                            && order.getLimitPrice().subtract(ticker.getLast()).abs().compareTo(trader.getSpread()) < 0){
+                            && order.getLimitPrice().subtract(ticker.getLast()).abs().compareTo(delta) < 0){
                         hasOrder = true;
                         break;
                     }
@@ -128,19 +136,23 @@ public class TraderService {
                 if (!hasOrder){
                     PollingTradeService tradeService = getBittrexExchange().getPollingTradeService();
 
-                    BigDecimal level = trader.getHigh().subtract(trader.getLow()).divide(trader.getSpread(), 8, ROUND_HALF_UP);
+                    BigDecimal randomAmount;
 
                     //BID
+                    randomAmount = random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP));
+
                     tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.BID,
-                            random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP)),
+                            randomAmount.compareTo(minOrderAmount) > 0 ? randomAmount : minOrderAmount,
                             ticker.getCurrencyPair(), "", new Date(),
-                            ticker.getLast().subtract(random20(trader.getSpread()))));
+                            ticker.getLast().subtract(random20(delta))));
 
                     //ASK
+                    randomAmount = random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP));
+
                     tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.ASK,
-                            random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP)),
+                            randomAmount.compareTo(minOrderAmount) > 0 ? randomAmount : minOrderAmount,
                             ticker.getCurrencyPair(), "", new Date(),
-                            ticker.getLast().add(random20(trader.getSpread()))));
+                            ticker.getLast().add(random20(delta))));
                 }
             }
         }
