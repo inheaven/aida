@@ -114,8 +114,8 @@ public class TraderService {
             Ticker ticker = getTicker(BITTREX, trader.getPair());
 
             if (trader.isRunning()
-                    && ticker.getLast().compareTo(trader.getHigh()) <= 0
-                    && ticker.getLast().compareTo(trader.getLow()) >= 0){
+                    && ticker.getLast().compareTo(trader.getHigh()) < 0
+                    && ticker.getLast().compareTo(trader.getLow()) > 0){
                 boolean hasOrder = false;
 
                 BigDecimal delta = trader.getSpread().divide(new BigDecimal("2"), 8, ROUND_HALF_DOWN);
@@ -127,7 +127,7 @@ public class TraderService {
 
                 for (LimitOrder order : getOpenOrders(BITTREX).getOpenOrders()){
                     if (ticker.getCurrencyPair().equals(order.getCurrencyPair())
-                            && order.getLimitPrice().subtract(ticker.getLast()).abs().compareTo(delta) < 0){
+                            && order.getLimitPrice().subtract(ticker.getLast()).abs().compareTo(delta) <= 0){
                         hasOrder = true;
                         break;
                     }
