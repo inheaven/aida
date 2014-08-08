@@ -35,6 +35,7 @@ import ru.inheaven.aida.coin.service.TraderBean;
 import ru.inheaven.aida.coin.service.TraderService;
 
 import javax.ejb.EJB;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -144,12 +145,12 @@ public class TraderList extends AbstractPage{
                     }else if (payload instanceof OpenOrders){
                         OpenOrders openOrders = (OpenOrders) exchangeMessage.getPayload();
 
-                        Map<ExchangePair, Integer> countBuyMap = new HashMap<>();
-                        Map<ExchangePair, Integer> countSellMap = new HashMap<>();
+                        Map<ExchangePair, BigDecimal> countBuyMap = new HashMap<>();
+                        Map<ExchangePair, BigDecimal> countSellMap = new HashMap<>();
 
                         for (ExchangePair ep : buyMap.keySet()){
-                            countBuyMap.put(ep, 0);
-                            countSellMap.put(ep, 0);
+                            countBuyMap.put(ep, new BigDecimal("0"));
+                            countSellMap.put(ep, new BigDecimal("0"));
                         }
 
                         for (LimitOrder order : openOrders.getOpenOrders()){
@@ -158,26 +159,26 @@ public class TraderList extends AbstractPage{
                             if (buyMap.get(ep) != null) {
                                 switch (order.getType()){
                                     case BID:
-                                        countBuyMap.put(ep, countBuyMap.get(ep) + 1);
+                                        countBuyMap.put(ep, countBuyMap.get(ep).add(order.getTradableAmount()));
                                         break;
                                     case ASK:
-                                        countSellMap.put(ep, countSellMap.get(ep) + 1);
+                                        countSellMap.put(ep, countSellMap.get(ep).add(order.getTradableAmount()));
                                         break;
                                 }
                             }
                         }
 
-                        countBuyMap.forEach(new BiConsumer<ExchangePair, Integer>() {
+                        countBuyMap.forEach(new BiConsumer<ExchangePair, BigDecimal>() {
                             @Override
-                            public void accept(ExchangePair exchangePair, Integer integer) {
-                                update(handler, buyMap.get(exchangePair), integer.toString());
+                            public void accept(ExchangePair exchangePair, BigDecimal bigDecimal) {
+                                update(handler, buyMap.get(exchangePair), bigDecimal.toString());
                             }
                         });
 
-                        countSellMap.forEach(new BiConsumer<ExchangePair, Integer>() {
+                        countSellMap.forEach(new BiConsumer<ExchangePair, BigDecimal>() {
                             @Override
-                            public void accept(ExchangePair exchangePair, Integer integer) {
-                                update(handler, sellMap.get(exchangePair), integer.toString());
+                            public void accept(ExchangePair exchangePair, BigDecimal bigDecimal) {
+                                update(handler, sellMap.get(exchangePair), bigDecimal.toString());
                             }
                         });
                     }else if (payload instanceof Exception){
