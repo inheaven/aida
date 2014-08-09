@@ -19,17 +19,16 @@ import org.apache.wicket.protocol.ws.WebSocketSettings;
 import org.apache.wicket.protocol.ws.api.WebSocketPushBroadcaster;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.inheaven.aida.coin.entity.ExchangeMessage;
-import ru.inheaven.aida.coin.entity.ExchangeName;
-import ru.inheaven.aida.coin.entity.ExchangePair;
-import ru.inheaven.aida.coin.entity.Trader;
+import ru.inheaven.aida.coin.entity.*;
 
 import javax.ejb.*;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static java.math.BigDecimal.ROUND_HALF_DOWN;
 import static java.math.BigDecimal.ROUND_HALF_UP;
@@ -54,6 +53,8 @@ public class TraderService {
     private Map<ExchangeName, OpenOrders> openOrdersMap = new ConcurrentHashMap<>();
     private Map<ExchangeName, AccountInfo> accountInfoMap = new ConcurrentHashMap<>();
 
+    private Map<ExchangeName, List<BalanceStat>> balanceStatsMap = new ConcurrentHashMap<>();
+
     public Exchange getBittrexExchange(){
         if (bittrexExchange == null){
             ExchangeSpecification exSpec = new ExchangeSpecification(BittrexExchange.class);
@@ -68,6 +69,10 @@ public class TraderService {
 
     public AccountInfo getAccountInfo(ExchangeName exchangeName){
         return accountInfoMap.get(exchangeName);
+    }
+
+    public List<BalanceStat> getBalanceStats(ExchangeName exchangeName){
+        return balanceStatsMap.get(exchangeName);
     }
 
     public Ticker getTicker(ExchangePair exchangePair){
@@ -100,6 +105,17 @@ public class TraderService {
         AccountInfo accountInfo = getBittrexExchange().getPollingAccountService().getAccountInfo();
 
         accountInfoMap.put(BITTREX, accountInfo);
+
+        //balance stats
+        List<BalanceStat> list = balanceStatsMap.get(BITTREX);
+        if (list == null){
+            list = new CopyOnWriteArrayList<>();
+            balanceStatsMap.put(BITTREX, list);
+        }else if (list.size() > 2000){
+            list.subList(0, 1000).clear();
+        }
+        list.add(new BalanceStat(accountInfo, new Date()));
+
         broadcast(BITTREX, accountInfo);
     }
 

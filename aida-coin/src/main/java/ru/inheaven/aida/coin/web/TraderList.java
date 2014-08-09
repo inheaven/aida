@@ -1,10 +1,11 @@
 package ru.inheaven.aida.coin.web;
 
+import com.googlecode.wickedcharts.highcharts.jackson.JsonRenderer;
 import com.googlecode.wickedcharts.highcharts.options.*;
-import com.googlecode.wickedcharts.highcharts.options.livedata.LiveDataSeries;
-import com.googlecode.wickedcharts.highcharts.options.livedata.LiveDataUpdateEvent;
 import com.googlecode.wickedcharts.highcharts.options.series.Point;
+import com.googlecode.wickedcharts.highcharts.options.series.PointSeries;
 import com.googlecode.wickedcharts.wicket6.highcharts.Chart;
+import com.googlecode.wickedcharts.wicket6.highcharts.JsonRendererFactory;
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.dto.trade.LimitOrder;
@@ -32,8 +33,8 @@ import org.apache.wicket.protocol.ws.api.message.IWebSocketPushMessage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.odlabs.wiquery.core.javascript.JsStatement;
 import org.odlabs.wiquery.ui.effects.HighlightEffectJavaScriptResourceReference;
+import ru.inheaven.aida.coin.entity.BalanceStat;
 import ru.inheaven.aida.coin.entity.ExchangeMessage;
-import ru.inheaven.aida.coin.entity.ExchangeName;
 import ru.inheaven.aida.coin.entity.ExchangePair;
 import ru.inheaven.aida.coin.entity.Trader;
 import ru.inheaven.aida.coin.service.TraderBean;
@@ -45,6 +46,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 
 import static org.apache.wicket.model.Model.of;
+import static ru.inheaven.aida.coin.entity.ExchangeName.BITTREX;
 
 /**
  * @author Anatoly Ivanov java@inheaven.ru
@@ -66,6 +68,7 @@ public class TraderList extends AbstractPage{
 
     private Component bittrexBTC, bittrexCoins;
 
+    private BigDecimal lastChartValue = new BigDecimal("0");
     private Chart chart;
 
     public TraderList() {
@@ -157,6 +160,20 @@ public class TraderList extends AbstractPage{
 
                         update(handler, bittrexCoins, estimate.toString());
                         update(handler, bittrexBTC, ((AccountInfo) payload).getBalance("BTC").toString());
+
+                        //update chart
+                        if (lastChartValue.compareTo(((AccountInfo) payload).getBalance("BTC")) != 0) {
+                            lastChartValue = ((AccountInfo) payload).getBalance("BTC");
+
+                            Point point = new Point(Calendar.getInstance().getTimeInMillis(), lastChartValue);
+                            JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
+                            String jsonPoint = renderer.toJson(point);
+                            String javaScript = "var chartVarName = " + chart.getJavaScriptVarName() + ";\n";
+                            javaScript += "var seriesIndex = " + 0 + ";\n";
+                            javaScript += "eval(chartVarName).series[seriesIndex].addPoint(" + jsonPoint + ", true, true);\n";
+
+                            handler.appendJavaScript(javaScript);
+                        }
                     }else if (payload instanceof Ticker) {
                         Ticker ticker = (Ticker) exchangeMessage.getPayload();
 
@@ -237,30 +254,33 @@ public class TraderList extends AbstractPage{
         options.setTitle(new Title(""));
         options.setLegend(new Legend(Boolean.FALSE));
 
-        options.setxAxis(new Axis()
-                .setType(AxisType.DATETIME));
+        options.setxAxis(new Axis().setType(AxisType.DATETIME));
 
-        options.setyAxis(new Axis()
-                .setTitle(new Title(""))
-                .setMin(0));
+        options.setyAxis(new Axis().setTitle(new Title("")).setMin(0));
 
         options.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions().setMarker(new Marker(false))));
 
-        final int updateInterval = 5000;
-
         List<Point> data = new ArrayList<>();
-        long time = new Date().getTime() - 1000*updateInterval;
-        for (int i = 0; i < 1000; ++i){
-            data.add(new Point(time, 0));
-            time += updateInterval;
+
+        List<BalanceStat> balanceStatList = traderService.getBalanceStats(BITTREX);
+        if (balanceStatList != null){
+            BigDecimal lastValue = new BigDecimal("0");
+
+            for (BalanceStat balanceStat : balanceStatList){
+                BigDecimal value = balanceStat.getAccountInfo().getBalance("BTC");
+                if (value.compareTo(lastValue) != 0) {
+                    data.add(new Point(balanceStat.getDate().getTime(), value));
+                }
+            }
         }
 
-        options.addSeries(new LiveDataSeries(options, updateInterval) {
-            @Override
-            public Point update(LiveDataUpdateEvent event) {
-                return new Point(new Date().getTime(), traderService.getAccountInfo(ExchangeName.BITTREX).getBalance("BTC"));
-            }
-        }.setData(data).setName("Средства"));
+        long time = new Date().getTime() - 60*60*1000;
+        int len = data.size();
+        for (int i = 0; i < 100 - len; ++i){
+            data.add(0, new Point(time, 0));
+        }
+
+        options.addSeries(new PointSeries().setData(data).setName("Средства"));
 
         add(chart = new Chart("chart", options));
     }

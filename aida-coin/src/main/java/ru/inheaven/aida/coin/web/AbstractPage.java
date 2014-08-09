@@ -2,8 +2,6 @@ package ru.inheaven.aida.coin.web;
 
 import de.agilecoders.wicket.core.markup.html.bootstrap.html.HtmlTag;
 import de.agilecoders.wicket.core.markup.html.bootstrap.navbar.Navbar;
-import de.agilecoders.wicket.core.markup.html.bootstrap.navbar.NavbarButton;
-import de.agilecoders.wicket.core.markup.html.bootstrap.navbar.NavbarComponents;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.Model;
 
@@ -20,8 +18,8 @@ public abstract class AbstractPage extends WebPage {
         Navbar navbar = new Navbar("navbar");
         navbar.setBrandName(Model.of("AIDA-COINS"));
         add(navbar);
-
-        navbar.addComponents(NavbarComponents.transform(Navbar.ComponentPosition.LEFT,
-                new NavbarButton(TraderList.class, Model.of("Торговцы"))));
+//
+//        navbar.addComponents(NavbarComponents.transform(Navbar.ComponentPosition.LEFT,
+//                new NavbarButton(TraderList.class, Model.of("Торговцы"))));
     }
 }
