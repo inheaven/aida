@@ -150,13 +150,13 @@ public class TraderService {
                         randomBidAmount = randomBidAmount.compareTo(minOrderAmount) > 0 ? randomBidAmount : minOrderAmount;
 
                         //check ask
-                        if (accountInfo.getBalance("BTC").compareTo(randomAskAmount.multiply(ticker.getLast())) > 0){
+                        if (accountInfo.getBalance("BTC").compareTo(randomAskAmount.multiply(ticker.getLast())) < 0){
                             broadcast(BITTREX, trader.getPair() + ": Не хватает на покупку " + randomAskAmount.toString());
                             continue;
                         }
 
                         //check bid
-                        if (accountInfo.getBalance(getCurrency(trader.getPair())).compareTo(randomBidAmount) > 0){
+                        if (accountInfo.getBalance(getCurrency(trader.getPair())).compareTo(randomBidAmount) < 0){
                             broadcast(BITTREX, trader.getPair() + ": Не хватает на продажу " + randomBidAmount.toString());
                             continue;
                         }
