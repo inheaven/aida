@@ -61,6 +61,8 @@ public class TraderList extends AbstractPage{
 
     private NotificationPanel notificationPanel;
 
+    private Component bittrexBTC;
+
     public TraderList() {
         //start service
         traderService.getBittrexExchange();
@@ -70,12 +72,7 @@ public class TraderList extends AbstractPage{
         notificationPanel.setOutputMarkupId(true);
         add(notificationPanel);
 
-        add(new BootstrapLink<String>("add", Buttons.Type.Link) {
-            @Override
-            public void onClick() {
-                setResponsePage(TraderEdit.class);
-            }
-        }.setIconType(GlyphIconType.plus).setLabel(of("Добавить")));
+        add(bittrexBTC = new Label("bittrexBTC", Model.of("0")).setOutputMarkupId(true));
 
         List<IColumn<Trader, String>> list = new ArrayList<>();
 
@@ -98,14 +95,25 @@ public class TraderList extends AbstractPage{
 
         list.add(new AbstractColumn<Trader, String>(of("")) {
             @Override
+            public Component getHeader(String componentId) {
+                return new NavbarAjaxLink<String>(componentId, Model.of("Добавить")) {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        setResponsePage(TraderEdit.class);
+                    }
+                }.setIconType(GlyphIconType.plus);
+            }
+
+            @Override
             public void populateItem(final Item<ICellPopulator<Trader>> cellItem, String componentId, final IModel<Trader> rowModel) {
-                cellItem.add(new NavbarAjaxLink(componentId, of("")) {
+                cellItem.add(new NavbarAjaxLink(componentId, Model.of("Редактировать")) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         setResponsePage(new TraderEdit(new PageParameters().add("id", rowModel.getObject().getId())));
                     }
                 }.setIconType(GlyphIconType.edit));
             }
+
         });
 
         DataTable<Trader, String> table = new DataTable<>("traders", list, new ListDataProvider<Trader>(){
@@ -116,7 +124,7 @@ public class TraderList extends AbstractPage{
         }, 100);
         table.setOutputMarkupId(true);
         table.addTopToolbar(new HeadersToolbar<>(table, null));
-        table.add(new TableBehavior());
+        table.add(new TableBehavior().bordered());
 
         add(table);
 
@@ -128,6 +136,8 @@ public class TraderList extends AbstractPage{
                     Object payload = exchangeMessage.getPayload();
 
                     if (payload instanceof AccountInfo){
+                        update(handler, bittrexBTC, ((AccountInfo) payload).getBalance("BTC").toString());
+
                         balanceMap.forEach(new BiConsumer<ExchangePair, Component>() {
                             @Override
                             public void accept(ExchangePair exchangePair, Component component) {

@@ -6,15 +6,20 @@
 <body>
 <wicket:extend>
     <div wicket:id="notification"></div>
-    <div>
-        <table wicket:id="traders"></table>
-    </div>
-    <div>
-        <a wicket:id="add">Добавить</a>
-    </div>
-    <div>
-        <span wicket:id="test_label"></span> <a href="#" wicket:id="test">test</a>
-    </div>
+
+    <table wicket:id="traders"></table>
+
+    <table class="table table-bordered pull-right" style="width: auto">
+        <tr>
+            <th>
+                Bittrex
+            </th>
+            <td>
+                <span wicket:id="bittrexBTC"></span>
+            </td>
+        </tr>
+    </table>
+    <span wicket:id="test_label"></span> <a href="#" wicket:id="test">test</a>
 </wicket:extend>
 </body>
 </html>
