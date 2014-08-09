@@ -141,14 +141,6 @@ public class TraderService {
                     BigDecimal randomAmount;
 
                     try {
-                        //BID
-                        randomAmount = random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP));
-
-                        tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.BID,
-                                randomAmount.compareTo(minOrderAmount) > 0 ? randomAmount : minOrderAmount,
-                                ticker.getCurrencyPair(), "", new Date(),
-                                ticker.getLast().subtract(random20(delta))));
-
                         //ASK
                         randomAmount = random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP));
 
@@ -156,6 +148,14 @@ public class TraderService {
                                 randomAmount.compareTo(minOrderAmount) > 0 ? randomAmount : minOrderAmount,
                                 ticker.getCurrencyPair(), "", new Date(),
                                 ticker.getLast().add(random20(delta))));
+
+                        //BID
+                        randomAmount = random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP));
+
+                        tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.BID,
+                                randomAmount.compareTo(minOrderAmount) > 0 ? randomAmount : minOrderAmount,
+                                ticker.getCurrencyPair(), "", new Date(),
+                                ticker.getLast().subtract(random20(delta))));
                     } catch (Exception e) {
                         log.error("trade error", e);
 
