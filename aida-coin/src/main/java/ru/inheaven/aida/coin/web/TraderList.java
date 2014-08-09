@@ -268,8 +268,11 @@ public class TraderList extends AbstractPage{
 
             for (BalanceStat balanceStat : balanceStatList){
                 BigDecimal value = balanceStat.getAccountInfo().getBalance("BTC");
+
                 if (value.compareTo(lastValue) != 0) {
                     data.add(new Point(balanceStat.getDate().getTime(), value));
+
+                    lastValue = value;
                 }
             }
         }
