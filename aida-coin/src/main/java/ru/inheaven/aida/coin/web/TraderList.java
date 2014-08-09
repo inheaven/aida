@@ -1,5 +1,10 @@
 package ru.inheaven.aida.coin.web;
 
+import com.googlecode.wickedcharts.highcharts.options.*;
+import com.googlecode.wickedcharts.highcharts.options.livedata.LiveDataSeries;
+import com.googlecode.wickedcharts.highcharts.options.livedata.LiveDataUpdateEvent;
+import com.googlecode.wickedcharts.highcharts.options.series.Point;
+import com.googlecode.wickedcharts.wicket6.highcharts.Chart;
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.dto.trade.LimitOrder;
@@ -28,6 +33,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.odlabs.wiquery.core.javascript.JsStatement;
 import org.odlabs.wiquery.ui.effects.HighlightEffectJavaScriptResourceReference;
 import ru.inheaven.aida.coin.entity.ExchangeMessage;
+import ru.inheaven.aida.coin.entity.ExchangeName;
 import ru.inheaven.aida.coin.entity.ExchangePair;
 import ru.inheaven.aida.coin.entity.Trader;
 import ru.inheaven.aida.coin.service.TraderBean;
@@ -35,10 +41,7 @@ import ru.inheaven.aida.coin.service.TraderService;
 
 import javax.ejb.EJB;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiConsumer;
 
 import static org.apache.wicket.model.Model.of;
@@ -62,6 +65,8 @@ public class TraderList extends AbstractPage{
     private NotificationPanel notificationPanel;
 
     private Component bittrexBTC, bittrexCoins;
+
+    private Chart chart;
 
     public TraderList() {
         //start service
@@ -225,7 +230,39 @@ public class TraderList extends AbstractPage{
         }.setIconType(GlyphIconType.warningsign).setLabel(of("test")));
 
         //Chart
+        Options options = new Options();
+        options.setChartOptions(new ChartOptions(SeriesType.SPLINE));
 
+        options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
+        options.setTitle(new Title(""));
+        options.setLegend(new Legend(Boolean.FALSE));
+
+        options.setxAxis(new Axis()
+                .setType(AxisType.DATETIME));
+
+        options.setyAxis(new Axis()
+                .setTitle(new Title(""))
+                .setMin(0));
+
+        options.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions().setMarker(new Marker(false))));
+
+        final int updateInterval = 5000;
+
+        List<Point> data = new ArrayList<>();
+        long time = new Date().getTime() - 1000*updateInterval;
+        for (int i = 0; i < 1000; ++i){
+            data.add(new Point(time, 0));
+            time += updateInterval;
+        }
+
+        options.addSeries(new LiveDataSeries(options, updateInterval) {
+            @Override
+            public Point update(LiveDataUpdateEvent event) {
+                return new Point(new Date().getTime(), traderService.getAccountInfo(ExchangeName.BITTREX).getBalance("BTC"));
+            }
+        }.setData(data).setName("Средства"));
+
+        add(chart = new Chart("chart", options));
     }
 
     private void update(WebSocketRequestHandler handler, Component component, String newValue){

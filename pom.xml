@@ -391,6 +391,11 @@
                 <version>1.5.0</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.pingunaut</groupId>
+                <artifactId>wicket-chartjs</artifactId>
+                <version>6.14.0</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

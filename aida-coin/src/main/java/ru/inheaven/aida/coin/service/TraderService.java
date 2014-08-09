@@ -52,6 +52,7 @@ public class TraderService {
 
     private Map<ExchangePair, Ticker> tickerMap = new ConcurrentHashMap<>();
     private Map<ExchangeName, OpenOrders> openOrdersMap = new ConcurrentHashMap<>();
+    private Map<ExchangeName, AccountInfo> accountInfoMap = new ConcurrentHashMap<>();
 
     public Exchange getBittrexExchange(){
         if (bittrexExchange == null){
@@ -65,12 +66,16 @@ public class TraderService {
         return bittrexExchange;
     }
 
+    public AccountInfo getAccountInfo(ExchangeName exchangeName){
+        return accountInfoMap.get(exchangeName);
+    }
+
     public Ticker getTicker(ExchangePair exchangePair){
         return tickerMap.get(exchangePair);
     }
 
     public Ticker getTicker(ExchangeName exchange, String pair){
-        return getTicker(new ExchangePair(exchange,pair));
+        return getTicker(new ExchangePair(exchange, pair));
     }
 
     public OpenOrders getOpenOrders(ExchangeName exchangeName){
@@ -92,7 +97,10 @@ public class TraderService {
     }
 
     public void updateBittrexBalance() throws IOException {
-        broadcast(BITTREX, getBittrexExchange().getPollingAccountService().getAccountInfo());
+        AccountInfo accountInfo = getBittrexExchange().getPollingAccountService().getAccountInfo();
+
+        accountInfoMap.put(BITTREX, accountInfo);
+        broadcast(BITTREX, accountInfo);
     }
 
     //todo generalize update ticker
@@ -144,7 +152,7 @@ public class TraderService {
 
                 if (!hasOrder){
                     PollingTradeService tradeService = getBittrexExchange().getPollingTradeService();
-                    AccountInfo accountInfo = getBittrexExchange().getPollingAccountService().getAccountInfo();
+                    AccountInfo accountInfo = getAccountInfo(BITTREX);
 
                     try {
                         BigDecimal randomAskAmount = random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP));
