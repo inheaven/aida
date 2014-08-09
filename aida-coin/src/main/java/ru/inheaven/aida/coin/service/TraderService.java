@@ -143,22 +143,21 @@ public class TraderService {
                     AccountInfo accountInfo = getBittrexExchange().getPollingAccountService().getAccountInfo();
 
                     try {
+                        BigDecimal randomAskAmount = random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP));
+                        randomAskAmount = randomAskAmount.compareTo(minOrderAmount) > 0 ? randomAskAmount : minOrderAmount;
 
                         BigDecimal randomBidAmount = random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP));
                         randomBidAmount = randomBidAmount.compareTo(minOrderAmount) > 0 ? randomBidAmount : minOrderAmount;
 
-                        BigDecimal randomAskAmount = random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP));
-                        randomAskAmount = randomAskAmount.compareTo(minOrderAmount) > 0 ? randomAskAmount : minOrderAmount;
-
                         //check ask
-                        if (accountInfo.getBalance("BTC").compareTo(randomBidAmount.multiply(ticker.getLast())) > 0){
-                            broadcast(BITTREX, trader.getPair() + ": Не хватает на покупку " + randomBidAmount.toString());
+                        if (accountInfo.getBalance("BTC").compareTo(randomAskAmount.multiply(ticker.getLast())) > 0){
+                            broadcast(BITTREX, trader.getPair() + ": Не хватает на покупку " + randomAskAmount.toString());
                             continue;
                         }
 
                         //check bid
-                        if (accountInfo.getBalance(getCurrency(trader.getPair())).compareTo(randomAskAmount) > 0){
-                            broadcast(BITTREX, trader.getPair() + ": Не хватает на продажу " + randomAskAmount.toString());
+                        if (accountInfo.getBalance(getCurrency(trader.getPair())).compareTo(randomBidAmount) > 0){
+                            broadcast(BITTREX, trader.getPair() + ": Не хватает на продажу " + randomBidAmount.toString());
                             continue;
                         }
 
