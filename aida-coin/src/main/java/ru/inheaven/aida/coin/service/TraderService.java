@@ -1,10 +1,13 @@
 package ru.inheaven.aida.coin.service;
 
 import com.google.common.base.Throwables;
-import com.xeiam.xchange.*;
+import com.xeiam.xchange.Exchange;
+import com.xeiam.xchange.ExchangeFactory;
+import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.bittrex.v1.BittrexExchange;
 import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.dto.Order;
+import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.OpenOrders;
@@ -137,26 +140,39 @@ public class TraderService {
 
                 if (!hasOrder){
                     PollingTradeService tradeService = getBittrexExchange().getPollingTradeService();
-
-                    BigDecimal randomAmount;
+                    AccountInfo accountInfo = getBittrexExchange().getPollingAccountService().getAccountInfo();
 
                     try {
-                        //BID
-                        randomAmount = random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP));
 
-                        tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.BID,
-                                randomAmount.compareTo(minOrderAmount) > 0 ? randomAmount : minOrderAmount,
-                                ticker.getCurrencyPair(), "", new Date(),
-                                ticker.getLast().subtract(random20(delta))));
+                        BigDecimal randomBidAmount = random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP));
+                        randomBidAmount = randomBidAmount.compareTo(minOrderAmount) > 0 ? randomBidAmount : minOrderAmount;
+
+                        BigDecimal randomAskAmount = random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP));
+                        randomAskAmount = randomAskAmount.compareTo(minOrderAmount) > 0 ? randomAskAmount : minOrderAmount;
+
+                        //check ask
+                        if (accountInfo.getBalance("BTC").compareTo(randomBidAmount) < 0){
+                            broadcast(BITTREX, trader.getPair() + ": Не хватает на покупку " + randomBidAmount.toString());
+                            continue;
+                        }
+
+                        //check bid
+                        if (accountInfo.getBalance(getCurrency(trader.getPair())).compareTo(randomAskAmount) < 0){
+                            broadcast(BITTREX, trader.getPair() + ": Не хватает на продажу " + randomAskAmount.toString());
+                            continue;
+                        }
 
                         //ASK
-                        randomAmount = random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP));
-
                         tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.ASK,
-                                randomAmount.compareTo(minOrderAmount) > 0 ? randomAmount : minOrderAmount,
+                                randomAskAmount,
                                 ticker.getCurrencyPair(), "", new Date(),
                                 ticker.getLast().add(random20(delta))));
 
+                        //BID
+                        tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.BID,
+                                randomBidAmount,
+                                ticker.getCurrencyPair(), "", new Date(),
+                                ticker.getLast().subtract(random20(delta))));
                     } catch (Exception e) {
                         log.error("trade error", e);
 
