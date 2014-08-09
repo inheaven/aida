@@ -65,8 +65,12 @@ public class TraderService {
         return bittrexExchange;
     }
 
+    public Ticker getTicker(ExchangePair exchangePair){
+        return tickerMap.get(exchangePair);
+    }
+
     public Ticker getTicker(ExchangeName exchange, String pair){
-        return tickerMap.get(new ExchangePair(exchange,pair));
+        return getTicker(new ExchangePair(exchange,pair));
     }
 
     public OpenOrders getOpenOrders(ExchangeName exchangeName){

@@ -61,7 +61,7 @@ public class TraderList extends AbstractPage{
 
     private NotificationPanel notificationPanel;
 
-    private Component bittrexBTC;
+    private Component bittrexBTC, bittrexCoins;
 
     public TraderList() {
         //start service
@@ -73,6 +73,7 @@ public class TraderList extends AbstractPage{
         add(notificationPanel);
 
         add(bittrexBTC = new Label("bittrexBTC", Model.of("0")).setOutputMarkupId(true));
+        add(bittrexCoins = new Label("bittrexCoins", Model.of("0")).setOutputMarkupId(true));
 
         List<IColumn<Trader, String>> list = new ArrayList<>();
 
@@ -136,14 +137,21 @@ public class TraderList extends AbstractPage{
                     Object payload = exchangeMessage.getPayload();
 
                     if (payload instanceof AccountInfo){
-                        update(handler, bittrexBTC, ((AccountInfo) payload).getBalance("BTC").toString());
+                        BigDecimal estimate = new BigDecimal("0");
 
-                        balanceMap.forEach(new BiConsumer<ExchangePair, Component>() {
-                            @Override
-                            public void accept(ExchangePair exchangePair, Component component) {
-                                update(handler, component, ((AccountInfo) payload).getBalance(exchangePair.getCurrency()).toString());
+                        for (ExchangePair exchangePair : balanceMap.keySet()){
+                            BigDecimal balance = ((AccountInfo) payload).getBalance(exchangePair.getCurrency());
+
+                            if (traderService.getTicker(exchangePair) != null) {
+                                estimate = estimate.add(balance.multiply(traderService.getTicker(exchangePair).getLast()))
+                                        .setScale(8, BigDecimal.ROUND_HALF_UP);
                             }
-                        });
+
+                            update(handler, balanceMap.get(exchangePair), balance.toString());
+                        }
+
+                        update(handler, bittrexCoins, estimate.toString());
+                        update(handler, bittrexBTC, ((AccountInfo) payload).getBalance("BTC").toString());
                     }else if (payload instanceof Ticker) {
                         Ticker ticker = (Ticker) exchangeMessage.getPayload();
 
