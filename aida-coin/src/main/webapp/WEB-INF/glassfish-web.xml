@@ -4,4 +4,9 @@
 <glassfish-web-app>
     <context-root>aida-coin</context-root>
 
+    <security-role-mapping>
+        <role-name>inheaven</role-name>
+        <group-name>inheaven</group-name>
+    </security-role-mapping>
+
 </glassfish-web-app>
