@@ -44,4 +44,8 @@
             <role-name>inheaven</role-name>
         </auth-constraint>
     </security-constraint>
+
+    <session-config>
+        <session-timeout>10800</session-timeout>
+    </session-config>
 </web-app>
