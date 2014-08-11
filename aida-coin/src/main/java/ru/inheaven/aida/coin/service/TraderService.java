@@ -8,6 +8,7 @@ import com.xeiam.xchange.bittrex.v1.BittrexExchange;
 import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.dto.Order;
 import com.xeiam.xchange.dto.account.AccountInfo;
+import com.xeiam.xchange.dto.marketdata.OrderBook;
 import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.OpenOrders;
@@ -50,6 +51,8 @@ public class TraderService {
     private Exchange bittrexExchange;
 
     private Map<ExchangePair, Ticker> tickerMap = new ConcurrentHashMap<>();
+    private Map<ExchangePair, OrderBook> orderBookMap = new ConcurrentHashMap<>();
+
     private Map<ExchangeName, OpenOrders> openOrdersMap = new ConcurrentHashMap<>();
     private Map<ExchangeName, AccountInfo> accountInfoMap = new ConcurrentHashMap<>();
 
@@ -81,6 +84,10 @@ public class TraderService {
 
     public Ticker getTicker(ExchangeName exchange, String pair){
         return getTicker(new ExchangePair(exchange, pair));
+    }
+
+    public OrderBook getOrderBook(ExchangeName exchange, String pair){
+        return orderBookMap.get(new ExchangePair(exchange, pair));
     }
 
     public OpenOrders getOpenOrders(ExchangeName exchangeName){
@@ -126,11 +133,15 @@ public class TraderService {
         for (String pair : traderBean.getTraderPairs()) {
             CurrencyPair currencyPair = getCurrencyPair(pair);
 
-            if (currencyPair != null && !currencyPair.baseSymbol.equals("BTC")) {
+            if (currencyPair != null) {
                 Ticker ticker = marketDataService.getTicker(currencyPair);
-
                 tickerMap.put(new ExchangePair(BITTREX, pair), ticker);
+
+                OrderBook orderBook = marketDataService.getOrderBook(currencyPair);
+                orderBookMap.put(new ExchangePair(BITTREX, pair), orderBook);
+
                 broadcast(BITTREX, ticker);
+                broadcast(BITTREX, orderBook);
             }
         }
     }
@@ -144,23 +155,27 @@ public class TraderService {
 
     private void tradeBittrexAlpha() throws IOException {
         for (Trader trader : traderBean.getTraders()){
-            Ticker ticker = getTicker(BITTREX, trader.getPair());
+            OrderBook orderBook = getOrderBook(BITTREX, trader.getPair());
+
+            BigDecimal middlePrice = orderBook.getAsks().get(0).getLimitPrice()
+                    .add(orderBook.getBids().get(orderBook.getBids().size()-1).getLimitPrice())
+                    .divide(new BigDecimal("2"), 8, ROUND_HALF_UP);
 
             if (trader.isRunning()
-                    && ticker.getLast().compareTo(trader.getHigh()) < 0
-                    && ticker.getLast().compareTo(trader.getLow()) > 0){
+                    && middlePrice.compareTo(trader.getHigh()) < 0
+                    && middlePrice.compareTo(trader.getLow()) > 0){
                 boolean hasOrder = false;
 
                 BigDecimal delta = trader.getSpread().divide(new BigDecimal("2"), 8, ROUND_HALF_DOWN);
-                BigDecimal minDelta = ticker.getLast().multiply(new BigDecimal("0.015")).setScale(8, ROUND_HALF_DOWN);
+                BigDecimal minDelta = middlePrice.multiply(new BigDecimal("0.015")).setScale(8, ROUND_HALF_DOWN);
                 delta = delta.compareTo(minDelta) > 0 ? delta : minDelta;
 
                 BigDecimal level = trader.getHigh().subtract(trader.getLow()).divide(trader.getSpread(), 8, ROUND_HALF_UP);
-                BigDecimal minOrderAmount = new BigDecimal("0.0007").divide(ticker.getLast(), 8, ROUND_HALF_UP);
+                BigDecimal minOrderAmount = new BigDecimal("0.0007").divide(middlePrice, 8, ROUND_HALF_UP);
 
                 for (LimitOrder order : getOpenOrders(BITTREX).getOpenOrders()){
-                    if (ticker.getCurrencyPair().equals(order.getCurrencyPair())
-                            && order.getLimitPrice().subtract(ticker.getLast()).abs().compareTo(delta) <= 0){
+                    if (getCurrencyPair(trader.getPair()).equals(order.getCurrencyPair())
+                            && order.getLimitPrice().subtract(middlePrice).abs().compareTo(delta) <= 0){
                         hasOrder = true;
                         break;
                     }
@@ -178,7 +193,7 @@ public class TraderService {
                         randomBidAmount = randomBidAmount.compareTo(minOrderAmount) > 0 ? randomBidAmount : minOrderAmount;
 
                         //check ask
-                        if (accountInfo.getBalance("BTC").compareTo(randomAskAmount.multiply(ticker.getLast())) < 0){
+                        if (accountInfo.getBalance("BTC").compareTo(randomAskAmount.multiply(middlePrice)) < 0){
                             broadcast(BITTREX, trader.getPair() + ": Не хватает на покупку " + randomAskAmount.toString());
                             continue;
                         }
@@ -192,14 +207,14 @@ public class TraderService {
                         //ASK
                         tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.ASK,
                                 randomAskAmount,
-                                ticker.getCurrencyPair(), "", new Date(),
-                                ticker.getLast().add(random20(delta))));
+                                getCurrencyPair(trader.getPair()), "", new Date(),
+                                middlePrice.add(random20(delta))));
 
                         //BID
                         tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.BID,
                                 randomBidAmount,
-                                ticker.getCurrencyPair(), "", new Date(),
-                                ticker.getLast().subtract(random20(delta))));
+                                getCurrencyPair(trader.getPair()), "", new Date(),
+                                middlePrice.subtract(random20(delta))));
                     } catch (Exception e) {
                         log.error("trade error", e);
 
