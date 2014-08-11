@@ -207,14 +207,14 @@ public class TraderService {
                         //ASK
                         tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.ASK,
                                 randomAskAmount,
-                                ticker.getCurrencyPair(), "", new Date(),
-                                ticker.getLast().add(random20(delta))));
+                                getCurrencyPair(trader.getPair()), "", new Date(),
+                                middlePrice.add(random20(delta))));
 
                         //BID
                         tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.BID,
                                 randomBidAmount,
-                                ticker.getCurrencyPair(), "", new Date(),
-                                ticker.getLast().subtract(random20(delta))));
+                                getCurrencyPair(trader.getPair()), "", new Date(),
+                                middlePrice.subtract(random20(delta))));
                     } catch (Exception e) {
                         log.error("trade error", e);
 
