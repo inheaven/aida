@@ -94,7 +94,7 @@ public class TraderService {
         return openOrdersMap.get(exchangeName);
     }
 
-    @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/1", minute="*", hour="*", persistent=false)
     public void scheduleBittrexUpdate(){
         try {
             updateBittrexBalance();
@@ -118,8 +118,8 @@ public class TraderService {
         if (list == null){
             list = new CopyOnWriteArrayList<>();
             balanceStatsMap.put(BITTREX, list);
-        }else if (list.size() > 2000){
-            list.subList(0, 1000).clear();
+        }else if (list.size() > 10000){
+            list.subList(0, 5000).clear();
         }
         list.add(new BalanceStat(accountInfo, new Date()));
 
@@ -165,17 +165,13 @@ public class TraderService {
                     && middlePrice.compareTo(trader.getHigh()) < 0
                     && middlePrice.compareTo(trader.getLow()) > 0){
                 boolean hasOrder = false;
-
-                BigDecimal delta = trader.getSpread().divide(new BigDecimal("2"), 8, ROUND_HALF_DOWN);
-                BigDecimal minDelta = middlePrice.multiply(new BigDecimal("0.015")).setScale(8, ROUND_HALF_DOWN);
-                delta = delta.compareTo(minDelta) > 0 ? delta : minDelta;
-
+              
                 BigDecimal level = trader.getHigh().subtract(trader.getLow()).divide(trader.getSpread(), 8, ROUND_HALF_UP);
                 BigDecimal minOrderAmount = new BigDecimal("0.0007").divide(middlePrice, 8, ROUND_HALF_UP);
 
                 for (LimitOrder order : getOpenOrders(BITTREX).getOpenOrders()){
                     if (getCurrencyPair(trader.getPair()).equals(order.getCurrencyPair())
-                            && order.getLimitPrice().subtract(middlePrice).abs().compareTo(delta) <= 0){
+                            && order.getLimitPrice().subtract(middlePrice).abs().compareTo(trader.getSpread()) <= 0){                   
                         hasOrder = true;
                         break;
                     }
@@ -186,6 +182,10 @@ public class TraderService {
                     AccountInfo accountInfo = getAccountInfo(BITTREX);
 
                     try {
+                        BigDecimal delta = trader.getSpread().divide(new BigDecimal("2"), 8, ROUND_HALF_DOWN);
+                        BigDecimal minDelta = middlePrice.multiply(new BigDecimal("0.015")).setScale(8, ROUND_HALF_DOWN);
+                        delta = delta.compareTo(minDelta) > 0 ? delta : minDelta;
+
                         BigDecimal randomAskAmount = random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP));
                         randomAskAmount = randomAskAmount.compareTo(minOrderAmount) > 0 ? randomAskAmount : minOrderAmount;
 
@@ -207,14 +207,14 @@ public class TraderService {
                         //ASK
                         tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.ASK,
                                 randomAskAmount,
-                                getCurrencyPair(trader.getPair()), "", new Date(),
-                                middlePrice.add(random20(delta))));
+                                ticker.getCurrencyPair(), "", new Date(),
+                                ticker.getLast().add(random20(delta))));
 
                         //BID
                         tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.BID,
                                 randomBidAmount,
-                                getCurrencyPair(trader.getPair()), "", new Date(),
-                                middlePrice.subtract(random20(delta))));
+                                ticker.getCurrencyPair(), "", new Date(),
+                                ticker.getLast().subtract(random20(delta))));
                     } catch (Exception e) {
                         log.error("trade error", e);
 

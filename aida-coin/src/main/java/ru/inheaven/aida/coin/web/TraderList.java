@@ -279,7 +279,7 @@ public class TraderList extends AbstractPage{
         }
 
         int len = data.size();
-        Number x = !data.isEmpty() ? data.get(0).getX() : new Date().getTime() - 60*60*1000;
+        Number x = !data.isEmpty() ? data.get(0).getX() : new Date().getTime() - 6*60*60*1000;
         Number y = !data.isEmpty() ? data.get(0).getY() : 0;
         for (int i = 0; i < 100 - len; ++i){
             data.add(0, new Point(x, y));
