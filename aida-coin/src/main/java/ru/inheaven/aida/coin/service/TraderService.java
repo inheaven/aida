@@ -14,7 +14,6 @@ import com.xeiam.xchange.dto.marketdata.OrderBook;
 import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.OpenOrders;
-import com.xeiam.xchange.service.polling.PollingMarketDataService;
 import com.xeiam.xchange.service.polling.PollingTradeService;
 import org.apache.wicket.Application;
 import org.apache.wicket.protocol.ws.IWebSocketSettings;
@@ -206,7 +205,7 @@ public class TraderService {
 
             if (trader.isRunning()){
                 if (middlePrice.compareTo(trader.getHigh()) > 0 || middlePrice.compareTo(trader.getLow()) < 0){
-                    broadcast(exchangeType, trader.getPair() + ": Цена за границами диапазона");
+                    broadcast(exchangeType, trader.getPair() + ": Цена за границами диапазона " + middlePrice.toString());
 
                     continue;
                 }
