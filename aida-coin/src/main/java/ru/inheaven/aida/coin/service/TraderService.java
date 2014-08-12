@@ -5,6 +5,7 @@ import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.ExchangeFactory;
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.bittrex.v1.BittrexExchange;
+import com.xeiam.xchange.cexio.CexIOAdapters;
 import com.xeiam.xchange.cexio.CexIOExchange;
 import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.dto.Order;
@@ -21,7 +22,9 @@ import org.apache.wicket.protocol.ws.WebSocketSettings;
 import org.apache.wicket.protocol.ws.api.WebSocketPushBroadcaster;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.inheaven.aida.coin.cexio.CexIO;
 import ru.inheaven.aida.coin.entity.*;
+import si.mazi.rescu.RestProxyFactory;
 
 import javax.ejb.*;
 import java.io.IOException;
@@ -60,6 +63,8 @@ public class TraderService {
 
     private Map<ExchangeType, List<BalanceStat>> balanceStatsMap = new ConcurrentHashMap<>();
 
+    private CexIO cexIO;
+
     public Exchange getExchange(ExchangeType exchangeType){
         switch (exchangeType){
             case BITTREX:
@@ -87,6 +92,15 @@ public class TraderService {
         }
 
         throw new IllegalArgumentException();
+    }
+
+    private OrderBook getCexIOrderBook(CurrencyPair currencyPair) throws IOException {
+        if (cexIO == null){
+            cexIO = RestProxyFactory.createProxy(CexIO.class, "https://cex.io");
+        }
+
+        return CexIOAdapters.adaptOrderBook(cexIO.getDepth(currencyPair.baseSymbol, currencyPair.counterSymbol, 1),
+                currencyPair);
     }
 
     @Schedule(second = "*/1", minute="*", hour="*", persistent=false)
@@ -149,7 +163,15 @@ public class TraderService {
             CurrencyPair currencyPair = getCurrencyPair(pair);
 
             if (currencyPair != null) {
-                OrderBook orderBook = getExchange(exchangeType).getPollingMarketDataService().getOrderBook(currencyPair);
+                OrderBook orderBook;
+
+                switch (exchangeType){
+                    case CEXIO: orderBook = getCexIOrderBook(currencyPair);
+                        break;
+                    default:
+                        orderBook = getExchange(exchangeType).getPollingMarketDataService().getOrderBook(currencyPair);
+                }
+
                 orderBookMap.put(new ExchangePair(exchangeType, pair), orderBook);
 
                 broadcast(exchangeType, orderBook);
