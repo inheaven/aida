@@ -76,8 +76,9 @@ public class TraderService {
             case CEXIO:
                 if (cexIOExchange == null){
                     ExchangeSpecification exSpec = new ExchangeSpecification(CexIOExchange.class);
-                    exSpec.setApiKey("zjQ6cTSrmmQI6e620dqMytDRY");
-                    exSpec.setSecretKey("0oHs9dk3inFiduJ9AJod5K8D78");
+                    exSpec.setUserName("inheaven");
+                    exSpec.setApiKey("0rt9tOzQG2rGfZfGxsx1CtR9JA");
+                    exSpec.setSecretKey("5ZpuaGOfpFdn96JisyCfR6wQvc");
 
                     cexIOExchange = ExchangeFactory.INSTANCE.createExchange(exSpec);
                 }
@@ -241,11 +242,15 @@ public class TraderService {
     }
 
     private void broadcast(ExchangeType exchange, Object payload){
-        Application application = Application.get("aida-coin");
-        IWebSocketSettings webSocketSettings = WebSocketSettings.Holder.get(application);
+        try {
+            Application application = Application.get("aida-coin");
+            IWebSocketSettings webSocketSettings = WebSocketSettings.Holder.get(application);
 
-        WebSocketPushBroadcaster broadcaster = new WebSocketPushBroadcaster(webSocketSettings.getConnectionRegistry());
-        broadcaster.broadcastAll(application, new ExchangeMessage<>(exchange, payload));
+            WebSocketPushBroadcaster broadcaster = new WebSocketPushBroadcaster(webSocketSettings.getConnectionRegistry());
+            broadcaster.broadcastAll(application, new ExchangeMessage<>(exchange, payload));
+        } catch (Exception e) {
+            log.error("broadcast error", e);
+        }
     }
 
     public AccountInfo getAccountInfo(ExchangeType exchangeType){
