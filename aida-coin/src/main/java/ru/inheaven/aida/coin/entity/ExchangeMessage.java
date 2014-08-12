@@ -20,7 +20,7 @@ public class ExchangeMessage<T> implements IWebSocketPushMessage{
         return payload;
     }
 
-    public ExchangeType getExchange() {
+    public ExchangeType getExchangeType() {
         return exchange;
     }
 }

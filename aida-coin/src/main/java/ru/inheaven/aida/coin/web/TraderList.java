@@ -9,7 +9,6 @@ import com.googlecode.wickedcharts.wicket6.highcharts.JsonRendererFactory;
 import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.marketdata.OrderBook;
-import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.OpenOrders;
 import de.agilecoders.wicket.core.markup.html.bootstrap.button.BootstrapLink;
@@ -164,7 +163,7 @@ public class TraderList extends AbstractPage{
                         BigDecimal estimate = new BigDecimal("0");
 
                         for (ExchangePair exchangePair : balanceMap.keySet()){
-                            if (exchangePair.getExchangeType().equals(exchangeMessage.getExchange())){
+                            if (exchangePair.getExchangeType().equals(exchangeMessage.getExchangeType())){
                                 BigDecimal balance = ((AccountInfo) payload).getBalance(exchangePair.getCurrency());
 
                                 if (traderService.getOrderBook(exchangePair) == null){
@@ -182,7 +181,7 @@ public class TraderList extends AbstractPage{
                             }
                         }
 
-                        if (exchangeMessage.getExchange().equals(BITTREX)) {
+                        if (exchangeMessage.getExchangeType().equals(BITTREX)) {
                             update(handler, bittrexCoins, estimate);
                             update(handler, bittrexBTC, ((AccountInfo) payload).getBalance("BTC"));
 
@@ -207,7 +206,7 @@ public class TraderList extends AbstractPage{
                         BigDecimal askPrice =  orderBook.getAsks().get(0).getLimitPrice();
 
                         CurrencyPair currencyPair = orderBook.getAsks().get(0).getCurrencyPair();
-                        ExchangePair exchangePair = ExchangePair.of(exchangeMessage.getExchange(), currencyPair);
+                        ExchangePair exchangePair = ExchangePair.of(exchangeMessage.getExchangeType(), currencyPair);
 
                         //ask
                         update(handler, askMap.get(exchangePair), askPrice);
@@ -218,7 +217,7 @@ public class TraderList extends AbstractPage{
 
                         //estimate
                         update(handler, estimateMap.get(exchangePair), askPrice
-                                .multiply(traderService.getAccountInfo(exchangeMessage.getExchange())
+                                .multiply(traderService.getAccountInfo(exchangeMessage.getExchangeType())
                                         .getBalance(currencyPair.baseSymbol)).setScale(8, BigDecimal.ROUND_HALF_UP));
 
                     }else if (payload instanceof OpenOrders){
@@ -228,12 +227,14 @@ public class TraderList extends AbstractPage{
                         Map<ExchangePair, BigDecimal> countSellMap = new HashMap<>();
 
                         for (ExchangePair ep : buyMap.keySet()){
-                            countBuyMap.put(ep, new BigDecimal("0"));
-                            countSellMap.put(ep, new BigDecimal("0"));
+                            if (ep.getExchangeType().equals(exchangeMessage.getExchangeType())) {
+                                countBuyMap.put(ep, new BigDecimal("0"));
+                                countSellMap.put(ep, new BigDecimal("0"));
+                            }
                         }
 
                         for (LimitOrder order : openOrders.getOpenOrders()){
-                            ExchangePair ep = ExchangePair.of(exchangeMessage.getExchange(), order.getCurrencyPair());
+                            ExchangePair ep = ExchangePair.of(exchangeMessage.getExchangeType(), order.getCurrencyPair());
 
                             if (buyMap.get(ep) != null) {
                                 switch (order.getType()){
