@@ -105,7 +105,7 @@ public class TraderList extends AbstractPage{
                 cellItem.add(new Label(componentId, of(lot)));
             }
         });
-        list.add(new TraderColumn(of("Оценка"), estimateMap));
+        list.add(new TraderColumn(of("Капитализация"), estimateMap));
         list.add(new TraderColumn(of("Покупка"), buyMap));
         list.add(new TraderColumn(of("Продажа"), sellMap));
         list.add(new TraderColumn(of("Спрос"),askMap));
