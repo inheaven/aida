@@ -49,6 +49,7 @@ import java.util.function.BiConsumer;
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static org.apache.wicket.model.Model.of;
 import static ru.inheaven.aida.coin.entity.ExchangeType.BITTREX;
+import static ru.inheaven.aida.coin.entity.ExchangeType.CEXIO;
 
 /**
  * @author Anatoly Ivanov java@inheaven.ru
@@ -71,6 +72,7 @@ public class TraderList extends AbstractPage{
     private NotificationPanel notificationPanel;
 
     private Component bittrexBTC, bittrexCoins;
+    private Component cexioBTC, cexioCoins;
 
     private BigDecimal lastChartValue = new BigDecimal("0");
     private Chart chart;
@@ -83,6 +85,9 @@ public class TraderList extends AbstractPage{
 
         add(bittrexBTC = new Label("bittrexBTC", Model.of("0")).setOutputMarkupId(true));
         add(bittrexCoins = new Label("bittrexCoins", Model.of("0")).setOutputMarkupId(true));
+
+        add(cexioBTC = new Label("cexioBTC", Model.of("0")).setOutputMarkupId(true));
+        add(cexioCoins = new Label("cexioCoins", Model.of("0")).setOutputMarkupId(true));
 
         List<IColumn<Trader, String>> list = new ArrayList<>();
 
@@ -199,6 +204,9 @@ public class TraderList extends AbstractPage{
 
                                 handler.appendJavaScript(javaScript);
                             }
+                        }else if (exchangeMessage.getExchangeType().equals(CEXIO)){
+                            update(handler, cexioCoins, estimate);
+                            update(handler, cexioBTC, ((AccountInfo) payload).getBalance("BTC"));
                         }
                     }else if (payload instanceof OrderBook) {
                         OrderBook orderBook = (OrderBook) exchangeMessage.getPayload();
