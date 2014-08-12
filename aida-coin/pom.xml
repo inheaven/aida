@@ -76,11 +76,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.xeiam.xchange</groupId>
-            <artifactId>xchange-cexio</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.odlabs.wiquery</groupId>
             <artifactId>wiquery-core</artifactId>
         </dependency>
