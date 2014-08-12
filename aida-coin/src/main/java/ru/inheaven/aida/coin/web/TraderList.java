@@ -165,6 +165,11 @@ public class TraderList extends AbstractPage{
 
                         for (ExchangePair exchangePair : balanceMap.keySet()){
                             BigDecimal balance = ((AccountInfo) payload).getBalance(exchangePair.getCurrency());
+
+                            if (traderService.getOrderBook(exchangePair) == null){
+                                continue;
+                            }
+
                             BigDecimal price = traderService.getOrderBook(exchangePair).getAsks().get(0).getLimitPrice();
 
                             if (traderService.getOrderBook(exchangePair) != null) {
