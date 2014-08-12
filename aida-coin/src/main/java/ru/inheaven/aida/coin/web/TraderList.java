@@ -164,38 +164,42 @@ public class TraderList extends AbstractPage{
                         BigDecimal estimate = new BigDecimal("0");
 
                         for (ExchangePair exchangePair : balanceMap.keySet()){
-                            BigDecimal balance = ((AccountInfo) payload).getBalance(exchangePair.getCurrency());
+                            if (exchangePair.getExchangeType().equals(exchangeMessage.getExchange())){
+                                BigDecimal balance = ((AccountInfo) payload).getBalance(exchangePair.getCurrency());
 
-                            if (traderService.getOrderBook(exchangePair) == null){
-                                continue;
+                                if (traderService.getOrderBook(exchangePair) == null){
+                                    continue;
+                                }
+
+                                BigDecimal price = traderService.getOrderBook(exchangePair).getAsks().get(0).getLimitPrice();
+
+                                if (traderService.getOrderBook(exchangePair) != null) {
+                                    estimate = estimate.add(balance.multiply(price)).setScale(8, BigDecimal.ROUND_HALF_UP);
+                                }
+
+                                update(handler, balanceMap.get(exchangePair), balance);
+
                             }
-
-                            BigDecimal price = traderService.getOrderBook(exchangePair).getAsks().get(0).getLimitPrice();
-
-                            if (traderService.getOrderBook(exchangePair) != null) {
-                                estimate = estimate.add(balance.multiply(price)).setScale(8, BigDecimal.ROUND_HALF_UP);
-                            }
-
-                            update(handler, balanceMap.get(exchangePair), balance);
                         }
 
                         if (exchangeMessage.getExchange().equals(BITTREX)) {
                             update(handler, bittrexCoins, estimate);
                             update(handler, bittrexBTC, ((AccountInfo) payload).getBalance("BTC"));
-                        }
 
-                        //update chart
-                        if (lastChartValue.compareTo(((AccountInfo) payload).getBalance("BTC")) != 0) {
-                            lastChartValue = ((AccountInfo) payload).getBalance("BTC");
 
-                            Point point = new Point(Calendar.getInstance().getTimeInMillis(), lastChartValue);
-                            JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
-                            String jsonPoint = renderer.toJson(point);
-                            String javaScript = "var chartVarName = " + chart.getJavaScriptVarName() + ";\n";
-                            javaScript += "var seriesIndex = " + 0 + ";\n";
-                            javaScript += "eval(chartVarName).series[seriesIndex].addPoint(" + jsonPoint + ", true, true);\n";
+                            //update chart
+                            if (lastChartValue.compareTo(((AccountInfo) payload).getBalance("BTC")) != 0) {
+                                lastChartValue = ((AccountInfo) payload).getBalance("BTC");
 
-                            handler.appendJavaScript(javaScript);
+                                Point point = new Point(Calendar.getInstance().getTimeInMillis(), lastChartValue);
+                                JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
+                                String jsonPoint = renderer.toJson(point);
+                                String javaScript = "var chartVarName = " + chart.getJavaScriptVarName() + ";\n";
+                                javaScript += "var seriesIndex = " + 0 + ";\n";
+                                javaScript += "eval(chartVarName).series[seriesIndex].addPoint(" + jsonPoint + ", true, true);\n";
+
+                                handler.appendJavaScript(javaScript);
+                            }
                         }
                     }else if (payload instanceof OrderBook) {
                         OrderBook orderBook = (OrderBook) exchangeMessage.getPayload();

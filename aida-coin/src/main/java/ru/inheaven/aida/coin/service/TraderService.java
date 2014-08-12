@@ -137,7 +137,7 @@ public class TraderService {
         }
     }
 
-    public void updateBalance(ExchangeType exchangeType) throws IOException {
+    private void updateBalance(ExchangeType exchangeType) throws IOException {
         AccountInfo accountInfo = getExchange(exchangeType).getPollingAccountService().getAccountInfo();
 
         accountInfoMap.put(exchangeType, accountInfo);
