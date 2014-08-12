@@ -270,7 +270,7 @@ public class TraderList extends AbstractPage{
                             }
                         });
                     }else if (payload instanceof String){
-                        error((String)payload);
+                        warn((String)payload);
 
                         handler.add(notificationPanel);
                     }
