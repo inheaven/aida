@@ -29,6 +29,7 @@ import si.mazi.rescu.RestProxyFactory;
 import javax.ejb.*;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -99,8 +100,17 @@ public class TraderService {
             cexIO = RestProxyFactory.createProxy(CexIO.class, "https://cex.io");
         }
 
-        return CexIOAdapters.adaptOrderBook(cexIO.getDepth(currencyPair.baseSymbol, currencyPair.counterSymbol, 1),
+        OrderBook orderBook = CexIOAdapters.adaptOrderBook(cexIO.getDepth(currencyPair.baseSymbol, currencyPair.counterSymbol, 1),
                 currencyPair);
+
+        orderBook.getBids().sort(new Comparator<LimitOrder>() {
+            @Override
+            public int compare(LimitOrder o1, LimitOrder o2) {
+                return o1.getLimitPrice().compareTo(o2.getLimitPrice());
+            }
+        });
+
+        return orderBook;
     }
 
     @Schedule(second = "*/1", minute="*", hour="*", persistent=false)
@@ -237,7 +247,8 @@ public class TraderService {
 
                         //check bid
                         if (accountInfo.getBalance(getCurrency(trader.getPair())).compareTo(randomBidAmount) < 0){
-                            broadcast(exchangeType, trader.getPair() + ": Вот бы продать " + randomBidAmount.toString());
+                            broadcast(exchangeType, trader.getPair() + ": Чтобы что-то продать надо что-то купить "
+                                    + randomBidAmount.toString());
                             continue;
                         }
 

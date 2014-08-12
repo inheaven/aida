@@ -179,8 +179,10 @@ public class TraderList extends AbstractPage{
                             update(handler, balanceMap.get(exchangePair), balance);
                         }
 
-                        update(handler, bittrexCoins, estimate);
-                        update(handler, bittrexBTC, ((AccountInfo) payload).getBalance("BTC"));
+                        if (exchangeMessage.getExchange().equals(BITTREX)) {
+                            update(handler, bittrexCoins, estimate);
+                            update(handler, bittrexBTC, ((AccountInfo) payload).getBalance("BTC"));
+                        }
 
                         //update chart
                         if (lastChartValue.compareTo(((AccountInfo) payload).getBalance("BTC")) != 0) {
