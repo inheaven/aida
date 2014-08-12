@@ -93,6 +93,7 @@ public class TraderList extends AbstractPage{
 
         list.add(new PropertyColumn<>(of("Рынок"), "exchange"));
         list.add(new PropertyColumn<>(of("Монета"), "pair"));
+        list.add(new TraderColumn(of("Баланс"), balanceMap));
                 list.add(new TraderColumn(of("Капитализация"), estimateMap));
         list.add(new AbstractColumn<Trader, String>(of("Лот")) {
             @Override
@@ -110,7 +111,6 @@ public class TraderList extends AbstractPage{
                 cellItem.add(new Label(componentId, of(lot)));
             }
         });
-        list.add(new TraderColumn(of("Баланс"), balanceMap));
         list.add(new TraderColumn(of("Покупка"), buyMap));
         list.add(new TraderColumn(of("Продажа"), sellMap));
         list.add(new TraderColumn(of("Спрос"),askMap));
