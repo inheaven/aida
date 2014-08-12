@@ -1,8 +1,5 @@
 package com.xeiam.xchange.cexio.service.polling;
 
-import java.io.IOException;
-import java.util.List;
-
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.NotAvailableFromExchangeException;
 import com.xeiam.xchange.cexio.CexIOAdapters;
@@ -12,6 +9,9 @@ import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.MarketOrder;
 import com.xeiam.xchange.dto.trade.OpenOrders;
 import com.xeiam.xchange.service.polling.PollingTradeService;
+
+import java.io.IOException;
+import java.util.List;
 
 /**
  * Author: brox
@@ -49,7 +49,7 @@ public class CexIOTradeService extends CexIOTradeServiceRaw implements PollingTr
 
     CexIOOrder order = placeCexIOLimitOrder(limitOrder);
 
-    return Integer.toString(order.getId());
+    return Long.toString(order.getId());
   }
 
   @Override
