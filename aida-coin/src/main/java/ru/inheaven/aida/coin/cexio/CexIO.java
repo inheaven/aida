@@ -16,5 +16,5 @@ public interface CexIO extends com.xeiam.xchange.cexio.CexIO {
     @GET
     @Path("order_book/{ident}/{currency}")
     CexIODepth getDepth(@PathParam("ident") String tradeableIdentifier, @PathParam("currency") String currency,
-                        @FormParam("since") int depth) throws IOException;
+                        @FormParam("depth") int depth) throws IOException;
 }
