@@ -6,7 +6,9 @@ import com.googlecode.wickedcharts.highcharts.options.series.Point;
 import com.googlecode.wickedcharts.highcharts.options.series.PointSeries;
 import com.googlecode.wickedcharts.wicket6.highcharts.Chart;
 import com.googlecode.wickedcharts.wicket6.highcharts.JsonRendererFactory;
+import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.dto.account.AccountInfo;
+import com.xeiam.xchange.dto.marketdata.OrderBook;
 import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.OpenOrders;
@@ -45,8 +47,9 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.BiConsumer;
 
+import static java.math.BigDecimal.ROUND_HALF_UP;
 import static org.apache.wicket.model.Model.of;
-import static ru.inheaven.aida.coin.entity.ExchangeName.BITTREX;
+import static ru.inheaven.aida.coin.entity.ExchangeType.BITTREX;
 
 /**
  * @author Anatoly Ivanov java@inheaven.ru
@@ -59,7 +62,9 @@ public class TraderList extends AbstractPage{
     @EJB
     private TraderService traderService;
 
-    private Map<ExchangePair, Component> lastMap = new HashMap<>();
+    private Map<ExchangePair, Component> askMap = new HashMap<>();
+    private Map<ExchangePair, Component> bidMap = new HashMap<>();
+    private Map<ExchangePair, Component> estimateMap = new HashMap<>();
     private Map<ExchangePair, Component> balanceMap = new HashMap<>();
     private Map<ExchangePair, Component> buyMap = new HashMap<>();
     private Map<ExchangePair, Component> sellMap = new HashMap<>();
@@ -72,9 +77,6 @@ public class TraderList extends AbstractPage{
     private Chart chart;
 
     public TraderList() {
-        //start service
-        traderService.getBittrexExchange();
-
         notificationPanel = new NotificationPanel("notification");
         notificationPanel.setMaxMessages(3);
         notificationPanel.setOutputMarkupId(true);
@@ -87,14 +89,28 @@ public class TraderList extends AbstractPage{
 
         list.add(new PropertyColumn<>(of("Рынок"), "exchange"));
         list.add(new PropertyColumn<>(of("Монета"), "pair"));
-        list.add(new PropertyColumn<>(of("Верх"), "high"));
-        list.add(new PropertyColumn<>(of("Низ"), "low"));
-        list.add(new PropertyColumn<>(of("Объем"), "volume"));
-        list.add(new PropertyColumn<>(of("Спред"), "spread"));
-        list.add(new TraderColumn(of("Цена"), lastMap));
         list.add(new TraderColumn(of("Баланс"), balanceMap));
+        list.add(new AbstractColumn<Trader, String>(of("Лот")) {
+            @Override
+            public void populateItem(Item<ICellPopulator<Trader>> cellItem, String componentId, IModel<Trader> rowModel) {
+                Trader trader = rowModel.getObject();
+                BigDecimal lot = new BigDecimal("0");
+
+                try {
+                    lot = trader.getVolume().divide(trader.getHigh().subtract(trader.getLow())
+                            .divide(trader.getSpread(), 8, ROUND_HALF_UP), 8, ROUND_HALF_UP);
+                } catch (Exception e) {
+                    //zero
+                }
+
+                cellItem.add(new Label(componentId, of(lot)));
+            }
+        });
+        list.add(new TraderColumn(of("Оценка"), estimateMap));
         list.add(new TraderColumn(of("Покупка"), buyMap));
         list.add(new TraderColumn(of("Продажа"), sellMap));
+        list.add(new TraderColumn(of("Спрос"),askMap));
+        list.add(new TraderColumn(of("Предложение"), bidMap));
         list.add(new AbstractColumn<Trader, String>(of("Работа")){
             @Override
             public void populateItem(Item<ICellPopulator<Trader>> cellItem, String componentId, IModel<Trader> rowModel) {
@@ -149,17 +165,17 @@ public class TraderList extends AbstractPage{
 
                         for (ExchangePair exchangePair : balanceMap.keySet()){
                             BigDecimal balance = ((AccountInfo) payload).getBalance(exchangePair.getCurrency());
+                            BigDecimal price = traderService.getOrderBook(exchangePair).getAsks().get(0).getLimitPrice();
 
-                            if (traderService.getTicker(exchangePair) != null) {
-                                estimate = estimate.add(balance.multiply(traderService.getTicker(exchangePair).getLast()))
-                                        .setScale(8, BigDecimal.ROUND_HALF_UP);
+                            if (traderService.getOrderBook(exchangePair) != null) {
+                                estimate = estimate.add(balance.multiply(price)).setScale(8, BigDecimal.ROUND_HALF_UP);
                             }
 
-                            update(handler, balanceMap.get(exchangePair), balance.toString());
+                            update(handler, balanceMap.get(exchangePair), balance);
                         }
 
-                        update(handler, bittrexCoins, estimate.toString());
-                        update(handler, bittrexBTC, ((AccountInfo) payload).getBalance("BTC").toString());
+                        update(handler, bittrexCoins, estimate);
+                        update(handler, bittrexBTC, ((AccountInfo) payload).getBalance("BTC"));
 
                         //update chart
                         if (lastChartValue.compareTo(((AccountInfo) payload).getBalance("BTC")) != 0) {
@@ -174,13 +190,25 @@ public class TraderList extends AbstractPage{
 
                             handler.appendJavaScript(javaScript);
                         }
-                    }else if (payload instanceof Ticker) {
-                        Ticker ticker = (Ticker) exchangeMessage.getPayload();
+                    }else if (payload instanceof OrderBook) {
+                        OrderBook orderBook = (OrderBook) exchangeMessage.getPayload();
 
-                        Component component = lastMap.get(ExchangePair.of(exchangeMessage.getExchange(),
-                                ticker.getCurrencyPair()));
+                        BigDecimal askPrice =  orderBook.getAsks().get(0).getLimitPrice();
 
-                        update(handler, component, ticker.getLast().toString());
+                        CurrencyPair currencyPair = orderBook.getAsks().get(0).getCurrencyPair();
+                        ExchangePair exchangePair = ExchangePair.of(exchangeMessage.getExchange(), currencyPair);
+
+                        //ask
+                        update(handler, askMap.get(exchangePair), askPrice);
+
+                        //bid
+                        update(handler, bidMap.get(exchangePair), orderBook.getBids().get(orderBook.getBids().size()-1)
+                                .getLimitPrice());
+
+                        //estimate
+                        update(handler, estimateMap.get(exchangePair), askPrice
+                                .multiply(traderService.getAccountInfo(exchangeMessage.getExchange())
+                                        .getBalance(currencyPair.baseSymbol)).setScale(8, BigDecimal.ROUND_HALF_UP));
 
                     }else if (payload instanceof OpenOrders){
                         OpenOrders openOrders = (OpenOrders) exchangeMessage.getPayload();
@@ -211,14 +239,14 @@ public class TraderList extends AbstractPage{
                         countBuyMap.forEach(new BiConsumer<ExchangePair, BigDecimal>() {
                             @Override
                             public void accept(ExchangePair exchangePair, BigDecimal bigDecimal) {
-                                update(handler, buyMap.get(exchangePair), bigDecimal.toString());
+                                update(handler, buyMap.get(exchangePair), bigDecimal);
                             }
                         });
 
                         countSellMap.forEach(new BiConsumer<ExchangePair, BigDecimal>() {
                             @Override
                             public void accept(ExchangePair exchangePair, BigDecimal bigDecimal) {
-                                update(handler, sellMap.get(exchangePair), bigDecimal.toString());
+                                update(handler, sellMap.get(exchangePair), bigDecimal);
                             }
                         });
                     }else if (payload instanceof String){
@@ -290,9 +318,9 @@ public class TraderList extends AbstractPage{
         add(chart = new Chart("chart", options));
     }
 
-    private void update(WebSocketRequestHandler handler, Component component, String newValue){
+    private void update(WebSocketRequestHandler handler, Component component, BigDecimal newValue){
         if (component != null){
-            int compare = newValue.compareTo(component.getDefaultModelObjectAsString());
+            int compare = newValue.toString().compareTo(component.getDefaultModelObjectAsString());
 
             if (compare != 0){
                 String color = compare > 0 ? "'#EFFBEF'" : "'#FBEFEF'";

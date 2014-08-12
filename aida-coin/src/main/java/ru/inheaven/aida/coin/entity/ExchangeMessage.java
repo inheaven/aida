@@ -7,11 +7,11 @@ import org.apache.wicket.protocol.ws.api.message.IWebSocketPushMessage;
  *         Date: 005 05.08.14 15:16
  */
 public class ExchangeMessage<T> implements IWebSocketPushMessage{
-    private ExchangeName exchange;
+    private ExchangeType exchange;
 
     private T payload;
 
-    public ExchangeMessage(ExchangeName exchange, T payload) {
+    public ExchangeMessage(ExchangeType exchange, T payload) {
         this.exchange = exchange;
         this.payload = payload;
     }
@@ -20,7 +20,7 @@ public class ExchangeMessage<T> implements IWebSocketPushMessage{
         return payload;
     }
 
-    public ExchangeName getExchange() {
+    public ExchangeType getExchange() {
         return exchange;
     }
 }

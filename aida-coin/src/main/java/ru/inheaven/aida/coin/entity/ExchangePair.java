@@ -10,15 +10,15 @@ import java.io.Serializable;
  *         Date: 005 05.08.14 12:41
  */
 public class ExchangePair implements Serializable{
-    private ExchangeName exchange;
+    private ExchangeType exchangeType;
     private String pair;
 
-    public ExchangePair(ExchangeName exchange, String pair) {
-        this.exchange = exchange;
+    public ExchangePair(ExchangeType exchangeType, String pair) {
+        this.exchangeType = exchangeType;
         this.pair = pair;
     }
 
-    public static ExchangePair of(ExchangeName exchange, CurrencyPair currencyPair) {
+    public static ExchangePair of(ExchangeType exchange, CurrencyPair currencyPair) {
         return new ExchangePair(exchange, currencyPair.baseSymbol + "/" + currencyPair.counterSymbol);
     }
 
@@ -26,12 +26,12 @@ public class ExchangePair implements Serializable{
         return TraderUtil.getCurrency(pair);
     }
 
-    public ExchangeName getExchange() {
-        return exchange;
+    public ExchangeType getExchangeType() {
+        return exchangeType;
     }
 
-    public void setExchange(ExchangeName exchange) {
-        this.exchange = exchange;
+    public void setExchangeType(ExchangeType exchangeType) {
+        this.exchangeType = exchangeType;
     }
 
     public String getPair() {
@@ -49,11 +49,11 @@ public class ExchangePair implements Serializable{
 
         ExchangePair that = (ExchangePair) o;
 
-        return exchange == that.exchange && !(pair != null ? !pair.equals(that.pair) : that.pair != null);
+        return exchangeType == that.exchangeType && !(pair != null ? !pair.equals(that.pair) : that.pair != null);
     }
 
     @Override
     public int hashCode() {
-        return 31 * (exchange != null ? exchange.hashCode() : 0) + (pair != null ? pair.hashCode() : 0);
+        return 31 * (exchangeType != null ? exchangeType.hashCode() : 0) + (pair != null ? pair.hashCode() : 0);
     }
 }

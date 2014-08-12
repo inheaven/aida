@@ -5,20 +5,20 @@ package ru.inheaven.aida.coin.entity;
  *         Date: 08.08.2014 12:50
  */
 public class ExchangeCurrency {
-    private ExchangeName exchangeName;
+    private ExchangeType exchangeType;
     private String currency;
 
-    public ExchangeCurrency(ExchangeName exchangeName, String currency) {
-        this.exchangeName = exchangeName;
+    public ExchangeCurrency(ExchangeType exchangeType, String currency) {
+        this.exchangeType = exchangeType;
         this.currency = currency;
     }
 
-    public ExchangeName getExchangeName() {
-        return exchangeName;
+    public ExchangeType getExchangeType() {
+        return exchangeType;
     }
 
-    public void setExchangeName(ExchangeName exchangeName) {
-        this.exchangeName = exchangeName;
+    public void setExchangeType(ExchangeType exchangeType) {
+        this.exchangeType = exchangeType;
     }
 
     public String getCurrency() {
@@ -37,14 +37,14 @@ public class ExchangeCurrency {
         ExchangeCurrency that = (ExchangeCurrency) o;
 
         if (currency != null ? !currency.equals(that.currency) : that.currency != null) return false;
-        if (exchangeName != that.exchangeName) return false;
+        if (exchangeType != that.exchangeType) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = exchangeName != null ? exchangeName.hashCode() : 0;
+        int result = exchangeType != null ? exchangeType.hashCode() : 0;
         result = 31 * result + (currency != null ? currency.hashCode() : 0);
         return result;
     }

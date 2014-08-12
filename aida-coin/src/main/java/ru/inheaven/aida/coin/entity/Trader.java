@@ -12,7 +12,7 @@ import java.util.Date;
 public class Trader extends AbstractEntity{
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private ExchangeName exchange;
+    private ExchangeType exchange;
 
     @Column(nullable = false)
     private String pair;
@@ -42,11 +42,11 @@ public class Trader extends AbstractEntity{
         date = new Date();
     }
 
-    public ExchangeName getExchange() {
+    public ExchangeType getExchange() {
         return exchange;
     }
 
-    public void setExchange(ExchangeName exchange) {
+    public void setExchange(ExchangeType exchange) {
         this.exchange = exchange;
     }
 

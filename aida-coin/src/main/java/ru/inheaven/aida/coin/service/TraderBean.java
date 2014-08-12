@@ -1,6 +1,7 @@
 package ru.inheaven.aida.coin.service;
 
 import com.xeiam.xchange.currency.CurrencyPair;
+import ru.inheaven.aida.coin.entity.ExchangeType;
 import ru.inheaven.aida.coin.entity.Trader;
 
 import javax.ejb.Stateless;
@@ -21,8 +22,16 @@ public class TraderBean {
         return em.createQuery("select t from Trader t", Trader.class).getResultList();
     }
 
-    public List<String> getTraderPairs(){
-        return em.createQuery("select t.pair from Trader t", String.class).getResultList();
+    public List<Trader> getTraders(ExchangeType exchangeType){
+        return em.createQuery("select t from Trader t where t.exchange = :exchangeType", Trader.class)
+                .setParameter("exchangeType", exchangeType)
+                .getResultList();
+    }
+
+    public List<String> getTraderPairs(ExchangeType exchangeType){
+        return em.createQuery("select t.pair from Trader t where t.exchange = :exchangeType", String.class)
+                .setParameter("exchangeType", exchangeType)
+                .getResultList();
     }
 
     public Trader getTrader(Long id){

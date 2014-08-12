@@ -5,6 +5,7 @@ import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.ExchangeFactory;
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.bittrex.v1.BittrexExchange;
+import com.xeiam.xchange.cexio.CexIOExchange;
 import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.dto.Order;
 import com.xeiam.xchange.dto.account.AccountInfo;
@@ -33,7 +34,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import static java.math.BigDecimal.ROUND_HALF_DOWN;
 import static java.math.BigDecimal.ROUND_HALF_UP;
-import static ru.inheaven.aida.coin.entity.ExchangeName.BITTREX;
+import static ru.inheaven.aida.coin.entity.ExchangeType.BITTREX;
+import static ru.inheaven.aida.coin.entity.ExchangeType.CEXIO;
 import static ru.inheaven.aida.coin.util.TraderUtil.*;
 
 /**
@@ -49,127 +51,139 @@ public class TraderService {
     private TraderBean traderBean;
 
     private Exchange bittrexExchange;
+    private Exchange cexIOExchange;
 
     private Map<ExchangePair, Ticker> tickerMap = new ConcurrentHashMap<>();
     private Map<ExchangePair, OrderBook> orderBookMap = new ConcurrentHashMap<>();
+    private Map<ExchangeType, OpenOrders> openOrdersMap = new ConcurrentHashMap<>();
+    private Map<ExchangeType, AccountInfo> accountInfoMap = new ConcurrentHashMap<>();
 
-    private Map<ExchangeName, OpenOrders> openOrdersMap = new ConcurrentHashMap<>();
-    private Map<ExchangeName, AccountInfo> accountInfoMap = new ConcurrentHashMap<>();
+    private Map<ExchangeType, List<BalanceStat>> balanceStatsMap = new ConcurrentHashMap<>();
 
-    private Map<ExchangeName, List<BalanceStat>> balanceStatsMap = new ConcurrentHashMap<>();
+    public Exchange getExchange(ExchangeType exchangeType){
+        switch (exchangeType){
+            case BITTREX:
+                if (bittrexExchange == null){
+                    ExchangeSpecification exSpec = new ExchangeSpecification(BittrexExchange.class);
+                    exSpec.setApiKey("14935ef36d8b4afc8204946be7ddd152");
+                    exSpec.setSecretKey("44d84de3865e4fbfa4c17dd42c026d11");
 
-    public Exchange getBittrexExchange(){
-        if (bittrexExchange == null){
-            ExchangeSpecification exSpec = new ExchangeSpecification(BittrexExchange.class);
-            exSpec.setApiKey("14935ef36d8b4afc8204946be7ddd152");
-            exSpec.setSecretKey("44d84de3865e4fbfa4c17dd42c026d11");
+                    bittrexExchange = ExchangeFactory.INSTANCE.createExchange(exSpec);
+                }
 
-            bittrexExchange = ExchangeFactory.INSTANCE.createExchange(exSpec);
+                return bittrexExchange;
+
+            case CEXIO:
+                if (cexIOExchange == null){
+                    ExchangeSpecification exSpec = new ExchangeSpecification(CexIOExchange.class);
+                    exSpec.setApiKey("zjQ6cTSrmmQI6e620dqMytDRY");
+                    exSpec.setSecretKey("0oHs9dk3inFiduJ9AJod5K8D78");
+
+                    cexIOExchange = ExchangeFactory.INSTANCE.createExchange(exSpec);
+                }
+
+                return cexIOExchange;
         }
 
-        return bittrexExchange;
-    }
-
-    public AccountInfo getAccountInfo(ExchangeName exchangeName){
-        return accountInfoMap.get(exchangeName);
-    }
-
-    public List<BalanceStat> getBalanceStats(ExchangeName exchangeName){
-        return balanceStatsMap.get(exchangeName);
-    }
-
-    public Ticker getTicker(ExchangePair exchangePair){
-        return tickerMap.get(exchangePair);
-    }
-
-    public Ticker getTicker(ExchangeName exchange, String pair){
-        return getTicker(new ExchangePair(exchange, pair));
-    }
-
-    public OrderBook getOrderBook(ExchangeName exchange, String pair){
-        return orderBookMap.get(new ExchangePair(exchange, pair));
-    }
-
-    public OpenOrders getOpenOrders(ExchangeName exchangeName){
-        return openOrdersMap.get(exchangeName);
+        throw new IllegalArgumentException();
     }
 
     @Schedule(second = "*/1", minute="*", hour="*", persistent=false)
     public void scheduleBittrexUpdate(){
-        try {
-            updateBittrexBalance();
-            updateBittrexTicker();
-            updateBittrexOpenOrders();
-            tradeBittrexAlpha();
-        } catch (Exception e) {
-            log.error("update ticker error", e);
+        scheduleUpdate(BITTREX);
+    }
 
-            broadcast(BITTREX, Throwables.getRootCause(e).getMessage());
+    @Schedule(second = "*/30", minute="*", hour="*", persistent=false)
+    public void scheduleCexIOUpdate(){
+        scheduleUpdate(CEXIO);
+    }
+
+    public void scheduleUpdate(ExchangeType exchangeType){
+        try {
+            updateBalance(exchangeType);
+            updateOrderBook(exchangeType);
+            updateOpenOrders(exchangeType);
+            tradeAlpha(exchangeType);
+        } catch (Exception e) {
+            log.error("Schedule update error", e);
+
+            //noinspection ThrowableResultOfMethodCallIgnored
+            broadcast(exchangeType, Throwables.getRootCause(e).getMessage());
         }
     }
 
-    public void updateBittrexBalance() throws IOException {
-        AccountInfo accountInfo = getBittrexExchange().getPollingAccountService().getAccountInfo();
+    public void updateBalance(ExchangeType exchangeType) throws IOException {
+        AccountInfo accountInfo = getExchange(exchangeType).getPollingAccountService().getAccountInfo();
 
-        accountInfoMap.put(BITTREX, accountInfo);
+        accountInfoMap.put(exchangeType, accountInfo);
 
-        //balance stats
-        List<BalanceStat> list = balanceStatsMap.get(BITTREX);
+        //balance stats todo add save to db
+        List<BalanceStat> list = balanceStatsMap.get(exchangeType);
         if (list == null){
             list = new CopyOnWriteArrayList<>();
-            balanceStatsMap.put(BITTREX, list);
+            balanceStatsMap.put(exchangeType, list);
         }else if (list.size() > 10000){
             list.subList(0, 5000).clear();
         }
         list.add(new BalanceStat(accountInfo, new Date()));
 
-        broadcast(BITTREX, accountInfo);
+        broadcast(exchangeType, accountInfo);
     }
 
-    //todo generalize update ticker
-    private void updateBittrexTicker() throws IOException {
-        PollingMarketDataService marketDataService = getBittrexExchange().getPollingMarketDataService();
-
-        for (String pair : traderBean.getTraderPairs()) {
+    private void updateTicker(ExchangeType exchangeType) throws IOException {
+        for (String pair : traderBean.getTraderPairs(exchangeType)) {
             CurrencyPair currencyPair = getCurrencyPair(pair);
 
             if (currencyPair != null) {
-                Ticker ticker = marketDataService.getTicker(currencyPair);
-                tickerMap.put(new ExchangePair(BITTREX, pair), ticker);
+                Ticker ticker = getExchange(exchangeType).getPollingMarketDataService().getTicker(currencyPair);
+                tickerMap.put(new ExchangePair(exchangeType, pair), ticker);
 
-                OrderBook orderBook = marketDataService.getOrderBook(currencyPair);
-                orderBookMap.put(new ExchangePair(BITTREX, pair), orderBook);
-
-                broadcast(BITTREX, ticker);
-                broadcast(BITTREX, orderBook);
+                broadcast(exchangeType, ticker);
             }
         }
     }
 
-    private void updateBittrexOpenOrders() throws IOException {
-        OpenOrders openOrders = getBittrexExchange().getPollingTradeService().getOpenOrders();
+    private void updateOrderBook(ExchangeType exchangeType) throws IOException {
+        for (String pair : traderBean.getTraderPairs(exchangeType)) {
+            CurrencyPair currencyPair = getCurrencyPair(pair);
 
-        openOrdersMap.put(BITTREX, openOrders);
-        broadcast(BITTREX, openOrders);
+            if (currencyPair != null) {
+                OrderBook orderBook = getExchange(exchangeType).getPollingMarketDataService().getOrderBook(currencyPair);
+                orderBookMap.put(new ExchangePair(exchangeType, pair), orderBook);
+
+                broadcast(exchangeType, orderBook);
+            }
+        }
     }
 
-    private void tradeBittrexAlpha() throws IOException {
-        for (Trader trader : traderBean.getTraders()){
-            OrderBook orderBook = getOrderBook(BITTREX, trader.getPair());
+    private void updateOpenOrders(ExchangeType exchangeType) throws IOException {
+        OpenOrders openOrders = getExchange(exchangeType).getPollingTradeService().getOpenOrders();
+        openOrdersMap.put(exchangeType, openOrders);
+
+        broadcast(exchangeType, openOrders);
+    }
+
+    private void tradeAlpha(ExchangeType exchangeType) throws IOException {
+        for (Trader trader : traderBean.getTraders(exchangeType)){
+            OrderBook orderBook = getOrderBook(new ExchangePair(exchangeType, trader.getPair()));
 
             BigDecimal middlePrice = orderBook.getAsks().get(0).getLimitPrice()
                     .add(orderBook.getBids().get(orderBook.getBids().size()-1).getLimitPrice())
                     .divide(new BigDecimal("2"), 8, ROUND_HALF_UP);
 
-            if (trader.isRunning()
-                    && middlePrice.compareTo(trader.getHigh()) < 0
-                    && middlePrice.compareTo(trader.getLow()) > 0){
+            if (trader.isRunning()){
+                if (middlePrice.compareTo(trader.getHigh()) > 0 || middlePrice.compareTo(trader.getLow()) < 0){
+                    broadcast(exchangeType, trader.getPair() + ": Цена за границами диапазона");
+
+                    continue;
+                }
+
                 boolean hasOrder = false;
               
                 BigDecimal level = trader.getHigh().subtract(trader.getLow()).divide(trader.getSpread(), 8, ROUND_HALF_UP);
                 BigDecimal minOrderAmount = new BigDecimal("0.0007").divide(middlePrice, 8, ROUND_HALF_UP);
 
-                for (LimitOrder order : getOpenOrders(BITTREX).getOpenOrders()){
+                for (LimitOrder order : getOpenOrders(exchangeType).getOpenOrders()){
                     if (getCurrencyPair(trader.getPair()).equals(order.getCurrencyPair())
                             && order.getLimitPrice().subtract(middlePrice).abs().compareTo(trader.getSpread()) <= 0){                   
                         hasOrder = true;
@@ -178,8 +192,8 @@ public class TraderService {
                 }
 
                 if (!hasOrder){
-                    PollingTradeService tradeService = getBittrexExchange().getPollingTradeService();
-                    AccountInfo accountInfo = getAccountInfo(BITTREX);
+                    PollingTradeService tradeService = getExchange(exchangeType).getPollingTradeService();
+                    AccountInfo accountInfo = getAccountInfo(exchangeType);
 
                     try {
                         BigDecimal delta = trader.getSpread().divide(new BigDecimal("2"), 8, ROUND_HALF_DOWN);
@@ -194,13 +208,13 @@ public class TraderService {
 
                         //check ask
                         if (accountInfo.getBalance("BTC").compareTo(randomAskAmount.multiply(middlePrice)) < 0){
-                            broadcast(BITTREX, trader.getPair() + ": Не хватает на покупку " + randomAskAmount.toString());
+                            broadcast(exchangeType, trader.getPair() + ": Хочу купить " + randomAskAmount.toString());
                             continue;
                         }
 
                         //check bid
                         if (accountInfo.getBalance(getCurrency(trader.getPair())).compareTo(randomBidAmount) < 0){
-                            broadcast(BITTREX, trader.getPair() + ": Не хватает на продажу " + randomBidAmount.toString());
+                            broadcast(exchangeType, trader.getPair() + ": Вот бы продать " + randomBidAmount.toString());
                             continue;
                         }
 
@@ -216,20 +230,41 @@ public class TraderService {
                                 getCurrencyPair(trader.getPair()), "", new Date(),
                                 middlePrice.subtract(random20(delta))));
                     } catch (Exception e) {
-                        log.error("trade error", e);
+                        log.error("alpha trade error", e);
 
-                        broadcast(BITTREX, trader.getPair() + ": " + Throwables.getRootCause(e).getMessage());
+                        //noinspection ThrowableResultOfMethodCallIgnored
+                        broadcast(exchangeType, trader.getPair() + ": " + Throwables.getRootCause(e).getMessage());
                     }
                 }
             }
         }
     }
 
-    private void broadcast(ExchangeName exchange, Object payload){
+    private void broadcast(ExchangeType exchange, Object payload){
         Application application = Application.get("aida-coin");
         IWebSocketSettings webSocketSettings = WebSocketSettings.Holder.get(application);
 
         WebSocketPushBroadcaster broadcaster = new WebSocketPushBroadcaster(webSocketSettings.getConnectionRegistry());
         broadcaster.broadcastAll(application, new ExchangeMessage<>(exchange, payload));
+    }
+
+    public AccountInfo getAccountInfo(ExchangeType exchangeType){
+        return accountInfoMap.get(exchangeType);
+    }
+
+    public List<BalanceStat> getBalanceStats(ExchangeType exchangeType){
+        return balanceStatsMap.get(exchangeType);
+    }
+
+    public Ticker getTicker(ExchangePair exchangePair){
+        return tickerMap.get(exchangePair);
+    }
+
+    public OrderBook getOrderBook(ExchangePair exchangePair){
+        return orderBookMap.get(exchangePair);
+    }
+
+    public OpenOrders getOpenOrders(ExchangeType exchangeType){
+        return openOrdersMap.get(exchangeType);
     }
 }
