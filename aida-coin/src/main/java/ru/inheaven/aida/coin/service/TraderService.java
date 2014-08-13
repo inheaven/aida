@@ -213,6 +213,9 @@ public class TraderService {
 
                 for (int index = 1; index < 4; ++index) {
                     BigDecimal spread = trader.getSpread().multiply(new BigDecimal(index));
+                    BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.015")).setScale(8, ROUND_HALF_DOWN);
+                    spread = spread.compareTo(minSpread) > 0 ? spread : minSpread;
+
                     boolean hasOrder = false;
 
                     for (LimitOrder order : getOpenOrders(exchangeType).getOpenOrders()){
@@ -228,10 +231,7 @@ public class TraderService {
                         AccountInfo accountInfo = getAccountInfo(exchangeType);
 
                         try {
-                            BigDecimal delta = trader.getSpread().divide(new BigDecimal("2"), 8, ROUND_HALF_DOWN);
-                            BigDecimal minDelta = middlePrice.multiply(new BigDecimal("0.015")).setScale(8, ROUND_HALF_DOWN);
-                            delta = delta.compareTo(minDelta) > 0 ? delta : minDelta;
-                            delta = delta.multiply(new BigDecimal(index));
+                            BigDecimal delta = spread.divide(new BigDecimal("2"), 8, ROUND_HALF_DOWN);
 
                             BigDecimal randomAskAmount = random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP));
                             randomAskAmount = randomAskAmount.compareTo(minOrderAmount) > 0 ? randomAskAmount : minOrderAmount;
