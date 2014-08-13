@@ -7,6 +7,7 @@ import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
@@ -22,9 +23,18 @@ public class TraderBean {
     }
 
     public List<Trader> getTraders(ExchangeType exchangeType){
-        return em.createQuery("select t from Trader t where t.exchange = :exchangeType", Trader.class)
+        List<Trader> list = em.createQuery("select t from Trader t where t.exchange = :exchangeType", Trader.class)
                 .setParameter("exchangeType", exchangeType)
                 .getResultList();
+
+        list.forEach(new Consumer<Trader>() {
+            @Override
+            public void accept(Trader trader) {
+                em.detach(trader);
+            }
+        });
+
+        return list;
     }
 
     public List<String> getTraderPairs(ExchangeType exchangeType){
@@ -42,8 +52,6 @@ public class TraderBean {
             em.persist(trader);
         }else {
             em.merge(trader);
-            em.flush();
-            em.clear();
         }
     }
 }
