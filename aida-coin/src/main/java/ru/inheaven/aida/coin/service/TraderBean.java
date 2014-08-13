@@ -1,6 +1,5 @@
 package ru.inheaven.aida.coin.service;
 
-import com.xeiam.xchange.currency.CurrencyPair;
 import ru.inheaven.aida.coin.entity.ExchangeType;
 import ru.inheaven.aida.coin.entity.Trader;
 
@@ -44,6 +43,7 @@ public class TraderBean {
         }else {
             em.merge(trader);
             em.flush();
+            em.clear();
         }
     }
 }

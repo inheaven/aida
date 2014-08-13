@@ -28,10 +28,7 @@ import si.mazi.rescu.RestProxyFactory;
 import javax.ejb.*;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -210,63 +207,70 @@ public class TraderService {
                     continue;
                 }
 
-                boolean hasOrder = false;
-              
                 BigDecimal level = trader.getHigh().subtract(trader.getLow()).divide(trader.getSpread(), 8, ROUND_HALF_UP);
                 BigDecimal minOrderAmount = new BigDecimal("0.0007").divide(middlePrice, 8, ROUND_HALF_UP);
+                CurrencyPair currencyPair = getCurrencyPair(trader.getPair());
 
-                for (LimitOrder order : getOpenOrders(exchangeType).getOpenOrders()){
-                    if (getCurrencyPair(trader.getPair()).equals(order.getCurrencyPair())
-                            && order.getLimitPrice().subtract(middlePrice).abs().compareTo(trader.getSpread()) <= 0){                   
-                        hasOrder = true;
-                        break;
+                for (int index = 1; index < 4; ++index) {
+                    BigDecimal spread = trader.getSpread().multiply(new BigDecimal(index));
+                    boolean hasOrder = false;
+
+                    for (LimitOrder order : getOpenOrders(exchangeType).getOpenOrders()){
+                        if (currencyPair.equals(order.getCurrencyPair())
+                                && order.getLimitPrice().subtract(middlePrice).abs().compareTo(spread) <= 0){
+                            hasOrder = true;
+                            break;
+                        }
                     }
-                }
 
-                if (!hasOrder){
-                    PollingTradeService tradeService = getExchange(exchangeType).getPollingTradeService();
-                    AccountInfo accountInfo = getAccountInfo(exchangeType);
+                    if (!hasOrder){
+                        PollingTradeService tradeService = getExchange(exchangeType).getPollingTradeService();
+                        AccountInfo accountInfo = getAccountInfo(exchangeType);
 
-                    try {
-                        BigDecimal delta = trader.getSpread().divide(new BigDecimal("2"), 8, ROUND_HALF_DOWN);
-                        BigDecimal minDelta = middlePrice.multiply(new BigDecimal("0.015")).setScale(8, ROUND_HALF_DOWN);
-                        delta = delta.compareTo(minDelta) > 0 ? delta : minDelta;
+                        try {
+                            BigDecimal delta = trader.getSpread().divide(new BigDecimal("2"), 8, ROUND_HALF_DOWN);
+                            BigDecimal minDelta = middlePrice.multiply(new BigDecimal("0.015")).setScale(8, ROUND_HALF_DOWN);
+                            delta = delta.compareTo(minDelta) > 0 ? delta : minDelta;
+                            delta = delta.multiply(new BigDecimal(index));
 
-                        BigDecimal randomAskAmount = random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP));
-                        randomAskAmount = randomAskAmount.compareTo(minOrderAmount) > 0 ? randomAskAmount : minOrderAmount;
+                            BigDecimal randomAskAmount = random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP));
+                            randomAskAmount = randomAskAmount.compareTo(minOrderAmount) > 0 ? randomAskAmount : minOrderAmount;
 
-                        BigDecimal randomBidAmount = random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP));
-                        randomBidAmount = randomBidAmount.compareTo(minOrderAmount) > 0 ? randomBidAmount : minOrderAmount;
+                            BigDecimal randomBidAmount = random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP));
+                            randomBidAmount = randomBidAmount.compareTo(minOrderAmount) > 0 ? randomBidAmount : minOrderAmount;
 
-                        //check ask
-                        if (accountInfo.getBalance("BTC").compareTo(randomAskAmount.multiply(middlePrice)) < 0){
-                            broadcast(exchangeType, trader.getPair() + ": Хочу купить " + randomAskAmount.toString());
-                            continue;
+                            //check ask
+                            if (accountInfo.getBalance("BTC").compareTo(randomAskAmount.multiply(middlePrice)) < 0){
+                                broadcast(exchangeType, trader.getPair() + ": Хочу купить " + randomAskAmount.toString());
+                                continue;
+                            }
+
+                            //check bid
+                            if (accountInfo.getBalance(getCurrency(trader.getPair())).compareTo(randomBidAmount) < 0){
+                                broadcast(exchangeType, trader.getPair() + ": Чтобы что-то продать надо что-то купить "
+                                        + randomBidAmount.toString());
+                                continue;
+                            }
+
+                            //ASK
+                            tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.ASK,
+                                    randomAskAmount,
+                                    getCurrencyPair(trader.getPair()), "", new Date(),
+                                    middlePrice.add(random20(delta))));
+
+                            //BID
+                            tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.BID,
+                                    randomBidAmount,
+                                    getCurrencyPair(trader.getPair()), "", new Date(),
+                                    middlePrice.subtract(random20(delta))));
+                        } catch (Exception e) {
+                            log.error("alpha trade error", e);
+
+                            //noinspection ThrowableResultOfMethodCallIgnored
+                            broadcast(exchangeType, trader.getPair() + ": " + Throwables.getRootCause(e).getMessage());
                         }
-
-                        //check bid
-                        if (accountInfo.getBalance(getCurrency(trader.getPair())).compareTo(randomBidAmount) < 0){
-                            broadcast(exchangeType, trader.getPair() + ": Чтобы что-то продать надо что-то купить "
-                                    + randomBidAmount.toString());
-                            continue;
-                        }
-
-                        //ASK
-                        tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.ASK,
-                                randomAskAmount,
-                                getCurrencyPair(trader.getPair()), "", new Date(),
-                                middlePrice.add(random20(delta))));
-
-                        //BID
-                        tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.BID,
-                                randomBidAmount,
-                                getCurrencyPair(trader.getPair()), "", new Date(),
-                                middlePrice.subtract(random20(delta))));
-                    } catch (Exception e) {
-                        log.error("alpha trade error", e);
-
-                        //noinspection ThrowableResultOfMethodCallIgnored
-                        broadcast(exchangeType, trader.getPair() + ": " + Throwables.getRootCause(e).getMessage());
+                    }else {
+                        break;
                     }
                 }
             }
