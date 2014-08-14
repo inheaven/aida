@@ -104,8 +104,13 @@ public class TraderList extends AbstractPage{
                 BigDecimal lot = new BigDecimal("0");
 
                 try {
-                    lot = trader.getVolume().divide(trader.getHigh().subtract(trader.getLow())
-                            .divide(trader.getSpread(), 8, ROUND_HALF_UP), 8, ROUND_HALF_UP);
+                    OrderBook orderBook = traderService.getOrderBook(trader.getExchangePair());
+
+                    if (orderBook != null ){
+                        lot = trader.getVolume().multiply(orderBook.getAsks().get(0).getLimitPrice())
+                                .divide(trader.getHigh().subtract(trader.getLow()).divide(trader.getSpread(),
+                                        8, ROUND_HALF_UP), 8, ROUND_HALF_UP);
+                    }
                 } catch (Exception e) {
                     //zero
                 }
@@ -272,7 +277,7 @@ public class TraderList extends AbstractPage{
                             }
                         });
                     }else if (payload instanceof String){
-                        warn((String)payload);
+                        warn((String) payload);
 
                         handler.add(notificationPanel);
                     }

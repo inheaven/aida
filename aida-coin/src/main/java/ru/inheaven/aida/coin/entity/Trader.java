@@ -42,6 +42,10 @@ public class Trader extends AbstractEntity{
         date = new Date();
     }
 
+    public ExchangePair getExchangePair(){
+        return new ExchangePair(exchange, pair);
+    }
+
     public ExchangeType getExchange() {
         return exchange;
     }

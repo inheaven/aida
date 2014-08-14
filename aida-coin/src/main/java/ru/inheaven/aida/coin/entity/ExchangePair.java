@@ -22,6 +22,10 @@ public class ExchangePair implements Serializable{
         return new ExchangePair(exchange, currencyPair.baseSymbol + "/" + currencyPair.counterSymbol);
     }
 
+    public static ExchangePair of(ExchangeType exchange, String pair) {
+        return new ExchangePair(exchange, pair);
+    }
+
     public String getCurrency(){
         return TraderUtil.getCurrency(pair);
     }
