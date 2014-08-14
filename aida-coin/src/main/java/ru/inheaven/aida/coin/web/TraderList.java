@@ -155,7 +155,7 @@ public class TraderList extends AbstractPage{
         }, 100);
         table.setOutputMarkupId(true);
         table.addTopToolbar(new HeadersToolbar<>(table, null));
-        table.add(new TableBehavior().bordered());
+        table.add(new TableBehavior().bordered().condensed());
 
         add(table);
 
@@ -307,7 +307,7 @@ public class TraderList extends AbstractPage{
 
         options.setxAxis(new Axis().setType(AxisType.LINEAR));
 
-        options.setyAxis(new Axis().setTitle(new Title("")).setMin(0));
+        options.setyAxis(new Axis().setTitle(new Title("")));
 
         options.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions().setMarker(new Marker(false))));
 
