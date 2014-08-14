@@ -77,6 +77,8 @@ public class TraderList extends AbstractPage{
     private BigDecimal lastChartValue = new BigDecimal("0");
     private Chart chart;
 
+    private int chartIndex = 0;
+
     public TraderList() {
         notificationPanel = new NotificationPanel("notification");
         notificationPanel.setMaxMessages(3);
@@ -195,7 +197,7 @@ public class TraderList extends AbstractPage{
                             if (lastChartValue.compareTo(((AccountInfo) payload).getBalance("BTC")) != 0) {
                                 lastChartValue = ((AccountInfo) payload).getBalance("BTC");
 
-                                Point point = new Point(Calendar.getInstance().getTimeInMillis(), lastChartValue);
+                                Point point = new Point(chartIndex++, lastChartValue);
                                 JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
                                 String jsonPoint = renderer.toJson(point);
                                 String javaScript = "var chartVarName = " + chart.getJavaScriptVarName() + ";\n";
@@ -303,7 +305,7 @@ public class TraderList extends AbstractPage{
         options.setTitle(new Title(""));
         options.setLegend(new Legend(Boolean.FALSE));
 
-        options.setxAxis(new Axis().setType(AxisType.DATETIME));
+        options.setxAxis(new Axis().setType(AxisType.LINEAR));
 
         options.setyAxis(new Axis().setTitle(new Title("")).setMin(0));
 
@@ -315,11 +317,12 @@ public class TraderList extends AbstractPage{
         if (balanceStatList != null){
             BigDecimal lastValue = new BigDecimal("0");
 
+
             for (BalanceStat balanceStat : balanceStatList){
                 BigDecimal value = balanceStat.getAccountInfo().getBalance("BTC");
 
                 if (value.compareTo(lastValue) != 0) {
-                    data.add(new Point(balanceStat.getDate().getTime(), value));
+                    data.add(new Point(chartIndex++, value));
 
                     lastValue = value;
                 }
@@ -330,7 +333,7 @@ public class TraderList extends AbstractPage{
         Number x = !data.isEmpty() ? data.get(0).getX() : new Date().getTime() - 6*60*60*1000;
         Number y = !data.isEmpty() ? data.get(0).getY() : 0;
         for (int i = 0; i < 100 - len; ++i){
-            data.add(0, new Point(x, y));
+            data.add(0, new Point(0, y));
         }
 
         options.addSeries(new PointSeries().setData(data).setName("Средства"));
