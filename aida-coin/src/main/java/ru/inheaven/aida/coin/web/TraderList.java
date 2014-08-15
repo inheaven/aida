@@ -341,7 +341,7 @@ public class TraderList extends AbstractPage{
         int x = len - 1000;
         Number y = !data.isEmpty() ? data.get(0).getY() : 0;
         for (int i = 0; i < 1000 - len; ++i){
-            data.add(0, new Point(x, y));
+            data.add(0, new Point(x > 0 ? x : 0, y));
         }
 
         options.addSeries(new PointSeries().setData(data).setName("Средства"));
