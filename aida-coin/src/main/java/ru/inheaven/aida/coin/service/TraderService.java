@@ -240,7 +240,8 @@ public class TraderService {
                             randomBidAmount = randomBidAmount.compareTo(minOrderAmount) > 0 ? randomBidAmount : minOrderAmount;
 
                             //check ask
-                            if (accountInfo.getBalance(currencyPair.counterSymbol).compareTo(randomAskAmount.multiply(middlePrice)) < 0){
+                            if ("USD".equals(currencyPair.counterSymbol)
+                                    && accountInfo.getBalance(currencyPair.counterSymbol).compareTo(randomAskAmount.multiply(middlePrice)) < 0){
                                 broadcast(exchangeType, trader.getPair() + ": Хочу купить " + randomAskAmount.toString()
                                         + " по цене " + middlePrice.toString());
 
@@ -248,7 +249,7 @@ public class TraderService {
                             }
 
                             //check bid
-                            if (accountInfo.getBalance(getCurrency(trader.getPair())).compareTo(randomBidAmount) < 0){
+                            if (accountInfo.getBalance(currencyPair.baseSymbol).compareTo(randomBidAmount) < 0){
                                 broadcast(exchangeType, trader.getPair() + ": Чтобы что-то продать надо что-то купить "
                                         + randomBidAmount.toString());
                                 continue;
@@ -257,13 +258,13 @@ public class TraderService {
                             //ASK
                             tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.ASK,
                                     randomAskAmount,
-                                    getCurrencyPair(trader.getPair()), "", new Date(),
+                                    currencyPair, "", new Date(),
                                     middlePrice.add(random20(delta))));
 
                             //BID
                             tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.BID,
                                     randomBidAmount,
-                                    getCurrencyPair(trader.getPair()), "", new Date(),
+                                    currencyPair, "", new Date(),
                                     middlePrice.subtract(random20(delta))));
                         } catch (Exception e) {
                             log.error("alpha trade error", e);
