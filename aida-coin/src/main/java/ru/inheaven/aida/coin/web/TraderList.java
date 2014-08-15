@@ -314,7 +314,10 @@ public class TraderList extends AbstractPage{
 
         options.setyAxis(new Axis().setTitle(new Title("")));
 
-        options.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions().setMarker(new Marker(false))));
+        options.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions()
+                .setMarker(new Marker(false))
+                .setLineWidth(1)
+                .setShadow(true)));
 
         List<Point> data = new ArrayList<>();
 
@@ -335,10 +338,10 @@ public class TraderList extends AbstractPage{
         }
 
         int len = data.size();
-        Number x = !data.isEmpty() ? data.get(0).getX() : new Date().getTime() - 6*60*60*1000;
+        int x = 1000 - len;
         Number y = !data.isEmpty() ? data.get(0).getY() : 0;
-        for (int i = 0; i < 100 - len; ++i){
-            data.add(0, new Point(0, y));
+        for (int i = 0; i < 1000 - len; ++i){
+            data.add(0, new Point(x, y));
         }
 
         options.addSeries(new PointSeries().setData(data).setName("Средства"));
