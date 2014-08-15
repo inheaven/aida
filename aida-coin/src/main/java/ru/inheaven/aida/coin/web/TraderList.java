@@ -186,7 +186,7 @@ public class TraderList extends AbstractPage{
 
                                 BigDecimal price = traderService.getOrderBook(exchangePair).getAsks().get(0).getLimitPrice();
 
-                                if (traderService.getOrderBook(exchangePair) != null) {
+                                if (traderService.getOrderBook(exchangePair) != null && exchangePair.getCounterSymbol().equals("BTC")) {
                                     estimate = estimate.add(balance.multiply(price)).setScale(8, BigDecimal.ROUND_HALF_UP);
                                 }
 

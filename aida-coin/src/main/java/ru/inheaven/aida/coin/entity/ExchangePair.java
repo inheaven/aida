@@ -30,6 +30,10 @@ public class ExchangePair implements Serializable{
         return TraderUtil.getCurrency(pair);
     }
 
+    public String getCounterSymbol(){
+        return TraderUtil.getCounterSymbol(pair);
+    }
+
     public ExchangeType getExchangeType() {
         return exchangeType;
     }
