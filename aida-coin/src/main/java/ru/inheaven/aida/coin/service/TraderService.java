@@ -240,7 +240,7 @@ public class TraderService {
                             randomBidAmount = randomBidAmount.compareTo(minOrderAmount) > 0 ? randomBidAmount : minOrderAmount;
 
                             //check ask
-                            if ("USD".equals(currencyPair.counterSymbol)
+                            if (!"USD".equals(currencyPair.counterSymbol)
                                     && accountInfo.getBalance(currencyPair.counterSymbol).compareTo(randomAskAmount.multiply(middlePrice)) < 0){
                                 broadcast(exchangeType, trader.getPair() + ": Хочу купить " + randomAskAmount.toString()
                                         + " по цене " + middlePrice.toString());
