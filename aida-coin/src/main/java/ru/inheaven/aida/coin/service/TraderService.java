@@ -256,16 +256,28 @@ public class TraderService {
                             }
 
                             //ASK
+                            BigDecimal askPrice = middlePrice.add(random20(delta));
+
+                            if ("USD".equals(currencyPair.counterSymbol)){
+                                askPrice = askPrice.setScale(2, ROUND_HALF_UP);
+                            }
+
                             tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.ASK,
                                     randomAskAmount,
                                     currencyPair, "", new Date(),
-                                    middlePrice.add(random20(delta))));
+                                    askPrice));
 
                             //BID
+                            BigDecimal bidPrice = middlePrice.subtract(random20(delta));
+
+                            if ("USD".equals(currencyPair.counterSymbol)){
+                                bidPrice = askPrice.setScale(2, ROUND_HALF_UP);
+                            }
+
                             tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.BID,
                                     randomBidAmount,
                                     currencyPair, "", new Date(),
-                                    middlePrice.subtract(random20(delta))));
+                                    bidPrice));
                         } catch (Exception e) {
                             log.error("alpha trade error", e);
 
