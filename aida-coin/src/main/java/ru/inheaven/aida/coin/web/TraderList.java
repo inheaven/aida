@@ -80,6 +80,8 @@ public class TraderList extends AbstractPage{
     private int chartIndex = 0;
 
     public TraderList() {
+        setVersioned(false);
+
         notificationPanel = new NotificationPanel("notification");
         notificationPanel.setMaxMessages(3);
         notificationPanel.setOutputMarkupId(true);
