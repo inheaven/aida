@@ -316,8 +316,7 @@ public class TraderList extends AbstractPage{
 
         options.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions()
                 .setMarker(new Marker(false))
-                .setLineWidth(1)
-                .setShadow(true)));
+                .setLineWidth(1)));
 
         List<Point> data = new ArrayList<>();
 
