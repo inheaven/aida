@@ -33,6 +33,8 @@ public class AidaCoinWebApplication extends WebApplication {
         getMarkupSettings().setCompressWhitespace(true);
         getMarkupSettings().setDefaultMarkupEncoding("UTF-8");
 
+        getPageSettings().setVersionPagesByDefault(false);
+
         getComponentInstantiationListeners().add(new JavaEEComponentInjector(this, (ejbName, ejbType)
                 -> "java:module/" + (ejbName == null ? ejbType.getSimpleName() : ejbName)));
     }
