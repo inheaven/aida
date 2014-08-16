@@ -222,7 +222,7 @@ public class TraderList extends AbstractPage{
                             update(handler, cexioCoins, estimate);
                             update(handler, cexioBTC, ((AccountInfo) payload).getBalance("BTC"));
                         }else if (exchangeMessage.getExchangeType().equals(CRYPTSY)){
-                            update(handler, cryptsyBTC, estimate);
+                            update(handler, cryptsyCoins, estimate);
                             update(handler, cryptsyBTC, ((AccountInfo) payload).getBalance("BTC"));
                         }
                     }else if (payload instanceof OrderBook) {
@@ -287,6 +287,10 @@ public class TraderList extends AbstractPage{
                             }
                         });
                     }else if (payload instanceof String){
+                        if ("Cryptsy returned an error: Unable to Authorize Request - Check Your Post Data".equals(payload)){
+                            return;
+                        }
+
                         warn((String) payload);
 
                         handler.add(notificationPanel);
