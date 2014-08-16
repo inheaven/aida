@@ -95,8 +95,8 @@ public class TraderList extends AbstractPage{
         add(cexioBTC = new Label("cexioBTC", Model.of("0")).setOutputMarkupId(true));
         add(cexioCoins = new Label("cexioCoins", Model.of("0")).setOutputMarkupId(true));
 
-        add(cexioBTC = new Label("cryptsyBTC", Model.of("0")).setOutputMarkupId(true));
-        add(cexioCoins = new Label("cryptsyCoins", Model.of("0")).setOutputMarkupId(true));
+        add(cryptsyBTC = new Label("cryptsyBTC", Model.of("0")).setOutputMarkupId(true));
+        add(cryptsyCoins = new Label("cryptsyCoins", Model.of("0")).setOutputMarkupId(true));
 
         List<IColumn<Trader, String>> list = new ArrayList<>();
 
