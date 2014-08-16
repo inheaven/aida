@@ -50,6 +50,7 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
 import static org.apache.wicket.model.Model.of;
 import static ru.inheaven.aida.coin.entity.ExchangeType.BITTREX;
 import static ru.inheaven.aida.coin.entity.ExchangeType.CEXIO;
+import static ru.inheaven.aida.coin.entity.ExchangeType.CRYPTSY;
 
 /**
  * @author Anatoly Ivanov java@inheaven.ru
@@ -73,6 +74,7 @@ public class TraderList extends AbstractPage{
 
     private Component bittrexBTC, bittrexCoins;
     private Component cexioBTC, cexioCoins;
+    private Component cryptsyBTC, cryptsyCoins;
 
     private BigDecimal lastChartValue = new BigDecimal("0");
     private Chart chart;
@@ -92,6 +94,9 @@ public class TraderList extends AbstractPage{
 
         add(cexioBTC = new Label("cexioBTC", Model.of("0")).setOutputMarkupId(true));
         add(cexioCoins = new Label("cexioCoins", Model.of("0")).setOutputMarkupId(true));
+
+        add(cexioBTC = new Label("cryptsyBTC", Model.of("0")).setOutputMarkupId(true));
+        add(cexioCoins = new Label("cryptsyCoins", Model.of("0")).setOutputMarkupId(true));
 
         List<IColumn<Trader, String>> list = new ArrayList<>();
 
@@ -216,6 +221,9 @@ public class TraderList extends AbstractPage{
                         }else if (exchangeMessage.getExchangeType().equals(CEXIO)){
                             update(handler, cexioCoins, estimate);
                             update(handler, cexioBTC, ((AccountInfo) payload).getBalance("BTC"));
+                        }else if (exchangeMessage.getExchangeType().equals(CRYPTSY)){
+                            update(handler, cryptsyBTC, estimate);
+                            update(handler, cryptsyBTC, ((AccountInfo) payload).getBalance("BTC"));
                         }
                     }else if (payload instanceof OrderBook) {
                         OrderBook orderBook = (OrderBook) exchangeMessage.getPayload();
@@ -305,7 +313,7 @@ public class TraderList extends AbstractPage{
 
         //Chart
         Options options = new Options();
-        options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(200));
+        options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(250));
         options.setGlobal(new Global().setUseUTC(false));
 
         options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
