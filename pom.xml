@@ -386,6 +386,12 @@
             </dependency>
 
             <dependency>
+                <groupId>com.xeiam.xchange</groupId>
+                <artifactId>xchange-btce</artifactId>
+                <version>2.1.0-SNAPSHOT</version>
+            </dependency>
+
+            <dependency>
                 <groupId>com.googlecode.wicked-charts</groupId>
                 <artifactId>wicked-charts-wicket6</artifactId>
                 <version>1.5.0</version>
@@ -395,6 +401,12 @@
                 <groupId>com.pingunaut</groupId>
                 <artifactId>wicket-chartjs</artifactId>
                 <version>6.14.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wicketstuff</groupId>
+                <artifactId>wicketstuff-datatables</artifactId>
+                <version>6.16.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -4,6 +4,7 @@ import com.google.common.base.Throwables;
 import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.bittrex.v1.BittrexExchange;
+import com.xeiam.xchange.btce.v3.BTCEExchange;
 import com.xeiam.xchange.cexio.CexIOAdapters;
 import com.xeiam.xchange.cexio.CexIOExchange;
 import com.xeiam.xchange.cryptsy.CryptsyExchange;
@@ -38,9 +39,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import static com.xeiam.xchange.ExchangeFactory.INSTANCE;
 import static java.math.BigDecimal.ROUND_HALF_DOWN;
 import static java.math.BigDecimal.ROUND_HALF_UP;
-import static ru.inheaven.aida.coin.entity.ExchangeType.BITTREX;
-import static ru.inheaven.aida.coin.entity.ExchangeType.CEXIO;
-import static ru.inheaven.aida.coin.entity.ExchangeType.CRYPTSY;
+import static ru.inheaven.aida.coin.entity.ExchangeType.*;
 import static ru.inheaven.aida.coin.util.TraderUtil.*;
 
 /**
@@ -80,6 +79,11 @@ public class TraderService {
         setSecretKey("427fa87a1a83d8d9ef84324b978e932a9e9d90392a9ec27ca30615cce7958042514d488b2cc4c92b");
     }});
 
+    private Exchange btceExchange = INSTANCE.createExchange(new ExchangeSpecification(BTCEExchange.class){{
+        setApiKey("IR3KMDK9-JPP06NXH-GKGO2GPA-EC4BK5W0-L9QG482O");
+        setSecretKey("05e3dbb59c2586df33c12e189382e18cb5de5af736a9a0897b6b23a1bca359b6");
+    }});
+
     public Exchange getExchange(ExchangeType exchangeType){
         switch (exchangeType){
             case BITTREX:
@@ -88,6 +92,8 @@ public class TraderService {
                 return cexIOExchange;
             case CRYPTSY:
                 return cryptsyExchange;
+            case BTCE:
+                return btceExchange;
         }
 
         throw new IllegalArgumentException();
@@ -115,6 +121,11 @@ public class TraderService {
     @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
     public void scheduleCryptsyUpdate(){
         scheduleUpdate(CRYPTSY);
+    }
+
+    @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
+    public void scheduleBTCEUpdate(){
+        scheduleUpdate(BTCE);
     }
 
     public void scheduleUpdate(ExchangeType exchangeType){

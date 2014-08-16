@@ -81,6 +81,11 @@
         </dependency>
 
         <dependency>
+            <groupId>com.xeiam.xchange</groupId>
+            <artifactId>xchange-btce</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.odlabs.wiquery</groupId>
             <artifactId>wiquery-core</artifactId>
         </dependency>
@@ -92,6 +97,11 @@
         <dependency>
             <groupId>com.googlecode.wicked-charts</groupId>
             <artifactId>wicked-charts-wicket6</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.wicketstuff</groupId>
+            <artifactId>wicketstuff-datatables</artifactId>
         </dependency>
     </dependencies>
 

@@ -34,6 +34,7 @@ import org.apache.wicket.protocol.ws.api.message.IWebSocketPushMessage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.odlabs.wiquery.core.javascript.JsStatement;
 import org.odlabs.wiquery.ui.effects.HighlightEffectJavaScriptResourceReference;
+import org.wicketstuff.datatables.DataTables;
 import ru.inheaven.aida.coin.entity.BalanceStat;
 import ru.inheaven.aida.coin.entity.ExchangeMessage;
 import ru.inheaven.aida.coin.entity.ExchangePair;
@@ -43,14 +44,15 @@ import ru.inheaven.aida.coin.service.TraderService;
 
 import javax.ejb.EJB;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static org.apache.wicket.model.Model.of;
-import static ru.inheaven.aida.coin.entity.ExchangeType.BITTREX;
-import static ru.inheaven.aida.coin.entity.ExchangeType.CEXIO;
-import static ru.inheaven.aida.coin.entity.ExchangeType.CRYPTSY;
+import static ru.inheaven.aida.coin.entity.ExchangeType.*;
 
 /**
  * @author Anatoly Ivanov java@inheaven.ru
@@ -75,6 +77,7 @@ public class TraderList extends AbstractPage{
     private Component bittrexBTC, bittrexCoins;
     private Component cexioBTC, cexioCoins;
     private Component cryptsyBTC, cryptsyCoins;
+    private Component btceBTC, btceCoins;
 
     private BigDecimal lastChartValue = new BigDecimal("0");
     private Chart chart;
@@ -97,6 +100,9 @@ public class TraderList extends AbstractPage{
 
         add(cryptsyBTC = new Label("cryptsyBTC", Model.of("0")).setOutputMarkupId(true));
         add(cryptsyCoins = new Label("cryptsyCoins", Model.of("0")).setOutputMarkupId(true));
+
+        add(btceBTC = new Label("btceBTC", Model.of("0")).setOutputMarkupId(true));
+        add(btceCoins = new Label("btceCoins", Model.of("0")).setOutputMarkupId(true));
 
         List<IColumn<Trader, String>> list = new ArrayList<>();
 
@@ -159,7 +165,7 @@ public class TraderList extends AbstractPage{
 
         });
 
-        DataTable<Trader, String> table = new DataTable<>("traders", list, new ListDataProvider<Trader>(){
+        DataTable<Trader, String> table = new DataTables<>("traders", list, new ListDataProvider<Trader>(){
             @Override
             protected List<Trader> getData() {
                 return traderBean.getTraders();
@@ -224,6 +230,9 @@ public class TraderList extends AbstractPage{
                         }else if (exchangeMessage.getExchangeType().equals(CRYPTSY)){
                             update(handler, cryptsyCoins, estimate);
                             update(handler, cryptsyBTC, ((AccountInfo) payload).getBalance("BTC"));
+                        }else if (exchangeMessage.getExchangeType().equals(BTCE)){
+                            update(handler, btceCoins, estimate);
+                            update(handler, btceBTC, ((AccountInfo) payload).getBalance("BTC"));
                         }
                     }else if (payload instanceof OrderBook) {
                         OrderBook orderBook = (OrderBook) exchangeMessage.getPayload();
