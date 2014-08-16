@@ -112,7 +112,7 @@ public class TraderService {
         scheduleUpdate(CEXIO);
     }
 
-    @Schedule(second = "*/1", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
     public void scheduleCryptsyUpdate(){
         scheduleUpdate(CRYPTSY);
     }
