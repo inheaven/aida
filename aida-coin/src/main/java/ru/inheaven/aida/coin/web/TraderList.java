@@ -34,7 +34,6 @@ import org.apache.wicket.protocol.ws.api.message.IWebSocketPushMessage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.odlabs.wiquery.core.javascript.JsStatement;
 import org.odlabs.wiquery.ui.effects.HighlightEffectJavaScriptResourceReference;
-import org.wicketstuff.datatables.DataTables;
 import ru.inheaven.aida.coin.entity.BalanceStat;
 import ru.inheaven.aida.coin.entity.ExchangeMessage;
 import ru.inheaven.aida.coin.entity.ExchangePair;
@@ -165,7 +164,7 @@ public class TraderList extends AbstractPage{
 
         });
 
-        DataTable<Trader, String> table = new DataTables<>("traders", list, new ListDataProvider<Trader>(){
+        DataTable<Trader, String> table = new DataTable<>("traders", list, new ListDataProvider<Trader>(){
             @Override
             protected List<Trader> getData() {
                 return traderBean.getTraders();

@@ -4,7 +4,7 @@ import com.google.common.base.Throwables;
 import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.bittrex.v1.BittrexExchange;
-import com.xeiam.xchange.btce.v3.BTCEExchange;
+import com.xeiam.xchange.btce.v2.BTCEExchange;
 import com.xeiam.xchange.cexio.CexIOAdapters;
 import com.xeiam.xchange.cexio.CexIOExchange;
 import com.xeiam.xchange.cryptsy.CryptsyExchange;
