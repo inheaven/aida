@@ -2,11 +2,11 @@ package ru.inheaven.aida.coin.service;
 
 import com.google.common.base.Throwables;
 import com.xeiam.xchange.Exchange;
-import com.xeiam.xchange.ExchangeFactory;
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.bittrex.v1.BittrexExchange;
 import com.xeiam.xchange.cexio.CexIOAdapters;
 import com.xeiam.xchange.cexio.CexIOExchange;
+import com.xeiam.xchange.cryptsy.CryptsyExchange;
 import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.dto.Order;
 import com.xeiam.xchange.dto.account.AccountInfo;
@@ -28,14 +28,19 @@ import si.mazi.rescu.RestProxyFactory;
 import javax.ejb.*;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import static com.xeiam.xchange.ExchangeFactory.INSTANCE;
 import static java.math.BigDecimal.ROUND_HALF_DOWN;
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static ru.inheaven.aida.coin.entity.ExchangeType.BITTREX;
 import static ru.inheaven.aida.coin.entity.ExchangeType.CEXIO;
+import static ru.inheaven.aida.coin.entity.ExchangeType.CRYPTSY;
 import static ru.inheaven.aida.coin.util.TraderUtil.*;
 
 /**
@@ -50,9 +55,6 @@ public class TraderService {
     @EJB
     private TraderBean traderBean;
 
-    private Exchange bittrexExchange;
-    private Exchange cexIOExchange;
-
     private Map<ExchangePair, Ticker> tickerMap = new ConcurrentHashMap<>();
     private Map<ExchangePair, OrderBook> orderBookMap = new ConcurrentHashMap<>();
     private Map<ExchangeType, OpenOrders> openOrdersMap = new ConcurrentHashMap<>();
@@ -62,30 +64,30 @@ public class TraderService {
 
     private CexIO cexIO;
 
+    private Exchange bittrexExchange = INSTANCE.createExchange(new ExchangeSpecification(BittrexExchange.class){{
+        setApiKey("14935ef36d8b4afc8204946be7ddd152");
+        setSecretKey("44d84de3865e4fbfa4c17dd42c026d11");
+    }});
+
+    private Exchange cexIOExchange = INSTANCE.createExchange(new ExchangeSpecification(CexIOExchange.class){{
+        setUserName("inheaven");
+        setApiKey("0rt9tOzQG2rGfZfGxsx1CtR9JA");
+        setSecretKey("5ZpuaGOfpFdn96JisyCfR6wQvc");
+    }});
+
+    private Exchange cryptsyExchange = INSTANCE.createExchange(new ExchangeSpecification(CryptsyExchange.class){{
+        setApiKey("50d34971bc49011fd7cbaabc24f49b90a18a67be");
+        setSecretKey("427fa87a1a83d8d9ef84324b978e932a9e9d90392a9ec27ca30615cce7958042514d488b2cc4c92b");
+    }});
+
     public Exchange getExchange(ExchangeType exchangeType){
         switch (exchangeType){
             case BITTREX:
-                if (bittrexExchange == null){
-                    ExchangeSpecification exSpec = new ExchangeSpecification(BittrexExchange.class);
-                    exSpec.setApiKey("14935ef36d8b4afc8204946be7ddd152");
-                    exSpec.setSecretKey("44d84de3865e4fbfa4c17dd42c026d11");
-
-                    bittrexExchange = ExchangeFactory.INSTANCE.createExchange(exSpec);
-                }
-
                 return bittrexExchange;
-
             case CEXIO:
-                if (cexIOExchange == null){
-                    ExchangeSpecification exSpec = new ExchangeSpecification(CexIOExchange.class);
-                    exSpec.setUserName("inheaven");
-                    exSpec.setApiKey("0rt9tOzQG2rGfZfGxsx1CtR9JA");
-                    exSpec.setSecretKey("5ZpuaGOfpFdn96JisyCfR6wQvc");
-
-                    cexIOExchange = ExchangeFactory.INSTANCE.createExchange(exSpec);
-                }
-
                 return cexIOExchange;
+            case CRYPTSY:
+                return cryptsyExchange;
         }
 
         throw new IllegalArgumentException();
@@ -96,17 +98,8 @@ public class TraderService {
             cexIO = RestProxyFactory.createProxy(CexIO.class, "https://cex.io");
         }
 
-        OrderBook orderBook = CexIOAdapters.adaptOrderBook(cexIO.getDepth(currencyPair.baseSymbol, currencyPair.counterSymbol, 1),
+        return  CexIOAdapters.adaptOrderBook(cexIO.getDepth(currencyPair.baseSymbol, currencyPair.counterSymbol, 1),
                 currencyPair);
-
-        orderBook.getBids().sort(new Comparator<LimitOrder>() {
-            @Override
-            public int compare(LimitOrder o1, LimitOrder o2) {
-                return o1.getLimitPrice().compareTo(o2.getLimitPrice());
-            }
-        });
-
-        return orderBook;
     }
 
     @Schedule(second = "*/1", minute="*", hour="*", persistent=false)
@@ -117,6 +110,11 @@ public class TraderService {
     @Schedule(second = "*/30", minute="*", hour="*", persistent=false)
     public void scheduleCexIOUpdate(){
         scheduleUpdate(CEXIO);
+    }
+
+    @Schedule(second = "*/1", minute="*", hour="*", persistent=false)
+    public void scheduleCryptsyUpdate(){
+        scheduleUpdate(CRYPTSY);
     }
 
     public void scheduleUpdate(ExchangeType exchangeType){
@@ -177,6 +175,13 @@ public class TraderService {
                     default:
                         orderBook = getExchange(exchangeType).getPollingMarketDataService().getOrderBook(currencyPair);
                 }
+
+                orderBook.getBids().sort(new Comparator<LimitOrder>() {
+                    @Override
+                    public int compare(LimitOrder o1, LimitOrder o2) {
+                        return o1.getLimitPrice().compareTo(o2.getLimitPrice());
+                    }
+                });
 
                 orderBookMap.put(new ExchangePair(exchangeType, pair), orderBook);
 
@@ -271,7 +276,7 @@ public class TraderService {
                             BigDecimal bidPrice = middlePrice.subtract(random20(delta));
 
                             if ("USD".equals(currencyPair.counterSymbol)){
-                                bidPrice = askPrice.setScale(2, ROUND_HALF_UP);
+                                bidPrice = bidPrice.setScale(2, ROUND_HALF_UP);
                             }
 
                             tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.BID,
