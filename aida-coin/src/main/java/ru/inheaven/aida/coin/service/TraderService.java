@@ -175,8 +175,8 @@ public class TraderService {
                                 log.error("update balance history error", e);
                             }
 
-                            if (!previous.getBalance().add(previous.getBidAmount()).equals(
-                                    balanceHistory.getBalance().add(balanceHistory.getBidAmount()))) {
+                            if (!previous.getBalance().add(previous.getAskAmount()).equals(
+                                    balanceHistory.getBalance().add(balanceHistory.getAskAmount()))) {
                                 orderTimes.add(System.currentTimeMillis());
                             }
 
