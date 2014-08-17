@@ -1,5 +1,7 @@
 package ru.inheaven.aida.coin.entity;
 
+import ru.inheaven.aida.coin.util.TraderUtil;
+
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -44,6 +46,10 @@ public class Trader extends AbstractEntity{
 
     public ExchangePair getExchangePair(){
         return new ExchangePair(exchange, pair);
+    }
+
+    public String getCurrency(){
+        return TraderUtil.getCurrency(pair);
     }
 
     public ExchangeType getExchange() {

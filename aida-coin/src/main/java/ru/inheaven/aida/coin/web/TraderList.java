@@ -34,7 +34,6 @@ import org.apache.wicket.protocol.ws.api.message.IWebSocketPushMessage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.odlabs.wiquery.core.javascript.JsStatement;
 import org.odlabs.wiquery.ui.effects.HighlightEffectJavaScriptResourceReference;
-import ru.inheaven.aida.coin.entity.BalanceStat;
 import ru.inheaven.aida.coin.entity.ExchangeMessage;
 import ru.inheaven.aida.coin.entity.ExchangePair;
 import ru.inheaven.aida.coin.entity.Trader;
@@ -342,22 +341,6 @@ public class TraderList extends AbstractPage{
 
         List<Point> data = new ArrayList<>();
 
-        List<BalanceStat> balanceStatList = traderService.getBalanceStats(BITTREX);
-        if (balanceStatList != null){
-            BigDecimal lastValue = new BigDecimal("0");
-
-
-            for (BalanceStat balanceStat : balanceStatList){
-                BigDecimal value = balanceStat.getAccountInfo().getBalance("BTC");
-
-                if (value.compareTo(lastValue) != 0) {
-                    data.add(new Point(chartIndex++, value));
-
-                    lastValue = value;
-                }
-            }
-        }
-
         int len = data.size();
         int x = len - 1000;
         Number y = !data.isEmpty() ? data.get(0).getY() : 0;
@@ -381,10 +364,6 @@ public class TraderList extends AbstractPage{
                         .chain("parent")
                         .chain("css", "\"background-color\"", color)
                         .render());
-
-//                handler.appendJavaScript(new JsStatement().$(component)
-//                        .chain("effect", "\"highlight\"", "{color: " + color + "}")
-//                        .render());
 
                 component.setDefaultModelObject(newValue);
                 handler.add(component);

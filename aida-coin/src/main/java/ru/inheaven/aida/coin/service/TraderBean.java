@@ -1,5 +1,6 @@
 package ru.inheaven.aida.coin.service;
 
+import ru.inheaven.aida.coin.entity.AbstractEntity;
 import ru.inheaven.aida.coin.entity.ExchangeType;
 import ru.inheaven.aida.coin.entity.Trader;
 
@@ -47,11 +48,11 @@ public class TraderBean {
         return em.createQuery("select t from Trader t where t.id = :id", Trader.class).setParameter("id", id).getSingleResult();
     }
 
-    public void save(Trader trader){
-        if (trader.getId() == null) {
-            em.persist(trader);
+    public void save(AbstractEntity abstractEntity){
+        if (abstractEntity.getId() == null) {
+            em.persist(abstractEntity);
         }else {
-            em.merge(trader);
+            em.merge(abstractEntity);
         }
     }
 }

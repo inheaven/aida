@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.coin.cexio.CexIO;
 import ru.inheaven.aida.coin.entity.*;
+import ru.inheaven.aida.coin.util.TraderUtil;
 import si.mazi.rescu.RestProxyFactory;
 
 import javax.ejb.*;
@@ -31,10 +32,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import static com.xeiam.xchange.ExchangeFactory.INSTANCE;
 import static java.math.BigDecimal.ROUND_HALF_DOWN;
@@ -59,7 +58,7 @@ public class TraderService {
     private Map<ExchangeType, OpenOrders> openOrdersMap = new ConcurrentHashMap<>();
     private Map<ExchangeType, AccountInfo> accountInfoMap = new ConcurrentHashMap<>();
 
-    private Map<ExchangeType, List<BalanceStat>> balanceStatsMap = new ConcurrentHashMap<>();
+    private Map<ExchangePair, BalanceHistory> balanceHistoryMap = new ConcurrentHashMap<>();
 
     private CexIO cexIO;
 
@@ -128,11 +127,69 @@ public class TraderService {
         scheduleUpdate(BTCE);
     }
 
-    public void scheduleUpdate(ExchangeType exchangeType){
+    @Schedule(second = "*/1", minute="*", hour="*", persistent=false)
+    public void scheduleBalanceHistory(){
+
+        for (ExchangeType exchangeType : ExchangeType.values()){
+            AccountInfo accountInfo = getAccountInfo(exchangeType);
+            OpenOrders openOrders = getOpenOrders(exchangeType);
+
+            if (accountInfo != null && openOrders != null){
+                for (Trader trader : traderBean.getTraders(exchangeType)){
+                    Ticker ticker = getTicker(trader.getExchangePair());
+
+                    if (ticker != null) {
+                        CurrencyPair currencyPair = TraderUtil.getCurrencyPair(trader.getPair());
+
+                        BigDecimal askAmount = new BigDecimal("0");
+                        BigDecimal bidAmount = new BigDecimal("0");
+
+                        for (LimitOrder limitOrder : openOrders.getOpenOrders()){
+                            if (currencyPair.equals(limitOrder.getCurrencyPair())){
+                                if (limitOrder.getType().equals(Order.OrderType.ASK)){
+                                    askAmount = askAmount.add(limitOrder.getTradableAmount());
+                                }else{
+                                    bidAmount = bidAmount.add(limitOrder.getTradableAmount());
+                                }
+                            }
+                        }
+
+                        BalanceHistory balanceHistory = new BalanceHistory();
+                        balanceHistory.setExchangeType(exchangeType);
+                        balanceHistory.setPair(trader.getPair());
+                        balanceHistory.setBalance(accountInfo.getBalance(trader.getCurrency()));
+                        balanceHistory.setAskAmount(askAmount);
+                        balanceHistory.setBidAmount(bidAmount);
+                        balanceHistory.setPrice(ticker.getLast());
+
+                        ExchangePair exchangePair = trader.getExchangePair();
+                        BalanceHistory cache = balanceHistoryMap.get(exchangePair);
+
+                        if (cache != null && !balanceHistory.equals(cache)){
+                            try {
+                                traderBean.save(balanceHistory);
+                            } catch (Exception e) {
+                                log.error("update balance history error", e);
+                            }
+
+                            broadcast(exchangeType, balanceHistory);
+                        }
+
+                        balanceHistoryMap.put(exchangePair, balanceHistory);
+                    }
+                }
+            }
+        }
+
+    }
+
+    private void scheduleUpdate(ExchangeType exchangeType){
         try {
             updateBalance(exchangeType);
             updateOrderBook(exchangeType);
             updateOpenOrders(exchangeType);
+            updateTicker(exchangeType);
+
             tradeAlpha(exchangeType);
         } catch (Exception e) {
             log.error("Schedule update error", e);
@@ -144,18 +201,7 @@ public class TraderService {
 
     private void updateBalance(ExchangeType exchangeType) throws IOException {
         AccountInfo accountInfo = getExchange(exchangeType).getPollingAccountService().getAccountInfo();
-
         accountInfoMap.put(exchangeType, accountInfo);
-
-        //balance stats todo add save to db
-        List<BalanceStat> list = balanceStatsMap.get(exchangeType);
-        if (list == null){
-            list = new CopyOnWriteArrayList<>();
-            balanceStatsMap.put(exchangeType, list);
-        }else if (list.size() > 10000){
-            list.subList(0, 5000).clear();
-        }
-        list.add(new BalanceStat(accountInfo, new Date()));
 
         broadcast(exchangeType, accountInfo);
     }
@@ -323,10 +369,6 @@ public class TraderService {
         return accountInfoMap.get(exchangeType);
     }
 
-    public List<BalanceStat> getBalanceStats(ExchangeType exchangeType){
-        return balanceStatsMap.get(exchangeType);
-    }
-
     public Ticker getTicker(ExchangePair exchangePair){
         return tickerMap.get(exchangePair);
     }
@@ -338,4 +380,6 @@ public class TraderService {
     public OpenOrders getOpenOrders(ExchangeType exchangeType){
         return openOrdersMap.get(exchangeType);
     }
+
+    public BalanceHistory getBalanceHistory(ExchangePair exchangePair){ return balanceHistoryMap.get(exchangePair); };
 }
