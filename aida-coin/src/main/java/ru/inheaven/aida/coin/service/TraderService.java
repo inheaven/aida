@@ -166,16 +166,19 @@ public class TraderService {
                         balanceHistory.setPrice(ticker.getLast());
 
                         ExchangePair exchangePair = trader.getExchangePair();
-                        BalanceHistory cache = balanceHistoryMap.get(exchangePair);
+                        BalanceHistory previous = balanceHistoryMap.get(exchangePair);
 
-                        if (cache != null && !balanceHistory.equals(cache)){
+                        if (previous != null && !balanceHistory.equals(previous)){
                             try {
                                 traderBean.save(balanceHistory);
                             } catch (Exception e) {
                                 log.error("update balance history error", e);
                             }
 
-                            orderTimes.add(System.currentTimeMillis());
+                            if (!previous.getBalance().add(previous.getBidAmount()).equals(
+                                    balanceHistory.getBalance().add(balanceHistory.getBidAmount()))) {
+                                orderTimes.add(System.currentTimeMillis());
+                            }
 
                             broadcast(exchangeType, balanceHistory);
                         }
