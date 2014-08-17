@@ -78,9 +78,10 @@ public class TraderList extends AbstractPage{
     private Component btceBTC, btceCoins;
 
     private BigDecimal lastChartValue = new BigDecimal("0");
-    private Chart chart;
-
+    private Integer lastChart2Value = new Integer(0);
+    private Chart chart, chart2;
     private int chartIndex = 0;
+    private int chart2Index = 0;
 
     public TraderList() {
         setVersioned(false);
@@ -209,7 +210,7 @@ public class TraderList extends AbstractPage{
                             update(handler, bittrexBTC, ((AccountInfo) payload).getBalance("BTC"));
 
 
-                            //update chart
+                            //update chart balance
                             if (lastChartValue.compareTo(((AccountInfo) payload).getBalance("BTC")) != 0) {
                                 lastChartValue = ((AccountInfo) payload).getBalance("BTC");
 
@@ -217,6 +218,22 @@ public class TraderList extends AbstractPage{
                                 JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
                                 String jsonPoint = renderer.toJson(point);
                                 String javaScript = "var chartVarName = " + chart.getJavaScriptVarName() + ";\n";
+                                javaScript += "var seriesIndex = " + 0 + ";\n";
+                                javaScript += "eval(chartVarName).series[seriesIndex].addPoint(" + jsonPoint + ", true, true);\n";
+
+                                handler.appendJavaScript(javaScript);
+                            }
+
+                            int orderRate = traderService.getOrderRate();
+
+                            //update chart order rate
+                            if (!lastChart2Value.equals(orderRate)) {
+                                lastChart2Value = orderRate;
+
+                                Point point = new Point(chart2Index++, lastChart2Value);
+                                JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
+                                String jsonPoint = renderer.toJson(point);
+                                String javaScript = "var chartVarName = " + chart2.getJavaScriptVarName() + ";\n";
                                 javaScript += "var seriesIndex = " + 0 + ";\n";
                                 javaScript += "eval(chartVarName).series[seriesIndex].addPoint(" + jsonPoint + ", true, true);\n";
 
@@ -323,38 +340,70 @@ public class TraderList extends AbstractPage{
         }.setIconType(GlyphIconType.warningsign).setLabel(of("test")));
 
         //Chart
-        Options options = new Options();
-        options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(250));
-        options.setGlobal(new Global().setUseUTC(false));
+        {
+            Options options = new Options();
+            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(250));
+            options.setGlobal(new Global().setUseUTC(false));
 
-        options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
-        options.setTitle(new Title(""));
-        options.setLegend(new Legend(Boolean.FALSE));
+            options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
+            options.setTitle(new Title(""));
+            options.setLegend(new Legend(Boolean.FALSE));
 
-        options.setxAxis(new Axis().setType(AxisType.LINEAR));
+            options.setxAxis(new Axis().setType(AxisType.LINEAR));
 
-        options.setyAxis(new Axis().setTitle(new Title("")));
+            options.setyAxis(new Axis().setTitle(new Title("")));
 
-        options.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions()
-                .setMarker(new Marker(false))
-                .setLineWidth(1)));
+            options.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions()
+                    .setMarker(new Marker(false))
+                    .setLineWidth(1)));
 
 
-        List<Point> data = new ArrayList<>();
-        BigDecimal value = BigDecimal.ZERO;
+            List<Point> data = new ArrayList<>();
+            BigDecimal value = BigDecimal.ZERO;
 
-        AccountInfo accountInfo = traderService.getAccountInfo(BITTREX);
-        if (accountInfo != null){
-            value = accountInfo.getBalance("BTC");
+            AccountInfo accountInfo = traderService.getAccountInfo(BITTREX);
+            if (accountInfo != null) {
+                value = accountInfo.getBalance("BTC");
+            }
+
+            for (int i = 0; i < 600; ++i) {
+                data.add(0, new Point(0, value));
+            }
+
+            options.addSeries(new PointSeries().setData(data).setName("Bittrex"));
+
+            add(chart = new Chart("chart", options));
         }
 
-        for (int i = 0; i < 1000; ++i){
-            data.add(0, new Point(0, value));
+        //Chart
+        {
+            Options options2 = new Options();
+            options2.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(250));
+            options2.setGlobal(new Global().setUseUTC(false));
+
+            options2.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
+            options2.setTitle(new Title(""));
+            options2.setLegend(new Legend(Boolean.FALSE));
+
+            options2.setxAxis(new Axis().setType(AxisType.LINEAR));
+
+            options2.setyAxis(new Axis().setTitle(new Title("")));
+
+            options2.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions()
+                    .setMarker(new Marker(false))
+                    .setLineWidth(1)));
+
+            List<Point> data = new ArrayList<>();
+            Integer value = traderService.getOrderRate();
+
+            for (int i = 0; i < 600; ++i) {
+                data.add(0, new Point(0, value));
+            }
+
+            options2.addSeries(new PointSeries().setData(data).setName("Order Rate"));
+
+            add(chart2 = new Chart("chart2", options2));
         }
-
-        options.addSeries(new PointSeries().setData(data).setName("Bittrex"));
-
-        add(chart = new Chart("chart", options));
     }
 
     private void update(WebSocketRequestHandler handler, Component component, BigDecimal newValue){

@@ -105,7 +105,6 @@ public class BalanceHistory extends AbstractEntity{
         if (bidAmount != null ? !bidAmount.equals(that.bidAmount) : that.bidAmount != null) return false;
         if (exchangeType != that.exchangeType) return false;
         if (pair != null ? !pair.equals(that.pair) : that.pair != null) return false;
-        if (price != null ? !price.equals(that.price) : that.price != null) return false;
 
         return true;
     }
@@ -117,7 +116,6 @@ public class BalanceHistory extends AbstractEntity{
         result = 31 * result + (balance != null ? balance.hashCode() : 0);
         result = 31 * result + (askAmount != null ? askAmount.hashCode() : 0);
         result = 31 * result + (bidAmount != null ? bidAmount.hashCode() : 0);
-        result = 31 * result + (price != null ? price.hashCode() : 0);
         return result;
     }
 }

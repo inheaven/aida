@@ -31,7 +31,12 @@
 
     <table wicket:id="traders"></table>
 
-    <div wicket:id="chart"></div>
+    <table style="width: 100%; table-layout: fixed; ">
+        <tr>
+            <td style="width: 50%"><div wicket:id="chart"></div></td>
+            <td style="width: 50%"><div wicket:id="chart2"></div></td>
+        </tr>
+    </table>
 
     <span wicket:id="test_label"></span> <a href="#" wicket:id="test">test</a>
 </wicket:extend>

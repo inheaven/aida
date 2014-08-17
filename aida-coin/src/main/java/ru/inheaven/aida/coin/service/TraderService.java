@@ -32,8 +32,10 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static com.xeiam.xchange.ExchangeFactory.INSTANCE;
 import static java.math.BigDecimal.ROUND_HALF_DOWN;
@@ -61,6 +63,8 @@ public class TraderService {
     private Map<ExchangePair, BalanceHistory> balanceHistoryMap = new ConcurrentHashMap<>();
 
     private CexIO cexIO;
+
+    private List<Long> orderTimes = new CopyOnWriteArrayList<>();
 
     private Exchange bittrexExchange = INSTANCE.createExchange(new ExchangeSpecification(BittrexExchange.class){{
         setApiKey("14935ef36d8b4afc8204946be7ddd152");
@@ -129,7 +133,6 @@ public class TraderService {
 
     @Schedule(second = "*/1", minute="*", hour="*", persistent=false)
     public void scheduleBalanceHistory(){
-
         for (ExchangeType exchangeType : ExchangeType.values()){
             AccountInfo accountInfo = getAccountInfo(exchangeType);
             OpenOrders openOrders = getOpenOrders(exchangeType);
@@ -171,6 +174,8 @@ public class TraderService {
                             } catch (Exception e) {
                                 log.error("update balance history error", e);
                             }
+
+                            orderTimes.add(System.currentTimeMillis());
 
                             broadcast(exchangeType, balanceHistory);
                         }
@@ -380,5 +385,17 @@ public class TraderService {
         return openOrdersMap.get(exchangeType);
     }
 
-    public BalanceHistory getBalanceHistory(ExchangePair exchangePair){ return balanceHistoryMap.get(exchangePair); };
+    public BalanceHistory getBalanceHistory(ExchangePair exchangePair){ return balanceHistoryMap.get(exchangePair); }
+
+    public Integer getOrderRate(){
+        int index = 0;
+
+        for (Long time : orderTimes){
+            if (System.currentTimeMillis() - time < 1000*60*60){
+                index++;
+            }
+        }
+
+        return index;
+    }
 }
