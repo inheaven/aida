@@ -138,6 +138,20 @@ public class TraderService {
             OpenOrders openOrders = getOpenOrders(exchangeType);
 
             if (accountInfo != null && openOrders != null){
+                //check ask amount
+                boolean zero = true;
+
+                for (LimitOrder limitOrder : openOrders.getOpenOrders()){
+                    if (limitOrder.getLimitPrice().compareTo(BigDecimal.ZERO) != 0){
+                        zero = false;
+                        break;
+                    }
+                }
+
+                if (zero){
+                    continue;
+                }
+
                 for (Trader trader : traderBean.getTraders(exchangeType)){
                     Ticker ticker = getTicker(trader.getExchangePair());
 
