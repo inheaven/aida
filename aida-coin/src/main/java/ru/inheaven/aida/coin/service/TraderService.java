@@ -412,7 +412,7 @@ public class TraderService {
     public Integer getOrderRate(){
         int index = 0;
 
-        for (int i = orderTimes.size(); i > 0; ++i){
+        for (int i = orderTimes.size() - 1; i >= 0; ++i){
             if (System.currentTimeMillis() - orderTimes.get(i) > 1000*60*10){
                 break;
             }
