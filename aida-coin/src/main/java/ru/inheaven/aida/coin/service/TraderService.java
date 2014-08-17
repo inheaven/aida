@@ -142,7 +142,8 @@ public class TraderService {
                 boolean zero = true;
 
                 for (LimitOrder limitOrder : openOrders.getOpenOrders()){
-                    if (limitOrder.getLimitPrice().compareTo(BigDecimal.ZERO) != 0){
+                    if (limitOrder.getType().equals(Order.OrderType.ASK)
+                            && limitOrder.getLimitPrice().compareTo(BigDecimal.ZERO) != 0){
                         zero = false;
                         break;
                     }
