@@ -193,6 +193,10 @@ public class TraderService {
                             if (!previous.getBalance().add(previous.getAskAmount()).equals(
                                     balanceHistory.getBalance().add(balanceHistory.getAskAmount()))) {
                                 orderTimes.add(System.currentTimeMillis());
+
+                                if (orderTimes.size() > 200000){
+                                    orderTimes.subList(0, 100000).clear();
+                                }
                             }
 
                             broadcast(exchangeType, balanceHistory);
@@ -408,10 +412,12 @@ public class TraderService {
     public Integer getOrderRate(){
         int index = 0;
 
-        for (Long time : orderTimes){
-            if (System.currentTimeMillis() - time < 1000*60*60){
-                index++;
+        for (int i = orderTimes.size(); i > 0; ++i){
+            if (System.currentTimeMillis() - orderTimes.get(i) > 1000*60*10){
+                break;
             }
+
+            index++;
         }
 
         return index;
