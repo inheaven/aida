@@ -34,6 +34,7 @@ import org.apache.wicket.protocol.ws.api.message.IWebSocketPushMessage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.odlabs.wiquery.core.javascript.JsStatement;
 import org.odlabs.wiquery.ui.effects.HighlightEffectJavaScriptResourceReference;
+import ru.inheaven.aida.coin.entity.BalanceHistory;
 import ru.inheaven.aida.coin.entity.ExchangeMessage;
 import ru.inheaven.aida.coin.entity.ExchangePair;
 import ru.inheaven.aida.coin.entity.Trader;
@@ -223,22 +224,6 @@ public class TraderList extends AbstractPage{
 
                                 handler.appendJavaScript(javaScript);
                             }
-
-                            int orderRate = traderService.getOrderRate();
-
-                            //update chart order rate
-                            if (!lastChart2Value.equals(orderRate)) {
-                                lastChart2Value = orderRate;
-
-                                Point point = new Point(chart2Index++, lastChart2Value);
-                                JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
-                                String jsonPoint = renderer.toJson(point);
-                                String javaScript = "var chartVarName = " + chart2.getJavaScriptVarName() + ";\n";
-                                javaScript += "var seriesIndex = " + 0 + ";\n";
-                                javaScript += "eval(chartVarName).series[seriesIndex].addPoint(" + jsonPoint + ", true, true);\n";
-
-                                handler.appendJavaScript(javaScript);
-                            }
                         }else if (exchangeMessage.getExchangeType().equals(CEXIO)){
                             update(handler, cexioCoins, estimate);
                             update(handler, cexioBTC, ((AccountInfo) payload).getBalance("BTC"));
@@ -248,6 +233,22 @@ public class TraderList extends AbstractPage{
                         }else if (exchangeMessage.getExchangeType().equals(BTCE)){
                             update(handler, btceCoins, estimate);
                             update(handler, btceBTC, ((AccountInfo) payload).getBalance("BTC"));
+                        }
+                    }else if (payload instanceof BalanceHistory){
+                        int orderRate = traderService.getOrderRate();
+
+                        //update chart order rate
+                        if (!lastChart2Value.equals(orderRate)) {
+                            lastChart2Value = orderRate;
+
+                            Point point = new Point(chart2Index++, lastChart2Value);
+                            JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
+                            String jsonPoint = renderer.toJson(point);
+                            String javaScript = "var chartVarName = " + chart2.getJavaScriptVarName() + ";\n";
+                            javaScript += "var seriesIndex = " + 0 + ";\n";
+                            javaScript += "eval(chartVarName).series[seriesIndex].addPoint(" + jsonPoint + ", true, true);\n";
+
+                            handler.appendJavaScript(javaScript);
                         }
                     }else if (payload instanceof OrderBook) {
                         OrderBook orderBook = (OrderBook) exchangeMessage.getPayload();
