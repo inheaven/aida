@@ -180,7 +180,6 @@ public class TraderService {
                 }
             }
         }
-
     }
 
     private void scheduleUpdate(ExchangeType exchangeType){

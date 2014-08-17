@@ -339,16 +339,20 @@ public class TraderList extends AbstractPage{
                 .setMarker(new Marker(false))
                 .setLineWidth(1)));
 
-        List<Point> data = new ArrayList<>();
 
-        int len = data.size();
-        int x = len - 1000;
-        Number y = !data.isEmpty() ? data.get(0).getY() : 0;
-        for (int i = 0; i < 1000 - len; ++i){
-            data.add(0, new Point(x > 0 ? x : 0, y));
+        List<Point> data = new ArrayList<>();
+        BigDecimal value = BigDecimal.ZERO;
+
+        AccountInfo accountInfo = traderService.getAccountInfo(BITTREX);
+        if (accountInfo != null){
+            value = accountInfo.getBalance("BTC");
         }
 
-        options.addSeries(new PointSeries().setData(data).setName("Средства"));
+        for (int i = 0; i < 1000; ++i){
+            data.add(0, new Point(0, value));
+        }
+
+        options.addSeries(new PointSeries().setData(data).setName("Bittrex"));
 
         add(chart = new Chart("chart", options));
     }
