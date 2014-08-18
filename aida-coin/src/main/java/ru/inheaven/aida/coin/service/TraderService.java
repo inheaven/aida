@@ -224,10 +224,10 @@ public class TraderService {
                                     orderTimes.subList(0, 100000).clear();
                                 }
                                 if (askOrderTimes.size() > 200000){
-                                    orderTimes.subList(0, 100000).clear();
+                                    askOrderTimes.subList(0, 100000).clear();
                                 }
                                 if (bidOrderTimes.size() > 200000){
-                                    orderTimes.subList(0, 100000).clear();
+                                    bidOrderTimes.subList(0, 100000).clear();
                                 }
 
                             }
@@ -243,7 +243,19 @@ public class TraderService {
     }
 
     public BigDecimal getOrderRate(){
-        return !orderTimes.isEmpty() ? orderTimes.get(orderTimes.size() - 1).getVolume() : BigDecimal.ZERO;
+        BigDecimal volume = BigDecimal.ZERO;
+
+        if (!orderTimes.isEmpty()) {
+            for (int i = orderTimes.size() - 1; i >= 0; --i){
+                if (System.currentTimeMillis() - orderTimes.get(i).getDate().getTime() > 1000*60*60){
+                    break;
+                }
+
+                volume = volume.add(orderTimes.get(i).getVolume());
+            }
+        }
+
+        return volume;
     }
 
     public BigDecimal getAskOrderRate(){

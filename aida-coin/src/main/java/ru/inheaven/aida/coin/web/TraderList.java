@@ -245,15 +245,14 @@ public class TraderList extends AbstractPage{
                         if (lastChart2Value.compareTo(orderRate) != 0) {
                             lastChart2Value = orderRate;
 
-                            lastChart2Sum = lastChart2Sum.add(orderRate);
-
                             JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
 
                             String javaScript = "var chartVarName = " + chart2.getJavaScriptVarName() + ";";
 
                             {
-                                Point point = new Point(chart2Index, lastChart2Sum);
-                                javaScript += "eval(chartVarName).series["+ 0 +"].addPoint(" + renderer.toJson(point) + ", true, true);";
+                                javaScript += "eval(chartVarName).series["+ 0 +"].addPoint("
+                                        + renderer.toJson( new Point(chart2Index, orderRate))
+                                        + ", true, true);";
                             }
 
                             BigDecimal askOrderRate= traderService.getAskOrderRate();
