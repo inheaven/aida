@@ -192,8 +192,16 @@ public class TraderService {
 
                             if (!previous.getBalance().add(previous.getAskAmount()).equals(
                                     balanceHistory.getBalance().add(balanceHistory.getAskAmount()))) {
-                                orderTimes.add(new Volume(previous.getBalance().subtract(balanceHistory.getBalance())
-                                        .abs(), new Date()));
+
+                                if (ticker.getCurrencyPair().baseSymbol.equals("BTC")) {
+                                    orderTimes.add(new Volume(previous.getBalance().subtract(balanceHistory.getBalance())
+                                            .abs(), new Date()));
+                                }else if (ticker.getCurrencyPair().counterSymbol.equals("BTC")){
+                                    orderTimes.add(new Volume(previous.getBalance().subtract(balanceHistory.getBalance())
+                                            .multiply(ticker.getLast())
+                                            .setScale(8, ROUND_HALF_UP)
+                                            .abs(), new Date()));
+                                }
 
                                 if (orderTimes.size() > 200000){
                                     orderTimes.subList(0, 100000).clear();
