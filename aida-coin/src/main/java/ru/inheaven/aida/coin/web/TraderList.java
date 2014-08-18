@@ -78,11 +78,11 @@ public class TraderList extends AbstractPage{
     private Component cryptsyBTC, cryptsyCoins;
     private Component btceBTC, btceCoins;
 
-    private BigDecimal lastChartValue = new BigDecimal("0");
-    private Integer lastChart2Value = new Integer(0);
+    private BigDecimal lastChartValue = BigDecimal.ZERO;
+    private BigDecimal lastChart2Value = BigDecimal.ZERO;
     private Chart chart, chart2;
-    private int chartIndex = 0;
-    private int chart2Index = 0;
+    private int chartIndex = 1;
+    private int chart2Index = 1;
 
     public TraderList() {
         setVersioned(false);
@@ -235,13 +235,13 @@ public class TraderList extends AbstractPage{
                             update(handler, btceBTC, ((AccountInfo) payload).getBalance("BTC"));
                         }
                     }else if (payload instanceof BalanceHistory){
-                        int orderRate = traderService.getOrderRate();
+                        BigDecimal orderRate = traderService.getOrderRate();
 
                         //update chart order rate
                         if (!lastChart2Value.equals(orderRate)) {
                             lastChart2Value = orderRate;
 
-                            Point point = new Point(chart2Index++, lastChart2Value);
+                            Point point = new Point(chart2Index++, orderRate);
                             JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
                             String jsonPoint = renderer.toJson(point);
                             String javaScript = "var chartVarName = " + chart2.getJavaScriptVarName() + ";\n";
@@ -395,7 +395,7 @@ public class TraderList extends AbstractPage{
                     .setLineWidth(1)));
 
             List<Point> data = new ArrayList<>();
-            Integer value = traderService.getOrderRate();
+            BigDecimal value = traderService.getOrderRate();
 
             for (int i = 0; i < 600; ++i) {
                 data.add(0, new Point(0, value));

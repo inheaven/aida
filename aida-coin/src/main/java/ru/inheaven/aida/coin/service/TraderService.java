@@ -64,7 +64,7 @@ public class TraderService {
 
     private CexIO cexIO;
 
-    private List<Long> orderTimes = new CopyOnWriteArrayList<>();
+    private List<Volume> orderTimes = new CopyOnWriteArrayList<>();
 
     private Exchange bittrexExchange = INSTANCE.createExchange(new ExchangeSpecification(BittrexExchange.class){{
         setApiKey("14935ef36d8b4afc8204946be7ddd152");
@@ -192,7 +192,8 @@ public class TraderService {
 
                             if (!previous.getBalance().add(previous.getAskAmount()).equals(
                                     balanceHistory.getBalance().add(balanceHistory.getAskAmount()))) {
-                                orderTimes.add(System.currentTimeMillis());
+                                orderTimes.add(new Volume(previous.getBalance().subtract(balanceHistory.getBalance())
+                                        .abs(), new Date()));
 
                                 if (orderTimes.size() > 200000){
                                     orderTimes.subList(0, 100000).clear();
@@ -209,18 +210,18 @@ public class TraderService {
         }
     }
 
-    public Integer getOrderRate(){
-        int index = 0;
+    public BigDecimal getOrderRate(){
+        BigDecimal volume = BigDecimal.ZERO;
 
         for (int i = orderTimes.size() - 1; i >= 0; --i){
-            if (System.currentTimeMillis() - orderTimes.get(i) > 1000*60*10){
+            if (System.currentTimeMillis() - orderTimes.get(i).getDate().getTime() > 1000*60*60){
                 break;
             }
 
-            index++;
+            volume = volume.add(orderTimes.get(i).getVolume());
         }
 
-        return index;
+        return volume;
     }
 
     private void scheduleUpdate(ExchangeType exchangeType){
