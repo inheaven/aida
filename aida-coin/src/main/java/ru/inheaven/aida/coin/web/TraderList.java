@@ -80,6 +80,7 @@ public class TraderList extends AbstractPage{
 
     private BigDecimal lastChartValue = BigDecimal.ZERO;
     private BigDecimal lastChart2Value = BigDecimal.ZERO;
+    private BigDecimal lastChart2Sum = BigDecimal.ZERO;
     private Chart chart, chart2;
     private int chartIndex = 1;
     private int chart2Index = 1;
@@ -240,13 +241,14 @@ public class TraderList extends AbstractPage{
                         //update chart order rate
                         if (!lastChart2Value.equals(orderRate)) {
                             lastChart2Value = orderRate;
+                            lastChart2Sum = lastChart2Sum.add(orderRate);
 
                             JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
 
                             String javaScript = "var chartVarName = " + chart2.getJavaScriptVarName() + ";";
 
                             {
-                                Point point = new Point(chart2Index, orderRate);
+                                Point point = new Point(chart2Index, lastChart2Sum);
                                 javaScript += "eval(chartVarName).series["+ 0 +"].addPoint(" + renderer.toJson(point) + ", true, true);";
                             }
 
