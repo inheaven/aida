@@ -210,6 +210,8 @@ public class TraderService {
                                             .multiply(ticker.getLast())
                                             .setScale(8, ROUND_HALF_UP);
 
+                                    orderTimes.add(new Volume(volume));
+
                                     if (volume.compareTo(BigDecimal.ZERO) > 0){
                                         askOrderTimes.add(new Volume(volume.abs()));
                                     }else{
@@ -219,12 +221,12 @@ public class TraderService {
 
                                 //flush
                                 if (orderTimes.size() > 200000){
-                                    askOrderTimes.subList(0, 100000).clear();
-                                }
-                                if (orderTimes.size() > 200000){
                                     orderTimes.subList(0, 100000).clear();
                                 }
-                                if (orderTimes.size() > 200000){
+                                if (askOrderTimes.size() > 200000){
+                                    orderTimes.subList(0, 100000).clear();
+                                }
+                                if (bidOrderTimes.size() > 200000){
                                     orderTimes.subList(0, 100000).clear();
                                 }
 
