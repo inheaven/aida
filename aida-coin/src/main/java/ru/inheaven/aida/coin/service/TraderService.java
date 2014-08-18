@@ -200,7 +200,7 @@ public class TraderService {
 
                                     orderTimes.add(new Volume(volume));
 
-                                    if (volume.compareTo(BigDecimal.ZERO) > 0){
+                                    if (volume.compareTo(BigDecimal.ZERO) < 0){
                                         askOrderTimes.add(new Volume(volume.abs()));
                                     }else{
                                         bidOrderTimes.add(new Volume(volume.abs()));
