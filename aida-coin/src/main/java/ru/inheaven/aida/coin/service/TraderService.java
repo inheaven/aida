@@ -64,6 +64,8 @@ public class TraderService {
 
     private CexIO cexIO;
 
+    private List<Volume> askOrderTimes = new CopyOnWriteArrayList<>();
+    private List<Volume> bidOrderTimes = new CopyOnWriteArrayList<>();
     private List<Volume> orderTimes = new CopyOnWriteArrayList<>();
 
     private Exchange bittrexExchange = INSTANCE.createExchange(new ExchangeSpecification(BittrexExchange.class){{
@@ -194,18 +196,38 @@ public class TraderService {
                                     balanceHistory.getBalance().add(balanceHistory.getAskAmount()))) {
 
                                 if (ticker.getCurrencyPair().baseSymbol.equals("BTC")) {
-                                    orderTimes.add(new Volume(previous.getBalance().subtract(balanceHistory.getBalance())
-                                            .abs(), new Date()));
+                                    BigDecimal volume = previous.getBalance().subtract(balanceHistory.getBalance());
+
+                                    orderTimes.add(new Volume(volume));
+
+                                    if (volume.compareTo(BigDecimal.ZERO) > 0){
+                                        askOrderTimes.add(new Volume(volume.abs()));
+                                    }else{
+                                        bidOrderTimes.add(new Volume(volume.abs()));
+                                    }
                                 }else if (ticker.getCurrencyPair().counterSymbol.equals("BTC")){
-                                    orderTimes.add(new Volume(previous.getBalance().subtract(balanceHistory.getBalance())
+                                    BigDecimal volume = previous.getBalance().subtract(balanceHistory.getBalance())
                                             .multiply(ticker.getLast())
-                                            .setScale(8, ROUND_HALF_UP)
-                                            .abs(), new Date()));
+                                            .setScale(8, ROUND_HALF_UP);
+
+                                    if (volume.compareTo(BigDecimal.ZERO) > 0){
+                                        askOrderTimes.add(new Volume(volume.abs()));
+                                    }else{
+                                        bidOrderTimes.add(new Volume(volume.abs()));
+                                    }
                                 }
 
+                                //flush
+                                if (orderTimes.size() > 200000){
+                                    askOrderTimes.subList(0, 100000).clear();
+                                }
                                 if (orderTimes.size() > 200000){
                                     orderTimes.subList(0, 100000).clear();
                                 }
+                                if (orderTimes.size() > 200000){
+                                    orderTimes.subList(0, 100000).clear();
+                                }
+
                             }
 
                             broadcast(exchangeType, balanceHistory);
@@ -219,14 +241,32 @@ public class TraderService {
     }
 
     public BigDecimal getOrderRate(){
+        return orderTimes.get(orderTimes.size() - 1).getVolume();
+    }
+
+    public BigDecimal getAskOrderRate(){
         BigDecimal volume = BigDecimal.ZERO;
 
-        for (int i = orderTimes.size() - 1; i >= 0; --i){
+        for (int i = askOrderTimes.size() - 1; i >= 0; --i){
             if (System.currentTimeMillis() - orderTimes.get(i).getDate().getTime() > 1000*60*60){
                 break;
             }
 
-            volume = volume.add(orderTimes.get(i).getVolume());
+            volume = volume.add(askOrderTimes.get(i).getVolume());
+        }
+
+        return volume;
+    }
+
+    public BigDecimal getBidOrderRate(){
+        BigDecimal volume = BigDecimal.ZERO;
+
+        for (int i = bidOrderTimes.size() - 1; i >= 0; --i){
+            if (System.currentTimeMillis() - bidOrderTimes.get(i).getDate().getTime() > 1000*60*60){
+                break;
+            }
+
+            volume = volume.add(bidOrderTimes.get(i).getVolume());
         }
 
         return volume;

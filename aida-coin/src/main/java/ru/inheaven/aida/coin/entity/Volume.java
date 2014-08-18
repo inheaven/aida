@@ -9,11 +9,10 @@ import java.util.Date;
  */
 public class Volume {
     private BigDecimal volume;
-    private Date date;
+    private Date date = new Date();
 
-    public Volume(BigDecimal volume, Date date) {
+    public Volume(BigDecimal volume) {
         this.volume = volume;
-        this.date = date;
     }
 
     public BigDecimal getVolume() {
