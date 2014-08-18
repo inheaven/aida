@@ -196,7 +196,7 @@ public class TraderService {
                                     balanceHistory.getBalance().add(balanceHistory.getAskAmount()))) {
 
                                 if (ticker.getCurrencyPair().baseSymbol.equals("BTC")) {
-                                    BigDecimal volume = previous.getBalance().subtract(balanceHistory.getBalance());
+                                    BigDecimal volume = balanceHistory.getBalance().subtract(previous.getBalance());
 
                                     orderTimes.add(new Volume(volume));
 
