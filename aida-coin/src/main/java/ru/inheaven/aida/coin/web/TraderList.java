@@ -241,6 +241,7 @@ public class TraderList extends AbstractPage{
                         //update chart order rate
                         if (!lastChart2Value.equals(orderRate)) {
                             lastChart2Value = orderRate;
+
                             lastChart2Sum = lastChart2Sum.add(orderRate);
 
                             JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
@@ -254,12 +255,12 @@ public class TraderList extends AbstractPage{
 
                             {
                                 Point point = new Point(chart2Index, traderService.getAskOrderRate());
-                                javaScript += "eval(chartVarName).series["+ 0 +"].addPoint(" + renderer.toJson(point) + ", true, true);";
+                                javaScript += "eval(chartVarName).series["+ 1 +"].addPoint(" + renderer.toJson(point) + ", true, true);";
                             }
 
                             {
                                 Point point = new Point(chart2Index, traderService.getBidOrderRate());
-                                javaScript += "eval(chartVarName).series["+ 0 +"].addPoint(" + renderer.toJson(point) + ", true, true);";
+                                javaScript += "eval(chartVarName).series["+ 2 +"].addPoint(" + renderer.toJson(point) + ", true, true);";
                             }
 
                             chart2Index++;
@@ -413,7 +414,7 @@ public class TraderList extends AbstractPage{
             {
                 List<Point> data = new ArrayList<>();
                 BigDecimal value = traderService.getOrderRate();
-                for (int i = 0; i < 600; ++i) {
+                for (int i = 0; i < 300; ++i) {
                     data.add(0, new Point(0, value));
                 }
                 options2.addSeries(new PointSeries().setData(data).setName("Order Rate"));
@@ -422,7 +423,7 @@ public class TraderList extends AbstractPage{
             {
                 List<Point> data = new ArrayList<>();
                 BigDecimal value = traderService.getAskOrderRate();
-                for (int i = 0; i < 600; ++i) {
+                for (int i = 0; i < 300; ++i) {
                     data.add(0, new Point(0, value));
                 }
                 options2.addSeries(new PointSeries().setData(data).setName("Ask Order Rate"));
@@ -431,7 +432,7 @@ public class TraderList extends AbstractPage{
             {
                 List<Point> data = new ArrayList<>();
                 BigDecimal value = traderService.getBidOrderRate();
-                for (int i = 0; i < 600; ++i) {
+                for (int i = 0; i < 300; ++i) {
                     data.add(0, new Point(0, value));
                 }
                 options2.addSeries(new PointSeries().setData(data).setName("Bid Order Rate"));
