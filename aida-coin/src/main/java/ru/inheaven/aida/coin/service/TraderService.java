@@ -249,7 +249,7 @@ public class TraderService {
 
         if (!askOrderTimes.isEmpty()) {
             for (int i = askOrderTimes.size() - 1; i >= 0; --i){
-                if (System.currentTimeMillis() - orderTimes.get(i).getDate().getTime() > 1000*60*60){
+                if (System.currentTimeMillis() - askOrderTimes.get(i).getDate().getTime() > 1000*60*60){
                     break;
                 }
 
