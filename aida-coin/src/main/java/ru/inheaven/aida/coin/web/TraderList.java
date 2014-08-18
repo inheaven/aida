@@ -360,7 +360,7 @@ public class TraderList extends AbstractPage{
         //Chart
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.LINE).setHeight(250));
+            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(250));
             options.setGlobal(new Global().setUseUTC(false));
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
