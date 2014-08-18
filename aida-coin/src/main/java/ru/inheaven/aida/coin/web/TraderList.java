@@ -242,7 +242,7 @@ public class TraderList extends AbstractPage{
                         BigDecimal orderRate = traderService.getOrderRate();
 
                         //update chart order rate
-                        if (!lastChart2Value.equals(orderRate)) {
+                        if (lastChart2Value.compareTo(orderRate) != 0) {
                             lastChart2Value = orderRate;
 
                             lastChart2Sum = lastChart2Sum.add(orderRate);
@@ -257,7 +257,7 @@ public class TraderList extends AbstractPage{
                             }
 
                             BigDecimal askOrderRate= traderService.getAskOrderRate();
-                            if (!lastChart2Value1.equals(askOrderRate)){
+                            if (lastChart2Value1.compareTo(askOrderRate) != 0){
                                 lastChart2Value1 = askOrderRate;
 
                                 javaScript += "eval(chartVarName).series["+ 1 +"].addPoint("
@@ -266,7 +266,7 @@ public class TraderList extends AbstractPage{
                             }
 
                             BigDecimal bidOrderRate = traderService.getBidOrderRate();
-                            if (!lastChart2Value2.equals(bidOrderRate)){
+                            if (lastChart2Value2.compareTo(bidOrderRate) != 0){
                                 lastChart2Value2 = bidOrderRate;
 
                                 javaScript += "eval(chartVarName).series["+ 2 +"].addPoint("
