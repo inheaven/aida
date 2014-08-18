@@ -81,6 +81,9 @@ public class TraderList extends AbstractPage{
     private BigDecimal lastChartValue = BigDecimal.ZERO;
     private BigDecimal lastChart2Value = BigDecimal.ZERO;
     private BigDecimal lastChart2Sum = BigDecimal.ZERO;
+    private BigDecimal lastChart2Value1 = BigDecimal.ZERO;
+    private BigDecimal lastChart2Value2 = BigDecimal.ZERO;
+
     private Chart chart, chart2;
     private int chartIndex = 1;
     private int chart2Index = 1;
@@ -253,14 +256,22 @@ public class TraderList extends AbstractPage{
                                 javaScript += "eval(chartVarName).series["+ 0 +"].addPoint(" + renderer.toJson(point) + ", true, true);";
                             }
 
-                            {
-                                Point point = new Point(chart2Index, traderService.getAskOrderRate());
-                                javaScript += "eval(chartVarName).series["+ 1 +"].addPoint(" + renderer.toJson(point) + ", true, true);";
+                            BigDecimal askOrderRate= traderService.getAskOrderRate();
+                            if (!lastChart2Value1.equals(askOrderRate)){
+                                lastChart2Value1 = askOrderRate;
+
+                                javaScript += "eval(chartVarName).series["+ 1 +"].addPoint("
+                                        + renderer.toJson( new Point(chart2Index, askOrderRate))
+                                        + ", true, true);";
                             }
 
-                            {
-                                Point point = new Point(chart2Index, traderService.getBidOrderRate());
-                                javaScript += "eval(chartVarName).series["+ 2 +"].addPoint(" + renderer.toJson(point) + ", true, true);";
+                            BigDecimal bidOrderRate = traderService.getBidOrderRate();
+                            if (!lastChart2Value2.equals(bidOrderRate)){
+                                lastChart2Value2 = bidOrderRate;
+
+                                javaScript += "eval(chartVarName).series["+ 2 +"].addPoint("
+                                        + renderer.toJson(new Point(chart2Index, bidOrderRate))
+                                        + ", true, true);";
                             }
 
                             chart2Index++;
