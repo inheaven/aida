@@ -241,18 +241,20 @@ public class TraderService {
     }
 
     public BigDecimal getOrderRate(){
-        return orderTimes.get(orderTimes.size() - 1).getVolume();
+        return !orderTimes.isEmpty() ? orderTimes.get(orderTimes.size() - 1).getVolume() : BigDecimal.ZERO;
     }
 
     public BigDecimal getAskOrderRate(){
         BigDecimal volume = BigDecimal.ZERO;
 
-        for (int i = askOrderTimes.size() - 1; i >= 0; --i){
-            if (System.currentTimeMillis() - orderTimes.get(i).getDate().getTime() > 1000*60*60){
-                break;
-            }
+        if (!askOrderTimes.isEmpty()) {
+            for (int i = askOrderTimes.size() - 1; i >= 0; --i){
+                if (System.currentTimeMillis() - orderTimes.get(i).getDate().getTime() > 1000*60*60){
+                    break;
+                }
 
-            volume = volume.add(askOrderTimes.get(i).getVolume());
+                volume = volume.add(askOrderTimes.get(i).getVolume());
+            }
         }
 
         return volume;
@@ -261,12 +263,14 @@ public class TraderService {
     public BigDecimal getBidOrderRate(){
         BigDecimal volume = BigDecimal.ZERO;
 
-        for (int i = bidOrderTimes.size() - 1; i >= 0; --i){
-            if (System.currentTimeMillis() - bidOrderTimes.get(i).getDate().getTime() > 1000*60*60){
-                break;
-            }
+        if (!bidOrderTimes.isEmpty()) {
+            for (int i = bidOrderTimes.size() - 1; i >= 0; --i){
+                if (System.currentTimeMillis() - bidOrderTimes.get(i).getDate().getTime() > 1000*60*60){
+                    break;
+                }
 
-            volume = volume.add(bidOrderTimes.get(i).getVolume());
+                volume = volume.add(bidOrderTimes.get(i).getVolume());
+            }
         }
 
         return volume;
