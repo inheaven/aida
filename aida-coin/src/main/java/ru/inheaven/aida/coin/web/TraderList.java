@@ -400,7 +400,7 @@ public class TraderList extends AbstractPage{
         //Chart
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(250));
+            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(310));
             options.setGlobal(new Global().setUseUTC(false));
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
@@ -436,7 +436,7 @@ public class TraderList extends AbstractPage{
         //Chart 2
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.AREASPLINE).setHeight(250));
+            options.setChartOptions(new ChartOptions(SeriesType.AREASPLINE).setHeight(310));
             options.setGlobal(new Global().setUseUTC(false));
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
@@ -467,7 +467,7 @@ public class TraderList extends AbstractPage{
         //Chart 3
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(250));
+            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(310));
             options.setGlobal(new Global().setUseUTC(false));
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
@@ -507,7 +507,7 @@ public class TraderList extends AbstractPage{
         //Chart 2
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.AREASPLINE));
+            options.setChartOptions(new ChartOptions(SeriesType.AREASPLINE).setHeight(310));
             options.setGlobal(new Global().setUseUTC(false));
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
