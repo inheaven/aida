@@ -56,8 +56,6 @@ public class TraderBean {
         }else {
             em.merge(abstractEntity);
         }
-
-        em.flush();
     }
 
     public List<BalanceHistory> getBalanceHistories(Date startDate){
