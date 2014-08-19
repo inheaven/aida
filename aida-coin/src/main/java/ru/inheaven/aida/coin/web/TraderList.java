@@ -80,7 +80,7 @@ public class TraderList extends AbstractPage{
     private BigDecimal lastChart3Value2 = BigDecimal.ZERO;
 
     private Chart chart, chart2, chart3, chart4;
-    private int chartIndex = 1;
+
     private int chart2Index = 1;
     private int chart3Index1 = 1;
     private int chart3Index2 = 1;
@@ -229,7 +229,7 @@ public class TraderList extends AbstractPage{
                         BigDecimal value = ((AccountInfo) payload).getBalance("BTC");
 
                         if (lastChartValueMap.get(exchangeMessage.getExchangeType()).compareTo(value) != 0) {
-                            Point point = new Point(chartIndex++, value);
+                            Point point = new Point(System.currentTimeMillis(), value);
                             JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
                             String jsonPoint = renderer.toJson(point);
                             String javaScript = "var chartVarName = " + chart.getJavaScriptVarName() + ";\n";
@@ -406,7 +406,7 @@ public class TraderList extends AbstractPage{
             options.setTitle(new Title(""));
             //options.setLegend(new Legend(Boolean.FALSE));
 
-            options.setxAxis(new Axis().setType(AxisType.LINEAR));
+            options.setxAxis(new Axis().setType(AxisType.DATETIME));
 
             options.setyAxis(new Axis().setTitle(new Title("")));
 
@@ -425,7 +425,7 @@ public class TraderList extends AbstractPage{
                 }
 
                 for (int i = 0; i < 100; ++i) {
-                    data.add(0, new Point(0, value));
+                    data.add(0, new Point(System.currentTimeMillis(), value));
                 }
 
                 options.addSeries(new PointSeries().setData(data).setName(exchangeType.name()));
