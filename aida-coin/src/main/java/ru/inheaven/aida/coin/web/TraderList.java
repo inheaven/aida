@@ -45,7 +45,6 @@ import java.util.*;
 import java.util.function.BiConsumer;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
-import static java.math.BigDecimal.valueOf;
 import static org.apache.wicket.model.Model.of;
 import static ru.inheaven.aida.coin.entity.ExchangeType.*;
 
@@ -83,7 +82,8 @@ public class TraderList extends AbstractPage{
     private Chart chart, chart2, chart3, chart4;
     private int chartIndex = 1;
     private int chart2Index = 1;
-    private int chart3Index = 1;
+    private int chart3Index1 = 1;
+    private int chart3Index2 = 1;
     private long chart4Index = System.currentTimeMillis();
 
     public TraderList() {
@@ -250,7 +250,7 @@ public class TraderList extends AbstractPage{
                             {
                                 String javaScript = "var chartVarName = " + chart2.getJavaScriptVarName() + ";";
                                 javaScript += "eval(chartVarName).series[" + 0 + "].addPoint("
-                                        + renderer.toJson(new Point(new Date().getTime(), previousVolumeSum))
+                                        + renderer.toJson(new Point(chart2Index, previousVolumeSum))
                                         + ", true, true);";
 
                                 handler.appendJavaScript(javaScript);
@@ -268,7 +268,7 @@ public class TraderList extends AbstractPage{
                                 lastChart3Value1 = askOrderRate;
 
                                 javaScript += "eval(chartVarName).series[" + 0 + "].addPoint("
-                                        + renderer.toJson(new Point(chart3Index, askOrderRate))
+                                        + renderer.toJson(new Point(chart3Index1++, askOrderRate))
                                         + ", true, true);";
                             }
 
@@ -277,11 +277,9 @@ public class TraderList extends AbstractPage{
                                 lastChart3Value2 = bidOrderRate;
 
                                 javaScript += "eval(chartVarName).series[" + 1 + "].addPoint("
-                                        + renderer.toJson(new Point(chart3Index, bidOrderRate))
+                                        + renderer.toJson(new Point(chart3Index2++, bidOrderRate))
                                         + ", true, true);";
                             }
-
-                            chart3Index++;
 
                             handler.appendJavaScript(javaScript);
                         }
