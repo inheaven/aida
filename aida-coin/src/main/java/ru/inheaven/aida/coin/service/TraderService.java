@@ -191,8 +191,8 @@ public class TraderService {
                                 log.error("update balance history error", e);
                             }
 
-                            if (!previous.getBalance().add(previous.getAskAmount()).equals(
-                                    balanceHistory.getBalance().add(balanceHistory.getAskAmount()))) {
+                            if (previous.getBalance().add(previous.getAskAmount())
+                                    .compareTo(balanceHistory.getBalance().add(balanceHistory.getAskAmount())) != 0) {
 
                                 if (ticker.getCurrencyPair().baseSymbol.equals("BTC")) {
                                     BigDecimal volume = balanceHistory.getBalance().subtract(previous.getBalance());
@@ -301,7 +301,7 @@ public class TraderService {
         balanceHistories.sort(new Comparator<BalanceHistory>() {
             @Override
             public int compare(BalanceHistory o1, BalanceHistory o2) {
-                return o2.getDate().compareTo(o1.getDate());
+                return o1.getDate().compareTo(o2.getDate());
             }
         });
 
@@ -314,7 +314,7 @@ public class TraderService {
 
             BalanceHistory previous = previousMap.get(exchangePair);
 
-            if (previous != null && !previous.getBalance().equals(history.getBalance())) {
+            if (previous != null && previous.getBalance().compareTo(history.getBalance()) != 0) {
                 if (history.getPair().contains(("BTC/"))) {
                     volumes.add(new Volume(history.getBalance().subtract(previous.getBalance()), history.getDate()));
                 }else if (history.getPair().contains("/BTC")){
