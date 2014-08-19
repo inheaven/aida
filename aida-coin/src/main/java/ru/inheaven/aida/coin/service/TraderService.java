@@ -154,7 +154,9 @@ public class TraderService {
                     continue;
                 }
 
-                for (Trader trader : traderBean.getTraders(exchangeType)){
+                List<Trader> traders = traderBean.getTraders(exchangeType);
+
+                for (Trader trader : traders){
                     Ticker ticker = getTicker(trader.getExchangePair());
 
                     if (ticker != null) {
@@ -201,7 +203,7 @@ public class TraderService {
                                     volumeSum = volumeSum.add(volume);
                                     orderTimes.add(new Volume(volume));
 
-                                    if (volume.compareTo(BigDecimal.ZERO) > 0){
+                                    if (volume.compareTo(BigDecimal.ZERO) > 0){ //maps seems to redundant
                                         askOrderTimes.add(new Volume(volume.abs()));
                                     }else{
                                         bidOrderTimes.add(new Volume(volume.abs()));
@@ -355,7 +357,9 @@ public class TraderService {
     }
 
     private void updateTicker(ExchangeType exchangeType) throws IOException {
-        for (String pair : traderBean.getTraderPairs(exchangeType)) {
+        List<String> pairs = traderBean.getTraderPairs(exchangeType);
+
+        for (String pair : pairs) {
             CurrencyPair currencyPair = getCurrencyPair(pair);
 
             if (currencyPair != null) {
@@ -368,7 +372,9 @@ public class TraderService {
     }
 
     private void updateOrderBook(ExchangeType exchangeType) throws IOException {
-        for (String pair : traderBean.getTraderPairs(exchangeType)) {
+        List<String> pairs = traderBean.getTraderPairs(exchangeType);
+
+        for (String pair : pairs) {
             CurrencyPair currencyPair = getCurrencyPair(pair);
 
             if (currencyPair != null) {
@@ -403,7 +409,9 @@ public class TraderService {
     }
 
     private void tradeAlpha(ExchangeType exchangeType) throws IOException {
-        for (Trader trader : traderBean.getTraders(exchangeType)){
+        List<Trader> traders = traderBean.getTraders(exchangeType);
+
+        for (Trader trader : traders){
             if (trader.isRunning()){
                 OrderBook orderBook = getOrderBook(new ExchangePair(exchangeType, trader.getPair()));
 
