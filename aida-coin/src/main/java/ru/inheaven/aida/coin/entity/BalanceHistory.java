@@ -30,12 +30,7 @@ public class BalanceHistory extends AbstractEntity{
     private BigDecimal price;
 
     @Column(nullable = false) @Temporal(TemporalType.TIMESTAMP)
-    private Date date;
-
-    @PrePersist @PreUpdate
-    protected void preUpdate(){
-        date = new Date();
-    }
+    private Date date = new Date();
 
     public ExchangeType getExchangeType() {
         return exchangeType;
