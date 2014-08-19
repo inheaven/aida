@@ -2,6 +2,7 @@ package ru.inheaven.aida.coin.web;
 
 import com.googlecode.wickedcharts.highcharts.jackson.JsonRenderer;
 import com.googlecode.wickedcharts.highcharts.options.*;
+import com.googlecode.wickedcharts.highcharts.options.color.LinearGradient;
 import com.googlecode.wickedcharts.highcharts.options.series.Point;
 import com.googlecode.wickedcharts.highcharts.options.series.PointSeries;
 import com.googlecode.wickedcharts.wicket6.highcharts.Chart;
@@ -414,7 +415,7 @@ public class TraderList extends AbstractPage{
         //Chart 2
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.AREA).setHeight(250));
+            options.setChartOptions(new ChartOptions(SeriesType.AREASPLINE).setHeight(250));
             options.setGlobal(new Global().setUseUTC(false));
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
@@ -425,7 +426,8 @@ public class TraderList extends AbstractPage{
 
             options.setyAxis(new Axis().setTitle(new Title("")));
 
-            options.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions()
+            options.setPlotOptions(new PlotOptionsChoice().setAreaspline(new PlotOptions()
+                    .setFillColor(new LinearGradient(LinearGradient.GradientDirection.VERTICAL))
                     .setMarker(new Marker(false))
                     .setLineWidth(1)));
 
