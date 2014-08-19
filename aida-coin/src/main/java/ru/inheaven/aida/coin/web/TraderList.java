@@ -299,7 +299,7 @@ public class TraderList extends AbstractPage{
 
                             String javaScript = "var chartVarName = " + chart4.getJavaScriptVarName() + ";";
                             javaScript += "eval(chartVarName).series["+ 0 +"].addPoint("
-                                    + renderer.toJson(new Point(volumes.get(volumes.size() - 1).getDate().getTime(), volumeSum))
+                                    + renderer.toJson(new Point(chart4Index, volumeSum))
                                     + ", true, true);";
 
                             handler.appendJavaScript(javaScript);
