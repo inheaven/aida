@@ -32,6 +32,21 @@ public class BalanceHistory extends AbstractEntity{
     @Column(nullable = false) @Temporal(TemporalType.TIMESTAMP)
     private Date date = new Date();
 
+    public Volume getVolume(BalanceHistory previous){
+        if (previous != null && previous.getBalance().compareTo(balance) != 0) {
+            if (pair.contains(("BTC/"))) {
+                return new Volume(balance.subtract(previous.getBalance()), date);
+            }else if (pair.contains("/BTC")){
+                return new Volume(previous.getBalance().subtract(balance)
+                        .multiply(price)
+                        .setScale(8, BigDecimal.ROUND_HALF_UP), date);
+            }
+        }
+
+        return null;
+    }
+
+
     public ExchangeType getExchangeType() {
         return exchangeType;
     }

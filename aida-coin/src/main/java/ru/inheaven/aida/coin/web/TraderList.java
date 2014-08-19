@@ -86,6 +86,8 @@ public class TraderList extends AbstractPage{
     private int chart3Index2 = 1;
     private long chart4Index = System.currentTimeMillis();
 
+    Map<ExchangePair, BalanceHistory> previousMap = new HashMap<>();
+
     public TraderList() {
         setVersioned(false);
 
@@ -285,8 +287,13 @@ public class TraderList extends AbstractPage{
                             handler.appendJavaScript(javaScript);
                         }
 
-                        List<Volume> volumes = traderService.getVolumes(new Date(chart4Index));
-                        if (!volumes.isEmpty()) {
+                        //chart4
+                        BalanceHistory balanceHistory = (BalanceHistory) payload;
+                        ExchangePair exchangePair = ExchangePair.of(balanceHistory.getExchangeType(), balanceHistory.getPair());
+
+                        Volume volume = balanceHistory.getVolume(previousMap.get(exchangePair));
+
+                        if (volume != null) {
                             chart4Index = System.currentTimeMillis();
 
                             List data = chart4.getOptions().getSeries().get(0).getData();
@@ -294,9 +301,7 @@ public class TraderList extends AbstractPage{
                                     ? (BigDecimal) ((Point)data.get(data.size() - 1)).getY()
                                     : BigDecimal.ZERO;
 
-                            for (Volume volume : volumes){
-                                volumeSum = volumeSum.add(volume.getVolume());
-                            }
+                            volumeSum = volumeSum.add(volume.getVolume());
 
                             String javaScript = "var chartVarName = " + chart4.getJavaScriptVarName() + ";";
                             javaScript += "eval(chartVarName).series["+ 0 +"].addPoint("
@@ -304,6 +309,8 @@ public class TraderList extends AbstractPage{
                                     + ", true, true);";
 
                             handler.appendJavaScript(javaScript);
+
+                            previousMap.put(exchangePair, balanceHistory);
                         }
 
                     }else if (payload instanceof OrderBook) {
