@@ -43,10 +43,7 @@ import ru.inheaven.aida.coin.service.TraderService;
 
 import javax.ejb.EJB;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiConsumer;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
@@ -243,18 +240,18 @@ public class TraderList extends AbstractPage{
                             update(handler, btceBTC, ((AccountInfo) payload).getBalance("BTC"));
                         }
                     }else if (payload instanceof BalanceHistory){
-                        BigDecimal orderRate = traderService.getOrderRate();
+                        BigDecimal volumeSum = traderService.getVolumeSum();
 
                         //update chart order rate
-                        if (lastChart2Value.compareTo(orderRate) != 0) {
-                            lastChart2Value = orderRate;
+                        if (lastChart2Value.compareTo(volumeSum) != 0) {
+                            lastChart2Value = volumeSum;
 
                             JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
 
                             {
                                 String javaScript = "var chartVarName = " + chart2.getJavaScriptVarName() + ";";
                                 javaScript += "eval(chartVarName).series["+ 0 +"].addPoint("
-                                        + renderer.toJson( new Point(chart2Index, orderRate))
+                                        + renderer.toJson( new Point(new Date().getTime(), volumeSum))
                                         + ", true, true);";
 
                                 handler.appendJavaScript(javaScript);
@@ -417,14 +414,14 @@ public class TraderList extends AbstractPage{
         //Chart 2
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(250));
+            options.setChartOptions(new ChartOptions(SeriesType.AREA).setHeight(250));
             options.setGlobal(new Global().setUseUTC(false));
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
             options.setTitle(new Title(""));
             options.setLegend(new Legend(Boolean.FALSE));
 
-            options.setxAxis(new Axis().setType(AxisType.LINEAR));
+            options.setxAxis(new Axis().setType(AxisType.DATETIME));
 
             options.setyAxis(new Axis().setTitle(new Title("")));
 
@@ -434,9 +431,9 @@ public class TraderList extends AbstractPage{
 
             {
                 List<Point> data = new ArrayList<>();
-                BigDecimal value = traderService.getOrderRate();
+                BigDecimal value = traderService.getVolumeSum();
                 for (int i = 0; i < 500; ++i) {
-                    data.add(0, new Point(0, value));
+                    data.add(0, new Point(new Date().getTime(), value));
                 }
                 options.addSeries(new PointSeries().setData(data).setName("Order Rate"));
             }

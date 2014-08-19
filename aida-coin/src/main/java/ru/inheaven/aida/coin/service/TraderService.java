@@ -68,6 +68,8 @@ public class TraderService {
     private List<Volume> bidOrderTimes = new CopyOnWriteArrayList<>();
     private List<Volume> orderTimes = new CopyOnWriteArrayList<>();
 
+    BigDecimal volumeSum = BigDecimal.ZERO;
+
     private Exchange bittrexExchange = INSTANCE.createExchange(new ExchangeSpecification(BittrexExchange.class){{
         setApiKey("14935ef36d8b4afc8204946be7ddd152");
         setSecretKey("44d84de3865e4fbfa4c17dd42c026d11");
@@ -198,7 +200,9 @@ public class TraderService {
                                 if (ticker.getCurrencyPair().baseSymbol.equals("BTC")) {
                                     BigDecimal volume = balanceHistory.getBalance().subtract(previous.getBalance());
 
+                                    volumeSum = volumeSum.add(volume);
                                     orderTimes.add(new Volume(volume));
+
 
                                     if (volume.compareTo(BigDecimal.ZERO) > 0){
                                         askOrderTimes.add(new Volume(volume.abs()));
@@ -210,6 +214,7 @@ public class TraderService {
                                             .multiply(ticker.getLast())
                                             .setScale(8, ROUND_HALF_UP);
 
+                                    volumeSum = volumeSum.add(volume);
                                     orderTimes.add(new Volume(volume));
 
                                     if (volume.compareTo(BigDecimal.ZERO) > 0){
@@ -256,6 +261,10 @@ public class TraderService {
         }
 
         return volume;
+    }
+
+    public BigDecimal getVolumeSum(){
+        return volumeSum;
     }
 
     public BigDecimal getAskOrderRate(){
