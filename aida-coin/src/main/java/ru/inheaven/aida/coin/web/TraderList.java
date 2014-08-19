@@ -243,14 +243,14 @@ public class TraderList extends AbstractPage{
                         JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
 
                         //update chart order rate
-                        BigDecimal previousVolumeSum = traderService.getVolumeSum();
+                        BigDecimal orderRate = traderService.getOrderRate();
 
-                        if (lastChart2Value.compareTo(previousVolumeSum) != 0) {
-                            lastChart2Value = previousVolumeSum;
+                        if (lastChart2Value.compareTo(orderRate) != 0) {
+                            lastChart2Value = orderRate;
                             {
                                 String javaScript = "var chartVarName = " + chart2.getJavaScriptVarName() + ";";
                                 javaScript += "eval(chartVarName).series[" + 0 + "].addPoint("
-                                        + renderer.toJson(new Point(chart2Index, previousVolumeSum))
+                                        + renderer.toJson(new Point(chart2Index, orderRate))
                                         + ", true, true);";
 
                                 handler.appendJavaScript(javaScript);
@@ -452,7 +452,7 @@ public class TraderList extends AbstractPage{
 
             {
                 List<Point> data = new ArrayList<>();
-                BigDecimal value = traderService.getVolumeSum();
+                BigDecimal value = traderService.getOrderRate();
                 for (int i = 0; i < 500; ++i) {
                     data.add(0, new Point(0, value));
                 }
