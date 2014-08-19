@@ -307,7 +307,7 @@ public class TraderService {
 
             BalanceHistory previous = previousMap.get(exchangePair);
 
-            if (previous != null) {
+            if (previous != null && !previous.getBalance().equals(history.getBalance())) {
                 if (history.getPair().contains(("BTC/"))) {
                     volumes.add(new Volume(history.getBalance().subtract(previous.getBalance()), history.getDate()));
                 }else if (history.getPair().contains("/BTC")){
