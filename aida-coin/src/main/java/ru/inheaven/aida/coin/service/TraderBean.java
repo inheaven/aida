@@ -8,15 +8,16 @@ import ru.inheaven.aida.coin.entity.Trader;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
  *         08.01.14 15:22
  */
 @Stateless
+@Transactional(Transactional.TxType.REQUIRES_NEW)
 public class TraderBean {
     @PersistenceContext
     private EntityManager em;
@@ -26,18 +27,9 @@ public class TraderBean {
     }
 
     public List<Trader> getTraders(ExchangeType exchangeType){
-        List<Trader> list = em.createQuery("select t from Trader t where t.exchange = :exchangeType", Trader.class)
+        return em.createQuery("select t from Trader t where t.exchange = :exchangeType", Trader.class)
                 .setParameter("exchangeType", exchangeType)
                 .getResultList();
-
-        list.forEach(new Consumer<Trader>() {
-            @Override
-            public void accept(Trader trader) {
-                em.detach(trader);
-            }
-        });
-
-        return list;
     }
 
     public List<String> getTraderPairs(ExchangeType exchangeType){
