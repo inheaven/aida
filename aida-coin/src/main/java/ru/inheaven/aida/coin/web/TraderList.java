@@ -526,13 +526,16 @@ public class TraderList extends AbstractPage{
             {
                 List<Point> data = new ArrayList<>();
                 List<Volume> volumes = traderService.getVolumes(new Date(System.currentTimeMillis() - 1000*60*60*24));
+
+                long time = 0;
                 BigDecimal volumeSum = BigDecimal.ZERO;
 
                 for (Volume volume : volumes){
                     volumeSum = volumeSum.add(volume.getVolume());
 
-                    data.add(new Point(volume.getDate().getTime(), volumeSum));
-
+                    if (volume.getDate().getTime() - time > 1000*60) {
+                        data.add(new Point(volume.getDate().getTime(), volumeSum));
+                    }
                 }
                 options.addSeries(new PointSeries().setData(data).setName("Order Rate"));
             }
