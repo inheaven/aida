@@ -454,7 +454,7 @@ public class TraderList extends AbstractPage{
                 List<Point> data = new ArrayList<>();
                 BigDecimal value = traderService.getVolumeSum();
                 for (int i = 0; i < 500; ++i) {
-                    data.add(0, new Point(new Date().getTime(), value));
+                    data.add(0, new Point(0, value));
                 }
                 options.addSeries(new PointSeries().setData(data).setName("Order Rate"));
             }
