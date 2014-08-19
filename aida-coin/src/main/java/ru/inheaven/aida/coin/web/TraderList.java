@@ -430,7 +430,7 @@ public class TraderList extends AbstractPage{
 
                 options.addSeries(new PointSeries().setData(data).setName(exchangeType.name()));
 
-                lastChartValueMap.put(exchangeType, BigDecimal.ZERO);
+                lastChartValueMap.put(exchangeType, value);
             }
 
             add(chart = new Chart("chart", options));
