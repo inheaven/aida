@@ -86,8 +86,6 @@ public class TraderList extends AbstractPage{
     private int chart3Index2 = 1;
     private long chart4Index = System.currentTimeMillis();
 
-    Map<ExchangePair, BalanceHistory> previousMap = new HashMap<>();
-
     public TraderList() {
         setVersioned(false);
 
@@ -291,7 +289,7 @@ public class TraderList extends AbstractPage{
                         BalanceHistory balanceHistory = (BalanceHistory) payload;
                         ExchangePair exchangePair = ExchangePair.of(balanceHistory.getExchangeType(), balanceHistory.getPair());
 
-                        Volume volume = balanceHistory.getVolume(previousMap.get(exchangePair));
+                        Volume volume = balanceHistory.getVolume();
 
                         if (volume != null) {
                             chart4Index = System.currentTimeMillis();
@@ -309,8 +307,6 @@ public class TraderList extends AbstractPage{
                                     + ", true, true);";
 
                             handler.appendJavaScript(javaScript);
-
-                            previousMap.put(exchangePair, balanceHistory);
                         }
 
                     }else if (payload instanceof OrderBook) {

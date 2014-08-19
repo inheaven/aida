@@ -173,6 +173,9 @@ public class TraderService {
                             }
                         }
 
+                        ExchangePair exchangePair = trader.getExchangePair();
+                        BalanceHistory previous = balanceHistoryMap.get(exchangePair);
+
                         BalanceHistory balanceHistory = new BalanceHistory();
                         balanceHistory.setExchangeType(exchangeType);
                         balanceHistory.setPair(trader.getPair());
@@ -180,9 +183,7 @@ public class TraderService {
                         balanceHistory.setAskAmount(askAmount);
                         balanceHistory.setBidAmount(bidAmount);
                         balanceHistory.setPrice(ticker.getLast());
-
-                        ExchangePair exchangePair = trader.getExchangePair();
-                        BalanceHistory previous = balanceHistoryMap.get(exchangePair);
+                        balanceHistory.setPrevious(previous);
 
                         if (previous != null && !balanceHistory.equals(previous)){
                             try {
