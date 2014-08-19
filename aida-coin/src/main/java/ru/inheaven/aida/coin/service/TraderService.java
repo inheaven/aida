@@ -298,26 +298,26 @@ public class TraderService {
     public List<Volume> getVolumes(Date startDate){
         List<BalanceHistory> balanceHistories = traderBean.getBalanceHistories(startDate);
 
-        Map<ExchangePair, BalanceHistory> previousMap = new HashMap<>();
-
         List<Volume> volumes = new ArrayList<>();
+
+        Map<ExchangePair, BalanceHistory> previousMap = new HashMap<>();
 
         for (BalanceHistory history : balanceHistories){
             ExchangePair exchangePair = ExchangePair.of(history.getExchangeType(), history.getPair());
 
             BalanceHistory previous = previousMap.get(exchangePair);
-            previousMap.put(exchangePair, history);
 
             if (previous != null) {
                 if (history.getPair().contains(("BTC/"))) {
                     volumes.add(new Volume(history.getBalance().subtract(previous.getBalance()), history.getDate()));
-
                 }else if (history.getPair().contains("/BTC")){
                     volumes.add(new Volume(previous.getBalance().subtract(history.getBalance())
                             .multiply(history.getPrice())
                             .setScale(8, ROUND_HALF_UP), history.getDate()));
                 }
             }
+
+            previousMap.put(exchangePair, history);
         }
 
         return volumes;

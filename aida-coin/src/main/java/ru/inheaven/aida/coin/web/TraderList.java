@@ -504,7 +504,7 @@ public class TraderList extends AbstractPage{
             add(chart3 = new Chart("chart3", options));
         }
 
-        //Chart 2
+        //Chart 4
         {
             Options options = new Options();
             options.setChartOptions(new ChartOptions(SeriesType.AREASPLINE).setHeight(310));
@@ -533,11 +533,11 @@ public class TraderList extends AbstractPage{
                 for (Volume volume : volumes){
                     volumeSum = volumeSum.add(volume.getVolume());
 
-                    if (volume.getDate().getTime() - time > 1000*60) {
+                    if (volume.getDate().getTime() - time > 1000*60*5) {
                         data.add(new Point(volume.getDate().getTime(), volumeSum));
                     }
                 }
-                options.addSeries(new PointSeries().setData(data).setName("Order Rate"));
+                options.addSeries(new PointSeries().setData(data).setName("Volume Sum"));
             }
 
             add(chart4 = new Chart("chart4", options));
