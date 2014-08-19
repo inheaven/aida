@@ -415,8 +415,6 @@ public class TraderList extends AbstractPage{
                     .setLineWidth(1)));
 
 
-            List<Point> data = new ArrayList<>();
-
             for (ExchangeType exchangeType : ExchangeType.values()){
                 AccountInfo accountInfo = traderService.getAccountInfo(exchangeType);
 
@@ -426,6 +424,7 @@ public class TraderList extends AbstractPage{
                     value = accountInfo.getBalance("BTC");
                 }
 
+                List<Point> data = new ArrayList<>();
                 for (int i = 0; i < 100; ++i) {
                     data.add(new Point(System.currentTimeMillis(), value));
                 }
