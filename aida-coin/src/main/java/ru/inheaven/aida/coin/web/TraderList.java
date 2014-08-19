@@ -416,16 +416,18 @@ public class TraderList extends AbstractPage{
 
 
             List<Point> data = new ArrayList<>();
-            BigDecimal value = BigDecimal.ZERO;
 
             for (ExchangeType exchangeType : ExchangeType.values()){
                 AccountInfo accountInfo = traderService.getAccountInfo(exchangeType);
+
+                BigDecimal value = BigDecimal.ZERO;
+
                 if (accountInfo != null) {
                     value = accountInfo.getBalance("BTC");
                 }
 
                 for (int i = 0; i < 100; ++i) {
-                    data.add(0, new Point(System.currentTimeMillis(), value));
+                    data.add(new Point(System.currentTimeMillis(), value));
                 }
 
                 options.addSeries(new PointSeries().setData(data).setName(exchangeType.name()));
