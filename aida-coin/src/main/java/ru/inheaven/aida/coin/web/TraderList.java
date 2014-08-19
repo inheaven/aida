@@ -400,7 +400,7 @@ public class TraderList extends AbstractPage{
         //Chart
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(310));
+            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(400));
             options.setGlobal(new Global().setUseUTC(false));
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
@@ -436,7 +436,7 @@ public class TraderList extends AbstractPage{
         //Chart 2
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.AREASPLINE).setHeight(310));
+            options.setChartOptions(new ChartOptions(SeriesType.AREASPLINE).setHeight(400));
             options.setGlobal(new Global().setUseUTC(false));
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
@@ -467,7 +467,7 @@ public class TraderList extends AbstractPage{
         //Chart 3
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(310));
+            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(400));
             options.setGlobal(new Global().setUseUTC(false));
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
@@ -507,7 +507,7 @@ public class TraderList extends AbstractPage{
         //Chart 4
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.AREASPLINE).setHeight(310));
+            options.setChartOptions(new ChartOptions(SeriesType.AREASPLINE).setHeight(400));
             options.setGlobal(new Global().setUseUTC(false));
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
@@ -525,7 +525,7 @@ public class TraderList extends AbstractPage{
 
             {
                 List<Point> data = new ArrayList<>();
-                List<Volume> volumes = traderService.getVolumes(new Date(System.currentTimeMillis() - 1000*60*60*24));
+                List<Volume> volumes = traderService.getVolumes(new Date(System.currentTimeMillis() - 1000*60*60*24*3));
 
                 long time = 0;
                 BigDecimal volumeSum = BigDecimal.ZERO;
@@ -533,7 +533,7 @@ public class TraderList extends AbstractPage{
                 for (Volume volume : volumes){
                     volumeSum = volumeSum.add(volume.getVolume());
 
-                    if (volume.getDate().getTime() - time > 1000*60*5) {
+                    if (volume.getDate().getTime() - time > 1000*60*10) {
                         time = volume.getDate().getTime();
 
                         data.add(new Point(time, volumeSum));
