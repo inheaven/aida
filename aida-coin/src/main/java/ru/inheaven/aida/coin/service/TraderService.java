@@ -30,10 +30,7 @@ import si.mazi.rescu.RestProxyFactory;
 import javax.ejb.*;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -203,7 +200,6 @@ public class TraderService {
                                     volumeSum = volumeSum.add(volume);
                                     orderTimes.add(new Volume(volume));
 
-
                                     if (volume.compareTo(BigDecimal.ZERO) > 0){
                                         askOrderTimes.add(new Volume(volume.abs()));
                                     }else{
@@ -211,7 +207,7 @@ public class TraderService {
                                     }
                                 }else if (ticker.getCurrencyPair().counterSymbol.equals("BTC")){
                                     BigDecimal volume = previous.getBalance().subtract(balanceHistory.getBalance())
-                                            .multiply(ticker.getLast())
+                                            .multiply(balanceHistory.getPrice())
                                             .setScale(8, ROUND_HALF_UP);
 
                                     volumeSum = volumeSum.add(volume);
@@ -297,6 +293,34 @@ public class TraderService {
         }
 
         return volume;
+    }
+
+    public List<Volume> getVolumes(Date startDate){
+        List<BalanceHistory> balanceHistories = traderBean.getBalanceHistories(startDate);
+
+        Map<ExchangePair, BalanceHistory> previousMap = new HashMap<>();
+
+        List<Volume> volumes = new ArrayList<>();
+
+        for (BalanceHistory history : balanceHistories){
+            ExchangePair exchangePair = ExchangePair.of(history.getExchangeType(), history.getPair());
+
+            BalanceHistory previous = previousMap.get(exchangePair);
+            previousMap.put(exchangePair, history);
+
+            if (previous != null) {
+                if (history.getPair().contains(("BTC/"))) {
+                    volumes.add(new Volume(history.getBalance().subtract(previous.getBalance()), history.getDate()));
+
+                }else if (history.getPair().contains("/BTC")){
+                    volumes.add(new Volume(previous.getBalance().subtract(history.getBalance())
+                            .multiply(history.getPrice())
+                            .setScale(8, ROUND_HALF_UP), history.getDate()));
+                }
+            }
+        }
+
+        return volumes;
     }
 
     private void scheduleUpdate(ExchangeType exchangeType){

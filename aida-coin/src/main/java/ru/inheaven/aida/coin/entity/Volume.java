@@ -15,6 +15,11 @@ public class Volume {
         this.volume = volume;
     }
 
+    public Volume(BigDecimal volume, Date date) {
+        this.volume = volume;
+        this.date = date;
+    }
+
     public BigDecimal getVolume() {
         return volume;
     }

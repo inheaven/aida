@@ -1,12 +1,14 @@
 package ru.inheaven.aida.coin.service;
 
 import ru.inheaven.aida.coin.entity.AbstractEntity;
+import ru.inheaven.aida.coin.entity.BalanceHistory;
 import ru.inheaven.aida.coin.entity.ExchangeType;
 import ru.inheaven.aida.coin.entity.Trader;
 
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -54,5 +56,11 @@ public class TraderBean {
         }else {
             em.merge(abstractEntity);
         }
+    }
+
+    public List<BalanceHistory> getBalanceHistories(Date startDate){
+        return em.createQuery("select h from BalanceHistory h where h.date >= :startDate", BalanceHistory.class)
+                .setParameter("startDate", startDate)
+                .getResultList();
     }
 }

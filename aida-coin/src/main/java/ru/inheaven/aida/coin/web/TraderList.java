@@ -35,10 +35,7 @@ import org.apache.wicket.protocol.ws.api.message.IWebSocketPushMessage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.odlabs.wiquery.core.javascript.JsStatement;
 import org.odlabs.wiquery.ui.effects.HighlightEffectJavaScriptResourceReference;
-import ru.inheaven.aida.coin.entity.BalanceHistory;
-import ru.inheaven.aida.coin.entity.ExchangeMessage;
-import ru.inheaven.aida.coin.entity.ExchangePair;
-import ru.inheaven.aida.coin.entity.Trader;
+import ru.inheaven.aida.coin.entity.*;
 import ru.inheaven.aida.coin.service.TraderBean;
 import ru.inheaven.aida.coin.service.TraderService;
 
@@ -48,6 +45,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
+import static java.math.BigDecimal.valueOf;
 import static org.apache.wicket.model.Model.of;
 import static ru.inheaven.aida.coin.entity.ExchangeType.*;
 
@@ -82,10 +80,11 @@ public class TraderList extends AbstractPage{
     private BigDecimal lastChart3Value1 = BigDecimal.ZERO;
     private BigDecimal lastChart3Value2 = BigDecimal.ZERO;
 
-    private Chart chart, chart2, chart3;
+    private Chart chart, chart2, chart3, chart4;
     private int chartIndex = 1;
     private int chart2Index = 1;
     private int chart3Index = 1;
+    private long chart4Index = System.currentTimeMillis();
 
     public TraderList() {
         setVersioned(false);
@@ -112,7 +111,7 @@ public class TraderList extends AbstractPage{
         list.add(new PropertyColumn<>(of("Рынок"), "exchange"));
         list.add(new PropertyColumn<>(of("Монета"), "pair"));
         list.add(new TraderColumn(of("Баланс"), balanceMap));
-                list.add(new TraderColumn(of("Капитализация"), estimateMap));
+        list.add(new TraderColumn(of("Капитализация"), estimateMap));
         list.add(new AbstractColumn<Trader, String>(of("Лот")) {
             @Override
             public void populateItem(Item<ICellPopulator<Trader>> cellItem, String componentId, IModel<Trader> rowModel) {
@@ -241,51 +240,73 @@ public class TraderList extends AbstractPage{
                             update(handler, btceBTC, ((AccountInfo) payload).getBalance("BTC"));
                         }
                     }else if (payload instanceof BalanceHistory){
-                        BigDecimal volumeSum = traderService.getVolumeSum();
+                        JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
 
                         //update chart order rate
-                        if (lastChart2Value.compareTo(volumeSum) != 0) {
-                            lastChart2Value = volumeSum;
+                        BigDecimal previousVolumeSum = traderService.getVolumeSum();
 
-                            JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
-
+                        if (lastChart2Value.compareTo(previousVolumeSum) != 0) {
+                            lastChart2Value = previousVolumeSum;
                             {
                                 String javaScript = "var chartVarName = " + chart2.getJavaScriptVarName() + ";";
-                                javaScript += "eval(chartVarName).series["+ 0 +"].addPoint("
-                                        + renderer.toJson( new Point(new Date().getTime(), volumeSum))
+                                javaScript += "eval(chartVarName).series[" + 0 + "].addPoint("
+                                        + renderer.toJson(new Point(new Date().getTime(), previousVolumeSum))
                                         + ", true, true);";
 
                                 handler.appendJavaScript(javaScript);
 
                                 chart2Index++;
                             }
-
-                            {
-                                String javaScript = "var chartVarName = " + chart3.getJavaScriptVarName() + ";";
-
-                                BigDecimal askOrderRate = traderService.getAskOrderRate();
-                                if (lastChart3Value1.compareTo(askOrderRate) != 0) {
-                                    lastChart3Value1 = askOrderRate;
-
-                                    javaScript += "eval(chartVarName).series[" + 0 + "].addPoint("
-                                            + renderer.toJson(new Point(chart3Index, askOrderRate))
-                                            + ", true, true);";
-                                }
-
-                                BigDecimal bidOrderRate = traderService.getBidOrderRate();
-                                if (lastChart3Value2.compareTo(bidOrderRate) != 0) {
-                                    lastChart3Value2 = bidOrderRate;
-
-                                    javaScript += "eval(chartVarName).series[" + 1 + "].addPoint("
-                                            + renderer.toJson(new Point(chart3Index, bidOrderRate))
-                                            + ", true, true);";
-                                }
-
-                                chart3Index++;
-
-                                handler.appendJavaScript(javaScript);
-                            }
                         }
+
+                        {
+
+                            String javaScript = "var chartVarName = " + chart3.getJavaScriptVarName() + ";";
+
+                            BigDecimal askOrderRate = traderService.getAskOrderRate();
+                            if (lastChart3Value1.compareTo(askOrderRate) != 0) {
+                                lastChart3Value1 = askOrderRate;
+
+                                javaScript += "eval(chartVarName).series[" + 0 + "].addPoint("
+                                        + renderer.toJson(new Point(chart3Index, askOrderRate))
+                                        + ", true, true);";
+                            }
+
+                            BigDecimal bidOrderRate = traderService.getBidOrderRate();
+                            if (lastChart3Value2.compareTo(bidOrderRate) != 0) {
+                                lastChart3Value2 = bidOrderRate;
+
+                                javaScript += "eval(chartVarName).series[" + 1 + "].addPoint("
+                                        + renderer.toJson(new Point(chart3Index, bidOrderRate))
+                                        + ", true, true);";
+                            }
+
+                            chart3Index++;
+
+                            handler.appendJavaScript(javaScript);
+                        }
+
+                        List<Volume> volumes = traderService.getVolumes(new Date(chart4Index));
+                        if (!volumes.isEmpty()) {
+                            chart4Index = System.currentTimeMillis();
+
+                            List data = chart4.getOptions().getSeries().get(0).getData();
+                            BigDecimal volumeSum = !data.isEmpty()
+                                    ? (BigDecimal) ((Point)data.get(data.size() - 1)).getY()
+                                    : BigDecimal.ZERO;
+
+                            for (Volume volume : volumes){
+                                volumeSum = volumeSum.add(volume.getVolume());
+                            }
+
+                            String javaScript = "var chartVarName = " + chart4.getJavaScriptVarName() + ";";
+                            javaScript += "eval(chartVarName).series["+ 0 +"].addPoint("
+                                    + renderer.toJson(new Point(volumes.get(volumes.size() - 1).getDate().getTime(), volumeSum))
+                                    + ", true, true);";
+
+                            handler.appendJavaScript(javaScript);
+                        }
+
                     }else if (payload instanceof OrderBook) {
                         OrderBook orderBook = (OrderBook) exchangeMessage.getPayload();
 
@@ -481,6 +502,42 @@ public class TraderList extends AbstractPage{
             }
 
             add(chart3 = new Chart("chart3", options));
+        }
+
+        //Chart 2
+        {
+            Options options = new Options();
+            options.setChartOptions(new ChartOptions(SeriesType.AREASPLINE));
+            options.setGlobal(new Global().setUseUTC(false));
+
+            options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
+            options.setTitle(new Title(""));
+            options.setLegend(new Legend(Boolean.FALSE));
+
+            options.setxAxis(new Axis().setType(AxisType.DATETIME));
+
+            options.setyAxis(new Axis().setTitle(new Title("")));
+
+            options.setPlotOptions(new PlotOptionsChoice().setAreaspline(new PlotOptions()
+                    .setFillColor(new LinearGradient(LinearGradient.GradientDirection.VERTICAL))
+                    .setMarker(new Marker(false))
+                    .setLineWidth(1)));
+
+            {
+                List<Point> data = new ArrayList<>();
+                List<Volume> volumes = traderService.getVolumes(new Date(System.currentTimeMillis() - 1000*60*60*24));
+                BigDecimal volumeSum = BigDecimal.ZERO;
+
+                for (Volume volume : volumes){
+                    volumeSum = volumeSum.add(volume.getVolume());
+
+                    data.add(new Point(volume.getDate().getTime(), volumeSum));
+
+                }
+                options.addSeries(new PointSeries().setData(data).setName("Order Rate"));
+            }
+
+            add(chart4 = new Chart("chart4", options));
         }
     }
 
