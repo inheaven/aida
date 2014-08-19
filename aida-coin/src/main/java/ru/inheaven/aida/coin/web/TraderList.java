@@ -226,9 +226,9 @@ public class TraderList extends AbstractPage{
                         }
 
                         //update chart balance
-                        if (lastChartValueMap.get(exchangeMessage.getExchangeType()).compareTo(((AccountInfo) payload).getBalance("BTC")) != 0) {
-                            BigDecimal value = ((AccountInfo) payload).getBalance("BTC");
+                        BigDecimal value = ((AccountInfo) payload).getBalance("BTC");
 
+                        if (lastChartValueMap.get(exchangeMessage.getExchangeType()).compareTo(value) != 0) {
                             Point point = new Point(chartIndex++, value);
                             JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
                             String jsonPoint = renderer.toJson(point);
@@ -424,14 +424,12 @@ public class TraderList extends AbstractPage{
                     value = accountInfo.getBalance("BTC");
                 }
 
-                for (int i = 0; i < 600; ++i) {
+                for (int i = 0; i < 100; ++i) {
                     data.add(0, new Point(0, value));
                 }
 
                 options.addSeries(new PointSeries().setData(data).setName(exchangeType.name()));
-            }
 
-            for (ExchangeType exchangeType : ExchangeType.values()){
                 lastChartValueMap.put(exchangeType, BigDecimal.ZERO);
             }
 
