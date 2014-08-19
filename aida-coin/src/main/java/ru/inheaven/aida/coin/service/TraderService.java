@@ -376,13 +376,16 @@ public class TraderService {
                     continue;
                 }
 
-                BigDecimal level = trader.getHigh().subtract(trader.getLow()).divide(trader.getSpread(), 8, ROUND_HALF_UP);
-                BigDecimal minOrderAmount = new BigDecimal("0.0007").divide(middlePrice, 8, ROUND_HALF_UP);
                 CurrencyPair currencyPair = getCurrencyPair(trader.getPair());
 
+                BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.015")).setScale(8, ROUND_HALF_DOWN);
+
+                BigDecimal minOrderAmount = currencyPair.counterSymbol.equals("BTC")
+                        ? new BigDecimal("0.0007").divide(middlePrice, 8, ROUND_HALF_UP)
+                        : new BigDecimal("0.0125");
+
                 for (int index = 1; index < 4; ++index) {
-                    BigDecimal spread = trader.getSpread().multiply(new BigDecimal(index));
-                    BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.015")).setScale(8, ROUND_HALF_DOWN);
+                    BigDecimal spread = trader.getSpread().multiply(BigDecimal.valueOf(index));
                     spread = spread.compareTo(minSpread) > 0 ? spread : minSpread;
 
                     boolean hasOrder = false;
@@ -400,12 +403,17 @@ public class TraderService {
                         AccountInfo accountInfo = getAccountInfo(exchangeType);
 
                         try {
+                            BigDecimal level = trader.getHigh().subtract(trader.getLow()).divide(spread, 8, ROUND_HALF_UP);
                             BigDecimal delta = spread.divide(new BigDecimal("2"), 8, ROUND_HALF_DOWN);
 
-                            BigDecimal randomAskAmount = random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP));
+                            BigDecimal randomAskAmount = random50(BigDecimal.valueOf(index)
+                                    .multiply(trader.getVolume())
+                                    .divide(level, 8, ROUND_HALF_UP));
                             randomAskAmount = randomAskAmount.compareTo(minOrderAmount) > 0 ? randomAskAmount : minOrderAmount;
 
-                            BigDecimal randomBidAmount = random50(trader.getVolume().divide(level, 8, ROUND_HALF_UP));
+                            BigDecimal randomBidAmount = random50(BigDecimal.valueOf(index)
+                                    .multiply(trader.getVolume())
+                                    .divide(level, 8, ROUND_HALF_UP));
                             randomBidAmount = randomBidAmount.compareTo(minOrderAmount) > 0 ? randomBidAmount : minOrderAmount;
 
                             //check ask
