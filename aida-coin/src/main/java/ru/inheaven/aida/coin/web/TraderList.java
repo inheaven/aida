@@ -403,7 +403,7 @@ public class TraderList extends AbstractPage{
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
             options.setTitle(new Title(""));
-            options.setLegend(new Legend(Boolean.FALSE));
+            //options.setLegend(new Legend(Boolean.FALSE));
 
             options.setxAxis(new Axis().setType(AxisType.LINEAR));
 
@@ -439,7 +439,7 @@ public class TraderList extends AbstractPage{
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
             options.setTitle(new Title(""));
-            options.setLegend(new Legend(Boolean.FALSE));
+            //options.setLegend(new Legend(Boolean.FALSE));
 
             options.setxAxis(new Axis().setType(AxisType.LINEAR));
 
@@ -456,7 +456,7 @@ public class TraderList extends AbstractPage{
                 for (int i = 0; i < 500; ++i) {
                     data.add(0, new Point(0, value));
                 }
-                options.addSeries(new PointSeries().setData(data).setName("Order Rate"));
+                options.addSeries(new PointSeries().setData(data).setName("Заявки / час"));
             }
 
             add(chart2 = new Chart("chart2", options));
@@ -470,7 +470,7 @@ public class TraderList extends AbstractPage{
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
             options.setTitle(new Title(""));
-            options.setLegend(new Legend(Boolean.FALSE));
+            //options.setLegend(new Legend(Boolean.FALSE));
 
             options.setxAxis(new Axis().setType(AxisType.LINEAR));
 
@@ -487,7 +487,7 @@ public class TraderList extends AbstractPage{
                 for (int i = 0; i < 500; ++i) {
                     data.add(0, new Point(0, value));
                 }
-                options.addSeries(new PointSeries().setData(data).setName("Ask Order Rate"));
+                options.addSeries(new PointSeries().setData(data).setName("Продажи / час"));
             }
 
             {
@@ -496,7 +496,7 @@ public class TraderList extends AbstractPage{
                 for (int i = 0; i < 500; ++i) {
                     data.add(0, new Point(0, value));
                 }
-                options.addSeries(new PointSeries().setData(data).setName("Bid Order Rate"));
+                options.addSeries(new PointSeries().setData(data).setName("Покупки / час"));
             }
 
             add(chart3 = new Chart("chart3", options));
@@ -510,7 +510,7 @@ public class TraderList extends AbstractPage{
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
             options.setTitle(new Title(""));
-            options.setLegend(new Legend(Boolean.FALSE));
+            //options.setLegend(new Legend(Boolean.FALSE));
 
             options.setxAxis(new Axis().setType(AxisType.DATETIME));
 
@@ -537,7 +537,7 @@ public class TraderList extends AbstractPage{
                         data.add(new Point(time, volumeSum));
                     }
                 }
-                options.addSeries(new PointSeries().setData(data).setName("Volume Sum"));
+                options.addSeries(new PointSeries().setData(data).setName("Прибыль"));
             }
 
             add(chart4 = new Chart("chart4", options));
