@@ -80,13 +80,14 @@ public class TraderList extends AbstractPage{
 
     private BigDecimal lastChartValue = BigDecimal.ZERO;
     private BigDecimal lastChart2Value = BigDecimal.ZERO;
-    private BigDecimal lastChart2Sum = BigDecimal.ZERO;
-    private BigDecimal lastChart2Value1 = BigDecimal.ZERO;
-    private BigDecimal lastChart2Value2 = BigDecimal.ZERO;
 
-    private Chart chart, chart2;
+    private BigDecimal lastChart3Value1 = BigDecimal.ZERO;
+    private BigDecimal lastChart3Value2 = BigDecimal.ZERO;
+
+    private Chart chart, chart2, chart3;
     private int chartIndex = 1;
     private int chart2Index = 1;
+    private int chart3Index = 1;
 
     public TraderList() {
         setVersioned(false);
@@ -201,7 +202,10 @@ public class TraderList extends AbstractPage{
 
                                 BigDecimal price = traderService.getOrderBook(exchangePair).getAsks().get(0).getLimitPrice();
 
-                                if (traderService.getOrderBook(exchangePair) != null && exchangePair.getCounterSymbol().equals("BTC")) {
+                                if (traderService.getOrderBook(exchangePair) != null
+                                        && (exchangePair.getCounterSymbol().equals("BTC")
+                                        || (exchangePair.getCounterSymbol().equals("USD")
+                                        && exchangePair.getExchangeType().equals(BITTREX)))) {
                                     estimate = estimate.add(balance.multiply(price)).setScale(8, BigDecimal.ROUND_HALF_UP);
                                 }
 
@@ -247,35 +251,42 @@ public class TraderList extends AbstractPage{
 
                             JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
 
-                            String javaScript = "var chartVarName = " + chart2.getJavaScriptVarName() + ";";
-
                             {
+                                String javaScript = "var chartVarName = " + chart2.getJavaScriptVarName() + ";";
                                 javaScript += "eval(chartVarName).series["+ 0 +"].addPoint("
                                         + renderer.toJson( new Point(chart2Index, orderRate))
                                         + ", true, true);";
+
+                                handler.appendJavaScript(javaScript);
+
+                                chart2Index++;
                             }
 
-                            BigDecimal askOrderRate= traderService.getAskOrderRate();
-                            if (lastChart2Value1.compareTo(askOrderRate) != 0){
-                                lastChart2Value1 = askOrderRate;
+                            {
+                                String javaScript = "var chartVarName = " + chart3.getJavaScriptVarName() + ";";
 
-                                javaScript += "eval(chartVarName).series["+ 1 +"].addPoint("
-                                        + renderer.toJson( new Point(chart2Index, askOrderRate))
-                                        + ", true, true);";
+                                BigDecimal askOrderRate = traderService.getAskOrderRate();
+                                if (lastChart3Value1.compareTo(askOrderRate) != 0) {
+                                    lastChart3Value1 = askOrderRate;
+
+                                    javaScript += "eval(chartVarName).series[" + 0 + "].addPoint("
+                                            + renderer.toJson(new Point(chart3Index, askOrderRate))
+                                            + ", true, true);";
+                                }
+
+                                BigDecimal bidOrderRate = traderService.getBidOrderRate();
+                                if (lastChart3Value2.compareTo(bidOrderRate) != 0) {
+                                    lastChart3Value2 = bidOrderRate;
+
+                                    javaScript += "eval(chartVarName).series[" + 1 + "].addPoint("
+                                            + renderer.toJson(new Point(chart3Index, bidOrderRate))
+                                            + ", true, true);";
+                                }
+
+                                chart3Index++;
+
+                                handler.appendJavaScript(javaScript);
                             }
-
-                            BigDecimal bidOrderRate = traderService.getBidOrderRate();
-                            if (lastChart2Value2.compareTo(bidOrderRate) != 0){
-                                lastChart2Value2 = bidOrderRate;
-
-                                javaScript += "eval(chartVarName).series["+ 2 +"].addPoint("
-                                        + renderer.toJson(new Point(chart2Index, bidOrderRate))
-                                        + ", true, true);";
-                            }
-
-                            chart2Index++;
-
-                            handler.appendJavaScript(javaScript);
                         }
                     }else if (payload instanceof OrderBook) {
                         OrderBook orderBook = (OrderBook) exchangeMessage.getPayload();
@@ -405,19 +416,19 @@ public class TraderList extends AbstractPage{
 
         //Chart 2
         {
-            Options options2 = new Options();
-            options2.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(250));
-            options2.setGlobal(new Global().setUseUTC(false));
+            Options options = new Options();
+            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(250));
+            options.setGlobal(new Global().setUseUTC(false));
 
-            options2.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
-            options2.setTitle(new Title(""));
-            options2.setLegend(new Legend(Boolean.FALSE));
+            options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
+            options.setTitle(new Title(""));
+            options.setLegend(new Legend(Boolean.FALSE));
 
-            options2.setxAxis(new Axis().setType(AxisType.LINEAR));
+            options.setxAxis(new Axis().setType(AxisType.LINEAR));
 
-            options2.setyAxis(new Axis().setTitle(new Title("")));
+            options.setyAxis(new Axis().setTitle(new Title("")));
 
-            options2.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions()
+            options.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions()
                     .setMarker(new Marker(false))
                     .setLineWidth(1)));
 
@@ -427,8 +438,30 @@ public class TraderList extends AbstractPage{
                 for (int i = 0; i < 500; ++i) {
                     data.add(0, new Point(0, value));
                 }
-                options2.addSeries(new PointSeries().setData(data).setName("Order Rate"));
+                options.addSeries(new PointSeries().setData(data).setName("Order Rate"));
             }
+
+            add(chart2 = new Chart("chart2", options));
+        }
+
+        //Chart 3
+        {
+            Options options = new Options();
+            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(250));
+            options.setGlobal(new Global().setUseUTC(false));
+
+            options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
+            options.setTitle(new Title(""));
+            options.setLegend(new Legend(Boolean.FALSE));
+
+            options.setxAxis(new Axis().setType(AxisType.LINEAR));
+
+            options.setyAxis(new Axis().setTitle(new Title("")));
+
+            options.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions()
+                    .setMarker(new Marker(false))
+                    .setLineWidth(1)));
+
 
             {
                 List<Point> data = new ArrayList<>();
@@ -436,7 +469,7 @@ public class TraderList extends AbstractPage{
                 for (int i = 0; i < 500; ++i) {
                     data.add(0, new Point(0, value));
                 }
-                options2.addSeries(new PointSeries().setData(data).setName("Ask Order Rate"));
+                options.addSeries(new PointSeries().setData(data).setName("Ask Order Rate"));
             }
 
             {
@@ -445,11 +478,10 @@ public class TraderList extends AbstractPage{
                 for (int i = 0; i < 500; ++i) {
                     data.add(0, new Point(0, value));
                 }
-                options2.addSeries(new PointSeries().setData(data).setName("Bid Order Rate"));
+                options.addSeries(new PointSeries().setData(data).setName("Bid Order Rate"));
             }
 
-
-            add(chart2 = new Chart("chart2", options2));
+            add(chart3 = new Chart("chart3", options));
         }
     }
 
