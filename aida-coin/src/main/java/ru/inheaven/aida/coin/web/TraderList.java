@@ -73,7 +73,7 @@ public class TraderList extends AbstractPage{
     private Component cryptsyBTC, cryptsyCoins;
     private Component btceBTC, btceCoins;
 
-    private BigDecimal lastChartValue = BigDecimal.ZERO;
+    private Map <ExchangeType, BigDecimal> lastChartValueMap = new HashMap<>();
     private BigDecimal lastChart2Value = BigDecimal.ZERO;
 
     private BigDecimal lastChart3Value1 = BigDecimal.ZERO;
@@ -214,21 +214,6 @@ public class TraderList extends AbstractPage{
                         if (exchangeMessage.getExchangeType().equals(BITTREX)) {
                             update(handler, bittrexCoins, estimate);
                             update(handler, bittrexBTC, ((AccountInfo) payload).getBalance("BTC"));
-
-
-                            //update chart balance
-                            if (lastChartValue.compareTo(((AccountInfo) payload).getBalance("BTC")) != 0) {
-                                lastChartValue = ((AccountInfo) payload).getBalance("BTC");
-
-                                Point point = new Point(chartIndex++, lastChartValue);
-                                JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
-                                String jsonPoint = renderer.toJson(point);
-                                String javaScript = "var chartVarName = " + chart.getJavaScriptVarName() + ";\n";
-                                javaScript += "var seriesIndex = " + 0 + ";\n";
-                                javaScript += "eval(chartVarName).series[seriesIndex].addPoint(" + jsonPoint + ", true, true);\n";
-
-                                handler.appendJavaScript(javaScript);
-                            }
                         }else if (exchangeMessage.getExchangeType().equals(CEXIO)){
                             update(handler, cexioCoins, estimate);
                             update(handler, cexioBTC, ((AccountInfo) payload).getBalance("BTC"));
@@ -238,6 +223,22 @@ public class TraderList extends AbstractPage{
                         }else if (exchangeMessage.getExchangeType().equals(BTCE)){
                             update(handler, btceCoins, estimate);
                             update(handler, btceBTC, ((AccountInfo) payload).getBalance("BTC"));
+                        }
+
+                        //update chart balance
+                        if (lastChartValueMap.get(exchangeMessage.getExchangeType()).compareTo(((AccountInfo) payload).getBalance("BTC")) != 0) {
+                            BigDecimal value = ((AccountInfo) payload).getBalance("BTC");
+
+                            Point point = new Point(chartIndex++, value);
+                            JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
+                            String jsonPoint = renderer.toJson(point);
+                            String javaScript = "var chartVarName = " + chart.getJavaScriptVarName() + ";\n";
+                            javaScript += "var seriesIndex = " + exchangeMessage.getExchangeType().ordinal() + ";\n";
+                            javaScript += "eval(chartVarName).series[seriesIndex].addPoint(" + jsonPoint + ", true, true);\n";
+
+                            handler.appendJavaScript(javaScript);
+
+                            lastChartValueMap.put(exchangeMessage.getExchangeType(), value);
                         }
                     }else if (payload instanceof BalanceHistory){
                         JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
@@ -417,16 +418,22 @@ public class TraderList extends AbstractPage{
             List<Point> data = new ArrayList<>();
             BigDecimal value = BigDecimal.ZERO;
 
-            AccountInfo accountInfo = traderService.getAccountInfo(BITTREX);
-            if (accountInfo != null) {
-                value = accountInfo.getBalance("BTC");
+            for (ExchangeType exchangeType : ExchangeType.values()){
+                AccountInfo accountInfo = traderService.getAccountInfo(exchangeType);
+                if (accountInfo != null) {
+                    value = accountInfo.getBalance("BTC");
+                }
+
+                for (int i = 0; i < 600; ++i) {
+                    data.add(0, new Point(0, value));
+                }
+
+                options.addSeries(new PointSeries().setData(data).setName(exchangeType.name()));
             }
 
-            for (int i = 0; i < 600; ++i) {
-                data.add(0, new Point(0, value));
+            for (ExchangeType exchangeType : ExchangeType.values()){
+                lastChartValueMap.put(exchangeType, BigDecimal.ZERO);
             }
-
-            options.addSeries(new PointSeries().setData(data).setName("Bittrex"));
 
             add(chart = new Chart("chart", options));
         }
