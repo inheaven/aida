@@ -441,7 +441,7 @@ public class TraderList extends AbstractPage{
             options.setTitle(new Title(""));
             options.setLegend(new Legend(Boolean.FALSE));
 
-            options.setxAxis(new Axis().setType(AxisType.DATETIME));
+            options.setxAxis(new Axis().setType(AxisType.LINEAR));
 
             options.setyAxis(new Axis().setTitle(new Title("")));
 
