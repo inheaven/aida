@@ -287,7 +287,6 @@ public class TraderList extends AbstractPage{
 
                         //chart4
                         BalanceHistory balanceHistory = (BalanceHistory) payload;
-                        ExchangePair exchangePair = ExchangePair.of(balanceHistory.getExchangeType(), balanceHistory.getPair());
 
                         Volume volume = balanceHistory.getVolume();
 
@@ -525,10 +524,12 @@ public class TraderList extends AbstractPage{
 
             options.setyAxis(new Axis().setTitle(new Title("")));
 
-            options.setPlotOptions(new PlotOptionsChoice().setAreaspline(new PlotOptions()
+            options.setPlotOptions(new PlotOptionsChoice().setAreaspline(
+                    new PlotOptions()
                     .setFillColor(new LinearGradient(LinearGradient.GradientDirection.VERTICAL))
                     .setMarker(new Marker(false))
-                    .setLineWidth(1)));
+                    .setLineWidth(1)
+                    .setTurboThreshold(0)));
 
             {
                 List<Point> data = new ArrayList<>();
@@ -540,11 +541,11 @@ public class TraderList extends AbstractPage{
                 for (Volume volume : volumes){
                     volumeSum = volumeSum.add(volume.getVolume());
 
-                    if (volume.getDate().getTime() - time > 1000*60*10) {
-                        time = volume.getDate().getTime();
+//                    if (volume.getDate().getTime() - time > 1000*60*10) {
+                    time = volume.getDate().getTime();
 
-                        data.add(new Point(time, volumeSum));
-                    }
+                    data.add(new Point(time, volumeSum));
+//                    }
                 }
                 options.addSeries(new PointSeries().setData(data).setName("Прибыль"));
             }
