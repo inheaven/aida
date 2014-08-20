@@ -17,7 +17,6 @@ import java.util.List;
  *         08.01.14 15:22
  */
 @Stateless
-@Transactional(Transactional.TxType.REQUIRES_NEW)
 public class TraderBean {
     @PersistenceContext
     private EntityManager em;
