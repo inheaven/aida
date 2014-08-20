@@ -436,7 +436,7 @@ public class TraderService {
                 BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.015")).setScale(8, ROUND_HALF_DOWN);
 
                 BigDecimal minOrderAmount = currencyPair.counterSymbol.equals("BTC")
-                        ? new BigDecimal("0.0007").divide(middlePrice, 8, ROUND_HALF_UP)
+                        ? new BigDecimal("0.0025").divide(middlePrice, 8, ROUND_HALF_UP)
                         : new BigDecimal("0.0125");
 
                 for (int index = 1; index < 4; ++index) {
