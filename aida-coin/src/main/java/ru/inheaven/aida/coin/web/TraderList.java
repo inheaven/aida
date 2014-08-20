@@ -508,7 +508,7 @@ public class TraderList extends AbstractPage{
         //Chart 4
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.AREASPLINE).setHeight(400));
+            options.setChartOptions(new ChartOptions(SeriesType.AREASPLINE).setHeight(400).setZoomType(ZoomType.X));
             options.setGlobal(new Global().setUseUTC(false));
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
