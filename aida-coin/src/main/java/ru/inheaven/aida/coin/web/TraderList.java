@@ -529,7 +529,7 @@ public class TraderList extends AbstractPage{
                     .setFillColor(new LinearGradient(LinearGradient.GradientDirection.VERTICAL))
                     .setMarker(new Marker(false))
                     .setLineWidth(1)
-                    .setTurboThreshold(0)));
+                    .setTurboThreshold(20000)));
 
             {
                 List<Point> data = new ArrayList<>();
