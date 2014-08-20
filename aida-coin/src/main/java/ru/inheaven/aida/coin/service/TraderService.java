@@ -1,8 +1,7 @@
 package ru.inheaven.aida.coin.service;
 
 import com.google.common.base.Throwables;
-import com.xeiam.xchange.Exchange;
-import com.xeiam.xchange.ExchangeSpecification;
+import com.xeiam.xchange.*;
 import com.xeiam.xchange.bittrex.v1.BittrexExchange;
 import com.xeiam.xchange.btce.v3.BTCEExchange;
 import com.xeiam.xchange.cexio.CexIOAdapters;
@@ -378,25 +377,32 @@ public class TraderService {
             CurrencyPair currencyPair = getCurrencyPair(pair);
 
             if (currencyPair != null) {
-                OrderBook orderBook;
+                try {
+                    OrderBook orderBook;
 
-                switch (exchangeType){
-                    case CEXIO: orderBook = getCexIOrderBook(currencyPair);
-                        break;
-                    default:
-                        orderBook = getExchange(exchangeType).getPollingMarketDataService().getOrderBook(currencyPair);
-                }
-
-                orderBook.getBids().sort(new Comparator<LimitOrder>() {
-                    @Override
-                    public int compare(LimitOrder o1, LimitOrder o2) {
-                        return o1.getLimitPrice().compareTo(o2.getLimitPrice());
+                    switch (exchangeType){
+                        case CEXIO: orderBook = getCexIOrderBook(currencyPair);
+                            break;
+                        default:
+                            orderBook = getExchange(exchangeType).getPollingMarketDataService().getOrderBook(currencyPair);
                     }
-                });
 
-                orderBookMap.put(new ExchangePair(exchangeType, pair), orderBook);
+                    orderBook.getBids().sort(new Comparator<LimitOrder>() {
+                        @Override
+                        public int compare(LimitOrder o1, LimitOrder o2) {
+                            return o1.getLimitPrice().compareTo(o2.getLimitPrice());
+                        }
+                    });
 
-                broadcast(exchangeType, orderBook);
+                    orderBookMap.put(new ExchangePair(exchangeType, pair), orderBook);
+
+                    broadcast(exchangeType, orderBook);
+                } catch (Exception e) {
+                    log.error("updateOrderBook error", e);
+
+                    //noinspection ThrowableResultOfMethodCallIgnored
+                    broadcast(exchangeType, Throwables.getRootCause(e).getMessage());
+                }
             }
         }
     }
