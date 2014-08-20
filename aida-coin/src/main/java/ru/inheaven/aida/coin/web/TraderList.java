@@ -79,6 +79,8 @@ public class TraderList extends AbstractPage{
     private BigDecimal lastChart3Value1 = BigDecimal.ZERO;
     private BigDecimal lastChart3Value2 = BigDecimal.ZERO;
 
+    private BigDecimal lastChart4Value = BigDecimal.ZERO;
+
     private Chart chart, chart2, chart3, chart4;
 
     private int chart2Index = 1;
@@ -291,18 +293,11 @@ public class TraderList extends AbstractPage{
                         Volume volume = balanceHistory.getVolume();
 
                         if (volume != null) {
-                            chart4Index = System.currentTimeMillis();
-
-                            List data = chart4.getOptions().getSeries().get(0).getData();
-                            BigDecimal volumeSum = !data.isEmpty()
-                                    ? (BigDecimal) ((Point)data.get(data.size() - 1)).getY()
-                                    : BigDecimal.ZERO;
-
-                            volumeSum = volumeSum.add(volume.getVolume());
+                            lastChart4Value = lastChart4Value.add(volume.getVolume());
 
                             String javaScript = "var chartVarName = " + chart4.getJavaScriptVarName() + ";";
                             javaScript += "eval(chartVarName).series["+ 0 +"].addPoint("
-                                    + renderer.toJson(new Point(chart4Index, volumeSum))
+                                    + renderer.toJson(new Point(System.currentTimeMillis(), lastChart4Value))
                                     + ", true, true);";
 
                             handler.appendJavaScript(javaScript);
@@ -540,14 +535,12 @@ public class TraderList extends AbstractPage{
 
                 for (Volume volume : volumes){
                     volumeSum = volumeSum.add(volume.getVolume());
-
-//                    if (volume.getDate().getTime() - time > 1000*60*10) {
                     time = volume.getDate().getTime();
-
                     data.add(new Point(time, volumeSum));
-//                    }
                 }
                 options.addSeries(new PointSeries().setData(data).setName("Прибыль"));
+
+                lastChart4Value = !data.isEmpty() ? (BigDecimal) (data.get(data.size() - 1)).getY() : BigDecimal.ZERO;
             }
 
             add(chart4 = new Chart("chart4", options));
