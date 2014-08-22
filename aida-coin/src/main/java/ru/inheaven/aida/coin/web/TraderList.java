@@ -418,10 +418,10 @@ public class TraderList extends AbstractPage{
         }
 
         //Chart 2
-        List<OrderVolume> orderVolumes = traderService.getOrderVolumeRates(new Date(System.currentTimeMillis()-1000*60*60*24*3));
+        List<OrderVolume> orderVolumes = traderService.getOrderVolumeRates(new Date(System.currentTimeMillis()-1000*60*60*24));
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.AREASPLINE).setHeight(400));
+            options.setChartOptions(new ChartOptions(SeriesType.AREASPLINE).setHeight(400).setZoomType(ZoomType.X));
             options.setGlobal(new Global().setUseUTC(false));
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
@@ -453,7 +453,7 @@ public class TraderList extends AbstractPage{
         //Chart 3
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(400));
+            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(400).setZoomType(ZoomType.X));
             options.setGlobal(new Global().setUseUTC(false));
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
@@ -506,7 +506,7 @@ public class TraderList extends AbstractPage{
 
             {
                 List<Point> data = new ArrayList<>();
-                List<Volume> volumes = traderService.getVolumes(new Date(System.currentTimeMillis() - 1000*60*60*24*3));
+                List<Volume> volumes = traderService.getVolumes(new Date(System.currentTimeMillis() - 1000*60*60*24));
 
                 long time = 0;
                 BigDecimal volumeSum = BigDecimal.ZERO;
