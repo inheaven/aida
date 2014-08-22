@@ -2,6 +2,7 @@ package ru.inheaven.aida.coin.web;
 
 import com.googlecode.wickedcharts.highcharts.jackson.JsonRenderer;
 import com.googlecode.wickedcharts.highcharts.options.*;
+import com.googlecode.wickedcharts.highcharts.options.color.HighchartsColor;
 import com.googlecode.wickedcharts.highcharts.options.color.LinearGradient;
 import com.googlecode.wickedcharts.highcharts.options.series.Point;
 import com.googlecode.wickedcharts.highcharts.options.series.PointSeries;
@@ -379,7 +380,7 @@ public class TraderList extends AbstractPage{
         //Chart todo add btc history db
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(400));
+            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(500));
             options.setGlobal(new Global().setUseUTC(false));
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
@@ -421,7 +422,7 @@ public class TraderList extends AbstractPage{
         List<OrderVolume> orderVolumes = traderService.getOrderVolumeRates(new Date(System.currentTimeMillis()-1000*60*60*24));
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.AREASPLINE).setHeight(400).setZoomType(ZoomType.X));
+            options.setChartOptions(new ChartOptions(SeriesType.AREASPLINE).setHeight(500).setZoomType(ZoomType.X));
             options.setGlobal(new Global().setUseUTC(false));
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
@@ -444,7 +445,7 @@ public class TraderList extends AbstractPage{
                     data.add(new Point(chart2Index++, orderVolume.getVolume()));
                 }
 
-                options.addSeries(new PointSeries().setData(data).setName("Заявки / час"));
+                options.addSeries(new PointSeries().setData(data).setName("Заявки / час").setColor(new HighchartsColor(1)));
             }
 
             add(chart2 = new Chart("chart2", options));
@@ -453,7 +454,7 @@ public class TraderList extends AbstractPage{
         //Chart 3
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(400).setZoomType(ZoomType.X));
+            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(500).setZoomType(ZoomType.X));
             options.setGlobal(new Global().setUseUTC(false));
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
@@ -477,8 +478,8 @@ public class TraderList extends AbstractPage{
                 dataBid.add(new Point(chart3Index2++, orderVolume.getBidVolume()));
             }
 
-            options.addSeries(new PointSeries().setData(dataAsk).setName("Продажи / час"));
-            options.addSeries(new PointSeries().setData(dataBid).setName("Покупки / час"));
+            options.addSeries(new PointSeries().setData(dataAsk).setName("Продажи / час").setColor(new HighchartsColor(2)));
+            options.addSeries(new PointSeries().setData(dataBid).setName("Покупки / час").setColor(new HighchartsColor(3)));
 
             add(chart3 = new Chart("chart3", options));
         }
@@ -486,7 +487,7 @@ public class TraderList extends AbstractPage{
         //Chart 4
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.AREASPLINE).setHeight(400).setZoomType(ZoomType.X));
+            options.setChartOptions(new ChartOptions(SeriesType.AREASPLINE).setHeight(500).setZoomType(ZoomType.X));
             options.setGlobal(new Global().setUseUTC(false));
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
@@ -516,7 +517,7 @@ public class TraderList extends AbstractPage{
                     time = volume.getDate().getTime();
                     data.add(new Point(time, volumeSum));
                 }
-                options.addSeries(new PointSeries().setData(data).setName("Прибыль"));
+                options.addSeries(new PointSeries().setData(data).setName("Прибыль").setColor(new HighchartsColor(4)));
 
                 lastChart4Value = !data.isEmpty() ? (BigDecimal) (data.get(data.size() - 1)).getY() : BigDecimal.ZERO;
             }
