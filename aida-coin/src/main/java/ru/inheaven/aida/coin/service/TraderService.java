@@ -388,13 +388,13 @@ public class TraderService {
 
                 CurrencyPair currencyPair = getCurrencyPair(trader.getPair());
 
-                BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.031")).setScale(8, ROUND_HALF_DOWN);
+                BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.013")).setScale(8, ROUND_HALF_DOWN);
 
                 BigDecimal minOrderAmount = currencyPair.counterSymbol.equals("BTC")
-                        ? new BigDecimal("0.0025").divide(middlePrice, 8, ROUND_HALF_UP)
+                        ? new BigDecimal("0.0013").divide(middlePrice, 8, ROUND_HALF_UP)
                         : new BigDecimal("0.0125");
 
-                for (int index = 1; index < 4; ++index) {
+                for (int index : Arrays.asList(1, 2, 3, 5, 8)) {
                     BigDecimal spread = trader.getSpread().multiply(BigDecimal.valueOf(index));
                     spread = spread.compareTo(minSpread) > 0 ? spread : minSpread;
 
@@ -416,12 +416,14 @@ public class TraderService {
                             BigDecimal level = trader.getHigh().subtract(trader.getLow()).divide(spread, 8, ROUND_HALF_UP);
                             BigDecimal delta = spread.divide(new BigDecimal("2"), 8, ROUND_HALF_DOWN);
 
-                            BigDecimal randomAskAmount = random50(BigDecimal.valueOf(index)
+                            BigDecimal randomAskAmount = random50(
+                                    BigDecimal.valueOf(index)
                                     .multiply(trader.getVolume())
                                     .divide(level, 8, ROUND_HALF_UP));
                             randomAskAmount = randomAskAmount.compareTo(minOrderAmount) > 0 ? randomAskAmount : minOrderAmount;
 
-                            BigDecimal randomBidAmount = random50(BigDecimal.valueOf(index)
+                            BigDecimal randomBidAmount = random50(
+                                    BigDecimal.valueOf(index)
                                     .multiply(trader.getVolume())
                                     .divide(level, 8, ROUND_HALF_UP));
                             randomBidAmount = randomBidAmount.compareTo(minOrderAmount) > 0 ? randomBidAmount : minOrderAmount;
