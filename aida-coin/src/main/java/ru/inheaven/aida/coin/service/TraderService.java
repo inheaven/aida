@@ -217,7 +217,7 @@ public class TraderService {
                     orderVolume.addBidVolume(v.getVolume().abs());
                 }
 
-                if (orderVolume.getDate().getTime() - v.getDate().getTime() > 1000*60*60){
+                if (j == 0 || orderVolume.getDate().getTime() - v.getDate().getTime() > 1000*60*60){
                     orderVolumes.add(orderVolume);
 
                     break;

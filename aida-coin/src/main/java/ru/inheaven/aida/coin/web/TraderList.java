@@ -254,21 +254,22 @@ public class TraderList extends AbstractPage{
                                     + ", true, true);";
 
                             handler.appendJavaScript(javaScript);
+                        }
 
+                        if (orderVolume.getAskVolume().compareTo(ZERO) != 0) {
+                            String javaScript = "var chartVarName = " + chart3.getJavaScriptVarName() + ";";
+                            javaScript += "eval(chartVarName).series[" + 0 + "].addPoint("
+                                    + renderer.toJson(new Point(chart3Index1++, orderVolume.getAskVolume()))
+                                    + ", true, true);";
 
-                            javaScript = "var chartVarName = " + chart3.getJavaScriptVarName() + ";";
+                            handler.appendJavaScript(javaScript);
+                        }
 
-                            if (orderVolume.getAskVolume().compareTo(ZERO) != 0) {
-                                javaScript += "eval(chartVarName).series[" + 0 + "].addPoint("
-                                        + renderer.toJson(new Point(chart3Index1++, orderVolume.getAskVolume()))
-                                        + ", true, true);";
-                            }
-
-                            if (orderVolume.getBidVolume().compareTo(ZERO) != 0) {
-                                javaScript += "eval(chartVarName).series[" + 1 + "].addPoint("
-                                        + renderer.toJson(new Point(chart3Index2++, orderVolume.getBidVolume()))
-                                        + ", true, true);";
-                            }
+                        if (orderVolume.getBidVolume().compareTo(ZERO) != 0) {
+                            String javaScript = "var chartVarName = " + chart3.getJavaScriptVarName() + ";";
+                            javaScript += "eval(chartVarName).series[" + 1 + "].addPoint("
+                                    + renderer.toJson(new Point(chart3Index2++, orderVolume.getBidVolume()))
+                                    + ", true, true);";
 
                             handler.appendJavaScript(javaScript);
                         }
