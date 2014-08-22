@@ -106,7 +106,7 @@ public class TraderService {
                 currencyPair);
     }
 
-    @Schedule(second = "*/1", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
     public void scheduleBittrexUpdate(){
         scheduleUpdate(BITTREX);
     }
@@ -126,7 +126,7 @@ public class TraderService {
         scheduleUpdate(BTCE);
     }
 
-    @Schedule(second = "*/1", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
     public void scheduleBalanceHistory(){
         for (ExchangeType exchangeType : ExchangeType.values()){
             AccountInfo accountInfo = getAccountInfo(exchangeType);
@@ -228,8 +228,8 @@ public class TraderService {
         return orderVolumes;
     }
 
-    public OrderVolume getOrderVolumeRate(Date startDate){
-        List<Volume> volumes = getVolumes(startDate);
+    public OrderVolume getOrderVolumeRate(){
+        List<Volume> volumes = getVolumes(new Date(System.currentTimeMillis() - 1000*60*60));
 
         OrderVolume orderVolume = new OrderVolume(!volumes.isEmpty()
                 ? volumes.get(volumes.size() - 1).getDate()
