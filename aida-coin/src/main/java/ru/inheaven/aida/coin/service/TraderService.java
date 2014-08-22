@@ -1,7 +1,8 @@
 package ru.inheaven.aida.coin.service;
 
 import com.google.common.base.Throwables;
-import com.xeiam.xchange.*;
+import com.xeiam.xchange.Exchange;
+import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.bittrex.v1.BittrexExchange;
 import com.xeiam.xchange.btce.v3.BTCEExchange;
 import com.xeiam.xchange.cexio.CexIOAdapters;
@@ -31,14 +32,12 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import static com.xeiam.xchange.ExchangeFactory.INSTANCE;
-import static java.math.BigDecimal.ROUND_HALF_DOWN;
-import static java.math.BigDecimal.ROUND_HALF_UP;
-import static java.math.BigDecimal.ZERO;
+import static java.math.BigDecimal.*;
 import static ru.inheaven.aida.coin.entity.ExchangeType.*;
-import static ru.inheaven.aida.coin.util.TraderUtil.*;
+import static ru.inheaven.aida.coin.util.TraderUtil.getCurrencyPair;
+import static ru.inheaven.aida.coin.util.TraderUtil.random50;
 
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
@@ -382,7 +381,7 @@ public class TraderService {
 
                 CurrencyPair currencyPair = getCurrencyPair(trader.getPair());
 
-                BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.015")).setScale(8, ROUND_HALF_DOWN);
+                BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.031")).setScale(8, ROUND_HALF_DOWN);
 
                 BigDecimal minOrderAmount = currencyPair.counterSymbol.equals("BTC")
                         ? new BigDecimal("0.0025").divide(middlePrice, 8, ROUND_HALF_UP)
@@ -436,7 +435,7 @@ public class TraderService {
                             }
 
                             //ASK
-                            BigDecimal askPrice = middlePrice.add(random20(delta));
+                            BigDecimal askPrice = middlePrice.add(random50(delta));
 
                             if ("USD".equals(currencyPair.counterSymbol)){
                                 askPrice = askPrice.setScale(2, ROUND_HALF_UP);
@@ -448,7 +447,7 @@ public class TraderService {
                                     askPrice));
 
                             //BID
-                            BigDecimal bidPrice = middlePrice.subtract(random20(delta));
+                            BigDecimal bidPrice = middlePrice.subtract(random50(delta));
 
                             if ("USD".equals(currencyPair.counterSymbol)){
                                 bidPrice = bidPrice.setScale(2, ROUND_HALF_UP);
