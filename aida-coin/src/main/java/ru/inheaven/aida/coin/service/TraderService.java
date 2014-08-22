@@ -248,12 +248,12 @@ public class TraderService {
     public List<Volume> getVolumes(Date startDate){
         List<BalanceHistory> balanceHistories = traderBean.getBalanceHistories(startDate);
 
-//        balanceHistories.sort(new Comparator<BalanceHistory>() {
-//            @Override
-//            public int compare(BalanceHistory o1, BalanceHistory o2) {
-//                return o1.getDate().compareTo(o2.getDate());
-//            }
-//        });
+        balanceHistories.sort(new Comparator<BalanceHistory>() {
+            @Override
+            public int compare(BalanceHistory o1, BalanceHistory o2) {
+                return o2.getDate().compareTo(o1.getDate());
+            }
+        });
 
         List<Volume> volumes = new ArrayList<>();
 
