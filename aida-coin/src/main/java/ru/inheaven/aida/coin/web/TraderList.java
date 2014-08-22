@@ -250,12 +250,10 @@ public class TraderList extends AbstractPage{
                         if (orderVolume.getVolume().compareTo(ZERO) != 0) {
                             String javaScript = "var chartVarName = " + chart2.getJavaScriptVarName() + ";";
                             javaScript += "eval(chartVarName).series[" + 0 + "].addPoint("
-                                    + renderer.toJson(new Point(chart2Index, orderVolume.getVolume()))
+                                    + renderer.toJson(new Point(chart2Index++, orderVolume.getVolume()))
                                     + ", true, true);";
 
                             handler.appendJavaScript(javaScript);
-
-                            chart2Index++;
 
 
                             javaScript = "var chartVarName = " + chart3.getJavaScriptVarName() + ";";

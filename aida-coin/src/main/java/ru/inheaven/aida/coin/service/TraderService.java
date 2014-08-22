@@ -1,6 +1,7 @@
 package ru.inheaven.aida.coin.service;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.Ordering;
 import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.bittrex.v1.BittrexExchange;
@@ -230,7 +231,9 @@ public class TraderService {
     public OrderVolume getOrderVolumeRate(){
         List<Volume> volumes = getVolumes(new Date(System.currentTimeMillis() - 1000*60*60));
 
-        OrderVolume orderVolume = new OrderVolume(new Date());
+        OrderVolume orderVolume = new OrderVolume(!volumes.isEmpty()
+                ? volumes.get(volumes.size() - 1).getDate()
+                : new Date());
 
         for (Volume v : volumes){
             orderVolume.addVolume(v.getVolume());
@@ -248,12 +251,12 @@ public class TraderService {
     public List<Volume> getVolumes(Date startDate){
         List<BalanceHistory> balanceHistories = traderBean.getBalanceHistories(startDate);
 
-        balanceHistories.sort(new Comparator<BalanceHistory>() {
+        balanceHistories = Ordering.from(new Comparator<BalanceHistory>() {
             @Override
             public int compare(BalanceHistory o1, BalanceHistory o2) {
-                return o2.getDate().compareTo(o1.getDate());
+                return o1.getDate().compareTo(o2.getDate());
             }
-        });
+        }).immutableSortedCopy(balanceHistories);
 
         List<Volume> volumes = new ArrayList<>();
 
