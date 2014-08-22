@@ -85,7 +85,8 @@ public class TraderList extends AbstractPage{
     private int chart3Index1 = 1;
     private int chart3Index2 = 1;
 
-    private Date startDate = new Date(System.currentTimeMillis()-1000*60*60*24*3);
+    private Date hourBefore = new Date(System.currentTimeMillis()-1000*60*60);
+    private Date treeDaysBefore = new Date(System.currentTimeMillis()-1000*60*60*24*60);
 
     public TraderList() {
         setVersioned(false);
@@ -247,7 +248,7 @@ public class TraderList extends AbstractPage{
 
                         JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
 
-                        OrderVolume orderVolume = traderService.getOrderVolumeRate(startDate);
+                        OrderVolume orderVolume = traderService.getOrderVolumeRate(hourBefore);
 
                         //update chart order rate
                         if (orderVolume.getVolume().compareTo(ZERO) != 0) {
@@ -421,7 +422,7 @@ public class TraderList extends AbstractPage{
         }
 
         //Chart 2
-        List<OrderVolume> orderVolumes = traderService.getOrderVolumeRates(startDate);
+        List<OrderVolume> orderVolumes = traderService.getOrderVolumeRates(treeDaysBefore);
 
         {
             Options options = new Options();
@@ -510,7 +511,7 @@ public class TraderList extends AbstractPage{
 
             {
                 List<Point> data = new ArrayList<>();
-                List<Volume> volumes = traderService.getVolumes(startDate);
+                List<Volume> volumes = traderService.getVolumes(treeDaysBefore);
 
                 long time = 0;
                 BigDecimal volumeSum = BigDecimal.ZERO;
