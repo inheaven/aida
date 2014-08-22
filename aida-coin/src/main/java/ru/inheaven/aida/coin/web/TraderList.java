@@ -45,6 +45,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
+import static java.math.BigDecimal.ZERO;
 import static org.apache.wicket.model.Model.of;
 import static ru.inheaven.aida.coin.entity.ExchangeType.*;
 
@@ -74,10 +75,6 @@ public class TraderList extends AbstractPage{
     private Component btceBTC, btceCoins;
 
     private Map <ExchangeType, BigDecimal> lastChartValueMap = new HashMap<>();
-    private BigDecimal lastChart2Value = BigDecimal.ZERO;
-
-    private BigDecimal lastChart3Value1 = BigDecimal.ZERO;
-    private BigDecimal lastChart3Value2 = BigDecimal.ZERO;
 
     private BigDecimal lastChart4Value = BigDecimal.ZERO;
 
@@ -86,7 +83,6 @@ public class TraderList extends AbstractPage{
     private int chart2Index = 1;
     private int chart3Index1 = 1;
     private int chart3Index2 = 1;
-    private long chart4Index = System.currentTimeMillis();
 
     public TraderList() {
         setVersioned(false);
@@ -243,55 +239,42 @@ public class TraderList extends AbstractPage{
                             lastChartValueMap.put(exchangeMessage.getExchangeType(), value);
                         }
                     }else if (payload instanceof BalanceHistory){
+                        BalanceHistory balanceHistory = (BalanceHistory) payload;
+                        Volume volume = balanceHistory.getVolume();
+
                         JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
 
+                        OrderVolume orderVolume = traderService.getOrderVolumeRate();
+
                         //update chart order rate
-                        BigDecimal orderRate = traderService.getOrderRate();
+                        {
+                            String javaScript = "var chartVarName = " + chart2.getJavaScriptVarName() + ";";
+                            javaScript += "eval(chartVarName).series[" + 0 + "].addPoint("
+                                    + renderer.toJson(new Point(chart2Index, orderVolume.getVolume()))
+                                    + ", true, true);";
 
-                        if (lastChart2Value.compareTo(orderRate) != 0) {
-                            lastChart2Value = orderRate;
-                            {
-                                String javaScript = "var chartVarName = " + chart2.getJavaScriptVarName() + ";";
-                                javaScript += "eval(chartVarName).series[" + 0 + "].addPoint("
-                                        + renderer.toJson(new Point(chart2Index, orderRate))
-                                        + ", true, true);";
+                            handler.appendJavaScript(javaScript);
 
-                                handler.appendJavaScript(javaScript);
-
-                                chart2Index++;
-                            }
+                            chart2Index++;
                         }
 
                         {
 
                             String javaScript = "var chartVarName = " + chart3.getJavaScriptVarName() + ";";
 
-                            BigDecimal askOrderRate = traderService.getAskOrderRate();
-                            if (lastChart3Value1.compareTo(askOrderRate) != 0) {
-                                lastChart3Value1 = askOrderRate;
+                            javaScript += "eval(chartVarName).series[" + 0 + "].addPoint("
+                                    + renderer.toJson(new Point(chart3Index1++, orderVolume.getAskVolume()))
+                                    + ", true, true);";
 
-                                javaScript += "eval(chartVarName).series[" + 0 + "].addPoint("
-                                        + renderer.toJson(new Point(chart3Index1++, askOrderRate))
-                                        + ", true, true);";
-                            }
 
-                            BigDecimal bidOrderRate = traderService.getBidOrderRate();
-                            if (lastChart3Value2.compareTo(bidOrderRate) != 0) {
-                                lastChart3Value2 = bidOrderRate;
-
-                                javaScript += "eval(chartVarName).series[" + 1 + "].addPoint("
-                                        + renderer.toJson(new Point(chart3Index2++, bidOrderRate))
-                                        + ", true, true);";
-                            }
+                            javaScript += "eval(chartVarName).series[" + 1 + "].addPoint("
+                                    + renderer.toJson(new Point(chart3Index2++, orderVolume.getBidVolume()))
+                                    + ", true, true);";
 
                             handler.appendJavaScript(javaScript);
                         }
 
                         //chart4
-                        BalanceHistory balanceHistory = (BalanceHistory) payload;
-
-                        Volume volume = balanceHistory.getVolume();
-
                         if (volume != null) {
                             lastChart4Value = lastChart4Value.add(volume.getVolume());
 
@@ -393,7 +376,7 @@ public class TraderList extends AbstractPage{
             }
         }.setIconType(GlyphIconType.warningsign).setLabel(of("test")));
 
-        //Chart
+        //Chart todo add btc history db
         {
             Options options = new Options();
             options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(400));
@@ -435,6 +418,7 @@ public class TraderList extends AbstractPage{
         }
 
         //Chart 2
+        List<OrderVolume> orderVolumes = traderService.getOrderVolumeRates(new Date(System.currentTimeMillis()-1000*60*60*24*3));
         {
             Options options = new Options();
             options.setChartOptions(new ChartOptions(SeriesType.AREASPLINE).setHeight(400));
@@ -451,14 +435,15 @@ public class TraderList extends AbstractPage{
             options.setPlotOptions(new PlotOptionsChoice().setAreaspline(new PlotOptions()
                     .setFillColor(new LinearGradient(LinearGradient.GradientDirection.VERTICAL))
                     .setMarker(new Marker(false))
-                    .setLineWidth(1)));
+                    .setLineWidth(1)
+                    .setTurboThreshold(20000)));
 
             {
                 List<Point> data = new ArrayList<>();
-                BigDecimal value = traderService.getOrderRate();
-                for (int i = 0; i < 500; ++i) {
-                    data.add(0, new Point(0, value));
+                for (OrderVolume orderVolume : orderVolumes){
+                    data.add(new Point(chart2Index++, orderVolume.getVolume()));
                 }
+
                 options.addSeries(new PointSeries().setData(data).setName("Заявки / час"));
             }
 
@@ -481,26 +466,19 @@ public class TraderList extends AbstractPage{
 
             options.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions()
                     .setMarker(new Marker(false))
-                    .setLineWidth(1)));
+                    .setLineWidth(1)
+                    .setTurboThreshold(20000)));
 
+            List<Point> dataAsk = new ArrayList<>();
+            List<Point> dataBid = new ArrayList<>();
 
-            {
-                List<Point> data = new ArrayList<>();
-                BigDecimal value = traderService.getAskOrderRate();
-                for (int i = 0; i < 500; ++i) {
-                    data.add(0, new Point(0, value));
-                }
-                options.addSeries(new PointSeries().setData(data).setName("Продажи / час"));
+            for (OrderVolume orderVolume : orderVolumes){
+                dataAsk.add(new Point(chart3Index1++, orderVolume.getAskVolume()));
+                dataBid.add(new Point(chart3Index2++, orderVolume.getBidVolume()));
             }
 
-            {
-                List<Point> data = new ArrayList<>();
-                BigDecimal value = traderService.getBidOrderRate();
-                for (int i = 0; i < 500; ++i) {
-                    data.add(0, new Point(0, value));
-                }
-                options.addSeries(new PointSeries().setData(data).setName("Покупки / час"));
-            }
+            options.addSeries(new PointSeries().setData(dataAsk).setName("Продажи / час"));
+            options.addSeries(new PointSeries().setData(dataBid).setName("Покупки / час"));
 
             add(chart3 = new Chart("chart3", options));
         }

@@ -36,6 +36,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import static com.xeiam.xchange.ExchangeFactory.INSTANCE;
 import static java.math.BigDecimal.ROUND_HALF_DOWN;
 import static java.math.BigDecimal.ROUND_HALF_UP;
+import static java.math.BigDecimal.ZERO;
 import static ru.inheaven.aida.coin.entity.ExchangeType.*;
 import static ru.inheaven.aida.coin.util.TraderUtil.*;
 
@@ -59,12 +60,6 @@ public class TraderService {
     private Map<ExchangePair, BalanceHistory> balanceHistoryMap = new ConcurrentHashMap<>();
 
     private CexIO cexIO;
-
-    private List<Volume> askOrderTimes = new CopyOnWriteArrayList<>();
-    private List<Volume> bidOrderTimes = new CopyOnWriteArrayList<>();
-    private List<Volume> orderTimes = new CopyOnWriteArrayList<>();
-
-    BigDecimal volumeSum = BigDecimal.ZERO;
 
     private Exchange bittrexExchange = INSTANCE.createExchange(new ExchangeSpecification(BittrexExchange.class){{
         setApiKey("14935ef36d8b4afc8204946be7ddd152");
@@ -193,48 +188,6 @@ public class TraderService {
                                 log.error("update balance history error", e);
                             }
 
-                            if (previous.getBalance().add(previous.getAskAmount())
-                                    .compareTo(balanceHistory.getBalance().add(balanceHistory.getAskAmount())) != 0) {
-
-                                if (ticker.getCurrencyPair().baseSymbol.equals("BTC")) {
-                                    BigDecimal volume = balanceHistory.getBalance().subtract(previous.getBalance());
-
-                                    volumeSum = volumeSum.add(volume);
-                                    orderTimes.add(new Volume(volume));
-
-                                    if (volume.compareTo(BigDecimal.ZERO) > 0){ //maps seems to redundant
-                                        askOrderTimes.add(new Volume(volume.abs()));
-                                    }else{
-                                        bidOrderTimes.add(new Volume(volume.abs()));
-                                    }
-                                }else if (ticker.getCurrencyPair().counterSymbol.equals("BTC")){
-                                    BigDecimal volume = previous.getBalance().subtract(balanceHistory.getBalance())
-                                            .multiply(balanceHistory.getPrice())
-                                            .setScale(8, ROUND_HALF_UP);
-
-                                    volumeSum = volumeSum.add(volume);
-                                    orderTimes.add(new Volume(volume));
-
-                                    if (volume.compareTo(BigDecimal.ZERO) > 0){
-                                        askOrderTimes.add(new Volume(volume.abs()));
-                                    }else{
-                                        bidOrderTimes.add(new Volume(volume.abs()));
-                                    }
-                                }
-
-                                //flush
-                                if (orderTimes.size() > 200000){
-                                    orderTimes.subList(0, 100000).clear();
-                                }
-                                if (askOrderTimes.size() > 200000){
-                                    askOrderTimes.subList(0, 100000).clear();
-                                }
-                                if (bidOrderTimes.size() > 200000){
-                                    bidOrderTimes.subList(0, 100000).clear();
-                                }
-
-                            }
-
                             broadcast(exchangeType, balanceHistory);
                         }
 
@@ -245,56 +198,52 @@ public class TraderService {
         }
     }
 
-    public BigDecimal getOrderRate(){
-        BigDecimal volume = BigDecimal.ZERO;
+    public List<OrderVolume> getOrderVolumeRates(Date startDate){
+        List<Volume> volumes = getVolumes(startDate);
 
-        if (!orderTimes.isEmpty()) {
-            for (int i = orderTimes.size() - 1; i >= 0; --i){
-                if (System.currentTimeMillis() - orderTimes.get(i).getDate().getTime() > 1000*60*60){
-                    break;
+        List<OrderVolume> orderVolumes = new ArrayList<>();
+
+        for (int i = 0; i < volumes.size(); ++i){
+            OrderVolume orderVolume = new OrderVolume(volumes.get(i).getDate());
+
+            for (int j = i; j >= 0; --j){
+                Volume v = volumes.get(j);
+
+                orderVolume.addVolume(v.getVolume());
+
+                if (v.getVolume().compareTo(ZERO) > 0){
+                    orderVolume.addAskVolume(v.getVolume());
+                } else {
+                    orderVolume.addBidVolume(v.getVolume().abs());
                 }
 
-                volume = volume.add(orderTimes.get(i).getVolume());
+                if (orderVolume.getDate().getTime() - v.getDate().getTime() > 1000*60*60){
+                    orderVolumes.add(orderVolume);
+
+                    break;
+                }
             }
         }
 
-        return volume;
+        return orderVolumes;
     }
 
-    public BigDecimal getVolumeSum(){
-        return volumeSum;
-    }
+    public OrderVolume getOrderVolumeRate(){
+        List<Volume> volumes = getVolumes(new Date(System.currentTimeMillis() - 1000*60*60));
 
-    public BigDecimal getAskOrderRate(){
-        BigDecimal volume = BigDecimal.ZERO;
+        OrderVolume orderVolume = new OrderVolume(new Date());
 
-        if (!askOrderTimes.isEmpty()) {
-            for (int i = askOrderTimes.size() - 1; i >= 0; --i){
-                if (System.currentTimeMillis() - askOrderTimes.get(i).getDate().getTime() > 1000*60*60){
-                    break;
-                }
+        for (Volume v : volumes){
+            orderVolume.addVolume(v.getVolume());
 
-                volume = volume.add(askOrderTimes.get(i).getVolume());
+            if (v.getVolume().compareTo(ZERO) > 0){
+                orderVolume.addAskVolume(v.getVolume());
+            } else {
+                orderVolume.addBidVolume(v.getVolume().abs());
             }
         }
 
-        return volume;
-    }
-
-    public BigDecimal getBidOrderRate(){
-        BigDecimal volume = BigDecimal.ZERO;
-
-        if (!bidOrderTimes.isEmpty()) {
-            for (int i = bidOrderTimes.size() - 1; i >= 0; --i){
-                if (System.currentTimeMillis() - bidOrderTimes.get(i).getDate().getTime() > 1000*60*60){
-                    break;
-                }
-
-                volume = volume.add(bidOrderTimes.get(i).getVolume());
-            }
-        }
-
-        return volume;
+        return orderVolume;
     }
 
     public List<Volume> getVolumes(Date startDate){
