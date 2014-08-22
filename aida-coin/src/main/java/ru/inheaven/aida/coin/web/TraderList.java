@@ -478,8 +478,8 @@ public class TraderList extends AbstractPage{
                 dataBid.add(new Point(chart3Index2++, orderVolume.getBidVolume()));
             }
 
-            options.addSeries(new PointSeries().setData(dataAsk).setName("Продажи / час").setColor(new HighchartsColor(2)));
-            options.addSeries(new PointSeries().setData(dataBid).setName("Покупки / час").setColor(new HighchartsColor(3)));
+            options.addSeries(new PointSeries().setData(dataAsk).setName("Продажи / час").setColor(new HighchartsColor(3)));
+            options.addSeries(new PointSeries().setData(dataBid).setName("Покупки / час").setColor(new HighchartsColor(2)));
 
             add(chart3 = new Chart("chart3", options));
         }
@@ -517,7 +517,7 @@ public class TraderList extends AbstractPage{
                     time = volume.getDate().getTime();
                     data.add(new Point(time, volumeSum));
                 }
-                options.addSeries(new PointSeries().setData(data).setName("Прибыль").setColor(new HighchartsColor(4)));
+                options.addSeries(new PointSeries().setData(data).setName("Прибыль"));
 
                 lastChart4Value = !data.isEmpty() ? (BigDecimal) (data.get(data.size() - 1)).getY() : BigDecimal.ZERO;
             }

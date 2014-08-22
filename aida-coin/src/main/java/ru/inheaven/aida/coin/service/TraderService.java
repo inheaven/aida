@@ -231,6 +231,10 @@ public class TraderService {
     public OrderVolume getOrderVolumeRate(){
         List<Volume> volumes = getVolumes(new Date(System.currentTimeMillis() - 1000*60*60));
 
+        if (volumes.size() % 2 != 0){
+            volumes = volumes.subList(1, volumes.size());
+        }
+
         OrderVolume orderVolume = new OrderVolume(!volumes.isEmpty()
                 ? volumes.get(volumes.size() - 1).getDate()
                 : new Date());
