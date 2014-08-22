@@ -246,40 +246,40 @@ public class TraderList extends AbstractPage{
                         BalanceHistory balanceHistory = (BalanceHistory) payload;
                         Volume volume = balanceHistory.getVolume();
 
-                        JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
-
-                        OrderVolume orderVolume = traderService.getOrderVolumeRate(hourBefore);
-
-                        //update chart order rate
-                        if (orderVolume.getVolume().compareTo(ZERO) != 0) {
-                            String javaScript = "var chartVarName = " + chart2.getJavaScriptVarName() + ";";
-                            javaScript += "eval(chartVarName).series[" + 0 + "].addPoint("
-                                    + renderer.toJson(new Point(chart2Index++, orderVolume.getVolume()))
-                                    + ", true, true);";
-
-                            handler.appendJavaScript(javaScript);
-                        }
-
-                        if (orderVolume.getAskVolume().compareTo(ZERO) != 0) {
-                            String javaScript = "var chartVarName = " + chart3.getJavaScriptVarName() + ";";
-                            javaScript += "eval(chartVarName).series[" + 0 + "].addPoint("
-                                    + renderer.toJson(new Point(chart3Index1++, orderVolume.getAskVolume()))
-                                    + ", true, true);";
-
-                            handler.appendJavaScript(javaScript);
-                        }
-
-                        if (orderVolume.getBidVolume().compareTo(ZERO) != 0) {
-                            String javaScript = "var chartVarName = " + chart3.getJavaScriptVarName() + ";";
-                            javaScript += "eval(chartVarName).series[" + 1 + "].addPoint("
-                                    + renderer.toJson(new Point(chart3Index2++, orderVolume.getBidVolume()))
-                                    + ", true, true);";
-
-                            handler.appendJavaScript(javaScript);
-                        }
-
-                        //chart4
                         if (volume != null) {
+                            JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
+
+                            OrderVolume orderVolume = traderService.getOrderVolumeRate(hourBefore);
+
+                            //update chart order rate
+                            if (orderVolume.getVolume().compareTo(ZERO) != 0) {
+                                String javaScript = "var chartVarName = " + chart2.getJavaScriptVarName() + ";";
+                                javaScript += "eval(chartVarName).series[" + 0 + "].addPoint("
+                                        + renderer.toJson(new Point(chart2Index++, orderVolume.getVolume()))
+                                        + ", true, true);";
+
+                                handler.appendJavaScript(javaScript);
+                            }
+
+                            if (orderVolume.getAskVolume().compareTo(ZERO) != 0) {
+                                String javaScript = "var chartVarName = " + chart3.getJavaScriptVarName() + ";";
+                                javaScript += "eval(chartVarName).series[" + 0 + "].addPoint("
+                                        + renderer.toJson(new Point(chart3Index1++, orderVolume.getAskVolume()))
+                                        + ", true, true);";
+
+                                handler.appendJavaScript(javaScript);
+                            }
+
+                            if (orderVolume.getBidVolume().compareTo(ZERO) != 0) {
+                                String javaScript = "var chartVarName = " + chart3.getJavaScriptVarName() + ";";
+                                javaScript += "eval(chartVarName).series[" + 1 + "].addPoint("
+                                        + renderer.toJson(new Point(chart3Index2++, orderVolume.getBidVolume()))
+                                        + ", true, true);";
+
+                                handler.appendJavaScript(javaScript);
+                            }
+
+                            //chart4
                             lastChart4Value = lastChart4Value.add(volume.getVolume());
 
                             String javaScript = "var chartVarName = " + chart4.getJavaScriptVarName() + ";";
@@ -504,10 +504,10 @@ public class TraderList extends AbstractPage{
 
             options.setPlotOptions(new PlotOptionsChoice().setAreaspline(
                     new PlotOptions()
-                    .setFillColor(new LinearGradient(LinearGradient.GradientDirection.VERTICAL))
-                    .setMarker(new Marker(false))
-                    .setLineWidth(1)
-                    .setTurboThreshold(20000)));
+                            .setFillColor(new LinearGradient(LinearGradient.GradientDirection.VERTICAL))
+                            .setMarker(new Marker(false))
+                            .setLineWidth(1)
+                            .setTurboThreshold(20000)));
 
             {
                 List<Point> data = new ArrayList<>();
