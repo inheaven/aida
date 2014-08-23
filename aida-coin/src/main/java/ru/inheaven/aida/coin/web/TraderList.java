@@ -85,8 +85,6 @@ public class TraderList extends AbstractPage{
     private int chart3Index1 = 1;
     private int chart3Index2 = 1;
 
-    private final Date treeDaysBefore = new Date(System.currentTimeMillis()-1000*60*60*24*3);
-
     public TraderList() {
         setVersioned(false);
 
@@ -421,7 +419,8 @@ public class TraderList extends AbstractPage{
         }
 
         //Chart 2
-        List<OrderVolume> orderVolumes = traderService.getOrderVolumeRates(treeDaysBefore);
+        long startDate = System.currentTimeMillis() - 1000 * 60 * 60 * 24;
+        List<OrderVolume> orderVolumes = traderService.getOrderVolumeRates(new Date(startDate));
 
         {
             Options options = new Options();
@@ -510,7 +509,7 @@ public class TraderList extends AbstractPage{
 
             {
                 List<Point> data = new ArrayList<>();
-                List<Volume> volumes = traderService.getVolumes(treeDaysBefore);
+                List<Volume> volumes = traderService.getVolumes(new Date(startDate));
 
                 long time = 0;
                 BigDecimal volumeSum = BigDecimal.ZERO;
