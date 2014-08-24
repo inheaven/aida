@@ -85,6 +85,8 @@ public class TraderList extends AbstractPage{
     private int chart3Index1 = 1;
     private int chart3Index2 = 1;
 
+    private Date startDate = new Date(System.currentTimeMillis() - 1000*60*60);
+
     public TraderList() {
         setVersioned(false);
 
@@ -238,7 +240,7 @@ public class TraderList extends AbstractPage{
                         if (volume != null) {
                             JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
 
-                            OrderVolume orderVolume = traderService.getOrderVolumeRate();
+                            OrderVolume orderVolume = traderService.getOrderVolumeRate(startDate);
 
                             //update chart order rate
                             if (orderVolume.getVolume().compareTo(ZERO) != 0) {
