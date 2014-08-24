@@ -8,7 +8,6 @@ import ru.inheaven.aida.coin.entity.Trader;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.List;
 
@@ -46,6 +45,8 @@ public class TraderBean {
             em.persist(abstractEntity);
         }else {
             em.merge(abstractEntity);
+            em.flush();
+            em.clear();
         }
     }
 

@@ -302,11 +302,16 @@ public class TraderList extends AbstractPage{
                         update(handler, bidMap.get(exchangePair), orderBook.getBids().get(orderBook.getBids().size()-1)
                                 .getLimitPrice());
 
-                        //estimate
-                        update(handler, estimateMap.get(exchangePair), askPrice
-                                .multiply(traderService.getAccountInfo(exchangeMessage.getExchangeType())
-                                        .getBalance(currencyPair.baseSymbol)).setScale(8, BigDecimal.ROUND_HALF_UP));
+                        BigDecimal askAmountSum = ZERO;
+                        for (LimitOrder order : orderBook.getAsks()){
+                            askAmountSum = askAmountSum.add(order.getTradableAmount());
+                        }
 
+                        //estimate
+                        update(handler, estimateMap.get(exchangePair),
+                                askPrice.multiply(traderService.getAccountInfo(exchangeMessage.getExchangeType())
+                                        .getBalance(currencyPair.baseSymbol).add(askAmountSum))
+                                        .setScale(8, BigDecimal.ROUND_HALF_UP));
                     }else if (payload instanceof OpenOrders){
                         OpenOrders openOrders = (OpenOrders) exchangeMessage.getPayload();
 
