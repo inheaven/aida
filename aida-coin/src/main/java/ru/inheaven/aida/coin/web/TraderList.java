@@ -192,21 +192,13 @@ public class TraderList extends AbstractPage{
                             if (exchangePair.getExchangeType().equals(exchangeMessage.getExchangeType())){
                                 BigDecimal balance = ((AccountInfo) payload).getBalance(exchangePair.getCurrency());
 
-                                if (traderService.getOrderBook(exchangePair) == null){
-                                    continue;
-                                }
-
-                                BigDecimal price = traderService.getOrderBook(exchangePair).getAsks().get(0).getLimitPrice();
-
-                                if (traderService.getOrderBook(exchangePair) != null
-                                        && (exchangePair.getCounterSymbol().equals("BTC")
-                                        || (exchangePair.getCounterSymbol().equals("USD")
-                                        && exchangePair.getExchangeType().equals(BITTREX)))) {
-                                    estimate = estimate.add(balance.multiply(price)).setScale(8, BigDecimal.ROUND_HALF_UP);
-                                }
-
                                 update(handler, balanceMap.get(exchangePair), balance);
 
+                                try {
+                                    estimate = estimate.add(new BigDecimal(estimateMap.get(exchangePair).getDefaultModelObjectAsString()));
+                                } catch (Exception e) {
+                                    //
+                                }
                             }
                         }
 
