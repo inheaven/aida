@@ -398,7 +398,7 @@ public class TraderService {
 
                 for (int index : Arrays.asList(1, 2, 3, 5, 8)) {
                     BigDecimal spread = trader.getSpread().multiply(BigDecimal.valueOf(index));
-                    spread = spread.compareTo(minSpread) > 0 ? spread : minSpread;
+                    spread = spread.compareTo(minSpread) > 0 ? spread : minSpread.multiply(BigDecimal.valueOf(index));
 
                     boolean hasOrder = false;
 
