@@ -302,17 +302,6 @@ public class TraderList extends AbstractPage{
                         //bid
                         update(handler, bidMap.get(exchangePair), orderBook.getBids().get(orderBook.getBids().size()-1)
                                 .getLimitPrice());
-
-                        BigDecimal askAmountSum = ZERO;
-                        for (LimitOrder order : orderBook.getAsks()){
-                            askAmountSum = askAmountSum.add(order.getTradableAmount());
-                        }
-
-                        //estimate
-                        update(handler, estimateMap.get(exchangePair),
-                                askPrice.multiply(traderService.getAccountInfo(exchangeMessage.getExchangeType())
-                                        .getBalance(currencyPair.baseSymbol).add(askAmountSum))
-                                        .setScale(8, BigDecimal.ROUND_HALF_UP));
                     }else if (payload instanceof OpenOrders){
                         OpenOrders openOrders = (OpenOrders) exchangeMessage.getPayload();
 
@@ -352,8 +341,17 @@ public class TraderList extends AbstractPage{
                             @Override
                             public void accept(ExchangePair exchangePair, BigDecimal bigDecimal) {
                                 update(handler, sellMap.get(exchangePair), bigDecimal);
+
+                                //estimate
+                                update(handler, estimateMap.get(exchangePair),
+                                        traderService.getTicker(exchangePair).getLast()
+                                                .multiply(traderService.getAccountInfo(exchangeMessage.getExchangeType())
+                                                        .getBalance(exchangePair.getCurrency()))
+                                                .setScale(8, BigDecimal.ROUND_HALF_UP));
                             }
                         });
+
+
                     }else if (payload instanceof String){
                         if ("Cryptsy returned an error: Unable to Authorize Request - Check Your Post Data".equals(payload)){
                             return;
