@@ -10,6 +10,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
@@ -25,9 +26,18 @@ public class TraderBean {
     }
 
     public List<Trader> getTraders(ExchangeType exchangeType){
-        return em.createQuery("select t from Trader t where t.exchange = :exchangeType", Trader.class)
+        List<Trader>  traders = em.createQuery("select t from Trader t where t.exchange = :exchangeType", Trader.class)
                 .setParameter("exchangeType", exchangeType)
                 .getResultList();
+
+        traders.forEach(new Consumer<Trader>() {
+            @Override
+            public void accept(Trader trader) {
+                em.detach(trader);
+            }
+        });
+
+        return traders;
     }
 
     public List<String> getTraderPairs(ExchangeType exchangeType){
