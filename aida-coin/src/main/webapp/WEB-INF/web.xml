@@ -46,6 +46,6 @@
     </security-constraint>
 
     <session-config>
-        <session-timeout>10800</session-timeout>
+        <session-timeout>60</session-timeout>
     </session-config>
 </web-app>

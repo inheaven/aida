@@ -79,7 +79,7 @@ public class TraderList extends AbstractPage{
 
     private BigDecimal lastChart4Value = BigDecimal.ZERO;
 
-    private Chart chart, chart2, chart3, chart4;
+    private Chart chart, chart2, chart4;
 
     private int chart2Index = 1;
     private int chart3Index1 = 1;
@@ -252,23 +252,23 @@ public class TraderList extends AbstractPage{
                                 handler.appendJavaScript(javaScript);
 
 
-                                if (orderVolume.getAskVolume().compareTo(ZERO) != 0) {
-                                    javaScript = "var chartVarName = " + chart3.getJavaScriptVarName() + ";";
-                                    javaScript += "eval(chartVarName).series[" + 0 + "].addPoint("
-                                            + renderer.toJson(new Point(chart3Index1++, orderVolume.getAskVolume()))
-                                            + ", true, true);";
-
-                                    handler.appendJavaScript(javaScript);
-                                }
-
-                                if (orderVolume.getBidVolume().compareTo(ZERO) != 0) {
-                                    javaScript = "var chartVarName = " + chart3.getJavaScriptVarName() + ";";
-                                    javaScript += "eval(chartVarName).series[" + 1 + "].addPoint("
-                                            + renderer.toJson(new Point(chart3Index2++, orderVolume.getBidVolume()))
-                                            + ", true, true);";
-
-                                    handler.appendJavaScript(javaScript);
-                                }
+//                                if (orderVolume.getAskVolume().compareTo(ZERO) != 0) {
+//                                    javaScript = "var chartVarName = " + chart3.getJavaScriptVarName() + ";";
+//                                    javaScript += "eval(chartVarName).series[" + 0 + "].addPoint("
+//                                            + renderer.toJson(new Point(chart3Index1++, orderVolume.getAskVolume()))
+//                                            + ", true, true);";
+//
+//                                    handler.appendJavaScript(javaScript);
+//                                }
+//
+//                                if (orderVolume.getBidVolume().compareTo(ZERO) != 0) {
+//                                    javaScript = "var chartVarName = " + chart3.getJavaScriptVarName() + ";";
+//                                    javaScript += "eval(chartVarName).series[" + 1 + "].addPoint("
+//                                            + renderer.toJson(new Point(chart3Index2++, orderVolume.getBidVolume()))
+//                                            + ", true, true);";
+//
+//                                    handler.appendJavaScript(javaScript);
+//                                }
                             }
 
                             //chart4
@@ -452,37 +452,37 @@ public class TraderList extends AbstractPage{
         }
 
         //Chart 3
-        {
-            Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(500).setZoomType(ZoomType.X));
-            options.setGlobal(new Global().setUseUTC(false));
-
-            options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
-            options.setTitle(new Title(""));
-            //options.setLegend(new Legend(Boolean.FALSE));
-
-            options.setxAxis(new Axis().setType(AxisType.LINEAR));
-
-            options.setyAxis(new Axis().setTitle(new Title("")));
-
-            options.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions()
-                    .setMarker(new Marker(false))
-                    .setLineWidth(1)
-                    .setTurboThreshold(20000)));
-
-            List<Point> dataAsk = new ArrayList<>();
-            List<Point> dataBid = new ArrayList<>();
-
-            for (OrderVolume orderVolume : orderVolumes){
-                dataAsk.add(new Point(chart3Index1++, orderVolume.getAskVolume()));
-                dataBid.add(new Point(chart3Index2++, orderVolume.getBidVolume()));
-            }
-
-            options.addSeries(new PointSeries().setData(dataAsk).setName("Продажи / час").setColor(new HighchartsColor(3)));
-            options.addSeries(new PointSeries().setData(dataBid).setName("Покупки / час").setColor(new HighchartsColor(2)));
-
-            add(chart3 = new Chart("chart3", options));
-        }
+//        {
+//            Options options = new Options();
+//            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(500).setZoomType(ZoomType.X));
+//            options.setGlobal(new Global().setUseUTC(false));
+//
+//            options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
+//            options.setTitle(new Title(""));
+//            //options.setLegend(new Legend(Boolean.FALSE));
+//
+//            options.setxAxis(new Axis().setType(AxisType.LINEAR));
+//
+//            options.setyAxis(new Axis().setTitle(new Title("")));
+//
+//            options.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions()
+//                    .setMarker(new Marker(false))
+//                    .setLineWidth(1)
+//                    .setTurboThreshold(20000)));
+//
+//            List<Point> dataAsk = new ArrayList<>();
+//            List<Point> dataBid = new ArrayList<>();
+//
+//            for (OrderVolume orderVolume : orderVolumes){
+//                dataAsk.add(new Point(chart3Index1++, orderVolume.getAskVolume()));
+//                dataBid.add(new Point(chart3Index2++, orderVolume.getBidVolume()));
+//            }
+//
+//            options.addSeries(new PointSeries().setData(dataAsk).setName("Продажи / час").setColor(new HighchartsColor(3)));
+//            options.addSeries(new PointSeries().setData(dataBid).setName("Покупки / час").setColor(new HighchartsColor(2)));
+//
+//            add(chart3 = new Chart("chart3", options));
+//        }
 
         //Chart 4
         {
