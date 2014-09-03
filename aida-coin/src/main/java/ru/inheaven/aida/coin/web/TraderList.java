@@ -507,7 +507,7 @@ public class TraderList extends AbstractPage{
 
             {
                 List<Point> data = new ArrayList<>();
-                List<Volume> volumes = traderService.getVolumes(new Date(0));
+                List<Volume> volumes = traderService.getVolumes(new Date(startDate));
 
                 long time = 0;
                 BigDecimal volumeSum = BigDecimal.ZERO;
