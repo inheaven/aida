@@ -144,10 +144,12 @@ public class TraderList extends AbstractPage{
 
                         minOrderAmount = minOrderAmount.divide(price, 8, ROUND_HALF_UP);
 
-                        lot = trader.getVolume().multiply(price).divide(trader.getHigh().subtract(trader.getLow()).divide(trader.getSpread(),
+                        lot = trader.getVolume().divide(trader.getHigh().subtract(trader.getLow()).divide(trader.getSpread(),
                                         8, ROUND_HALF_UP), 8, ROUND_HALF_UP);
 
                         lot = lot.compareTo(minOrderAmount) > 0 ? lot : minOrderAmount;
+
+                        lot = lot.multiply(price);
                     }
                 } catch (Exception e) {
                     //zero
