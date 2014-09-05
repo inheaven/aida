@@ -447,7 +447,7 @@ public class TraderList extends AbstractPage{
                 }
 
                 List<Point> data = new ArrayList<>();
-                for (int i = 0; i < 100; ++i) {
+                for (int i = 0; i < 500; ++i) {
                     data.add(new Point(0, value));
                 }
 
