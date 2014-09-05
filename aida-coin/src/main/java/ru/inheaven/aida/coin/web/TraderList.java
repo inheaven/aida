@@ -411,7 +411,18 @@ public class TraderList extends AbstractPage{
                 BigDecimal value = BigDecimal.ZERO;
 
                 if (accountInfo != null) {
-                    value = accountInfo.getBalance("BTC");
+                    for (Wallet wallet :accountInfo.getWallets()){
+                        if (wallet.getCurrency().equals("BTC")){
+                            value  = value.add(wallet.getBalance());
+                        }else {
+                            try {
+                                Ticker ticker = traderService.getTicker(new ExchangePair(exchangeType, wallet.getCurrency() + "/BTC"));
+                                value = value.add(wallet.getBalance().multiply(ticker.getLast()).setScale(8, ROUND_HALF_UP));
+                            } catch (Exception e) {
+                                //no ticker
+                            }
+                        }
+                    }
                 }
 
                 List<Point> data = new ArrayList<>();
