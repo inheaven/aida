@@ -81,6 +81,7 @@ public class TraderList extends AbstractPage{
 
     private Chart chart, chart2, chart4;
 
+    private int chartIndex = 1;
     private int chart2Index = 1;
     private int chart3Index1 = 1;
     private int chart3Index2 = 1;
@@ -222,7 +223,7 @@ public class TraderList extends AbstractPage{
                         BigDecimal value = ((AccountInfo) payload).getBalance("BTC");
 
                         if (lastChartValueMap.get(exchangeMessage.getExchangeType()).compareTo(value) != 0) {
-                            Point point = new Point(System.currentTimeMillis(), value);
+                            Point point = new Point(chartIndex++, value);
                             JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
                             String jsonPoint = renderer.toJson(point);
                             String javaScript = "var chartVarName = " + chart.getJavaScriptVarName() + ";\n";
@@ -405,7 +406,7 @@ public class TraderList extends AbstractPage{
 
                 List<Point> data = new ArrayList<>();
                 for (int i = 0; i < 100; ++i) {
-                    data.add(new Point(System.currentTimeMillis(), value));
+                    data.add(new Point(0, value));
                 }
 
                 options.addSeries(new PointSeries().setData(data).setName(exchangeType.name()));
