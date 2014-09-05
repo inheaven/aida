@@ -11,8 +11,10 @@ import com.googlecode.wickedcharts.wicket6.highcharts.JsonRendererFactory;
 import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.marketdata.OrderBook;
+import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.OpenOrders;
+import com.xeiam.xchange.dto.trade.Wallet;
 import de.agilecoders.wicket.core.markup.html.bootstrap.button.BootstrapLink;
 import de.agilecoders.wicket.core.markup.html.bootstrap.button.Buttons;
 import de.agilecoders.wicket.core.markup.html.bootstrap.common.NotificationPanel;
@@ -189,18 +191,28 @@ public class TraderList extends AbstractPage{
                     Object payload = exchangeMessage.getPayload();
 
                     if (payload instanceof AccountInfo){
-                        BigDecimal estimate = new BigDecimal("0");
+                        AccountInfo accountInfo = ((AccountInfo) payload);
 
                         for (ExchangePair exchangePair : balanceMap.keySet()){
                             if (exchangePair.getExchangeType().equals(exchangeMessage.getExchangeType())){
-                                BigDecimal balance = ((AccountInfo) payload).getBalance(exchangePair.getCurrency());
+                                BigDecimal balance = accountInfo.getBalance(exchangePair.getCurrency());
 
                                 update(handler, balanceMap.get(exchangePair), balance);
+                            }
+                        }
 
+                        BigDecimal estimate = new BigDecimal("0");
+
+                        for (Wallet wallet :accountInfo.getWallets()){
+                            if (wallet.getCurrency().equals("BTC")){
+                                estimate  = estimate.add(wallet.getBalance());
+                            }else {
                                 try {
-                                    estimate = estimate.add(new BigDecimal(estimateMap.get(exchangePair).getDefaultModelObjectAsString()));
+                                    Ticker ticker = traderService.getTicker(new ExchangePair(exchangeMessage.getExchangeType(),
+                                            wallet.getCurrency() + "/BTC"));
+                                    estimate = estimate.add(wallet.getBalance().multiply(ticker.getLast()).setScale(8, ROUND_HALF_UP));
                                 } catch (Exception e) {
-                                    //
+                                    //no ticker
                                 }
                             }
                         }
@@ -220,10 +232,8 @@ public class TraderList extends AbstractPage{
                         }
 
                         //update chart balance
-                        BigDecimal value = ((AccountInfo) payload).getBalance("BTC");
-
-                        if (lastChartValueMap.get(exchangeMessage.getExchangeType()).compareTo(value) != 0) {
-                            Point point = new Point(chartIndex++, value);
+                        if (lastChartValueMap.get(exchangeMessage.getExchangeType()).compareTo(estimate) != 0) {
+                            Point point = new Point(chartIndex++, estimate);
                             JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
                             String jsonPoint = renderer.toJson(point);
                             String javaScript = "var chartVarName = " + chart.getJavaScriptVarName() + ";\n";
@@ -232,7 +242,7 @@ public class TraderList extends AbstractPage{
 
                             handler.appendJavaScript(javaScript);
 
-                            lastChartValueMap.put(exchangeMessage.getExchangeType(), value);
+                            lastChartValueMap.put(exchangeMessage.getExchangeType(), estimate);
                         }
                     }else if (payload instanceof BalanceHistory){
                         BalanceHistory balanceHistory = (BalanceHistory) payload;
