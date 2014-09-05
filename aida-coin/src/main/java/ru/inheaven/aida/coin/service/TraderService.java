@@ -392,9 +392,25 @@ public class TraderService {
 
                 BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.013")).setScale(8, ROUND_HALF_DOWN);
 
-                BigDecimal minOrderAmount = currencyPair.counterSymbol.equals("BTC")
-                        ? new BigDecimal("0.0013").divide(middlePrice, 8, ROUND_HALF_UP)
-                        : new BigDecimal("0.0125");
+                BigDecimal minOrderAmount = null;
+
+                switch (currencyPair.counterSymbol) {
+                    case "BTC":
+                        minOrderAmount = new BigDecimal("0.0013");
+                        break;
+                    case "LTC":
+                        minOrderAmount = new BigDecimal("0.013");
+                        break;
+                    case "USD":
+                        minOrderAmount = new BigDecimal("6.25");
+                        break;
+                }
+
+                if (minOrderAmount != null){
+                    minOrderAmount = minOrderAmount.divide(middlePrice, 8, ROUND_HALF_UP);
+                }else {
+                    throw new RuntimeException("null minOrderAmount " + currencyPair.toString());
+                }
 
                 for (int index : Arrays.asList(1, 2, 3, 5, 8)) {
                     BigDecimal spread = trader.getSpread().multiply(BigDecimal.valueOf(index));

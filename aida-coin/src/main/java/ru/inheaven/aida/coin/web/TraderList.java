@@ -126,9 +126,28 @@ public class TraderList extends AbstractPage{
                     OrderBook orderBook = traderService.getOrderBook(trader.getExchangePair());
 
                     if (orderBook != null ){
-                        lot = trader.getVolume().multiply(orderBook.getAsks().get(0).getLimitPrice())
-                                .divide(trader.getHigh().subtract(trader.getLow()).divide(trader.getSpread(),
+                        BigDecimal price = orderBook.getAsks().get(0).getLimitPrice();
+
+                        BigDecimal minOrderAmount = ZERO;
+
+                        switch (trader.getCounterSymbol()) {
+                            case "BTC":
+                                minOrderAmount = new BigDecimal("0.0013");
+                                break;
+                            case "LTC":
+                                minOrderAmount = new BigDecimal("0.013");
+                                break;
+                            case "USD":
+                                minOrderAmount = new BigDecimal("6.25");
+                                break;
+                        }
+
+                        minOrderAmount = minOrderAmount.divide(price, 8, ROUND_HALF_UP);
+
+                        lot = trader.getVolume().multiply(price).divide(trader.getHigh().subtract(trader.getLow()).divide(trader.getSpread(),
                                         8, ROUND_HALF_UP), 8, ROUND_HALF_UP);
+
+                        lot = lot.compareTo(minOrderAmount) > 0 ? lot : minOrderAmount;
                     }
                 } catch (Exception e) {
                     //zero

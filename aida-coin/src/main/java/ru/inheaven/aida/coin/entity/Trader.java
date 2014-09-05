@@ -52,6 +52,10 @@ public class Trader extends AbstractEntity{
         return TraderUtil.getCurrency(pair);
     }
 
+    public String getCounterSymbol(){
+        return TraderUtil.getCounterSymbol(pair);
+    }
+
     public ExchangeType getExchange() {
         return exchange;
     }
