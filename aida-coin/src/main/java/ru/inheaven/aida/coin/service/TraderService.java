@@ -38,6 +38,7 @@ import static com.xeiam.xchange.ExchangeFactory.INSTANCE;
 import static java.math.BigDecimal.*;
 import static ru.inheaven.aida.coin.entity.ExchangeType.*;
 import static ru.inheaven.aida.coin.util.TraderUtil.getCurrencyPair;
+import static ru.inheaven.aida.coin.util.TraderUtil.random20;
 import static ru.inheaven.aida.coin.util.TraderUtil.random50;
 
 /**
@@ -408,6 +409,7 @@ public class TraderService {
 
                 if (minOrderAmount != null){
                     minOrderAmount = minOrderAmount.divide(middlePrice, 8, ROUND_HALF_UP);
+                    minOrderAmount = random20(minOrderAmount);
                 }else {
                     throw new RuntimeException("null minOrderAmount " + currencyPair.toString());
                 }
