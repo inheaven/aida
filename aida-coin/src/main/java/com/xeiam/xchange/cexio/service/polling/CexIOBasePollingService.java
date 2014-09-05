@@ -1,43 +1,54 @@
 package com.xeiam.xchange.cexio.service.polling;
 
-import java.util.Arrays;
-import java.util.List;
-
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.service.BaseExchangeService;
 import com.xeiam.xchange.service.polling.BasePollingService;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author timmolter
  */
 public class CexIOBasePollingService extends BaseExchangeService implements BasePollingService {
 
-  public static final List<CurrencyPair> CURRENCY_PAIRS = Arrays.asList(
+    public static final List<CurrencyPair> CURRENCY_PAIRS = Arrays.asList(
+            new CurrencyPair("BTC", "USD"),
+            new CurrencyPair("GHS", "USD"),
+            new CurrencyPair("LTC", "USD"),
 
-  new CurrencyPair("GHS", "BTC"),
+            new CurrencyPair("GHS", "BTC"),
+            new CurrencyPair("LTC", "BTC"),
+            new CurrencyPair("DOGE", "BTC"),
+            new CurrencyPair("NMC", "BTC"),
+            new CurrencyPair("IXC", "BTC"),
+            new CurrencyPair("POT", "BTC"),
+            new CurrencyPair("ANC", "BTC"),
+            new CurrencyPair("MEC", "BTC"),
+            new CurrencyPair("WDC", "BTC"),
+            new CurrencyPair("FTC", "BTC"),
 
-  new CurrencyPair("LTC", "BTC"),
+            new CurrencyPair("GHS", "LTC"),
+            new CurrencyPair("DOGE", "LTC"),
+            new CurrencyPair("DRK", "LTC"),
+            new CurrencyPair("MEC", "LTC"),
+            new CurrencyPair("WDC", "LTC")
+            );
 
-  new CurrencyPair("NMC", "BTC"),
+    /**
+     * Constructor
+     *
+     * @param exchangeSpecification
+     */
+    public CexIOBasePollingService(ExchangeSpecification exchangeSpecification) {
 
-  new CurrencyPair("GHS", "NMC"),
+        super(exchangeSpecification);
+    }
 
-  new CurrencyPair("IXC", "BTC"));
+    @Override
+    public List<CurrencyPair> getExchangeSymbols() {
 
-  /**
-   * Constructor
-   * 
-   * @param exchangeSpecification
-   */
-  public CexIOBasePollingService(ExchangeSpecification exchangeSpecification) {
-
-    super(exchangeSpecification);
-  }
-
-  @Override
-  public List<CurrencyPair> getExchangeSymbols() {
-
-    return CURRENCY_PAIRS;
-  }
+        return CURRENCY_PAIRS;
+    }
 }
