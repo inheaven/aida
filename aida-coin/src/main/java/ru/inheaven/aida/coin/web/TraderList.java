@@ -420,6 +420,11 @@ public class TraderList extends AbstractPage{
         long startDate = System.currentTimeMillis() - 1000 * 60 * 60 * 24;
         List<OrderVolume> orderVolumes = traderService.getOrderVolumeRates(new Date(startDate));
 
+        List<OrderVolume> filteredOrderVolumes = new ArrayList<>();
+        for (int i = 0; i < orderVolumes.size(); i += orderVolumes.size()/500){
+            filteredOrderVolumes.add(orderVolumes.get(i));
+        }
+
         {
             Options options = new Options();
             options.setChartOptions(new ChartOptions(SeriesType.AREASPLINE).setHeight(500).setZoomType(ZoomType.X));
@@ -441,7 +446,7 @@ public class TraderList extends AbstractPage{
 
             {
                 List<Point> data = new ArrayList<>();
-                for (OrderVolume orderVolume : orderVolumes){
+                for (OrderVolume orderVolume : filteredOrderVolumes){
                     data.add(new Point(chart2Index++, orderVolume.getVolume()));
                 }
 
@@ -514,8 +519,11 @@ public class TraderList extends AbstractPage{
 
                 for (Volume volume : volumes){
                     volumeSum = volumeSum.add(volume.getVolume());
-                    time = volume.getDate().getTime();
-                    data.add(new Point(time, volumeSum));
+
+                    if (volume.getDate().getTime() - time > 1000*60) {
+                        time = volume.getDate().getTime();
+                        data.add(new Point(time, volumeSum));
+                    }
                 }
                 options.addSeries(new PointSeries().setData(data).setName("Прибыль"));
 
