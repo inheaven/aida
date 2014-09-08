@@ -566,7 +566,7 @@ public class TraderList extends AbstractPage{
                 for (Volume volume : volumes){
                     volumeSum = volumeSum.add(volume.getVolume());
 
-                    if (volume.getDate().getTime() - time > 1000*60) {
+                    if (volume.getDate().getTime() - time > 1000*60*5) {
                         time = volume.getDate().getTime();
                         data.add(new Point(time, volumeSum));
                     }
