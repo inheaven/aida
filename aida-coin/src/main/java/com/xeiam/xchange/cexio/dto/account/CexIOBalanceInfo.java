@@ -19,6 +19,7 @@ public class CexIOBalanceInfo {
     private final CexIOBalance balanceIXC;
     private final CexIOBalance balanceDVC;
     private final CexIOBalance balanceGHS;
+    private final CexIOBalance balanceUSD;
 
     private final CexIOBalance balanceDRK;
     private final CexIOBalance balanceDOGE;
@@ -48,6 +49,7 @@ public class CexIOBalanceInfo {
                             @JsonProperty("LTC") CexIOBalance balanceLTC, @JsonProperty("NMC") CexIOBalance balanceNMC,
                             @JsonProperty("IXC") CexIOBalance balanceIXC, @JsonProperty("DVC") CexIOBalance balanceDVC,
                             @JsonProperty("GHS") CexIOBalance balanceGHS,
+                            @JsonProperty("USD") CexIOBalance balanceUSD,
 
                             @JsonProperty("DRK") CexIOBalance balanceDRK,
                             @JsonProperty("DOGE") CexIOBalance balanceDOGE,
@@ -68,6 +70,7 @@ public class CexIOBalanceInfo {
         this.balanceIXC = balanceIXC;
         this.balanceDVC = balanceDVC;
         this.balanceGHS = balanceGHS;
+        this.balanceUSD = balanceUSD;
 
         this.balanceDRK = balanceDRK;
         this.balanceDOGE = balanceDOGE;
@@ -122,6 +125,10 @@ public class CexIOBalanceInfo {
     public CexIOBalance getBalanceGHS() {
 
         return balanceGHS;
+    }
+
+    public CexIOBalance getBalanceUSD() {
+        return balanceUSD;
     }
 
     public CexIOBalance getBalanceDRK() {
