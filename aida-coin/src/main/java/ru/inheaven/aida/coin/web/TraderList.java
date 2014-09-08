@@ -91,6 +91,8 @@ public class TraderList extends AbstractPage{
 
     private Date startDate = new Date(System.currentTimeMillis() - 1000*60*60);
 
+    private String title = randomAlphanumeric(4) + "-" + randomAlphanumeric(4);
+
     public TraderList() {
         setVersioned(false);
 
@@ -99,7 +101,7 @@ public class TraderList extends AbstractPage{
         notificationPanel.setOutputMarkupId(true);
         add(notificationPanel);
 
-        add(new Label("header", Model.of(getTitle())));
+        add(new Label("header", Model.of(getTitle() + traderBean.getTradersCount())));
 
         add(bittrexBTC = new Label("bittrexBTC", Model.of("0")).setOutputMarkupId(true));
         add(bittrexCoins = new Label("bittrexCoins", Model.of("0")).setOutputMarkupId(true));
@@ -467,7 +469,7 @@ public class TraderList extends AbstractPage{
         List<OrderVolume> orderVolumes = traderService.getOrderVolumeRates(new Date(startDate));
 
         List<OrderVolume> filteredOrderVolumes = new ArrayList<>();
-        for (int i = 0; i < orderVolumes.size(); i += orderVolumes.size()/500){
+        for (int i = 0; i < orderVolumes.size(); i += orderVolumes.size()/256){
             filteredOrderVolumes.add(orderVolumes.get(i));
         }
 
@@ -581,7 +583,7 @@ public class TraderList extends AbstractPage{
     }
 
     protected String getTitle() {
-        return randomAlphanumeric(4) + "-" + randomAlphanumeric(4)  + "/" + traderBean.getTradersCount();
+        return title;
     }
 
     private void update(WebSocketRequestHandler handler, Component component, BigDecimal newValue){
