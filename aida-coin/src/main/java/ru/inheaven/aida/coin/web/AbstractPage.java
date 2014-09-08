@@ -7,11 +7,15 @@ import org.apache.wicket.model.Model;
 
 import java.util.Locale;
 
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
+
 /**
  * @author Anatoly Ivanov java@inheaven.ru
  *         Date: 07.01.14 21:15
  */
 public abstract class AbstractPage extends WebPage {
+    private String title = randomAlphanumeric(4) + "-" + randomAlphanumeric(4);
+
     protected AbstractPage() {
         HtmlTag htmlTag = new HtmlTag("html", new Locale("ru"));
         add(htmlTag);
@@ -27,6 +31,6 @@ public abstract class AbstractPage extends WebPage {
     }
 
     protected String getTitle(){
-        return null;
+        return title;
     }
 }

@@ -49,7 +49,6 @@ import java.util.function.BiConsumer;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.math.BigDecimal.ZERO;
-import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 import static org.apache.wicket.model.Model.of;
 import static ru.inheaven.aida.coin.entity.ExchangeType.*;
 
@@ -91,8 +90,6 @@ public class TraderList extends AbstractPage{
 
     private Date startDate = new Date(System.currentTimeMillis() - 1000*60*60);
 
-    private String title = randomAlphanumeric(4) + "-" + randomAlphanumeric(4);
-
     public TraderList() {
         setVersioned(false);
 
@@ -101,7 +98,8 @@ public class TraderList extends AbstractPage{
         notificationPanel.setOutputMarkupId(true);
         add(notificationPanel);
 
-        add(new Label("header", Model.of(getTitle() + traderBean.getTradersCount())));
+        add(new Label("header", of(getTitle())));
+        add(new Label("tradersCount", of(traderBean.getTradersCount())));
 
         add(bittrexBTC = new Label("bittrexBTC", Model.of("0")).setOutputMarkupId(true));
         add(bittrexCoins = new Label("bittrexCoins", Model.of("0")).setOutputMarkupId(true));
@@ -580,10 +578,6 @@ public class TraderList extends AbstractPage{
 
             add(chart4 = new Chart("chart4", options));
         }
-    }
-
-    protected String getTitle() {
-        return title;
     }
 
     private void update(WebSocketRequestHandler handler, Component component, BigDecimal newValue){
