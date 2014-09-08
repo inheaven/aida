@@ -72,11 +72,6 @@
 
         <dependency>
             <groupId>com.xeiam.xchange</groupId>
-            <artifactId>xchange-cryptsy</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.xeiam.xchange</groupId>
             <artifactId>xchange-btce</artifactId>
         </dependency>
 
