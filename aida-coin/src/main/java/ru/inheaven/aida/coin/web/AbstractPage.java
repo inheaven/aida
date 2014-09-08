@@ -26,5 +26,7 @@ public abstract class AbstractPage extends WebPage {
 //                new NavbarButton(TraderList.class, Model.of("Торговцы"))));
     }
 
-    protected abstract String getTitle();
+    protected String getTitle(){
+        return null;
+    }
 }
