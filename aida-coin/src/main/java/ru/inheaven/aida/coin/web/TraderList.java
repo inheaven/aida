@@ -99,7 +99,7 @@ public class TraderList extends AbstractPage{
         notificationPanel.setOutputMarkupId(true);
         add(notificationPanel);
 
-        add(new Label("header", Model.of(randomAlphanumeric(4) + "-" + randomAlphanumeric(4)  + "/" + traderBean.getTradersCount())));
+        add(new Label("header", Model.of(getTitle())));
 
         add(bittrexBTC = new Label("bittrexBTC", Model.of("0")).setOutputMarkupId(true));
         add(bittrexCoins = new Label("bittrexCoins", Model.of("0")).setOutputMarkupId(true));
@@ -578,6 +578,10 @@ public class TraderList extends AbstractPage{
 
             add(chart4 = new Chart("chart4", options));
         }
+    }
+
+    protected String getTitle() {
+        return randomAlphanumeric(4) + "-" + randomAlphanumeric(4)  + "/" + traderBean.getTradersCount();
     }
 
     private void update(WebSocketRequestHandler handler, Component component, BigDecimal newValue){

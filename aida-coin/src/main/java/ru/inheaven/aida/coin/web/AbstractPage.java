@@ -2,6 +2,8 @@ package ru.inheaven.aida.coin.web;
 
 import de.agilecoders.wicket.core.markup.html.bootstrap.html.HtmlTag;
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.Model;
 
 import java.util.Locale;
 
@@ -11,7 +13,10 @@ import java.util.Locale;
  */
 public abstract class AbstractPage extends WebPage {
     protected AbstractPage() {
-        add(new HtmlTag("html", new Locale("ru")));
+        HtmlTag htmlTag = new HtmlTag("html", new Locale("ru"));
+        add(htmlTag);
+
+        htmlTag.add(new Label("title", Model.of(getTitle())));
 
 //        Navbar navbar = new Navbar("navbar");
 //        navbar.setBrandName(Model.of("AIDA-COINS"));
@@ -20,4 +25,6 @@ public abstract class AbstractPage extends WebPage {
 //        navbar.addComponents(NavbarComponents.transform(Navbar.ComponentPosition.LEFT,
 //                new NavbarButton(TraderList.class, Model.of("Торговцы"))));
     }
+
+    protected abstract String getTitle();
 }
