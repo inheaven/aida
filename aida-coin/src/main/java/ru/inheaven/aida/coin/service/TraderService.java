@@ -236,7 +236,7 @@ public class TraderService {
                 ? volumes.get(volumes.size() - 1).getDate()
                 : new Date());
 
-        for (int j = volumes.size() - 1; j >= 0; --j){
+        for (int j = volumes.size() - 2; j >= 0; --j){
             Volume v = volumes.get(j);
 
             orderVolume.addVolume(v.getVolume());
