@@ -46,8 +46,8 @@ public class TraderBean {
                 .getResultList();
     }
 
-    public Integer getTradersCount(){
-        return em.createQuery("select count(t) from Trader t", Integer.class).getSingleResult();
+    public Long getTradersCount(){
+        return em.createQuery("select count(t) from Trader t", Long.class).getSingleResult();
     }
 
     public Trader getTrader(Long id){
