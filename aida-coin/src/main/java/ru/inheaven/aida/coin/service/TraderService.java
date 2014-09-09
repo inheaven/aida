@@ -385,6 +385,10 @@ public class TraderService {
             if (trader.isRunning()){
                 OrderBook orderBook = getOrderBook(new ExchangePair(exchangeType, trader.getPair()));
 
+                if (orderBook.getAsks().get(0) == null){
+                    continue;
+                }
+
                 BigDecimal middlePrice = orderBook.getAsks().get(0).getLimitPrice()
                         .add(orderBook.getBids().get(orderBook.getBids().size()-1).getLimitPrice())
                         .divide(new BigDecimal("2"), 8, ROUND_HALF_UP);
