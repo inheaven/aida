@@ -611,7 +611,7 @@ public class TraderList extends AbstractPage{
                         .chain("animate", "{backgroundColor:" + color + "}")
                         .render());
 
-                component.setDefaultModelObject(newValue.toString());
+                component.setDefaultModelObject(getConverter(BigDecimal.class).convertToString(newValue, getLocale()));
                 handler.add(component);
             }
         }
