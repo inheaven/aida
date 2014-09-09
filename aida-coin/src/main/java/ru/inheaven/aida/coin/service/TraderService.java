@@ -1,7 +1,6 @@
 package ru.inheaven.aida.coin.service;
 
 import com.google.common.base.Throwables;
-import com.google.common.collect.Ordering;
 import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.bittrex.v1.BittrexExchange;
@@ -37,9 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static com.xeiam.xchange.ExchangeFactory.INSTANCE;
 import static java.math.BigDecimal.*;
 import static ru.inheaven.aida.coin.entity.ExchangeType.*;
-import static ru.inheaven.aida.coin.util.TraderUtil.getCurrencyPair;
-import static ru.inheaven.aida.coin.util.TraderUtil.random20;
-import static ru.inheaven.aida.coin.util.TraderUtil.random50;
+import static ru.inheaven.aida.coin.util.TraderUtil.*;
 
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
@@ -157,8 +154,8 @@ public class TraderService {
                     if (ticker != null) {
                         CurrencyPair currencyPair = TraderUtil.getCurrencyPair(trader.getPair());
 
-                        BigDecimal askAmount = new BigDecimal("0");
-                        BigDecimal bidAmount = new BigDecimal("0");
+                        BigDecimal askAmount = ZERO;
+                        BigDecimal bidAmount = ZERO;
 
                         for (LimitOrder limitOrder : openOrders.getOpenOrders()){
                             if (currencyPair.equals(limitOrder.getCurrencyPair())){
@@ -256,44 +253,43 @@ public class TraderService {
     public List<Volume> getVolumes(Date startDate){
         List<Volume> volumes = new ArrayList<>();
 
+        Map<String, BalanceHistory> previousMap = new HashMap<>();
+
+        List<BalanceHistory> balanceHistories = traderBean.getBalanceHistories(startDate);
+
+        for (BalanceHistory history : balanceHistories){
+            BalanceHistory previous = previousMap.get(history.getPair());
+
+            if (previous != null && previous.getBalance().compareTo(history.getBalance()) != 0) {
+                history.setPrevious(previous);
+                volumes.add(getVolume(history));
+            }
+
+            previousMap.put(history.getPair(), history);
+        }
+
+        return volumes;
+    }
+
+    public Volume getVolume(BalanceHistory history){
         Ticker ltcBtc = getTicker(ExchangePair.of(CEXIO, "LTC/BTC"));
         Ticker btcUsd = getTicker(ExchangePair.of(BTCE, "BTC/USD"));
 
         if (ltcBtc!= null && btcUsd != null) {
-            Map<ExchangePair, BalanceHistory> previousMap = new HashMap<>();
+            BigDecimal vol = history.getPrevious().getBalance().add(history.getPrevious().getAskAmount())
+                    .subtract(history.getBalance().add(history.getAskAmount()))
+                    .multiply(history.getPrice());
 
-            List<BalanceHistory> balanceHistories = traderBean.getBalanceHistories(startDate);
-
-            balanceHistories = Ordering.from(new Comparator<BalanceHistory>() {
-                @Override
-                public int compare(BalanceHistory o1, BalanceHistory o2) {
-                    return o1.getDate().compareTo(o2.getDate());
-                }
-            }).immutableSortedCopy(balanceHistories);
-
-
-            for (BalanceHistory history : balanceHistories){
-                ExchangePair exchangePair = ExchangePair.of(history.getExchangeType(), history.getPair());
-
-                BalanceHistory previous = previousMap.get(exchangePair);
-
-                if (previous != null && previous.getBalance().compareTo(history.getBalance()) != 0) {
-                    BigDecimal vol = previous.getBalance().subtract(history.getBalance()).multiply(history.getPrice());
-
-                    if (history.getPair().contains("/LTC")){
-                        vol = vol.multiply(ltcBtc.getLast());
-                    }else if (history.getPair().contains("/USD")){
-                        vol = vol.divide(btcUsd.getLast(), 8, ROUND_HALF_UP);
-                    }
-
-                    volumes.add(new Volume(vol.setScale(8, ROUND_HALF_UP), history.getDate()));
-                }
-
-                previousMap.put(exchangePair, history);
+            if (history.getPair().contains("/LTC")) {
+                vol = vol.multiply(ltcBtc.getLast());
+            } else if (history.getPair().contains("/USD")) {
+                vol = vol.divide(btcUsd.getLast(), 8, ROUND_HALF_UP);
             }
+
+            return new Volume(vol, history.getDate());
         }
 
-        return volumes;
+        return new Volume(ZERO, history.getDate());
     }
 
     private void scheduleUpdate(ExchangeType exchangeType){

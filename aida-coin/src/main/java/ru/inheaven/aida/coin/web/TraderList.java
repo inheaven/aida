@@ -268,7 +268,7 @@ public class TraderList extends AbstractPage{
                         }
                     }else if (payload instanceof BalanceHistory){
                         BalanceHistory balanceHistory = (BalanceHistory) payload;
-                        Volume volume = balanceHistory.getVolume();
+                        Volume volume = traderService.getVolume(balanceHistory);
 
                         if (volume != null) {
                             JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();

@@ -4,6 +4,8 @@ import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
 
+import static java.math.BigDecimal.ROUND_HALF_UP;
+
 /**
  * @author Anatoly Ivanov
  *         Date: 17.08.2014 19:18
@@ -34,21 +36,6 @@ public class BalanceHistory extends AbstractEntity{
 
     @Transient
     private BalanceHistory previous;
-
-    public Volume getVolume(){
-        if (previous != null && previous.getBalance().compareTo(balance) != 0) {
-            if (pair.contains(("BTC/"))) {
-                return new Volume(balance.subtract(previous.getBalance()), date);
-            }else if (pair.contains("/BTC")){
-                return new Volume(previous.getBalance().subtract(balance)
-                        .multiply(price)
-                        .setScale(8, BigDecimal.ROUND_HALF_UP), date);
-            }
-        }
-
-        return null;
-    }
-
 
     public ExchangeType getExchangeType() {
         return exchangeType;
