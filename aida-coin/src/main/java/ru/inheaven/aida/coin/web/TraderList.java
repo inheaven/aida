@@ -605,7 +605,7 @@ public class TraderList extends AbstractPage{
 
                 handler.appendJavaScript(new JsStatement().$(component)
                         .chain("parent")
-                        .chain("animate", "{backgroundColor: '#F5F6CE'}")
+                        .chain("animate", "{backgroundColor: '#D8D8D8'}")
                         .render());
 
                 handler.appendJavaScript(new JsStatement().$(component)
