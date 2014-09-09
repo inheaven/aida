@@ -464,7 +464,7 @@ public class TraderService {
                             //check ask
                             if (accountInfo.getBalance(currencyPair.counterSymbol).compareTo(randomAskAmount.multiply(middlePrice)) < 0){
                                 broadcast(exchangeType,  exchangeType.name() + " " + trader.getPair() + ": Want to buy " + randomAskAmount.toString()
-                                        + " at price" + middlePrice.toString());
+                                        + " at price " + middlePrice.toString());
 
                                 continue;
                             }

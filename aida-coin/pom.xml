@@ -71,16 +71,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.xeiam.xchange</groupId>
-            <artifactId>xchange-btce</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.xeiam.xchange</groupId>
-            <artifactId>xchange-bter</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.odlabs.wiquery</groupId>
             <artifactId>wiquery-core</artifactId>
         </dependency>
