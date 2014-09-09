@@ -164,10 +164,10 @@ public class TraderList extends AbstractPage{
         });
         list.add(new TraderColumn(of("Buy"), buyMap));
         list.add(new TraderColumn(of("Sell"), sellMap));
-        list.add(new TraderColumn(of("Ask"),askMap));
         list.add(new TraderColumn(of("Bid"), bidMap));
-        list.add(new PropertyColumn<>(of("High"), "high"));
+        list.add(new TraderColumn(of("Ask"),askMap));
         list.add(new PropertyColumn<>(of("Low"), "low"));
+        list.add(new PropertyColumn<>(of("High"), "high"));
 
         list.add(new AbstractColumn<Trader, String>(of("")) {
             @Override
