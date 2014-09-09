@@ -288,7 +288,7 @@ public class TraderList extends AbstractPage{
                                 if (orderVolume.getAskVolume().compareTo(ZERO) != 0) {
                                     String javaScript = "var chartVarName = " + chart3.getJavaScriptVarName() + ";";
                                     javaScript += "eval(chartVarName).series[" + 0 + "].addPoint("
-                                            + renderer.toJson(new Point(chart3Index1++, orderVolume.getAskVolume()))
+                                            + renderer.toJson(new Point(orderVolume.getDate().getTime(), orderVolume.getAskVolume()))
                                             + ", true, true);";
 
                                     handler.appendJavaScript(javaScript);
@@ -297,7 +297,7 @@ public class TraderList extends AbstractPage{
                                 if (orderVolume.getBidVolume().compareTo(ZERO) != 0) {
                                     String javaScript = "var chartVarName = " + chart3.getJavaScriptVarName() + ";";
                                     javaScript += "eval(chartVarName).series[" + 1 + "].addPoint("
-                                            + renderer.toJson(new Point(chart3Index2++, orderVolume.getBidVolume()))
+                                            + renderer.toJson(new Point(orderVolume.getDate().getTime(), orderVolume.getBidVolume()))
                                             + ", true, true);";
 
                                     handler.appendJavaScript(javaScript);
@@ -461,7 +461,7 @@ public class TraderList extends AbstractPage{
         }
 
         //Chart 2
-        long startDate = System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 2;
+        long startDate = System.currentTimeMillis() - 1000 * 60 * 60 * 24;
         List<OrderVolume> orderVolumes = traderService.getOrderVolumeRates(new Date(startDate));
 
         List<OrderVolume> filteredOrderVolumes = new ArrayList<>();
@@ -510,7 +510,7 @@ public class TraderList extends AbstractPage{
             options.setTitle(new Title(""));
             //options.setLegend(new Legend(Boolean.FALSE));
 
-            options.setxAxis(new Axis().setType(AxisType.LINEAR));
+            options.setxAxis(new Axis().setType(AxisType.DATETIME));
 
             options.setyAxis(new Axis().setTitle(new Title("")));
 
@@ -523,8 +523,8 @@ public class TraderList extends AbstractPage{
             List<Point> dataBid = new ArrayList<>();
 
             for (OrderVolume orderVolume : filteredOrderVolumes){
-                dataAsk.add(new Point(chart3Index1++, orderVolume.getAskVolume()));
-                dataBid.add(new Point(chart3Index2++, orderVolume.getBidVolume()));
+                dataAsk.add(new Point(orderVolume.getDate().getTime(), orderVolume.getAskVolume()));
+                dataBid.add(new Point(orderVolume.getDate().getTime(), orderVolume.getBidVolume()));
             }
 
             options.addSeries(new PointSeries().setData(dataAsk).setName("Продажи / час").setColor(new HighchartsColor(3)));
