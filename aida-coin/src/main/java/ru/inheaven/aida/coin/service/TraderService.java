@@ -154,8 +154,8 @@ public class TraderService {
                     if (ticker != null) {
                         CurrencyPair currencyPair = TraderUtil.getCurrencyPair(trader.getPair());
 
-                        BigDecimal askAmount = new BigDecimal("0");
-                        BigDecimal bidAmount =  new BigDecimal("0");
+                        BigDecimal askAmount = ZERO;
+                        BigDecimal bidAmount =  ZERO;
 
                         for (LimitOrder limitOrder : openOrders.getOpenOrders()){
                             if (currencyPair.equals(limitOrder.getCurrencyPair())){
@@ -179,7 +179,7 @@ public class TraderService {
                         balanceHistory.setPrice(ticker.getLast());
                         balanceHistory.setPrevious(previous);
 
-                        if (previous != null && !balanceHistory.equals(previous)){
+                        if (previous != null && !balanceHistory.equals(previous) && balanceHistory.getPrice() != null){
                             try {
                                 traderBean.save(balanceHistory);
                             } catch (Exception e) {
