@@ -596,14 +596,16 @@ public class TraderList extends AbstractPage{
 
     private void update(WebSocketRequestHandler handler, Component component, BigDecimal newValue){
         if (component != null){
-            int compare = newValue.toString().compareTo(component.getDefaultModelObjectAsString());
+            String s = getConverter(BigDecimal.class).convertToString(newValue, getLocale());
+
+            int compare = s.compareTo(component.getDefaultModelObjectAsString());
 
             if (compare != 0){
                 String color = compare > 0 ? "'#EFFBEF'" : "'#FBEFEF'";
 
                 handler.appendJavaScript(new JsStatement().$(component)
                         .chain("parent")
-                        .chain("animate", "{backgroundColor: '#FFFFFF'}")
+                        .chain("animate", "{backgroundColor: '#F5F6CE'}")
                         .render());
 
                 handler.appendJavaScript(new JsStatement().$(component)
@@ -611,7 +613,7 @@ public class TraderList extends AbstractPage{
                         .chain("animate", "{backgroundColor:" + color + "}")
                         .render());
 
-                component.setDefaultModelObject(getConverter(BigDecimal.class).convertToString(newValue, getLocale()));
+                component.setDefaultModelObject(s);
                 handler.add(component);
             }
         }
