@@ -229,14 +229,12 @@ public class TraderService {
         return orderVolumes;
     }
 
-    public OrderVolume getOrderVolumeRate(Date startDate){
-        List<Volume> volumes = getVolumes(startDate);
+    public OrderVolume getOrderVolumeRate(){
+        List<Volume> volumes = getVolumes(new Date(System.currentTimeMillis() - 1000*60*60));
 
-        OrderVolume orderVolume = new OrderVolume(!volumes.isEmpty()
-                ? volumes.get(volumes.size() - 1).getDate()
-                : new Date());
+        OrderVolume orderVolume = new OrderVolume(new Date());
 
-        for (int j = volumes.size() - 2; j >= 0; --j){
+        for (int j = volumes.size() - 1; j >= 0; --j){
             Volume v = volumes.get(j);
 
             orderVolume.addVolume(v.getVolume());
@@ -256,35 +254,43 @@ public class TraderService {
     }
 
     public List<Volume> getVolumes(Date startDate){
-        List<BalanceHistory> balanceHistories = traderBean.getBalanceHistories(startDate);
-
-        balanceHistories = Ordering.from(new Comparator<BalanceHistory>() {
-            @Override
-            public int compare(BalanceHistory o1, BalanceHistory o2) {
-                return o1.getDate().compareTo(o2.getDate());
-            }
-        }).immutableSortedCopy(balanceHistories);
-
         List<Volume> volumes = new ArrayList<>();
 
-        Map<ExchangePair, BalanceHistory> previousMap = new HashMap<>();
+        Ticker ltcBtc = getTicker(ExchangePair.of(CEXIO, "LTC/BTC"));
+        Ticker btcUsd = getTicker(ExchangePair.of(BTCE, "BTC/USD"));
 
-        for (BalanceHistory history : balanceHistories){
-            ExchangePair exchangePair = ExchangePair.of(history.getExchangeType(), history.getPair());
+        if (ltcBtc!= null && btcUsd != null) {
+            Map<ExchangePair, BalanceHistory> previousMap = new HashMap<>();
 
-            BalanceHistory previous = previousMap.get(exchangePair);
+            List<BalanceHistory> balanceHistories = traderBean.getBalanceHistories(startDate);
 
-            if (previous != null && previous.getBalance().compareTo(history.getBalance()) != 0) {
-                if (history.getPair().contains(("BTC/"))) {
-                    volumes.add(new Volume(history.getBalance().subtract(previous.getBalance()), history.getDate()));
-                }else if (history.getPair().contains("/BTC")){
-                    volumes.add(new Volume(previous.getBalance().subtract(history.getBalance())
-                            .multiply(history.getPrice())
-                            .setScale(8, ROUND_HALF_UP), history.getDate()));
+            balanceHistories = Ordering.from(new Comparator<BalanceHistory>() {
+                @Override
+                public int compare(BalanceHistory o1, BalanceHistory o2) {
+                    return o1.getDate().compareTo(o2.getDate());
                 }
-            }
+            }).immutableSortedCopy(balanceHistories);
 
-            previousMap.put(exchangePair, history);
+
+            for (BalanceHistory history : balanceHistories){
+                ExchangePair exchangePair = ExchangePair.of(history.getExchangeType(), history.getPair());
+
+                BalanceHistory previous = previousMap.get(exchangePair);
+
+                if (previous != null && previous.getBalance().compareTo(history.getBalance()) != 0) {
+                    BigDecimal vol = previous.getBalance().subtract(history.getBalance()).multiply(history.getPrice());
+
+                    if (history.getPair().contains("/LTC")){
+                        vol = vol.multiply(ltcBtc.getLast());
+                    }else if (history.getPair().contains("/USD")){
+                        vol = vol.divide(btcUsd.getLast());
+                    }
+
+                    volumes.add(new Volume(vol.setScale(8, ROUND_HALF_UP), history.getDate()));
+                }
+
+                previousMap.put(exchangePair, history);
+            }
         }
 
         return volumes;
