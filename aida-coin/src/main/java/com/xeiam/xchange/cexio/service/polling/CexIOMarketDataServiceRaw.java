@@ -1,15 +1,14 @@
 package com.xeiam.xchange.cexio.service.polling;
 
-import java.io.IOException;
-
-import si.mazi.rescu.RestProxyFactory;
-
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.cexio.CexIO;
 import com.xeiam.xchange.cexio.dto.marketdata.CexIODepth;
 import com.xeiam.xchange.cexio.dto.marketdata.CexIOTicker;
 import com.xeiam.xchange.cexio.dto.marketdata.CexIOTrade;
 import com.xeiam.xchange.currency.CurrencyPair;
+import si.mazi.rescu.RestProxyFactory;
+
+import java.io.IOException;
 
 /**
  * @author timmolter
@@ -37,8 +36,7 @@ public class CexIOMarketDataServiceRaw extends CexIOBasePollingService {
   }
 
   public CexIODepth getCexIOOrderBook(CurrencyPair currencyPair) throws IOException {
-
-    CexIODepth cexIODepth = cexio.getDepth(currencyPair.baseSymbol, currencyPair.counterSymbol);
+    CexIODepth cexIODepth = cexio.getDepth(currencyPair.baseSymbol, currencyPair.counterSymbol, 10);
 
     return cexIODepth;
   }

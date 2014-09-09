@@ -195,6 +195,7 @@ public class CexIOAdapters {
     public static List<LimitOrder> createOrders(CurrencyPair currencyPair, Order.OrderType orderType, List<List<BigDecimal>> orders) {
 
         List<LimitOrder> limitOrders = new ArrayList<LimitOrder>();
+
         for (List<BigDecimal> o : orders) {
             checkArgument(o.size() == 2, "Expected a pair (price, amount) but got {0} elements.", o.size());
             limitOrders.add(createOrder(currencyPair, o, orderType));
