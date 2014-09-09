@@ -386,7 +386,7 @@ public class TraderService {
                         .divide(new BigDecimal("2"), 8, ROUND_HALF_UP);
 
                 if (middlePrice.compareTo(trader.getHigh()) > 0 || middlePrice.compareTo(trader.getLow()) < 0){
-                    broadcast(exchangeType, trader.getPair() + ": Цена за границами диапазона " + middlePrice.toString());
+                    broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": price outside the range " + middlePrice.toString());
 
                     continue;
                 }
@@ -452,15 +452,15 @@ public class TraderService {
 
                             //check ask
                             if (accountInfo.getBalance(currencyPair.counterSymbol).compareTo(randomAskAmount.multiply(middlePrice)) < 0){
-                                broadcast(exchangeType, trader.getPair() + ": Хочу купить " + randomAskAmount.toString()
-                                        + " по цене " + middlePrice.toString());
+                                broadcast(exchangeType,  exchangeType.name() + " " + trader.getPair() + ": Want to buy " + randomAskAmount.toString()
+                                        + " at price" + middlePrice.toString());
 
                                 continue;
                             }
 
                             //check bid
                             if (accountInfo.getBalance(currencyPair.baseSymbol).compareTo(randomBidAmount) < 0){
-                                broadcast(exchangeType, trader.getPair() + ": Чтобы что-то продать надо что-то купить "
+                                broadcast(exchangeType,  exchangeType.name() + " " + trader.getPair() + ": Want to sell "
                                         + randomBidAmount.toString());
                                 continue;
                             }

@@ -113,11 +113,11 @@ public class TraderList extends AbstractPage{
 
         List<IColumn<Trader, String>> list = new ArrayList<>();
 
-        list.add(new PropertyColumn<>(of("Рынок"), "exchange"));
-        list.add(new PropertyColumn<>(of("Монета"), "pair"));
-        list.add(new TraderColumn(of("Баланс"), balanceMap));
-        list.add(new TraderColumn(of("Капитализация"), estimateMap));
-        list.add(new AbstractColumn<Trader, String>(of("Лот")) {
+        list.add(new PropertyColumn<>(of("Exchange"), "exchange"));
+        list.add(new PropertyColumn<>(of("Coin"), "pair"));
+        list.add(new TraderColumn(of("Balance"), balanceMap));
+        list.add(new TraderColumn(of("Estimate"), estimateMap));
+        list.add(new AbstractColumn<Trader, String>(of("Lot")) {
             @Override
             public void populateItem(Item<ICellPopulator<Trader>> cellItem, String componentId, IModel<Trader> rowModel) {
                 Trader trader = rowModel.getObject();
@@ -159,21 +159,21 @@ public class TraderList extends AbstractPage{
                 cellItem.add(new Label(componentId, of(lot)));
             }
         });
-        list.add(new TraderColumn(of("Покупка"), buyMap));
-        list.add(new TraderColumn(of("Продажа"), sellMap));
-        list.add(new TraderColumn(of("Спрос"),askMap));
-        list.add(new TraderColumn(of("Предложение"), bidMap));
-        list.add(new AbstractColumn<Trader, String>(of("Работа")){
+        list.add(new TraderColumn(of("Buy"), buyMap));
+        list.add(new TraderColumn(of("Sell"), sellMap));
+        list.add(new TraderColumn(of("Ask"),askMap));
+        list.add(new TraderColumn(of("Bid"), bidMap));
+        list.add(new AbstractColumn<Trader, String>(of("Active")){
             @Override
             public void populateItem(Item<ICellPopulator<Trader>> cellItem, String componentId, IModel<Trader> rowModel) {
-                cellItem.add(new Label(componentId, Model.of(rowModel.getObject().isRunning() ? "Да" : "Нет")));
+                cellItem.add(new Label(componentId, Model.of(rowModel.getObject().isRunning() ? "1" : "0")));
             }
         });
 
         list.add(new AbstractColumn<Trader, String>(of("")) {
             @Override
             public Component getHeader(String componentId) {
-                return new NavbarAjaxLink<String>(componentId, Model.of("Добавить")) {
+                return new NavbarAjaxLink<String>(componentId, Model.of("Add")) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         setResponsePage(TraderEdit.class);
@@ -183,7 +183,7 @@ public class TraderList extends AbstractPage{
 
             @Override
             public void populateItem(final Item<ICellPopulator<Trader>> cellItem, String componentId, final IModel<Trader> rowModel) {
-                cellItem.add(new NavbarAjaxLink(componentId, Model.of("Редактировать")) {
+                cellItem.add(new NavbarAjaxLink(componentId, Model.of("Edit")) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         setResponsePage(new TraderEdit(new PageParameters().add("id", rowModel.getObject().getId())));
@@ -527,8 +527,8 @@ public class TraderList extends AbstractPage{
                 dataBid.add(new Point(orderVolume.getDate().getTime(), orderVolume.getBidVolume()));
             }
 
-            options.addSeries(new PointSeries().setData(dataAsk).setName("Продажи / час").setColor(new HighchartsColor(3)));
-            options.addSeries(new PointSeries().setData(dataBid).setName("Покупки / час").setColor(new HighchartsColor(2)));
+            options.addSeries(new PointSeries().setData(dataAsk).setName("Buy / hour").setColor(new HighchartsColor(3)));
+            options.addSeries(new PointSeries().setData(dataBid).setName("Sell / hour").setColor(new HighchartsColor(2)));
 
             add(chart3 = new Chart("chart3", options));
         }
@@ -569,7 +569,7 @@ public class TraderList extends AbstractPage{
                         data.add(new Point(time, volumeSum));
                     }
                 }
-                options.addSeries(new PointSeries().setData(data).setName("Прибыль"));
+                options.addSeries(new PointSeries().setData(data).setName("Profit"));
 
                 lastChart4Value = !data.isEmpty() ? (BigDecimal) (data.get(data.size() - 1)).getY() : BigDecimal.ZERO;
             }

@@ -37,17 +37,17 @@ public class TraderEdit extends AbstractPage{
         form.type(FormType.Horizontal);
         add(form);
 
-        form.add(new FormGroup("exchange", of("Рынок")).add(new DropDownChoice<>("exchange",
+        form.add(new FormGroup("exchange", of("Exchange")).add(new DropDownChoice<>("exchange",
                 Arrays.asList(ExchangeType.values())).setRequired(true)));
-        form.add(new FormGroup("pair", of("Пара")).add(new RequiredTextField("pair")));
-        form.add(new FormGroup("high", of("Верх")).add(new RequiredTextField<>("high")));
-        form.add(new FormGroup("low", of("Низ")).add(new RequiredTextField<>("low")));
-        form.add(new FormGroup("volume", of("Объем")).add(new RequiredTextField<>("volume")));
-        form.add(new FormGroup("spread", of("Спред")).add(new RequiredTextField<>("spread")));
-        form.add(new FormGroup("running", of("Работа")).add(new DropDownChoice<>("running",
+        form.add(new FormGroup("pair", of("Pair")).add(new RequiredTextField("pair")));
+        form.add(new FormGroup("high", of("High")).add(new RequiredTextField<>("high")));
+        form.add(new FormGroup("low", of("Low")).add(new RequiredTextField<>("low")));
+        form.add(new FormGroup("volume", of("Volume")).add(new RequiredTextField<>("volume")));
+        form.add(new FormGroup("spread", of("Spread")).add(new RequiredTextField<>("spread")));
+        form.add(new FormGroup("running", of("Active")).add(new DropDownChoice<>("running",
                 Arrays.asList(new Boolean[]{true, false})).setRequired(true)));
 
-        form.add(new BootstrapButton("save", of("Сохранить"), Buttons.Type.Primary){
+        form.add(new BootstrapButton("save", of("Save"), Buttons.Type.Primary){
             @Override
             public void onSubmit() {
                 traderBean.save(traderModel.getObject());
@@ -56,7 +56,7 @@ public class TraderEdit extends AbstractPage{
             }
         });
 
-        form.add(new BootstrapButton("cancel", of("Отмена"), Buttons.Type.Default){
+        form.add(new BootstrapButton("cancel", of("Cancel"), Buttons.Type.Default){
             @Override
             public void onSubmit() {
                 setResponsePage(TraderList.class);
