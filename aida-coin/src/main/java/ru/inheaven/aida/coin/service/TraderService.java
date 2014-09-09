@@ -283,7 +283,7 @@ public class TraderService {
                     if (history.getPair().contains("/LTC")){
                         vol = vol.multiply(ltcBtc.getLast());
                     }else if (history.getPair().contains("/USD")){
-                        vol = vol.divide(btcUsd.getLast());
+                        vol = vol.divide(btcUsd.getLast(), 8, ROUND_HALF_UP);
                     }
 
                     volumes.add(new Volume(vol.setScale(8, ROUND_HALF_UP), history.getDate()));
