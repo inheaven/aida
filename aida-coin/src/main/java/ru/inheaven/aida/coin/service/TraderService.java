@@ -387,7 +387,7 @@ public class TraderService {
             if (trader.isRunning()){
                 OrderBook orderBook = getOrderBook(new ExchangePair(exchangeType, trader.getPair()));
 
-                if (orderBook.getAsks().isEmpty() || orderBook.getBids().isEmpty()){
+                if (orderBook == null || orderBook.getAsks().isEmpty() || orderBook.getBids().isEmpty()){
                     continue;
                 }
 

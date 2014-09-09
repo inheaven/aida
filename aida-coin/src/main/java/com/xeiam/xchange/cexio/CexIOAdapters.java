@@ -104,9 +104,8 @@ public class CexIOAdapters {
         if (depth != null) {
             List<LimitOrder> asks = createOrders(currencyPair, Order.OrderType.ASK, depth.getAsks());
             List<LimitOrder> bids = createOrders(currencyPair, Order.OrderType.BID, depth.getBids());
-            Date date = new Date(depth.getTimestamp() * 1000);
 
-            return new OrderBook(date, asks, bids);
+            return new OrderBook(new Date(), asks, bids);
         }
 
         return null;
