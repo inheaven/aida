@@ -5,7 +5,7 @@ import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.bittrex.v1.BittrexExchange;
 import com.xeiam.xchange.btce.v3.BTCEExchange;
-import com.xeiam.xchange.cexio.CexIOAdapters;
+import com.xeiam.xchange.bter.BTERExchange;
 import com.xeiam.xchange.cexio.CexIOExchange;
 import com.xeiam.xchange.cryptsy.CryptsyExchange;
 import com.xeiam.xchange.currency.CurrencyPair;
@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.coin.cexio.CexIO;
 import ru.inheaven.aida.coin.entity.*;
 import ru.inheaven.aida.coin.util.TraderUtil;
-import si.mazi.rescu.RestProxyFactory;
 
 import javax.ejb.*;
 import java.io.IOException;
@@ -80,6 +79,11 @@ public class TraderService {
         setSecretKey("05e3dbb59c2586df33c12e189382e18cb5de5af736a9a0897b6b23a1bca359b6");
     }});
 
+    private Exchange bterExchange = INSTANCE.createExchange(new ExchangeSpecification(BTERExchange.class){{
+        setApiKey("2DD5DEB3-720C-404C-95FE-84B52369F6E3");
+        setSecretKey("0bf365f96b17f1828736df787c872796be51fe70a588062cc9630c3eedc144ad");
+    }});
+
     public Exchange getExchange(ExchangeType exchangeType){
         switch (exchangeType){
             case BITTREX:
@@ -90,41 +94,39 @@ public class TraderService {
                 return cryptsyExchange;
             case BTCE:
                 return btceExchange;
+            case BTER:
+                return bterExchange;
         }
 
         throw new IllegalArgumentException();
     }
 
-    private OrderBook getCexIOrderBook(CurrencyPair currencyPair) throws IOException {
-        if (cexIO == null){
-            cexIO = RestProxyFactory.createProxy(CexIO.class, "https://cex.io");
-        }
-
-        return  CexIOAdapters.adaptOrderBook(cexIO.getDepth(currencyPair.baseSymbol, currencyPair.counterSymbol, 1),
-                currencyPair);
-    }
-
-    @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/2", minute="*", hour="*", persistent=false)
     public void scheduleBittrexUpdate(){
         scheduleUpdate(BITTREX);
     }
 
-    @Schedule(second = "*/30", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/21", minute="*", hour="*", persistent=false)
     public void scheduleCexIOUpdate(){
         scheduleUpdate(CEXIO);
     }
 
-    @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/5", minute="*", hour="*", persistent=false)
     public void scheduleCryptsyUpdate(){
         scheduleUpdate(CRYPTSY);
     }
 
-    @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/5", minute="*", hour="*", persistent=false)
     public void scheduleBTCEUpdate(){
         scheduleUpdate(BTCE);
     }
 
-    @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/2", minute="*", hour="*", persistent=false)
+    public void scheduleBTERUpdate(){
+        scheduleUpdate(BTER);
+    }
+
+    @Schedule(second = "*/5", minute="*", hour="*", persistent=false)
     public void scheduleBalanceHistory() throws Exception{
         try {
             for (ExchangeType exchangeType : ExchangeType.values()){
@@ -278,8 +280,9 @@ public class TraderService {
     public Volume getVolume(BalanceHistory history){
         Ticker ltcBtc = getTicker(ExchangePair.of(CEXIO, "LTC/BTC"));
         Ticker btcUsd = getTicker(ExchangePair.of(BTCE, "BTC/USD"));
+        Ticker btcCny = getTicker(ExchangePair.of(BTER, "BTC/CNY"));
 
-        if (ltcBtc!= null && btcUsd != null && ltcBtc.getLast() != null && btcUsd.getLast() != null) {
+        try {
             BigDecimal vol = history.getPrevious().getBalance().add(history.getPrevious().getAskAmount())
                     .subtract(history.getBalance().add(history.getAskAmount()))
                     .multiply(history.getPrice());
@@ -288,9 +291,13 @@ public class TraderService {
                 vol = vol.multiply(ltcBtc.getLast());
             } else if (history.getPair().contains("/USD")) {
                 vol = vol.divide(btcUsd.getLast(), 8, ROUND_HALF_UP);
+            } else if (history.getPair().contains("/CNY")) {
+                vol = vol.divide(btcCny.getLast(), 8, ROUND_HALF_UP);
             }
 
             return new Volume(vol, history.getDate());
+        } catch (Exception e) {
+            //ticker loading
         }
 
         return new Volume(ZERO, history.getDate());
@@ -342,14 +349,7 @@ public class TraderService {
 
             if (currencyPair != null) {
                 try {
-                    OrderBook orderBook;
-
-                    switch (exchangeType){
-                        case CEXIO: orderBook = getCexIOrderBook(currencyPair);
-                            break;
-                        default:
-                            orderBook = getExchange(exchangeType).getPollingMarketDataService().getOrderBook(currencyPair);
-                    }
+                    OrderBook orderBook = getExchange(exchangeType).getPollingMarketDataService().getOrderBook(currencyPair);
 
                     orderBook.getBids().sort(new Comparator<LimitOrder>() {
                         @Override
@@ -414,6 +414,9 @@ public class TraderService {
                         break;
                     case "USD":
                         minOrderAmount = new BigDecimal("6.25");
+                        break;
+                    case "CNY":
+                        minOrderAmount = new BigDecimal("13");
                         break;
                 }
 

@@ -50,7 +50,6 @@ import java.util.function.BiConsumer;
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.math.BigDecimal.ZERO;
 import static org.apache.wicket.model.Model.of;
-import static ru.inheaven.aida.coin.entity.ExchangeType.*;
 
 /**
  * @author Anatoly Ivanov java@inheaven.ru
@@ -76,6 +75,7 @@ public class TraderList extends AbstractPage{
     private Component cexioBTC, cexioCoins;
     private Component cryptsyBTC, cryptsyCoins;
     private Component btceBTC, btceCoins;
+    private Component bterBTC, bterCoins;
 
     private Map<ExchangeType, BigDecimal> lastChartValueMap = new HashMap<>();
 
@@ -110,6 +110,9 @@ public class TraderList extends AbstractPage{
 
         add(btceBTC = new Label("btceBTC", Model.of("0")).setOutputMarkupId(true));
         add(btceCoins = new Label("btceCoins", Model.of("0")).setOutputMarkupId(true));
+
+        add(bterBTC = new Label("bterBTC", Model.of("0")).setOutputMarkupId(true));
+        add(bterCoins = new Label("bterCoins", Model.of("0")).setOutputMarkupId(true));
 
         List<IColumn<Trader, String>> list = new ArrayList<>();
 
@@ -223,7 +226,7 @@ public class TraderList extends AbstractPage{
                             }
                         }
 
-                        BigDecimal estimate = new BigDecimal("0");
+                        BigDecimal estimate = ZERO;
 
                         for (Wallet wallet :accountInfo.getWallets()){
                             if (wallet.getCurrency().equals("BTC")){
@@ -239,18 +242,27 @@ public class TraderList extends AbstractPage{
                             }
                         }
 
-                        if (exchangeMessage.getExchangeType().equals(BITTREX)) {
-                            update(handler, bittrexCoins, estimate);
-                            update(handler, bittrexBTC, ((AccountInfo) payload).getBalance("BTC"));
-                        }else if (exchangeMessage.getExchangeType().equals(CEXIO)){
-                            update(handler, cexioCoins, estimate);
-                            update(handler, cexioBTC, ((AccountInfo) payload).getBalance("BTC"));
-                        }else if (exchangeMessage.getExchangeType().equals(CRYPTSY)){
-                            update(handler, cryptsyCoins, estimate);
-                            update(handler, cryptsyBTC, ((AccountInfo) payload).getBalance("BTC"));
-                        }else if (exchangeMessage.getExchangeType().equals(BTCE)){
-                            update(handler, btceCoins, estimate);
-                            update(handler, btceBTC, ((AccountInfo) payload).getBalance("BTC"));
+                        switch (exchangeMessage.getExchangeType()){
+                            case CEXIO:
+                                update(handler, cexioCoins, estimate);
+                                update(handler, cexioBTC, ((AccountInfo) payload).getBalance("BTC"));
+                                break;
+                            case CRYPTSY:
+                                update(handler, cryptsyCoins, estimate);
+                                update(handler, cryptsyBTC, ((AccountInfo) payload).getBalance("BTC"));
+                                break;
+                            case BITTREX:
+                                update(handler, bittrexCoins, estimate);
+                                update(handler, bittrexBTC, ((AccountInfo) payload).getBalance("BTC"));
+                                break;
+                            case BTCE:
+                                update(handler, btceCoins, estimate);
+                                update(handler, btceBTC, ((AccountInfo) payload).getBalance("BTC"));
+                                break;
+                            case BTER:
+                                update(handler, bterCoins, estimate);
+                                update(handler, bterBTC, ((AccountInfo) payload).getBalance("BTC"));
+                                break;
                         }
 
                         //update chart balance
