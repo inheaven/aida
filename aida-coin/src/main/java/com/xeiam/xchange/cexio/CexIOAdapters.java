@@ -101,12 +101,15 @@ public class CexIOAdapters {
      * @return The XChange OrderBook
      */
     public static OrderBook adaptOrderBook(CexIODepth depth, CurrencyPair currencyPair) {
+        if (depth != null) {
+            List<LimitOrder> asks = createOrders(currencyPair, Order.OrderType.ASK, depth.getAsks());
+            List<LimitOrder> bids = createOrders(currencyPair, Order.OrderType.BID, depth.getBids());
+            Date date = new Date(depth.getTimestamp() * 1000);
 
-        List<LimitOrder> asks = createOrders(currencyPair, Order.OrderType.ASK, depth.getAsks());
-        List<LimitOrder> bids = createOrders(currencyPair, Order.OrderType.BID, depth.getBids());
-        Date date = new Date(depth.getTimestamp() * 1000);
+            return new OrderBook(date, asks, bids);
+        }
 
-        return new OrderBook(date, asks, bids);
+        return null;
     }
 
     /**
