@@ -382,11 +382,15 @@ public class TraderList extends AbstractPage{
                                 update(handler, sellMap.get(exchangePair), bigDecimal);
 
                                 //estimate
-                                update(handler, estimateMap.get(exchangePair),
-                                        traderService.getTicker(exchangePair).getLast()
-                                                .multiply(traderService.getAccountInfo(exchangeMessage.getExchangeType())
-                                                        .getBalance(exchangePair.getCurrency()))
-                                                .setScale(8, BigDecimal.ROUND_HALF_UP));
+                                try {
+                                    update(handler, estimateMap.get(exchangePair),
+                                            traderService.getTicker(exchangePair).getLast()
+                                                    .multiply(traderService.getAccountInfo(exchangeMessage.getExchangeType())
+                                                            .getBalance(exchangePair.getCurrency()))
+                                                    .setScale(8, BigDecimal.ROUND_HALF_UP));
+                                } catch (Exception e) {
+                                    //no ticker
+                                }
                             }
                         });
 
@@ -607,7 +611,7 @@ public class TraderList extends AbstractPage{
                         .chain("animate", "{backgroundColor:" + color + "}")
                         .render());
 
-                component.setDefaultModelObject(newValue);
+                component.setDefaultModelObject(newValue.toString());
                 handler.add(component);
             }
         }

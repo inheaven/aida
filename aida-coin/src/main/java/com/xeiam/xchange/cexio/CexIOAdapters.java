@@ -105,6 +105,7 @@ public class CexIOAdapters {
         List<LimitOrder> asks = createOrders(currencyPair, Order.OrderType.ASK, depth.getAsks());
         List<LimitOrder> bids = createOrders(currencyPair, Order.OrderType.BID, depth.getBids());
         Date date = new Date(depth.getTimestamp() * 1000);
+
         return new OrderBook(date, asks, bids);
     }
 
@@ -200,6 +201,7 @@ public class CexIOAdapters {
             checkArgument(o.size() == 2, "Expected a pair (price, amount) but got {0} elements.", o.size());
             limitOrders.add(createOrder(currencyPair, o, orderType));
         }
+
         return limitOrders;
     }
 
