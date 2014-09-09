@@ -279,7 +279,7 @@ public class TraderService {
         Ticker ltcBtc = getTicker(ExchangePair.of(CEXIO, "LTC/BTC"));
         Ticker btcUsd = getTicker(ExchangePair.of(BTCE, "BTC/USD"));
 
-        if (ltcBtc!= null && btcUsd != null) {
+        if (ltcBtc!= null && btcUsd != null && ltcBtc.getLast() != null && btcUsd.getLast() != null) {
             BigDecimal vol = history.getPrevious().getBalance().add(history.getPrevious().getAskAmount())
                     .subtract(history.getBalance().add(history.getAskAmount()))
                     .multiply(history.getPrice());
