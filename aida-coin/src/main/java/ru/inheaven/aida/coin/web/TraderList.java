@@ -166,12 +166,8 @@ public class TraderList extends AbstractPage{
         list.add(new TraderColumn(of("Sell"), sellMap));
         list.add(new TraderColumn(of("Ask"),askMap));
         list.add(new TraderColumn(of("Bid"), bidMap));
-        list.add(new AbstractColumn<Trader, String>(of("Active")){
-            @Override
-            public void populateItem(Item<ICellPopulator<Trader>> cellItem, String componentId, IModel<Trader> rowModel) {
-                cellItem.add(new Label(componentId, Model.of(rowModel.getObject().isRunning() ? "1" : "0")));
-            }
-        });
+        list.add(new PropertyColumn<>(of("High"), "high"));
+        list.add(new PropertyColumn<>(of("Low"), "low"));
 
         list.add(new AbstractColumn<Trader, String>(of("")) {
             @Override
@@ -186,7 +182,7 @@ public class TraderList extends AbstractPage{
 
             @Override
             public void populateItem(final Item<ICellPopulator<Trader>> cellItem, String componentId, final IModel<Trader> rowModel) {
-                cellItem.add(new NavbarAjaxLink(componentId, Model.of("Edit")) {
+                cellItem.add(new NavbarAjaxLink(componentId, Model.of(rowModel.getObject().isRunning() ? "Edit" : "Run")) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         setResponsePage(new TraderEdit(new PageParameters().add("id", rowModel.getObject().getId())));
