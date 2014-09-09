@@ -125,74 +125,78 @@ public class TraderService {
     }
 
     @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
-    public void scheduleBalanceHistory(){
-        for (ExchangeType exchangeType : ExchangeType.values()){
-            AccountInfo accountInfo = getAccountInfo(exchangeType);
-            OpenOrders openOrders = getOpenOrders(exchangeType);
+    public void scheduleBalanceHistory() throws Exception{
+        try {
+            for (ExchangeType exchangeType : ExchangeType.values()){
+                AccountInfo accountInfo = getAccountInfo(exchangeType);
+                OpenOrders openOrders = getOpenOrders(exchangeType);
 
-            if (accountInfo != null && openOrders != null){
-                //check ask amount
-                boolean zero = true;
+                if (accountInfo != null && openOrders != null){
+                    //check ask amount
+                    boolean zero = true;
 
-                for (LimitOrder limitOrder : openOrders.getOpenOrders()){
-                    if (limitOrder.getType().equals(Order.OrderType.ASK)
-                            && limitOrder.getLimitPrice().compareTo(BigDecimal.ZERO) != 0){
-                        zero = false;
-                        break;
+                    for (LimitOrder limitOrder : openOrders.getOpenOrders()){
+                        if (limitOrder.getType().equals(Order.OrderType.ASK)
+                                && limitOrder.getLimitPrice().compareTo(BigDecimal.ZERO) != 0){
+                            zero = false;
+                            break;
+                        }
                     }
-                }
 
-                if (zero){
-                    continue;
-                }
+                    if (zero){
+                        continue;
+                    }
 
-                List<Trader> traders = traderBean.getTraders(exchangeType);
+                    List<Trader> traders = traderBean.getTraders(exchangeType);
 
-                for (Trader trader : traders){
-                    Ticker ticker = getTicker(trader.getExchangePair());
+                    for (Trader trader : traders){
+                        Ticker ticker = getTicker(trader.getExchangePair());
 
-                    if (ticker != null) {
-                        CurrencyPair currencyPair = TraderUtil.getCurrencyPair(trader.getPair());
+                        if (ticker != null) {
+                            CurrencyPair currencyPair = TraderUtil.getCurrencyPair(trader.getPair());
 
-                        BigDecimal askAmount = ZERO;
-                        BigDecimal bidAmount =  ZERO;
+                            BigDecimal askAmount = ZERO;
+                            BigDecimal bidAmount =  ZERO;
 
-                        for (LimitOrder limitOrder : openOrders.getOpenOrders()){
-                            if (currencyPair.equals(limitOrder.getCurrencyPair())){
-                                if (limitOrder.getType().equals(Order.OrderType.ASK)){
-                                    askAmount = askAmount.add(limitOrder.getTradableAmount());
-                                }else{
-                                    bidAmount = bidAmount.add(limitOrder.getTradableAmount());
+                            for (LimitOrder limitOrder : openOrders.getOpenOrders()){
+                                if (currencyPair.equals(limitOrder.getCurrencyPair())){
+                                    if (limitOrder.getType().equals(Order.OrderType.ASK)){
+                                        askAmount = askAmount.add(limitOrder.getTradableAmount());
+                                    }else{
+                                        bidAmount = bidAmount.add(limitOrder.getTradableAmount());
+                                    }
                                 }
                             }
-                        }
 
-                        ExchangePair exchangePair = trader.getExchangePair();
-                        BalanceHistory previous = balanceHistoryMap.get(exchangePair);
+                            ExchangePair exchangePair = trader.getExchangePair();
+                            BalanceHistory previous = balanceHistoryMap.get(exchangePair);
 
-                        BalanceHistory balanceHistory = new BalanceHistory();
-                        balanceHistory.setExchangeType(exchangeType);
-                        balanceHistory.setPair(trader.getPair());
-                        balanceHistory.setBalance(accountInfo.getBalance(trader.getCurrency()));
-                        balanceHistory.setAskAmount(askAmount);
-                        balanceHistory.setBidAmount(bidAmount);
-                        balanceHistory.setPrice(ticker.getLast());
-                        balanceHistory.setPrevious(previous);
+                            BalanceHistory balanceHistory = new BalanceHistory();
+                            balanceHistory.setExchangeType(exchangeType);
+                            balanceHistory.setPair(trader.getPair());
+                            balanceHistory.setBalance(accountInfo.getBalance(trader.getCurrency()));
+                            balanceHistory.setAskAmount(askAmount);
+                            balanceHistory.setBidAmount(bidAmount);
+                            balanceHistory.setPrice(ticker.getLast());
+                            balanceHistory.setPrevious(previous);
 
-                        if (previous != null && !balanceHistory.equals(previous) && balanceHistory.getPrice() != null){
-                            try {
-                                traderBean.save(balanceHistory);
-                            } catch (Exception e) {
-                                log.error("update balance history error", e);
+                            if (previous != null && !balanceHistory.equals(previous) && balanceHistory.getPrice() != null){
+                                try {
+                                    traderBean.save(balanceHistory);
+                                } catch (Exception e) {
+                                    log.error("save balance history error", e);
+                                }
+
+                                broadcast(exchangeType, balanceHistory);
                             }
 
-                            broadcast(exchangeType, balanceHistory);
+                            balanceHistoryMap.put(exchangePair, balanceHistory);
                         }
-
-                        balanceHistoryMap.put(exchangePair, balanceHistory);
                     }
                 }
             }
+        } catch (Exception e) {
+            log.error("schedule balance history error", e);
         }
     }
 
