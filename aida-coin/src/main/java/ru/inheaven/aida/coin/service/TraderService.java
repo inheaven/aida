@@ -351,16 +351,18 @@ public class TraderService {
                 try {
                     OrderBook orderBook = getExchange(exchangeType).getPollingMarketDataService().getOrderBook(currencyPair);
 
-                    orderBook.getBids().sort(new Comparator<LimitOrder>() {
-                        @Override
-                        public int compare(LimitOrder o1, LimitOrder o2) {
-                            return o1.getLimitPrice().compareTo(o2.getLimitPrice());
-                        }
-                    });
+                    if (orderBook != null && !orderBook.getBids().isEmpty()) {
+                        orderBook.getBids().sort(new Comparator<LimitOrder>() {
+                            @Override
+                            public int compare(LimitOrder o1, LimitOrder o2) {
+                                return o1.getLimitPrice().compareTo(o2.getLimitPrice());
+                            }
+                        });
 
-                    orderBookMap.put(new ExchangePair(exchangeType, pair), orderBook);
+                        orderBookMap.put(new ExchangePair(exchangeType, pair), orderBook);
 
-                    broadcast(exchangeType, orderBook);
+                        broadcast(exchangeType, orderBook);
+                    }
                 } catch (Exception e) {
                     log.error("updateOrderBook error", e);
 
@@ -385,7 +387,7 @@ public class TraderService {
             if (trader.isRunning()){
                 OrderBook orderBook = getOrderBook(new ExchangePair(exchangeType, trader.getPair()));
 
-                if (orderBook.getAsks().get(0) == null){
+                if (orderBook.getAsks().isEmpty() || orderBook.getBids().isEmpty()){
                     continue;
                 }
 
