@@ -154,8 +154,8 @@ public class TraderService {
                     if (ticker != null) {
                         CurrencyPair currencyPair = TraderUtil.getCurrencyPair(trader.getPair());
 
-                        BigDecimal askAmount = ZERO;
-                        BigDecimal bidAmount = ZERO;
+                        BigDecimal askAmount = new BigDecimal("0");
+                        BigDecimal bidAmount =  new BigDecimal("0");
 
                         for (LimitOrder limitOrder : openOrders.getOpenOrders()){
                             if (currencyPair.equals(limitOrder.getCurrencyPair())){
@@ -243,11 +243,11 @@ public class TraderService {
             }
 
             if (j == 0 || orderVolume.getDate().getTime() - v.getDate().getTime() > 1000*60*60){
-                return orderVolume;
+                break;
             }
         }
 
-        return null;
+        return orderVolume;
     }
 
     public List<Volume> getVolumes(Date startDate){
