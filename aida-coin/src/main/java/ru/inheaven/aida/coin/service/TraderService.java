@@ -318,7 +318,7 @@ public class TraderService {
         }
     }
 
-    public BigDecimal getMinOrderAmount(String counterSymbol) {
+    public BigDecimal getMinOrderVolume(String counterSymbol) {
         switch (counterSymbol) {
             case "BTC":
                 return new BigDecimal("0.0021");
@@ -435,7 +435,7 @@ public class TraderService {
 
                 BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.013")).setScale(8, ROUND_HALF_DOWN);
 
-                BigDecimal minOrderAmount = getMinOrderAmount(currencyPair.counterSymbol);
+                BigDecimal minOrderAmount = getMinOrderVolume(currencyPair.counterSymbol);
 
                 if (minOrderAmount != null){
                     minOrderAmount = minOrderAmount.divide(middlePrice, 8, ROUND_HALF_UP);
@@ -467,15 +467,19 @@ public class TraderService {
 
                             BigDecimal randomAskAmount = random50(BigDecimal.valueOf(index).multiply(trader.getVolume())
                                     .divide(level, 8, ROUND_HALF_UP));
-                            randomAskAmount = randomAskAmount.compareTo(minOrderAmount) > 0
+                            BigDecimal minRandomAskAmount = random50(minOrderAmount.multiply(BigDecimal.valueOf(index)));
+
+                            randomAskAmount = randomAskAmount.compareTo(minRandomAskAmount) > 0
                                     ? randomAskAmount
-                                    : random50(minOrderAmount.multiply(BigDecimal.valueOf(index)));
+                                    : minRandomAskAmount;
 
                             BigDecimal randomBidAmount = random50(BigDecimal.valueOf(index).multiply(trader.getVolume())
                                     .divide(level, 8, ROUND_HALF_UP));
+                            BigDecimal minRandomBidAmount = random50(minOrderAmount.multiply(BigDecimal.valueOf(index)));
+
                             randomBidAmount = randomBidAmount.compareTo(minOrderAmount) > 0
                                     ? randomBidAmount
-                                    : random50(minOrderAmount.multiply(BigDecimal.valueOf(index)));
+                                    : minRandomBidAmount;
 
                             //check ask
                             if (accountInfo.getBalance(currencyPair.counterSymbol).compareTo(randomAskAmount.multiply(middlePrice)) < 0){
