@@ -527,7 +527,7 @@ public class TraderList extends AbstractPage{
 
             options.setyAxis(new Axis().setTitle(new Title("")));
 
-            options.setPlotOptions(new PlotOptionsChoice().setAreaspline(
+            options.setPlotOptions(new PlotOptionsChoice().setSpline(
                     new PlotOptions()
                             .setFillColor(new LinearGradient(LinearGradient.GradientDirection.VERTICAL))
                             .setMarker(new Marker(false))
