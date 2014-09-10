@@ -314,7 +314,6 @@ public class TraderService {
                 default:
                     return balance.multiply(getTicker(new ExchangePair(exchangeType, currency + "/BTC")).getLast())
                             .setScale(8, ROUND_HALF_UP);
-
             }
         } catch (Exception e) {
             return ZERO;

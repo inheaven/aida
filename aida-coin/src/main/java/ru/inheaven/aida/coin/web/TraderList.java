@@ -432,7 +432,6 @@ public class TraderList extends AbstractPage{
                     .setMarker(new Marker(false))
                     .setLineWidth(1)));
 
-
             for (ExchangeType exchangeType : ExchangeType.values()){
                 AccountInfo accountInfo = traderService.getAccountInfo(exchangeType);
 
