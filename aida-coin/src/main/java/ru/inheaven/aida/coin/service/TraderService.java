@@ -101,7 +101,7 @@ public class TraderService {
         throw new IllegalArgumentException();
     }
 
-    @Schedule(second = "*/2", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
     public void scheduleBittrexUpdate(){
         scheduleUpdate(BITTREX);
     }
@@ -121,7 +121,7 @@ public class TraderService {
         scheduleUpdate(BTCE);
     }
 
-    @Schedule(second = "*/2", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
     public void scheduleBTERUpdate(){
         scheduleUpdate(BTER);
     }
@@ -424,7 +424,6 @@ public class TraderService {
 
                 if (minOrderAmount != null){
                     minOrderAmount = minOrderAmount.divide(middlePrice, 8, ROUND_HALF_UP);
-                    minOrderAmount = random20(minOrderAmount);
                 }else {
                     throw new RuntimeException("null minOrderAmount " + currencyPair.toString());
                 }
@@ -451,17 +450,13 @@ public class TraderService {
                             BigDecimal level = trader.getHigh().subtract(trader.getLow()).divide(spread, 8, ROUND_HALF_UP);
                             BigDecimal delta = spread.divide(new BigDecimal("2"), 8, ROUND_HALF_DOWN);
 
-                            BigDecimal randomAskAmount = random50(
-                                    BigDecimal.valueOf(index)
-                                    .multiply(trader.getVolume())
+                            BigDecimal randomAskAmount = random50(BigDecimal.valueOf(index).multiply(trader.getVolume())
                                     .divide(level, 8, ROUND_HALF_UP));
-                            randomAskAmount = randomAskAmount.compareTo(minOrderAmount) > 0 ? randomAskAmount : minOrderAmount;
+                            randomAskAmount = randomAskAmount.compareTo(minOrderAmount) > 0 ? randomAskAmount : random20(minOrderAmount);
 
-                            BigDecimal randomBidAmount = random50(
-                                    BigDecimal.valueOf(index)
-                                    .multiply(trader.getVolume())
+                            BigDecimal randomBidAmount = random50(BigDecimal.valueOf(index).multiply(trader.getVolume())
                                     .divide(level, 8, ROUND_HALF_UP));
-                            randomBidAmount = randomBidAmount.compareTo(minOrderAmount) > 0 ? randomBidAmount : minOrderAmount;
+                            randomBidAmount = randomBidAmount.compareTo(minOrderAmount) > 0 ? randomBidAmount : random20(minOrderAmount);
 
                             //check ask
                             if (accountInfo.getBalance(currencyPair.counterSymbol).compareTo(randomAskAmount.multiply(middlePrice)) < 0){

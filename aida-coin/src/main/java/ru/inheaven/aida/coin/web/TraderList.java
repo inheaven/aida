@@ -134,6 +134,7 @@ public class TraderList extends AbstractPage{
 
                         BigDecimal minOrderAmount = ZERO;
 
+                        //todo extract min order config
                         switch (trader.getCounterSymbol()) {
                             case "BTC":
                                 minOrderAmount = new BigDecimal("0.0021");
@@ -143,6 +144,9 @@ public class TraderList extends AbstractPage{
                                 break;
                             case "USD":
                                 minOrderAmount = new BigDecimal("6.25");
+                                break;
+                            case "CNY":
+                                minOrderAmount = new BigDecimal("21");
                                 break;
                         }
 
