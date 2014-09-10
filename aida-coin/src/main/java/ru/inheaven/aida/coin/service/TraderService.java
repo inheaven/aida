@@ -452,11 +452,15 @@ public class TraderService {
 
                             BigDecimal randomAskAmount = random50(BigDecimal.valueOf(index).multiply(trader.getVolume())
                                     .divide(level, 8, ROUND_HALF_UP));
-                            randomAskAmount = randomAskAmount.compareTo(minOrderAmount) > 0 ? randomAskAmount : random20(minOrderAmount);
+                            randomAskAmount = randomAskAmount.compareTo(minOrderAmount) > 0
+                                    ? randomAskAmount
+                                    : random50(minOrderAmount.multiply(BigDecimal.valueOf(index)));
 
                             BigDecimal randomBidAmount = random50(BigDecimal.valueOf(index).multiply(trader.getVolume())
                                     .divide(level, 8, ROUND_HALF_UP));
-                            randomBidAmount = randomBidAmount.compareTo(minOrderAmount) > 0 ? randomBidAmount : random20(minOrderAmount);
+                            randomBidAmount = randomBidAmount.compareTo(minOrderAmount) > 0
+                                    ? randomBidAmount
+                                    : random50(minOrderAmount.multiply(BigDecimal.valueOf(index)));
 
                             //check ask
                             if (accountInfo.getBalance(currencyPair.counterSymbol).compareTo(randomAskAmount.multiply(middlePrice)) < 0){
