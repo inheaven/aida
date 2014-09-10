@@ -310,7 +310,7 @@ public class TraderService {
                 case "USD":
                     return balance.divide(getTicker(ExchangePair.of(BTCE, "BTC/USD")).getLast(), 8, ROUND_HALF_UP);
                 case "CNY":
-                    return balance.divide(getTicker(ExchangePair.of(BTCE, "BTC/CNY")).getLast(), 8, ROUND_HALF_UP);
+                    return balance.divide(getTicker(ExchangePair.of(BTER, "BTC/CNY")).getLast(), 8, ROUND_HALF_UP);
                 default:
                     return balance.multiply(getTicker(new ExchangePair(exchangeType, currency + "/BTC")).getLast())
                             .setScale(8, ROUND_HALF_UP);
