@@ -516,7 +516,7 @@ public class TraderList extends AbstractPage{
         //Chart 4
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.AREASPLINE).setHeight(700).setZoomType(ZoomType.X));
+            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(700).setZoomType(ZoomType.X));
             options.setGlobal(new Global().setUseUTC(false));
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
@@ -532,7 +532,7 @@ public class TraderList extends AbstractPage{
                             .setFillColor(new LinearGradient(LinearGradient.GradientDirection.VERTICAL))
                             .setMarker(new Marker(false))
                             .setLineWidth(1)
-                            .setTurboThreshold(100000)));
+                            .setTurboThreshold(20000)));
 
             {
                 List<Point> data = new ArrayList<>();
