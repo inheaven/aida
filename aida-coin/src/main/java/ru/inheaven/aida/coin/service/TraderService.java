@@ -278,29 +278,47 @@ public class TraderService {
     }
 
     public Volume getVolume(BalanceHistory history){
-        Ticker ltcBtc = getTicker(ExchangePair.of(CEXIO, "LTC/BTC"));
-        Ticker btcUsd = getTicker(ExchangePair.of(BTCE, "BTC/USD"));
-        Ticker btcCny = getTicker(ExchangePair.of(BTER, "BTC/CNY"));
+        return new Volume(getEstimateVolume(history.getPair(), history.getPrevious().getBalance()
+                .add(history.getPrevious().getAskAmount())
+                .subtract(history.getBalance().add(history.getAskAmount()))
+                .multiply(history.getPrice())), history.getDate());
+    }
 
+    public BigDecimal getEstimateVolume(String pair, BigDecimal volume){
         try {
-            BigDecimal vol = history.getPrevious().getBalance().add(history.getPrevious().getAskAmount())
-                    .subtract(history.getBalance().add(history.getAskAmount()))
-                    .multiply(history.getPrice());
-
-            if (history.getPair().contains("/LTC")) {
-                vol = vol.multiply(ltcBtc.getLast());
-            } else if (history.getPair().contains("/USD")) {
-                vol = vol.divide(btcUsd.getLast(), 8, ROUND_HALF_UP);
-            } else if (history.getPair().contains("/CNY")) {
-                vol = vol.divide(btcCny.getLast(), 8, ROUND_HALF_UP);
+            if (pair.contains("BTC/")){
+                return volume;
+            }else if (pair.contains("/LTC")) {
+                return volume.multiply(getTicker(ExchangePair.of(CEXIO, "LTC/BTC")).getLast());
+            } else if (pair.contains("/USD")) {
+                return volume.divide(getTicker(ExchangePair.of(BTCE, "BTC/USD")).getLast(), 8, ROUND_HALF_UP);
+            } else if (pair.contains("/CNY")) {
+                return volume.divide(getTicker(ExchangePair.of(BTER, "BTC/CNY")).getLast(), 8, ROUND_HALF_UP);
             }
-
-            return new Volume(vol, history.getDate());
         } catch (Exception e) {
-            //ticker loading
+            //no ticker
         }
 
-        return new Volume(ZERO, history.getDate());
+        return ZERO;
+    }
+
+    public BigDecimal getEstimateBalance(ExchangeType exchangeType, String currency, BigDecimal balance){
+        try {
+            switch (currency){
+                case "BTC":
+                    return balance;
+                case "USD":
+                    return balance.divide(getTicker(ExchangePair.of(BTCE, "BTC/USD")).getLast(), 8, ROUND_HALF_UP);
+                case "CNY":
+                    return balance.divide(getTicker(ExchangePair.of(BTCE, "BTC/CNY")).getLast(), 8, ROUND_HALF_UP);
+                default:
+                    return balance.multiply(getTicker(new ExchangePair(exchangeType, currency + "/BTC")).getLast())
+                            .setScale(8, ROUND_HALF_UP);
+
+            }
+        } catch (Exception e) {
+            return ZERO;
+        }
     }
 
     private void scheduleUpdate(ExchangeType exchangeType){

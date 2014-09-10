@@ -143,15 +143,11 @@ public final class BTERAdapters {
         List<Wallet> wallets = new ArrayList<Wallet>();
 
         for (Entry<String, BigDecimal> funds : bterAccountInfo.getAvailableFunds().entrySet()) {
-            String currency = funds.getKey().toUpperCase();
-            BigDecimal amount = funds.getValue();
-            wallets.add(new Wallet(currency, amount, "available"));
+            wallets.add(new Wallet(funds.getKey().toUpperCase(), funds.getValue(), "available"));
         }
 
         for (Entry<String, BigDecimal> funds : bterAccountInfo.getLockedFunds().entrySet()) {
-            String currency = funds.getKey().toUpperCase();
-            BigDecimal amount = funds.getValue();
-            wallets.add(new Wallet(currency, amount, "orders"));
+            wallets.add(new Wallet(funds.getKey().toUpperCase(), funds.getValue(), "orders"));
         }
 
         return new AccountInfo("", wallets);

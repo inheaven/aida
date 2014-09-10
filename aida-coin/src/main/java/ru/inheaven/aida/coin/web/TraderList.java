@@ -11,7 +11,6 @@ import com.googlecode.wickedcharts.wicket6.highcharts.JsonRendererFactory;
 import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.marketdata.OrderBook;
-import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.OpenOrders;
 import com.xeiam.xchange.dto.trade.Wallet;
@@ -228,18 +227,9 @@ public class TraderList extends AbstractPage{
 
                         BigDecimal estimate = ZERO;
 
-                        for (Wallet wallet :accountInfo.getWallets()){
-                            if (wallet.getCurrency().equals("BTC")){
-                                estimate  = estimate.add(wallet.getBalance());
-                            }else {
-                                try {
-                                    Ticker ticker = traderService.getTicker(new ExchangePair(exchangeMessage.getExchangeType(),
-                                            wallet.getCurrency() + "/BTC"));
-                                    estimate = estimate.add(wallet.getBalance().multiply(ticker.getLast()).setScale(8, ROUND_HALF_UP));
-                                } catch (Exception e) {
-                                    //no ticker
-                                }
-                            }
+                        for (Wallet wallet : accountInfo.getWallets()){
+                            estimate = estimate.add(traderService.getEstimateBalance(exchangeMessage.getExchangeType(),
+                                    wallet.getCurrency(), wallet.getBalance()));
                         }
 
                         switch (exchangeMessage.getExchangeType()){
@@ -450,16 +440,7 @@ public class TraderList extends AbstractPage{
 
                 if (accountInfo != null) {
                     for (Wallet wallet :accountInfo.getWallets()){
-                        if (wallet.getCurrency().equals("BTC")){
-                            value  = value.add(wallet.getBalance());
-                        }else {
-                            try {
-                                Ticker ticker = traderService.getTicker(new ExchangePair(exchangeType, wallet.getCurrency() + "/BTC"));
-                                value = value.add(wallet.getBalance().multiply(ticker.getLast()).setScale(8, ROUND_HALF_UP));
-                            } catch (Exception e) {
-                                //no ticker
-                            }
-                        }
+                        value = value.add(traderService.getEstimateBalance(exchangeType, wallet.getCurrency(), wallet.getBalance()));
                     }
                 }
 
