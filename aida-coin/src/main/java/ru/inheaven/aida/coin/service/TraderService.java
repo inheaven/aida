@@ -325,7 +325,7 @@ public class TraderService {
             case "LTC":
                 return new BigDecimal("0.021");
             case "USD":
-                return new BigDecimal("6.25");
+                return new BigDecimal("13");
             case "CNY":
                 return new BigDecimal("21");
 
