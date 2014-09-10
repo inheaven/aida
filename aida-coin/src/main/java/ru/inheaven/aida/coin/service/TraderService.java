@@ -409,16 +409,16 @@ public class TraderService {
 
                 switch (currencyPair.counterSymbol) {
                     case "BTC":
-                        minOrderAmount = new BigDecimal("0.0013");
+                        minOrderAmount = new BigDecimal("0.0021");
                         break;
                     case "LTC":
-                        minOrderAmount = new BigDecimal("0.013");
+                        minOrderAmount = new BigDecimal("0.021");
                         break;
                     case "USD":
                         minOrderAmount = new BigDecimal("6.25");
                         break;
                     case "CNY":
-                        minOrderAmount = new BigDecimal("13");
+                        minOrderAmount = new BigDecimal("21");
                         break;
                 }
 
