@@ -318,6 +318,21 @@ public class TraderService {
         }
     }
 
+    public BigDecimal getMinOrderAmount(String counterSymbol) {
+        switch (counterSymbol) {
+            case "BTC":
+                return new BigDecimal("0.0021");
+            case "LTC":
+                return new BigDecimal("0.021");
+            case "USD":
+                return new BigDecimal("6.25");
+            case "CNY":
+                return new BigDecimal("21");
+
+            default: return null;
+        }
+    }
+
     private void scheduleUpdate(ExchangeType exchangeType){
         try {
             updateBalance(exchangeType);
@@ -420,22 +435,7 @@ public class TraderService {
 
                 BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.013")).setScale(8, ROUND_HALF_DOWN);
 
-                BigDecimal minOrderAmount = null;
-
-                switch (currencyPair.counterSymbol) {
-                    case "BTC":
-                        minOrderAmount = new BigDecimal("0.0013");
-                        break;
-                    case "LTC":
-                        minOrderAmount = new BigDecimal("0.013");
-                        break;
-                    case "USD":
-                        minOrderAmount = new BigDecimal("6.25");
-                        break;
-                    case "CNY":
-                        minOrderAmount = new BigDecimal("13");
-                        break;
-                }
+                BigDecimal minOrderAmount = getMinOrderAmount(currencyPair.counterSymbol);
 
                 if (minOrderAmount != null){
                     minOrderAmount = minOrderAmount.divide(middlePrice, 8, ROUND_HALF_UP);
