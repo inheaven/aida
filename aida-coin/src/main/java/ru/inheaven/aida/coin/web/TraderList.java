@@ -220,7 +220,8 @@ public class TraderList extends AbstractPage{
 
                         switch (exchangeMessage.getExchangeType()){
                             case CEXIO:
-                                if (accountInfo.getBalance("GHS").equals(ZERO)|| accountInfo.getBalance("USD").equals(ZERO)){
+                                if (accountInfo.getBalance("GHS").compareTo(ZERO) == 0
+                                        || accountInfo.getBalance("USD").compareTo(ZERO) == 0){
                                     return;
                                 }
 
