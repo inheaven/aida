@@ -9,7 +9,6 @@ import com.googlecode.wickedcharts.highcharts.options.series.PointSeries;
 import com.googlecode.wickedcharts.wicket6.highcharts.Chart;
 import com.googlecode.wickedcharts.wicket6.highcharts.JsonRendererFactory;
 import com.xeiam.xchange.currency.CurrencyPair;
-import com.xeiam.xchange.dto.Order;
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.marketdata.OrderBook;
 import com.xeiam.xchange.dto.trade.LimitOrder;
@@ -234,13 +233,10 @@ public class TraderList extends AbstractPage{
                                 break;
                             case BTCE:
                                 OpenOrders openOrders = traderService.getOpenOrders(ExchangeType.BTCE);
-
                                 for (LimitOrder limitOrder : openOrders.getOpenOrders()){
-                                    if (limitOrder.getType().equals(Order.OrderType.ASK)){
-                                        estimate = estimate.add(traderService.getEstimateVolume(
-                                                TraderUtil.getPair(limitOrder.getCurrencyPair()),
-                                                limitOrder.getTradableAmount()));
-                                    }
+                                    estimate = estimate.add(traderService.getEstimateVolume(
+                                            TraderUtil.getPair(limitOrder.getCurrencyPair()),
+                                            limitOrder.getTradableAmount()));
                                 }
 
                                 update(handler, btceCoins, estimate);
