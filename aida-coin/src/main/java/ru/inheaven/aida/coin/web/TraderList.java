@@ -603,6 +603,6 @@ public class TraderList extends AbstractPage{
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
-        response.render(CssHeaderItem.forReference(new PackageResourceReference("TableList.css")));
+        response.render(CssHeaderItem.forReference(new PackageResourceReference(TraderList.class, "TraderList.css")));
     }
 }

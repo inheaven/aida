@@ -1,32 +1,32 @@
-table {
+.table_scroll table {
     width: 100%;
 }
 
-thead, tbody, tr, td, th { display: block; }
+.table_scroll thead, tbody, tr, td, th { display: block; }
 
-tr:after {
+.table_scroll tr:after {
     content: ' ';
     display: block;
     visibility: hidden;
     clear: both;
 }
 
-thead th {
+.table_scroll thead th {
     /*height: 30px;*/
 
     /*text-align: left;*/
 }
 
-tbody {
+.table_scroll tbody {
     height: 500px;
     overflow-y: auto;
 }
 
-thead {
+.table_scroll thead {
     /* fallback */
 }
 
-tbody td, thead th {
+.table_scroll tbody td, .table_scroll thead th {
     width: 8.3%;
     float: left;
 }
