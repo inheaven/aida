@@ -9,6 +9,7 @@ import com.googlecode.wickedcharts.highcharts.options.series.PointSeries;
 import com.googlecode.wickedcharts.wicket6.highcharts.Chart;
 import com.googlecode.wickedcharts.wicket6.highcharts.JsonRendererFactory;
 import com.xeiam.xchange.currency.CurrencyPair;
+import com.xeiam.xchange.dto.Order;
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.marketdata.OrderBook;
 import com.xeiam.xchange.dto.trade.LimitOrder;
@@ -40,6 +41,7 @@ import org.odlabs.wiquery.ui.effects.HighlightEffectJavaScriptResourceReference;
 import ru.inheaven.aida.coin.entity.*;
 import ru.inheaven.aida.coin.service.TraderBean;
 import ru.inheaven.aida.coin.service.TraderService;
+import ru.inheaven.aida.coin.util.TraderUtil;
 
 import javax.ejb.EJB;
 import java.math.BigDecimal;
@@ -231,6 +233,16 @@ public class TraderList extends AbstractPage{
                                 update(handler, bittrexBTC, ((AccountInfo) payload).getBalance("BTC"));
                                 break;
                             case BTCE:
+                                OpenOrders openOrders = traderService.getOpenOrders(ExchangeType.BTCE);
+
+                                for (LimitOrder limitOrder : openOrders.getOpenOrders()){
+                                    if (limitOrder.getType().equals(Order.OrderType.ASK)){
+                                        estimate = estimate.add(traderService.getEstimateVolume(
+                                                TraderUtil.getPair(limitOrder.getCurrencyPair()),
+                                                limitOrder.getTradableAmount()));
+                                    }
+                                }
+
                                 update(handler, btceCoins, estimate);
                                 update(handler, btceBTC, ((AccountInfo) payload).getBalance("BTC"));
                                 break;
