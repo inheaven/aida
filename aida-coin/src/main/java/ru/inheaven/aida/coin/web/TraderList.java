@@ -220,6 +220,10 @@ public class TraderList extends AbstractPage{
 
                         switch (exchangeMessage.getExchangeType()){
                             case CEXIO:
+                                if (accountInfo.getBalance("GHS").equals(ZERO)|| accountInfo.getBalance("USD").equals(ZERO)){
+                                    return;
+                                }
+
                                 update(handler, cexioCoins, estimate);
                                 update(handler, cexioBTC, ((AccountInfo) payload).getBalance("BTC"));
                                 break;
