@@ -361,7 +361,10 @@ public class TraderService {
 
             if (currencyPair != null) {
                 Ticker ticker = getExchange(exchangeType).getPollingMarketDataService().getTicker(currencyPair);
-                tickerMap.put(new ExchangePair(exchangeType, pair), ticker);
+
+                if (ticker.getLast() != null && ticker.getLast().compareTo(ZERO) != 0) {
+                    tickerMap.put(new ExchangePair(exchangeType, pair), ticker);
+                }
 
                 broadcast(exchangeType, ticker);
             }

@@ -259,9 +259,8 @@ public class TraderList extends AbstractPage{
                             Point point = new Point(chartIndex++, estimate);
                             JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
                             String jsonPoint = renderer.toJson(point);
-                            String javaScript = "var chartVarName = " + chart.getJavaScriptVarName() + ";\n";
-                            javaScript += "var seriesIndex = " + exchangeMessage.getExchangeType().ordinal() + ";\n";
-                            javaScript += "eval(chartVarName).series[seriesIndex].addPoint(" + jsonPoint + ", true, true);\n";
+                            String javaScript = "eval("+chart.getJavaScriptVarName()+").series["
+                                    +exchangeMessage.getExchangeType().ordinal()+"].addPoint(" + jsonPoint + ", true, true);";
 
                             handler.appendJavaScript(javaScript);
 
@@ -286,19 +285,16 @@ public class TraderList extends AbstractPage{
 //
 //                                handler.appendJavaScript(javaScript);
 
-
-                                if (orderVolume.getAskVolume().compareTo(ZERO) != 0) {
-                                    String javaScript = "var chartVarName = " + chart3.getJavaScriptVarName() + ";";
-                                    javaScript += "eval(chartVarName).series[" + 0 + "].addPoint("
+                                {
+                                    String javaScript = "eval("+chart3.getJavaScriptVarName()+").series[" + 0 + "].addPoint("
                                             + renderer.toJson(new Point(orderVolume.getDate().getTime(), orderVolume.getAskVolume()))
                                             + ", true, true);";
 
                                     handler.appendJavaScript(javaScript);
                                 }
 
-                                if (orderVolume.getBidVolume().compareTo(ZERO) != 0) {
-                                    String javaScript = "var chartVarName = " + chart3.getJavaScriptVarName() + ";";
-                                    javaScript += "eval(chartVarName).series[" + 1 + "].addPoint("
+                                {
+                                    String javaScript = "eval("+chart3.getJavaScriptVarName()+").series[" + 1 + "].addPoint("
                                             + renderer.toJson(new Point(orderVolume.getDate().getTime(), orderVolume.getBidVolume()))
                                             + ", true, true);";
 
@@ -310,8 +306,7 @@ public class TraderList extends AbstractPage{
 
                                 lastChart4Value = lastChart4Value.add(volume.getVolume());
 
-                                String javaScript = "var chartVarName = " + chart4.getJavaScriptVarName() + ";";
-                                javaScript += "eval(chartVarName).series[" + 0 + "].addPoint("
+                                String javaScript = "eval("+chart4.getJavaScriptVarName()+").series[" + 0 + "].addPoint("
                                         + renderer.toJson(new Point(System.currentTimeMillis(), lastChart4Value))
                                         + ", true, true);";
 
