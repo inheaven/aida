@@ -281,7 +281,7 @@ public class TraderService {
         return new Volume(getEstimateVolume(history.getPair(), history.getPrevious().getBalance()
                 .add(history.getPrevious().getAskAmount())
                 .subtract(history.getBalance().add(history.getAskAmount()))
-                .multiply(history.getPrice())), history.getDate());
+                .multiply(history.getPrice().subtract(history.getPrevious().getPrice()))), history.getDate());
     }
 
     public BigDecimal getEstimateVolume(String pair, BigDecimal volume){
