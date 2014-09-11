@@ -242,7 +242,7 @@ public class TraderList extends AbstractPage{
                                 for (LimitOrder limitOrder : openOrders.getOpenOrders()){
                                     estimate = estimate.add(traderService.getEstimateVolume(
                                             TraderUtil.getPair(limitOrder.getCurrencyPair()),
-                                            limitOrder.getTradableAmount()));
+                                            limitOrder.getTradableAmount().multiply(limitOrder.getLimitPrice())));
                                 }
 
                                 update(handler, btceCoins, estimate);
@@ -511,8 +511,8 @@ public class TraderList extends AbstractPage{
                 dataBid.add(new Point(orderVolume.getDate().getTime(), orderVolume.getBidVolume()));
             }
 
-            options.addSeries(new PointSeries().setData(dataAsk).setName("Sell / hour").setColor(new HighchartsColor(3)));
-            options.addSeries(new PointSeries().setData(dataBid).setName("Buy / hour").setColor(new HighchartsColor(2)));
+            options.addSeries(new PointSeries().setData(dataAsk).setName("Sell/hr").setColor(new HighchartsColor(3)));
+            options.addSeries(new PointSeries().setData(dataBid).setName("Buy/hr").setColor(new HighchartsColor(2)));
 
             add(chart3 = new Chart("chart3", options));
         }

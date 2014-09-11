@@ -286,7 +286,9 @@ public class TraderService {
 
     public BigDecimal getEstimateVolume(String pair, BigDecimal volume){
         try {
-            if (pair.contains("/LTC")) {
+            if (pair.contains("/BTC")) {
+                return volume.setScale(8, ROUND_HALF_UP);
+            }else if (pair.contains("/LTC")) {
                 return volume.multiply(getTicker(ExchangePair.of(CEXIO, "LTC/BTC")).getLast());
             } else if (pair.contains("/USD")) {
                 return volume.divide(getTicker(ExchangePair.of(BTCE, "BTC/USD")).getLast(), 8, ROUND_HALF_UP);
