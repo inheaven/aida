@@ -26,6 +26,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
@@ -36,7 +37,9 @@ import org.apache.wicket.protocol.ws.api.WebSocketRequestHandler;
 import org.apache.wicket.protocol.ws.api.message.IWebSocketPushMessage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
+import org.apache.wicket.util.time.Duration;
 import org.odlabs.wiquery.core.javascript.JsStatement;
+import org.odlabs.wiquery.ui.effects.HighlightEffectJavaScriptResourceReference;
 import ru.inheaven.aida.coin.entity.*;
 import ru.inheaven.aida.coin.service.TraderBean;
 import ru.inheaven.aida.coin.service.TraderService;
@@ -92,7 +95,7 @@ public class TraderList extends AbstractPage{
     public TraderList() {
         setVersioned(false);
 
-        notificationPanel = new NotificationPanel("notification");
+        notificationPanel = new NotificationPanel("notification").hideAfter(Duration.ONE_MINUTE);
         notificationPanel.setMaxMessages(3);
         notificationPanel.setOutputMarkupId(true);
         add(notificationPanel);
@@ -605,5 +608,6 @@ public class TraderList extends AbstractPage{
         super.renderHead(response);
 
         response.render(CssHeaderItem.forReference(new PackageResourceReference(TraderList.class, "TraderList.css")));
+        response.render(JavaScriptHeaderItem.forReference(HighlightEffectJavaScriptResourceReference.get()));
     }
 }
