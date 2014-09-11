@@ -389,6 +389,13 @@ public class TraderService {
                             }
                         });
 
+                        orderBook.getAsks().sort(new Comparator<LimitOrder>() {
+                            @Override
+                            public int compare(LimitOrder o1, LimitOrder o2) {
+                                return o1.getLimitPrice().compareTo(o2.getLimitPrice());
+                            }
+                        });
+
                         orderBookMap.put(new ExchangePair(exchangeType, pair), orderBook);
 
                         broadcast(exchangeType, orderBook);
@@ -435,13 +442,7 @@ public class TraderService {
 
                 BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.013")).setScale(8, ROUND_HALF_DOWN);
 
-                BigDecimal minOrderAmount = getMinOrderVolume(currencyPair.counterSymbol);
-
-                if (minOrderAmount != null){
-                    minOrderAmount = minOrderAmount.divide(middlePrice, 8, ROUND_HALF_UP);
-                }else {
-                    throw new RuntimeException("null minOrderAmount " + currencyPair.toString());
-                }
+                BigDecimal minOrderAmount = getMinOrderVolume(currencyPair.counterSymbol).divide(middlePrice, 8, ROUND_HALF_UP);
 
                 for (int index : Arrays.asList(1, 2, 3, 5, 8)) {
                     BigDecimal spread = trader.getSpread().multiply(BigDecimal.valueOf(index));

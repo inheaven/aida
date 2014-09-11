@@ -1,8 +1,5 @@
 package com.xeiam.xchange.bittrex.v1.service.polling;
 
-import java.io.IOException;
-import java.util.List;
-
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.bittrex.v1.BittrexAdapters;
 import com.xeiam.xchange.bittrex.v1.BittrexUtils;
@@ -14,6 +11,9 @@ import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.dto.marketdata.Trades;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.service.polling.PollingMarketDataService;
+
+import java.io.IOException;
+import java.util.List;
 
 /**
  * <p>
@@ -47,7 +47,7 @@ public class BittrexMarketDataService extends BittrexMarketDataServiceRaw implem
   @Override
   public OrderBook getOrderBook(CurrencyPair currencyPair, Object... args) throws IOException {
 
-    int depth = 50;
+    int depth = 10;
 
     if (args.length > 0) {
       if (args[0] instanceof Integer) {
