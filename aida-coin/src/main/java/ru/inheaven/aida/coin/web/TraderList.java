@@ -79,6 +79,7 @@ public class TraderList extends AbstractPage{
     private Map<ExchangeType, BigDecimal> lastChartValueMap = new HashMap<>();
 
     private BigDecimal lastChart4Value = BigDecimal.ZERO;
+    private long lastChart4Time = System.currentTimeMillis();
 
     private Chart chart, chart2, chart3, chart4;
 
@@ -136,7 +137,7 @@ public class TraderList extends AbstractPage{
                         minOrderAmount = minOrderAmount.divide(price, 8, ROUND_HALF_UP);
 
                         lot = trader.getVolume().divide(trader.getHigh().subtract(trader.getLow()).divide(trader.getSpread(),
-                                        8, ROUND_HALF_UP), 8, ROUND_HALF_UP);
+                                8, ROUND_HALF_UP), 8, ROUND_HALF_UP);
 
                         lot = lot.compareTo(minOrderAmount) > 0 ? lot : minOrderAmount;
 
@@ -254,12 +255,13 @@ public class TraderList extends AbstractPage{
                         }
                     }else if (payload instanceof BalanceHistory){
                         BalanceHistory balanceHistory = (BalanceHistory) payload;
-                        Volume volume = traderService.getVolume(balanceHistory);
 
-                        if (volume != null) {
-                            JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
+                        if (System.currentTimeMillis() - lastChart4Time > 1000*60){
+                            lastChart4Time = System.currentTimeMillis();
 
                             OrderVolume orderVolume = traderService.getOrderVolumeRate();
+
+                            JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
 
                             //update chart order rate
                             if (orderVolume.getVolume().compareTo(ZERO) != 0) {
@@ -288,17 +290,19 @@ public class TraderList extends AbstractPage{
 
                                     handler.appendJavaScript(javaScript);
                                 }
+
+                                //chart4
+                                Volume volume = traderService.getVolume(balanceHistory);
+
+                                lastChart4Value = lastChart4Value.add(volume.getVolume());
+
+                                String javaScript = "var chartVarName = " + chart4.getJavaScriptVarName() + ";";
+                                javaScript += "eval(chartVarName).series[" + 0 + "].addPoint("
+                                        + renderer.toJson(new Point(System.currentTimeMillis(), lastChart4Value))
+                                        + ", true, true);";
+
+                                handler.appendJavaScript(javaScript);
                             }
-
-                            //chart4
-                            lastChart4Value = lastChart4Value.add(volume.getVolume());
-
-                            String javaScript = "var chartVarName = " + chart4.getJavaScriptVarName() + ";";
-                            javaScript += "eval(chartVarName).series["+ 0 +"].addPoint("
-                                    + renderer.toJson(new Point(System.currentTimeMillis(), lastChart4Value))
-                                    + ", true, true);";
-
-                            handler.appendJavaScript(javaScript);
                         }
 
                     }else if (payload instanceof OrderBook) {
