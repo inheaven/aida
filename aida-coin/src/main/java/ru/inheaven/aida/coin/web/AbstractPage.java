@@ -31,6 +31,6 @@ public abstract class AbstractPage extends WebPage {
     }
 
     protected String getTitle(){
-        return title;
+        return title.toUpperCase();
     }
 }
