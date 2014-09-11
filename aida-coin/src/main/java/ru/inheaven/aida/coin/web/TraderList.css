@@ -1,32 +1,5 @@
-.table_scroll table {
-    width: 100%;
-}
-
-.table_scroll thead, tbody, tr, td, th { display: block; }
-
-.table_scroll tr:after {
-    content: ' ';
-    display: block;
-    visibility: hidden;
-    clear: both;
-}
-
-.table_scroll thead th {
-    /*height: 30px;*/
-
-    /*text-align: left;*/
-}
-
-.table_scroll tbody {
+.body_scroll{
+    overflow-y: scroll;
+    overflow-x: hidden;
     height: 500px;
-    overflow-y: auto;
-}
-
-.table_scroll thead {
-    /* fallback */
-}
-
-.table_scroll tbody td, .table_scroll thead th {
-    width: 8.3%;
-    float: left;
 }
