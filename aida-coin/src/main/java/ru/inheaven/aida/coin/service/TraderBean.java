@@ -72,7 +72,7 @@ public class TraderBean {
     }
 
     public List<BalanceHistory> getBalanceHistories(Date startDate){
-        return em.createQuery("select h from BalanceHistory h where h.date >= :startDate", BalanceHistory.class)
+        return em.createQuery("select h from BalanceHistory h where h.date >= :startDate order by h.date asc", BalanceHistory.class)
                 .setParameter("startDate", startDate)
                 .getResultList();
     }

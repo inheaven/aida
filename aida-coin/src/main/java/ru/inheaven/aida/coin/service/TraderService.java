@@ -221,6 +221,10 @@ public class TraderService {
                 } else {
                     orderVolume.addBidVolume(v.getVolume().abs());
                 }
+
+                if (j == 0 || orderVolume.getDate().getTime() - v.getDate().getTime() > 1000*60*60){
+                    break;
+                }
             }
         }
 
@@ -241,10 +245,6 @@ public class TraderService {
                 orderVolume.addAskVolume(v.getVolume());
             } else {
                 orderVolume.addBidVolume(v.getVolume().abs());
-            }
-
-            if (j == 0 || orderVolume.getDate().getTime() - v.getDate().getTime() > 1000*60*60){
-                break;
             }
         }
 
