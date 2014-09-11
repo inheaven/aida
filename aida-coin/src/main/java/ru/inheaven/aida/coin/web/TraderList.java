@@ -186,8 +186,7 @@ public class TraderList extends AbstractPage{
             protected List<Trader> getData() {
                 return traderBean.getTraders();
             }
-        }, 100);
-        table.setTableBodyCss("body_scroll");
+        }, 500);
         table.setOutputMarkupId(true);
         table.addTopToolbar(new HeadersToolbar<>(table, null));
         table.add(new TableBehavior().bordered().condensed());
