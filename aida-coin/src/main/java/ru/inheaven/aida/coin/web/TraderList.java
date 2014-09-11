@@ -14,8 +14,6 @@ import com.xeiam.xchange.dto.marketdata.OrderBook;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.OpenOrders;
 import com.xeiam.xchange.dto.trade.Wallet;
-import de.agilecoders.wicket.core.markup.html.bootstrap.button.BootstrapLink;
-import de.agilecoders.wicket.core.markup.html.bootstrap.button.Buttons;
 import de.agilecoders.wicket.core.markup.html.bootstrap.common.NotificationPanel;
 import de.agilecoders.wicket.core.markup.html.bootstrap.image.GlyphIconType;
 import de.agilecoders.wicket.core.markup.html.bootstrap.navbar.NavbarAjaxLink;
@@ -187,7 +185,7 @@ public class TraderList extends AbstractPage{
         DataTable<Trader, String> table = new DataTable<>("traders", list, new ListDataProvider<Trader>(){
             @Override
             protected List<Trader> getData() {
-                return traderBean.getTraders();
+                return traderBean.getLiquidTraders();
             }
         }, 500);
         table.setOutputMarkupId(true);
@@ -223,11 +221,9 @@ public class TraderList extends AbstractPage{
 
                         switch (exchangeMessage.getExchangeType()){
                             case CEXIO:
-                                for (Wallet wallet : accountInfo.getWallets()){
-                                    if (wallet.getCurrency().equals("BTC") && wallet.getDescription().equals("orders")
-                                            && wallet.getBalance().compareTo(ZERO) == 0){
-                                        return;
-                                    }
+                                if (accountInfo.getBalance("GHS").compareTo(ZERO) == 0
+                                        || accountInfo.getBalance("USD").compareTo(ZERO) == 0){
+                                    return;
                                 }
 
                                 update(handler, cexioCoins, estimate);
@@ -403,22 +399,6 @@ public class TraderList extends AbstractPage{
                 }
             }
         });
-
-        Label testLabel =  new Label("test_label", of(""));
-        testLabel.setOutputMarkupId(true);
-        add(testLabel);
-
-        add(new BootstrapLink<String>("test", Buttons.Type.Link) {
-            @Override
-            public void onClick() {
-
-            }
-
-            @Override
-            public boolean isVisible() {
-                return false;
-            }
-        }.setIconType(GlyphIconType.warningsign).setLabel(of("test")));
 
         //Chart
         {
