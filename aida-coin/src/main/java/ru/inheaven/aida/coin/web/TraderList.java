@@ -223,9 +223,11 @@ public class TraderList extends AbstractPage{
 
                         switch (exchangeMessage.getExchangeType()){
                             case CEXIO:
-                                if (accountInfo.getBalance("GHS").compareTo(ZERO) == 0
-                                        || accountInfo.getBalance("USD").compareTo(ZERO) == 0){
-                                    return;
+                                for (Wallet wallet : accountInfo.getWallets()){
+                                    if (wallet.getCurrency().equals("BTC") && wallet.getDescription().equals("orders")
+                                            && wallet.getBalance().compareTo(ZERO) == 0){
+                                        return;
+                                    }
                                 }
 
                                 update(handler, cexioCoins, estimate);
