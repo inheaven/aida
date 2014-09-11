@@ -209,6 +209,7 @@ public class TraderService {
 
         for (int i = 0; i < volumes.size(); ++i){
             OrderVolume orderVolume = new OrderVolume(volumes.get(i).getDate());
+            orderVolumes.add(orderVolume);
 
             for (int j = i; j >= 0; --j){
                 Volume v = volumes.get(j);
@@ -219,12 +220,6 @@ public class TraderService {
                     orderVolume.addAskVolume(v.getVolume());
                 } else {
                     orderVolume.addBidVolume(v.getVolume().abs());
-                }
-
-                if (j == 0 || orderVolume.getDate().getTime() - v.getDate().getTime() > 1000*60*60){
-                    orderVolumes.add(orderVolume);
-
-                    break;
                 }
             }
         }
