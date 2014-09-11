@@ -27,8 +27,9 @@ public class TraderBean {
 
     public List<Trader> getLiquidTraders(){
         return em.createQuery("select distinct t from Trader t left join BalanceHistory h " +
-                "on (h.exchangeType = t.exchange and h.pair = t.pair) " +
-                "group by h.exchangeType, h.pair order by count(h.id) desc", Trader.class).getResultList();
+                "on (h.exchangeType = t.exchange and h.pair = t.pair) where h.date > :date " +
+                "group by h.exchangeType, h.pair order by count(h.id) desc", Trader.class)
+                .setParameter("date", new Date(System.currentTimeMillis() - 1000*60*60*24)).getResultList();
     }
 
     public List<Trader> getTraders(ExchangeType exchangeType){
