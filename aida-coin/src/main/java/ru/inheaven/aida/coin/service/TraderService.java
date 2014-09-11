@@ -289,7 +289,7 @@ public class TraderService {
             if (pair.contains("/BTC")) {
                 return volume.setScale(8, ROUND_HALF_UP);
             }else if (pair.contains("/LTC")) {
-                return volume.multiply(getTicker(ExchangePair.of(CEXIO, "LTC/BTC")).getLast());
+                return volume.multiply(getTicker(ExchangePair.of(CEXIO, "LTC/BTC")).getLast()).setScale(8, ROUND_HALF_UP);
             } else if (pair.contains("/USD")) {
                 return volume.divide(getTicker(ExchangePair.of(BTCE, "BTC/USD")).getLast(), 8, ROUND_HALF_UP);
             } else if (pair.contains("/CNY")) {
