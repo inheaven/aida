@@ -410,10 +410,10 @@ public class TraderList extends AbstractPage{
             }
         }.setIconType(GlyphIconType.warningsign).setLabel(of("test")));
 
-        //Chart todo add btc history db
+        //Chart
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(500));
+            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(300));
             options.setGlobal(new Global().setUseUTC(false));
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
@@ -495,7 +495,7 @@ public class TraderList extends AbstractPage{
         //Chart 3
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(500).setZoomType(ZoomType.X));
+            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(300).setZoomType(ZoomType.X));
             options.setGlobal(new Global().setUseUTC(false));
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
@@ -528,7 +528,7 @@ public class TraderList extends AbstractPage{
         //Chart 4
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(700).setZoomType(ZoomType.X));
+            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(300).setZoomType(ZoomType.X));
             options.setGlobal(new Global().setUseUTC(false));
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
