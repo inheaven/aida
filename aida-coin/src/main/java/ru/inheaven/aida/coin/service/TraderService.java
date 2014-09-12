@@ -443,7 +443,7 @@ public class TraderService {
 
                 CurrencyPair currencyPair = getCurrencyPair(trader.getPair());
 
-                BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.013")).setScale(8, ROUND_HALF_DOWN);
+                BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.021")).setScale(8, ROUND_HALF_DOWN);
 
                 BigDecimal minOrderAmount = getMinOrderVolume(currencyPair.counterSymbol).divide(middlePrice, 8, ROUND_HALF_UP);
 
