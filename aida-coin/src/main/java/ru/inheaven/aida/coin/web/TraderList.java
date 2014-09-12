@@ -442,6 +442,7 @@ public class TraderList extends AbstractPage{
 
         List<OrderVolume> filteredOrderVolumes = new ArrayList<>();
         long time = 0L;
+
         for (OrderVolume orderVolume : orderVolumes){
             if (orderVolume.getDate().getTime() - time > 1000*60){
                 filteredOrderVolumes.add(orderVolume);
@@ -541,6 +542,7 @@ public class TraderList extends AbstractPage{
 
                 BigDecimal volumeSum = BigDecimal.ZERO;
 
+                time = 0;
                 for (Volume volume : volumes){
                     volumeSum = volumeSum.add(volume.getVolume());
 
