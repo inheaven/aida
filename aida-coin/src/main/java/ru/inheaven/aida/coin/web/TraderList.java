@@ -448,9 +448,22 @@ public class TraderList extends AbstractPage{
 //                lastChartValueMap.put(exchangeType, value);
 //            }
 
+
+            BigDecimal sum = BigDecimal.ZERO;
+
+            for (ExchangeType exchangeType : ExchangeType.values()){
+                AccountInfo accountInfo = traderService.getAccountInfo(exchangeType);
+
+                if (accountInfo != null) {
+                    for (Wallet wallet :accountInfo.getWallets()){
+                        sum = sum.add(traderService.getEstimateBalance(exchangeType, wallet.getCurrency(), wallet.getBalance()));
+                    }
+                }
+            }
+
             List<Point> data = new ArrayList<>();
                 for (int i = 0; i < 500; ++i) {
-                    data.add(new Point(System.currentTimeMillis(), 0));
+                    data.add(new Point(System.currentTimeMillis(), sum));
                 }
 
                 options.addSeries(new PointSeries().setData(data).setName("Equity"));
