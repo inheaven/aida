@@ -257,19 +257,26 @@ public class TraderList extends AbstractPage{
                         }
 
                         //sumEstimate
-                        update(handler, sumEstimate, new BigDecimal(cexioCoins.getDefaultModelObjectAsString())
+                        BigDecimal sum = new BigDecimal(cexioCoins.getDefaultModelObjectAsString())
                                 .add(new BigDecimal(cryptsyCoins.getDefaultModelObjectAsString()))
                                 .add(new BigDecimal(bittrexCoins.getDefaultModelObjectAsString()))
                                 .add(new BigDecimal(btceCoins.getDefaultModelObjectAsString()))
-                                .add(new BigDecimal(bterBTC.getDefaultModelObjectAsString())));
+                                .add(new BigDecimal(bterBTC.getDefaultModelObjectAsString()))
+                                .setScale(8, ROUND_HALF_UP);
+
+                        update(handler, sumEstimate, sum);
 
                         //update chart balance
-                        if (lastChartValueMap.get(exchangeMessage.getExchangeType()).compareTo(estimate) != 0) {
-                            Point point = new Point(chartIndex++, estimate);
+                        BigDecimal lastChartValue = lastChartValueMap.get(exchangeMessage.getExchangeType());
+                        if (lastChartValue != null && lastChartValue.compareTo(estimate) != 0) {
+                            Point point = new Point(System.currentTimeMillis(), estimate);
                             JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
                             String jsonPoint = renderer.toJson(point);
+//                            String javaScript = "eval("+chart.getJavaScriptVarName()+").series["
+//                                    +exchangeMessage.getExchangeType().ordinal()+"].addPoint(" + jsonPoint + ", true, true);";
+
                             String javaScript = "eval("+chart.getJavaScriptVarName()+").series["
-                                    +exchangeMessage.getExchangeType().ordinal()+"].addPoint(" + jsonPoint + ", true, true);";
+                                    + 0 +"].addPoint(" + jsonPoint + ", true, true);";
 
                             handler.appendJavaScript(javaScript);
 
@@ -414,7 +421,7 @@ public class TraderList extends AbstractPage{
             options.setTitle(new Title(""));
             //options.setLegend(new Legend(Boolean.FALSE));
 
-            options.setxAxis(new Axis().setType(AxisType.LINEAR));
+            options.setxAxis(new Axis().setType(AxisType.DATETIME));
 
             options.setyAxis(new Axis().setTitle(new Title("")));
 
@@ -422,26 +429,33 @@ public class TraderList extends AbstractPage{
                     .setMarker(new Marker(false))
                     .setLineWidth(1)));
 
-            for (ExchangeType exchangeType : ExchangeType.values()){
-                AccountInfo accountInfo = traderService.getAccountInfo(exchangeType);
+//            for (ExchangeType exchangeType : ExchangeType.values()){
+//                AccountInfo accountInfo = traderService.getAccountInfo(exchangeType);
+//
+//                BigDecimal value = BigDecimal.ZERO;
+//
+//                if (accountInfo != null) {
+//                    for (Wallet wallet :accountInfo.getWallets()){
+//                        value = value.add(traderService.getEstimateBalance(exchangeType, wallet.getCurrency(), wallet.getBalance()));
+//                    }
+//                }
+//
+//                List<Point> data = new ArrayList<>();
+//                for (int i = 0; i < 500; ++i) {
+//                    data.add(new Point(0, value));
+//                }
+//
+//                options.addSeries(new PointSeries().setData(data).setName(exchangeType.name()));
+//
+//                lastChartValueMap.put(exchangeType, value);
+//            }
 
-                BigDecimal value = BigDecimal.ZERO;
-
-                if (accountInfo != null) {
-                    for (Wallet wallet :accountInfo.getWallets()){
-                        value = value.add(traderService.getEstimateBalance(exchangeType, wallet.getCurrency(), wallet.getBalance()));
-                    }
+            List<Point> data = new ArrayList<>();
+                for (int i = 0; i < 24*60*60; ++i) {
+                    data.add(new Point(0, System.currentTimeMillis()));
                 }
 
-                List<Point> data = new ArrayList<>();
-                for (int i = 0; i < 500; ++i) {
-                    data.add(new Point(0, value));
-                }
-
-                options.addSeries(new PointSeries().setData(data).setName(exchangeType.name()));
-
-                lastChartValueMap.put(exchangeType, value);
-            }
+                options.addSeries(new PointSeries().setData(data).setName("Estimate"));
 
             add(chart = new Chart("chart", options));
         }
