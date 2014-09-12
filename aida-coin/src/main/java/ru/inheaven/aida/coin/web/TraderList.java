@@ -76,6 +76,7 @@ public class TraderList extends AbstractPage{
     private Component cryptsyBTC, cryptsyCoins;
     private Component btceBTC, btceCoins;
     private Component bterBTC, bterCoins;
+    private Component sumEstimate;
 
     private Map<ExchangeType, BigDecimal> lastChartValueMap = new HashMap<>();
 
@@ -92,13 +93,15 @@ public class TraderList extends AbstractPage{
     public TraderList() {
         setVersioned(false);
 
-        notificationPanel = new NotificationPanel("notification").hideAfter(Duration.ONE_MINUTE);
+        notificationPanel = new NotificationPanel("notification").hideAfter(Duration.seconds(15));
         notificationPanel.setMaxMessages(3);
         notificationPanel.setOutputMarkupId(true);
         add(notificationPanel);
 
         add(new Label("header", of(getTitle())));
+
         add(new Label("tradersCount", of(traderBean.getTradersCount())));
+        add(sumEstimate = new Label("sumEstimate", Model.of("0")).setOutputMarkupId(true));
 
         add(bittrexBTC = new Label("bittrexBTC", Model.of("0")).setOutputMarkupId(true));
         add(bittrexCoins = new Label("bittrexCoins", Model.of("0")).setOutputMarkupId(true));
@@ -252,6 +255,12 @@ public class TraderList extends AbstractPage{
                                 update(handler, bterBTC, ((AccountInfo) payload).getBalance("BTC"));
                                 break;
                         }
+
+                        //sumEstimate
+                        update(handler, sumEstimate, new BigDecimal(cexioCoins.getDefaultModelObjectAsString())
+                                .add(new BigDecimal(cryptsyCoins.getDefaultModelObjectAsString()))
+                                .add(new BigDecimal(btceCoins.getDefaultModelObjectAsString()))
+                                .add(new BigDecimal(bterBTC.getDefaultModelObjectAsString())));
 
                         //update chart balance
                         if (lastChartValueMap.get(exchangeMessage.getExchangeType()).compareTo(estimate) != 0) {
