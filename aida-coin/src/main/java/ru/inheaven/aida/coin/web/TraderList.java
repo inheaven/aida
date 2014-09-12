@@ -451,7 +451,7 @@ public class TraderList extends AbstractPage{
 //            }
 
             List<Point> data = new ArrayList<>();
-                for (int i = 0; i < 24*60*60; ++i) {
+                for (int i = 0; i < 24*60; ++i) {
                     data.add(new Point(0, System.currentTimeMillis()));
                 }
 
