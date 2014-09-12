@@ -254,19 +254,21 @@ public class TraderService {
     public List<Volume> getVolumes(Date startDate){
         List<Volume> volumes = new ArrayList<>();
 
-        Map<String, BalanceHistory> previousMap = new HashMap<>();
+        Map<ExchangePair, BalanceHistory> previousMap = new HashMap<>();
 
         List<BalanceHistory> balanceHistories = traderBean.getBalanceHistories(startDate);
 
         for (BalanceHistory history : balanceHistories){
-            BalanceHistory previous = previousMap.get(history.getPair());
+            ExchangePair exchangePair = ExchangePair.of(history.getExchangeType(), history.getPair());
+
+            BalanceHistory previous = previousMap.get(exchangePair);
 
             if (previous != null && previous.getBalance().compareTo(history.getBalance()) != 0) {
                 history.setPrevious(previous);
                 volumes.add(getVolume(history));
             }
 
-            previousMap.put(history.getPair(), history);
+            previousMap.put(exchangePair, history);
         }
 
         return volumes;
