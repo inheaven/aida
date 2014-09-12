@@ -339,7 +339,6 @@ public class TraderService {
             tradeAlpha(exchangeType);
         } catch (Exception e) {
             log.error("Schedule update error", e);
-            e.printStackTrace();
 
             //noinspection ThrowableResultOfMethodCallIgnored
             broadcast(exchangeType, Throwables.getRootCause(e).getMessage());
@@ -368,7 +367,9 @@ public class TraderService {
                     ticker = getExchange(exchangeType).getPollingMarketDataService().getTicker(currencyPair);
                 }
 
-                if (ticker.getLast() != null && ticker.getBid() != null && ticker.getAsk() != null) {
+                if (ticker.getLast() != null && ticker.getBid() != null && ticker.getAsk() != null
+                        && ticker.getLast().compareTo(ZERO) > 0 && ticker.getBid().compareTo(ZERO) > 0
+                        && ticker.getAsk().compareTo(ZERO) > 0) {
                     tickerMap.put(new ExchangePair(exchangeType, pair), ticker);
 
                     broadcast(exchangeType, ticker);
