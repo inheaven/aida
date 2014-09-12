@@ -259,6 +259,7 @@ public class TraderList extends AbstractPage{
                         //sumEstimate
                         update(handler, sumEstimate, new BigDecimal(cexioCoins.getDefaultModelObjectAsString())
                                 .add(new BigDecimal(cryptsyCoins.getDefaultModelObjectAsString()))
+                                .add(new BigDecimal(bittrexCoins.getDefaultModelObjectAsString()))
                                 .add(new BigDecimal(btceCoins.getDefaultModelObjectAsString()))
                                 .add(new BigDecimal(bterBTC.getDefaultModelObjectAsString())));
 
