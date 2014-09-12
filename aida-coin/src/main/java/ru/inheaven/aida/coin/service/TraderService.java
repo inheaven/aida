@@ -448,8 +448,7 @@ public class TraderService {
                 BigDecimal minOrderAmount = getMinOrderVolume(currencyPair.counterSymbol).divide(middlePrice, 8, ROUND_HALF_UP);
 
                 for (int index : Arrays.asList(1, 2, 3, 5, 8)) {
-                    BigDecimal spread = trader.getSpread().multiply(BigDecimal.valueOf(index));
-                    spread = spread.compareTo(minSpread) > 0 ? spread : minSpread.multiply(BigDecimal.valueOf(index));
+                    BigDecimal spread = minSpread.multiply(BigDecimal.valueOf(index));
 
                     boolean hasOrder = false;
 
@@ -466,19 +465,16 @@ public class TraderService {
                         AccountInfo accountInfo = getAccountInfo(exchangeType);
 
                         try {
-                            BigDecimal level = trader.getHigh().subtract(trader.getLow()).divide(spread, 8, ROUND_HALF_UP);
                             BigDecimal delta = spread.divide(new BigDecimal("2"), 8, ROUND_HALF_DOWN);
 
-                            BigDecimal randomAskAmount = random50(BigDecimal.valueOf(index).multiply(trader.getVolume())
-                                    .divide(level, 8, ROUND_HALF_UP));
+                            BigDecimal randomAskAmount = ZERO;
                             BigDecimal minRandomAskAmount = random50(minOrderAmount.multiply(BigDecimal.valueOf(index)));
 
                             randomAskAmount = randomAskAmount.compareTo(minRandomAskAmount) > 0
                                     ? randomAskAmount
                                     : minRandomAskAmount;
 
-                            BigDecimal randomBidAmount = random50(BigDecimal.valueOf(index).multiply(trader.getVolume())
-                                    .divide(level, 8, ROUND_HALF_UP));
+                            BigDecimal randomBidAmount = ZERO;
                             BigDecimal minRandomBidAmount = random50(minOrderAmount.multiply(BigDecimal.valueOf(index)));
 
                             randomBidAmount = randomBidAmount.compareTo(minOrderAmount) > 0

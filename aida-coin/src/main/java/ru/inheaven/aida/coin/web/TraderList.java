@@ -354,29 +354,32 @@ public class TraderList extends AbstractPage{
                         countBuyMap.forEach(new BiConsumer<ExchangePair, BigDecimal>() {
                             @Override
                             public void accept(ExchangePair exchangePair, BigDecimal bigDecimal) {
-                                update(handler, buyMap.get(exchangePair), bigDecimal);
+                                Ticker ticker = traderService.getTicker(exchangePair);
+
+                                if (ticker != null) {
+                                    update(handler, buyMap.get(exchangePair), bigDecimal.multiply(ticker.getLast()
+                                            .setScale(8, ROUND_HALF_UP)));
+                                }
                             }
                         });
 
                         countSellMap.forEach(new BiConsumer<ExchangePair, BigDecimal>() {
                             @Override
                             public void accept(ExchangePair exchangePair, BigDecimal bigDecimal) {
-                                update(handler, sellMap.get(exchangePair), bigDecimal);
+                                Ticker ticker = traderService.getTicker(exchangePair);
 
-                                //estimate
-                                try {
-                                    update(handler, estimateMap.get(exchangePair),
-                                            traderService.getTicker(exchangePair).getLast()
-                                                    .multiply(traderService.getAccountInfo(exchangeMessage.getExchangeType())
-                                                            .getBalance(exchangePair.getCurrency()))
-                                                    .setScale(8, BigDecimal.ROUND_HALF_UP));
-                                } catch (Exception e) {
-                                    //no ticker
+                                if (ticker != null) {
+                                    update(handler, sellMap.get(exchangePair), bigDecimal.multiply(ticker.getLast()
+                                            .setScale(8, ROUND_HALF_UP)));
+
+                                    update(handler, estimateMap.get(exchangePair),ticker.getLast()
+                                            .multiply(traderService.getAccountInfo(exchangeMessage.getExchangeType())
+                                                    .getBalance(exchangePair.getCurrency()))
+                                            .setScale(8, BigDecimal.ROUND_HALF_UP));
                                 }
+
                             }
                         });
-
-
                     }else if (payload instanceof String){
                         if ("Cryptsy returned an error: Unable to Authorize Request - Check Your Post Data".equals(payload)){
                             return;
