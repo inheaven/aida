@@ -432,20 +432,32 @@ public class TraderService {
         for (Trader trader : traders){
             if (trader.isRunning()){
                 Ticker ticker = getTicker(new ExchangePair(exchangeType, trader.getPair()));
+                CurrencyPair currencyPair = getCurrencyPair(trader.getPair());
 
                 if (ticker == null){
                     continue;
                 }
 
-                BigDecimal middlePrice = ticker.getAsk().add(ticker.getBid()).divide(new BigDecimal("2"), 8, ROUND_HALF_UP);
+                BigDecimal middlePrice;
+
+                switch (currencyPair.counterSymbol){
+                    case "BC":
+                        try {
+                            middlePrice = getTicker(new ExchangePair(BITTREX, currencyPair.baseSymbol + "/BTC")).getLast()
+                                    .divide(getTicker(new ExchangePair(BITTREX, "BC/BTC")).getLast(), 8 , ROUND_HALF_UP);
+                        } catch (Exception e) {
+                            continue;
+                        }
+                        break;
+                    default:
+                        middlePrice = ticker.getAsk().add(ticker.getBid()).divide(new BigDecimal("2"), 8, ROUND_HALF_UP);
+                }
 
                 if (middlePrice.compareTo(trader.getHigh()) > 0 || middlePrice.compareTo(trader.getLow()) < 0){
                     broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": Price outside the range " + middlePrice.toString());
 
                     continue;
                 }
-
-                CurrencyPair currencyPair = getCurrencyPair(trader.getPair());
 
                 BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.021")).setScale(8, ROUND_HALF_DOWN);
 
