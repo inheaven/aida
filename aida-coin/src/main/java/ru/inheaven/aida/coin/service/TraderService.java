@@ -333,7 +333,6 @@ public class TraderService {
     private void scheduleUpdate(ExchangeType exchangeType){
         try {
             updateBalance(exchangeType);
-            updateOrderBook(exchangeType);
             updateOpenOrders(exchangeType);
             updateTicker(exchangeType);
 
@@ -422,15 +421,13 @@ public class TraderService {
 
         for (Trader trader : traders){
             if (trader.isRunning()){
-                OrderBook orderBook = getOrderBook(new ExchangePair(exchangeType, trader.getPair()));
+                Ticker ticker = getTicker(new ExchangePair(exchangeType, trader.getPair()));
 
-                if (orderBook == null || orderBook.getAsks().isEmpty() || orderBook.getBids().isEmpty()){
+                if (ticker == null || ticker.getAsk() == null || ticker.getBid() == null){
                     continue;
                 }
 
-                BigDecimal middlePrice = orderBook.getAsks().get(0).getLimitPrice()
-                        .add(orderBook.getBids().get(orderBook.getBids().size()-1).getLimitPrice())
-                        .divide(new BigDecimal("2"), 8, ROUND_HALF_UP);
+                BigDecimal middlePrice = ticker.getAsk().add(ticker.getBid()).divide(new BigDecimal("2"), 8, ROUND_HALF_UP);
 
                 if (middlePrice.compareTo(trader.getHigh()) > 0 || middlePrice.compareTo(trader.getLow()) < 0){
                     broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": Price outside the range " + middlePrice.toString());

@@ -8,9 +8,8 @@ import com.googlecode.wickedcharts.highcharts.options.series.Point;
 import com.googlecode.wickedcharts.highcharts.options.series.PointSeries;
 import com.googlecode.wickedcharts.wicket6.highcharts.Chart;
 import com.googlecode.wickedcharts.wicket6.highcharts.JsonRendererFactory;
-import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.dto.account.AccountInfo;
-import com.xeiam.xchange.dto.marketdata.OrderBook;
+import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.OpenOrders;
 import com.xeiam.xchange.dto.trade.Wallet;
@@ -129,10 +128,10 @@ public class TraderList extends AbstractPage{
                 BigDecimal lot = new BigDecimal("0");
 
                 try {
-                    OrderBook orderBook = traderService.getOrderBook(trader.getExchangePair());
+                    Ticker ticker = traderService.getTicker(trader.getExchangePair());
 
-                    if (orderBook != null ){
-                        BigDecimal price = orderBook.getAsks().get(0).getLimitPrice();
+                    if (ticker != null ){
+                        BigDecimal price = ticker.getLast();
 
                         BigDecimal minOrderAmount = traderService.getMinOrderVolume(trader.getCounterSymbol());
 
@@ -314,20 +313,16 @@ public class TraderList extends AbstractPage{
                             }
                         }
 
-                    }else if (payload instanceof OrderBook) {
-                        OrderBook orderBook = (OrderBook) exchangeMessage.getPayload();
+                    }else if (payload instanceof Ticker) {
+                        Ticker ticker = (Ticker) exchangeMessage.getPayload();
 
-                        BigDecimal askPrice =  orderBook.getAsks().get(0).getLimitPrice();
-
-                        CurrencyPair currencyPair = orderBook.getAsks().get(0).getCurrencyPair();
-                        ExchangePair exchangePair = ExchangePair.of(exchangeMessage.getExchangeType(), currencyPair);
+                        ExchangePair exchangePair = ExchangePair.of(exchangeMessage.getExchangeType(), ticker.getCurrencyPair());
 
                         //ask
-                        update(handler, askMap.get(exchangePair), askPrice);
+                        update(handler, askMap.get(exchangePair), ticker.getAsk());
 
                         //bid
-                        update(handler, bidMap.get(exchangePair), orderBook.getBids().get(orderBook.getBids().size()-1)
-                                .getLimitPrice());
+                        update(handler, bidMap.get(exchangePair), ticker.getBid());
                     }else if (payload instanceof OpenOrders){
                         OpenOrders openOrders = (OpenOrders) exchangeMessage.getPayload();
 
