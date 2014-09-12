@@ -268,7 +268,7 @@ public class TraderList extends AbstractPage{
 
                         //update chart balance
                         BigDecimal lastChartValue = lastChartValueMap.get(exchangeMessage.getExchangeType());
-                        if (lastChartValue != null && lastChartValue.compareTo(estimate) != 0) {
+                        if (lastChartValue == null || lastChartValue.compareTo(estimate) != 0) {
                             Point point = new Point(System.currentTimeMillis(), estimate);
                             JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
                             String jsonPoint = renderer.toJson(point);
@@ -451,8 +451,8 @@ public class TraderList extends AbstractPage{
 //            }
 
             List<Point> data = new ArrayList<>();
-                for (int i = 0; i < 24*60; ++i) {
-                    data.add(new Point(0, System.currentTimeMillis()));
+                for (int i = 0; i < 500; ++i) {
+                    data.add(new Point(System.currentTimeMillis(), 0));
                 }
 
                 options.addSeries(new PointSeries().setData(data).setName("Estimate"));
