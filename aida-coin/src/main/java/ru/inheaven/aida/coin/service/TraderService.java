@@ -232,7 +232,7 @@ public class TraderService {
     }
 
     public OrderVolume getOrderVolumeRate(){
-        List<Volume> volumes = getVolumes(new Date(System.currentTimeMillis() - 1000*60*60));
+        List<Volume> volumes = getVolumes(new Date(System.currentTimeMillis() - 1000*60*60*24));
 
         OrderVolume orderVolume = new OrderVolume(new Date());
 
@@ -245,6 +245,10 @@ public class TraderService {
                 orderVolume.addAskVolume(v.getVolume());
             } else {
                 orderVolume.addBidVolume(v.getVolume().abs());
+            }
+
+            if (j == 0 || orderVolume.getDate().getTime() - v.getDate().getTime() > 1000*60*60){
+                break;
             }
         }
 
