@@ -289,6 +289,8 @@ public class TraderService {
                 return volume.divide(getTicker(ExchangePair.of(BTCE, "BTC/USD")).getLast(), 8, ROUND_HALF_UP);
             } else if (pair.contains("/CNY")) {
                 return volume.divide(getTicker(ExchangePair.of(BTER, "BTC/CNY")).getLast(), 8, ROUND_HALF_UP);
+            } else if (pair.contains("/BC")) {
+                return volume.divide(getTicker(ExchangePair.of(BITTREX, "BTC/BC")).getLast(), 8, ROUND_HALF_UP);
             }
         } catch (Exception e) {
             //no ticker
@@ -306,6 +308,8 @@ public class TraderService {
                     return balance.divide(getTicker(ExchangePair.of(BTCE, "BTC/USD")).getLast(), 8, ROUND_HALF_UP);
                 case "CNY":
                     return balance.divide(getTicker(ExchangePair.of(BTER, "BTC/CNY")).getLast(), 8, ROUND_HALF_UP);
+                case "BC":
+                    return balance.divide(getTicker(ExchangePair.of(BITTREX, "BTC/BC")).getLast(), 8, ROUND_HALF_UP);
                 default:
                     return balance.multiply(getTicker(new ExchangePair(exchangeType, currency + "/BTC")).getLast())
                             .setScale(8, ROUND_HALF_UP);
@@ -324,6 +328,8 @@ public class TraderService {
             case "USD":
                 return new BigDecimal("13");
             case "CNY":
+                return new BigDecimal("21");
+            case "BC":
                 return new BigDecimal("21");
 
             default: return null;
