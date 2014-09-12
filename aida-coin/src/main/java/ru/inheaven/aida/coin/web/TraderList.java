@@ -273,9 +273,8 @@ public class TraderList extends AbstractPage{
 //                            String javaScript = "eval("+chart.getJavaScriptVarName()+").series["
 //                                    +exchangeMessage.getExchangeType().ordinal()+"].addPoint(" + jsonPoint + ", true, true);";
 
-                            String javaScript = "eval("+chart.getJavaScriptVarName()+").series["
-                                    + 0 +"].addPoint(" + renderer.toJson(new Point(System.currentTimeMillis(), sum))
-                                    + ", true, true);";
+                            String javaScript = "eval("+chart.getJavaScriptVarName()+").series[" + 0 +"].addPoint("
+                                    + renderer.toJson(new Point(System.currentTimeMillis(), sum)) + ", true, true);";
 
                             handler.appendJavaScript(javaScript);
 
@@ -454,7 +453,7 @@ public class TraderList extends AbstractPage{
                     data.add(new Point(System.currentTimeMillis(), 0));
                 }
 
-                options.addSeries(new PointSeries().setData(data).setName("Estimate"));
+                options.addSeries(new PointSeries().setData(data).setName("Equity"));
 
             add(chart = new Chart("chart", options));
         }
