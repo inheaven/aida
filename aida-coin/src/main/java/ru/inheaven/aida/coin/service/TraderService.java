@@ -339,6 +339,7 @@ public class TraderService {
             tradeAlpha(exchangeType);
         } catch (Exception e) {
             log.error("Schedule update error", e);
+            e.printStackTrace();
 
             //noinspection ThrowableResultOfMethodCallIgnored
             broadcast(exchangeType, Throwables.getRootCause(e).getMessage());
@@ -359,7 +360,7 @@ public class TraderService {
             CurrencyPair currencyPair = getCurrencyPair(pair);
 
             if (currencyPair != null) {
-                Ticker ticker = null;
+                Ticker ticker;
 
                 if (CRYPTSY.equals(exchangeType)) {
                     ticker = ((CryptsyExchange)cryptsyExchange).getPublicPollingMarketDataService().getTicker(currencyPair);
@@ -367,7 +368,7 @@ public class TraderService {
                     ticker = getExchange(exchangeType).getPollingMarketDataService().getTicker(currencyPair);
                 }
 
-                if (ticker.getLast() != null && ticker.getLast().compareTo(ZERO) != 0 && ticker.getBid() != null && ticker.getAsk() != null) {
+                if (ticker.getLast() != null && ticker.getBid() != null && ticker.getAsk() != null) {
                     tickerMap.put(new ExchangePair(exchangeType, pair), ticker);
 
                     broadcast(exchangeType, ticker);
@@ -429,7 +430,7 @@ public class TraderService {
             if (trader.isRunning()){
                 Ticker ticker = getTicker(new ExchangePair(exchangeType, trader.getPair()));
 
-                if (ticker == null || ticker.getAsk() == null || ticker.getBid() == null){
+                if (ticker == null){
                     continue;
                 }
 
