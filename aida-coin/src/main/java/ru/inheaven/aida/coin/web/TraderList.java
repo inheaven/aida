@@ -437,7 +437,7 @@ public class TraderList extends AbstractPage{
         }
 
         //Chart 2
-        long startDate = System.currentTimeMillis() - 1000 * 60 * 60 * 12;
+        long startDate = System.currentTimeMillis() - 1000 * 60 * 60 * 24;
         List<OrderVolume> orderVolumes = traderService.getOrderVolumeRates(new Date(startDate));
 
         List<OrderVolume> filteredOrderVolumes = new ArrayList<>();
