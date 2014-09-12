@@ -14,7 +14,6 @@ public class BTEROpenOrder {
   private final String buyCurrency;
   private final BigDecimal sellAmount;
   private final BigDecimal buyAmount;
-  private final BigDecimal rate;
 
   /**
    * Constructor
@@ -26,15 +25,13 @@ public class BTEROpenOrder {
    * @param buyAmount amount to buy
    */
   private BTEROpenOrder(@JsonProperty("id") String id, @JsonProperty("sell_type") String sellCurrency, @JsonProperty("buy_type") String buyCurrency,
-      @JsonProperty("sell_amount") BigDecimal sellAmount, @JsonProperty("buy_amount") BigDecimal buyAmount,
-      @JsonProperty("rate") BigDecimal rate) {
+      @JsonProperty("sell_amount") BigDecimal sellAmount, @JsonProperty("buy_amount") BigDecimal buyAmount) {
 
     this.id = id;
     this.sellCurrency = sellCurrency;
     this.buyCurrency = buyCurrency;
     this.sellAmount = sellAmount;
     this.buyAmount = buyAmount;
-    this.rate = rate;
   }
 
   public String getId() {
@@ -62,9 +59,6 @@ public class BTEROpenOrder {
     return buyAmount;
   }
 
-    public BigDecimal getRate() {
-        return rate;
-    }
 
     @Override
   public String toString() {
