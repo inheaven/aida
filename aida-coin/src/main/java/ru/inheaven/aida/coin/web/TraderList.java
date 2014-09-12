@@ -269,14 +269,13 @@ public class TraderList extends AbstractPage{
                         //update chart balance
                         BigDecimal lastChartValue = lastChartValueMap.get(exchangeMessage.getExchangeType());
                         if (lastChartValue == null || lastChartValue.compareTo(estimate) != 0) {
-                            Point point = new Point(System.currentTimeMillis(), estimate);
                             JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
-                            String jsonPoint = renderer.toJson(point);
 //                            String javaScript = "eval("+chart.getJavaScriptVarName()+").series["
 //                                    +exchangeMessage.getExchangeType().ordinal()+"].addPoint(" + jsonPoint + ", true, true);";
 
                             String javaScript = "eval("+chart.getJavaScriptVarName()+").series["
-                                    + 0 +"].addPoint(" + jsonPoint + ", true, true);";
+                                    + 0 +"].addPoint(" + renderer.toJson(new Point(System.currentTimeMillis(), sum))
+                                    + ", true, true);";
 
                             handler.appendJavaScript(javaScript);
 
