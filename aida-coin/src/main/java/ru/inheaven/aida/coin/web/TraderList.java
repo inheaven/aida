@@ -80,6 +80,7 @@ public class TraderList extends AbstractPage{
 
     private Map<ExchangeType, BigDecimal> lastChartValueMap = new HashMap<>();
 
+    private BigDecimal lastChartValue = BigDecimal.ZERO;
     private BigDecimal lastChart4Value = BigDecimal.ZERO;
     private long lastChart4Time = System.currentTimeMillis();
 
@@ -267,18 +268,20 @@ public class TraderList extends AbstractPage{
                         update(handler, sumEstimate, sum);
 
                         //update chart balance
-                        BigDecimal lastChartValue = lastChartValueMap.get(exchangeMessage.getExchangeType());
-                        if (lastChartValue == null || lastChartValue.compareTo(estimate) != 0) {
+                        if (lastChartValue == null || lastChartValue.compareTo(sum) != 0
+                                && !cexioCoins.getDefaultModelObjectAsString().equals("0")
+                                && !cryptsyCoins.getDefaultModelObjectAsString().equals("0")
+                                && !bittrexCoins.getDefaultModelObjectAsString().equals("0")
+                                && !btceCoins.getDefaultModelObjectAsString().equals("0")
+                                && !bterBTC.getDefaultModelObjectAsString().equals("0")) {
                             JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
-//                            String javaScript = "eval("+chart.getJavaScriptVarName()+").series["
-//                                    +exchangeMessage.getExchangeType().ordinal()+"].addPoint(" + jsonPoint + ", true, true);";
 
                             String javaScript = "eval("+chart.getJavaScriptVarName()+").series[" + 0 +"].addPoint("
                                     + renderer.toJson(new Point(System.currentTimeMillis(), sum)) + ", true, true);";
 
                             handler.appendJavaScript(javaScript);
 
-                            lastChartValueMap.put(exchangeMessage.getExchangeType(), estimate);
+                            lastChartValue = sum;
                         }
                     }else if (payload instanceof BalanceHistory){
                         BalanceHistory balanceHistory = (BalanceHistory) payload;
@@ -466,7 +469,7 @@ public class TraderList extends AbstractPage{
                     data.add(new Point(System.currentTimeMillis(), sum));
                 }
 
-                options.addSeries(new PointSeries().setData(data).setName("Equity"));
+                options.addSeries(new PointSeries().setData(data).setName("Equity").setColor(new HighchartsColor(4)));
 
             add(chart = new Chart("chart", options));
         }
