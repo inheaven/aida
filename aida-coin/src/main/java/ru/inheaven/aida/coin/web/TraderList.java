@@ -427,7 +427,7 @@ public class TraderList extends AbstractPage{
 
             options.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions()
                     .setMarker(new Marker(false))
-                    .setLineWidth(2)));
+                    .setLineWidth(1)));
 
             BigDecimal sum = BigDecimal.ZERO;
 
