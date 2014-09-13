@@ -428,7 +428,7 @@ public class TraderList extends AbstractPage{
 
             options.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions()
                     .setMarker(new Marker(false))
-                    .setLineWidth(1)));
+                    .setLineWidth(2)));
 
             BigDecimal sum = BigDecimal.ZERO;
 
@@ -490,7 +490,7 @@ public class TraderList extends AbstractPage{
 
             options.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions()
                     .setMarker(new Marker(false))
-                    .setLineWidth(1)
+                    .setLineWidth(2)
                     .setTurboThreshold(20000)));
 
             List<Point> dataAsk = new ArrayList<>();
@@ -501,8 +501,8 @@ public class TraderList extends AbstractPage{
                 dataBid.add(new Point(orderVolume.getDate().getTime(), orderVolume.getBidVolume()));
             }
 
-            options.addSeries(new PointSeries().setData(dataBid).setName("Buy").setColor(new HexColor("#A9F5A9")));
-            options.addSeries(new PointSeries().setData(dataAsk).setName("Sell").setColor(new HexColor("#F5A9A9")));
+            options.addSeries(new PointSeries().setData(dataBid).setName("Buy").setColor(new HexColor("#FA5858")));
+            options.addSeries(new PointSeries().setData(dataAsk).setName("Sell").setColor(new HexColor("#58FA58")));
 
             add(chart3 = new Chart("chart3", options));
         }
@@ -525,7 +525,7 @@ public class TraderList extends AbstractPage{
                     new PlotOptions()
                             .setFillColor(new LinearGradient(LinearGradient.GradientDirection.VERTICAL))
                             .setMarker(new Marker(false))
-                            .setLineWidth(1)
+                            .setLineWidth(2)
                             .setTurboThreshold(20000)));
 
             {
