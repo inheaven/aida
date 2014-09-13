@@ -304,7 +304,7 @@ public class TraderList extends AbstractPage{
 
                                 {
                                     String javaScript = "eval("+chart3.getJavaScriptVarName()+").series[" + 0 + "].addPoint("
-                                            + renderer.toJson(new Point(orderVolume.getDate().getTime(), orderVolume.getAskVolume()))
+                                            + renderer.toJson(new Point(orderVolume.getDate().getTime(), orderVolume.getBidVolume()))
                                             + ", true, true);";
 
                                     handler.appendJavaScript(javaScript);
@@ -312,7 +312,7 @@ public class TraderList extends AbstractPage{
 
                                 {
                                     String javaScript = "eval("+chart3.getJavaScriptVarName()+").series[" + 1 + "].addPoint("
-                                            + renderer.toJson(new Point(orderVolume.getDate().getTime(), orderVolume.getBidVolume()))
+                                            + renderer.toJson(new Point(orderVolume.getDate().getTime(), orderVolume.getAskVolume()))
                                             + ", true, true);";
 
                                     handler.appendJavaScript(javaScript);
