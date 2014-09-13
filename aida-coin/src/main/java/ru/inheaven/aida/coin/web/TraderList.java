@@ -2,6 +2,7 @@ package ru.inheaven.aida.coin.web;
 
 import com.googlecode.wickedcharts.highcharts.jackson.JsonRenderer;
 import com.googlecode.wickedcharts.highcharts.options.*;
+import com.googlecode.wickedcharts.highcharts.options.color.HexColor;
 import com.googlecode.wickedcharts.highcharts.options.color.HighchartsColor;
 import com.googlecode.wickedcharts.highcharts.options.color.LinearGradient;
 import com.googlecode.wickedcharts.highcharts.options.series.Point;
@@ -500,8 +501,8 @@ public class TraderList extends AbstractPage{
                 dataBid.add(new Point(orderVolume.getDate().getTime(), orderVolume.getBidVolume()));
             }
 
-            options.addSeries(new PointSeries().setData(dataBid).setName("Buy").setColor(new HighchartsColor(3)));
-            options.addSeries(new PointSeries().setData(dataAsk).setName("Sell").setColor(new HighchartsColor(2)));
+            options.addSeries(new PointSeries().setData(dataBid).setName("Buy").setColor(new HexColor("#EFFBEF")));
+            options.addSeries(new PointSeries().setData(dataAsk).setName("Sell").setColor(new HexColor("#FBEFEF")));
 
             add(chart3 = new Chart("chart3", options));
         }
@@ -542,7 +543,7 @@ public class TraderList extends AbstractPage{
                         data.add(new Point(time, volumeSum));
                     }
                 }
-                options.addSeries(new PointSeries().setData(data).setName("Profit"));
+                options.addSeries(new PointSeries().setData(data).setName("Profit").setColor(new HexColor("#428bca")));
 
                 lastChart4Value = !data.isEmpty() ? (BigDecimal) (data.get(data.size() - 1)).getY() : BigDecimal.ZERO;
             }
