@@ -500,8 +500,8 @@ public class TraderList extends AbstractPage{
                 dataBid.add(new Point(orderVolume.getDate().getTime(), orderVolume.getBidVolume()));
             }
 
-            options.addSeries(new PointSeries().setData(dataAsk).setName("Sell/hr").setColor(new HighchartsColor(3)));
-            options.addSeries(new PointSeries().setData(dataBid).setName("Buy/hr").setColor(new HighchartsColor(2)));
+            options.addSeries(new PointSeries().setData(dataAsk).setName("Sell").setColor(new HighchartsColor(3)));
+            options.addSeries(new PointSeries().setData(dataBid).setName("Buy").setColor(new HighchartsColor(2)));
 
             add(chart3 = new Chart("chart3", options));
         }

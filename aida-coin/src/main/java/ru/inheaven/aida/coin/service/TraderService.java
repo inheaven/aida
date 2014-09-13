@@ -219,10 +219,10 @@ public class TraderService {
                 if (v.getVolume().compareTo(ZERO) > 0){
                     orderVolume.addAskVolume(v.getVolume());
                 } else {
-                    orderVolume.addBidVolume(v.getVolume().abs());
+                    orderVolume.addBidVolume(v.getVolume());
                 }
 
-                if (j == 0 || orderVolume.getDate().getTime() - v.getDate().getTime() > 1000*60*60){
+                if (j == 0 || orderVolume.getDate().getTime() - v.getDate().getTime() > 1000*60){
                     break;
                 }
             }
@@ -244,10 +244,10 @@ public class TraderService {
             if (v.getVolume().compareTo(ZERO) > 0){
                 orderVolume.addAskVolume(v.getVolume());
             } else {
-                orderVolume.addBidVolume(v.getVolume().abs());
+                orderVolume.addBidVolume(v.getVolume());
             }
 
-            if (j == 0 || orderVolume.getDate().getTime() - v.getDate().getTime() > 1000*60*60){
+            if (j == 0 || orderVolume.getDate().getTime() - v.getDate().getTime() > 1000*60){
                 break;
             }
         }
