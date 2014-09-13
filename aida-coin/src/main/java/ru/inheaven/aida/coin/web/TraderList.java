@@ -469,7 +469,7 @@ public class TraderList extends AbstractPage{
                     data.add(new Point(System.currentTimeMillis(), sum));
                 }
 
-                options.addSeries(new PointSeries().setData(data).setName("Equity").setColor(new HighchartsColor(4)));
+                options.addSeries(new PointSeries().setData(data).setName("Equity").setColor(new HighchartsColor(1)));
 
             add(chart = new Chart("chart", options));
         }
