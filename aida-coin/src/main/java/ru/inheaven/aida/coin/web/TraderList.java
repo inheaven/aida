@@ -429,6 +429,8 @@ public class TraderList extends AbstractPage{
                     .setMarker(new Marker(false))
                     .setLineWidth(1)));
 
+            //go
+
             BigDecimal sum = BigDecimal.ZERO;
 
             for (ExchangeType exchangeType : ExchangeType.values()){
