@@ -273,7 +273,7 @@ public class TraderList extends AbstractPage{
                                 && !cryptsyCoins.getDefaultModelObjectAsString().equals("0")
                                 && !bittrexCoins.getDefaultModelObjectAsString().equals("0")
                                 && !btceCoins.getDefaultModelObjectAsString().equals("0")
-                                && !bterBTC.getDefaultModelObjectAsString().equals("0")) {
+                                && !bterCoins.getDefaultModelObjectAsString().equals("0")) {
                             JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
 
                             String javaScript = "eval("+chart.getJavaScriptVarName()+").series[" + 0 +"].addPoint("
