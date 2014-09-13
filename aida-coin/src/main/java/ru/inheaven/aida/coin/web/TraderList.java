@@ -2,7 +2,6 @@ package ru.inheaven.aida.coin.web;
 
 import com.googlecode.wickedcharts.highcharts.jackson.JsonRenderer;
 import com.googlecode.wickedcharts.highcharts.options.*;
-import com.googlecode.wickedcharts.highcharts.options.color.HexColor;
 import com.googlecode.wickedcharts.highcharts.options.color.HighchartsColor;
 import com.googlecode.wickedcharts.highcharts.options.color.LinearGradient;
 import com.googlecode.wickedcharts.highcharts.options.series.Point;
@@ -490,7 +489,7 @@ public class TraderList extends AbstractPage{
 
             options.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions()
                     .setMarker(new Marker(false))
-                    .setLineWidth(2)
+                    .setLineWidth(1)
                     .setTurboThreshold(20000)));
 
             List<Point> dataAsk = new ArrayList<>();
@@ -501,8 +500,8 @@ public class TraderList extends AbstractPage{
                 dataBid.add(new Point(orderVolume.getDate().getTime(), orderVolume.getBidVolume()));
             }
 
-            options.addSeries(new PointSeries().setData(dataBid).setName("Buy").setColor(new HexColor("#FA5858")));
-            options.addSeries(new PointSeries().setData(dataAsk).setName("Sell").setColor(new HexColor("#58FA58")));
+            options.addSeries(new PointSeries().setData(dataBid).setName("Buy").setColor(new HighchartsColor(3)));
+            options.addSeries(new PointSeries().setData(dataAsk).setName("Sell").setColor(new HighchartsColor(2)));
 
             add(chart3 = new Chart("chart3", options));
         }
@@ -525,7 +524,7 @@ public class TraderList extends AbstractPage{
                     new PlotOptions()
                             .setFillColor(new LinearGradient(LinearGradient.GradientDirection.VERTICAL))
                             .setMarker(new Marker(false))
-                            .setLineWidth(2)
+                            .setLineWidth(1)
                             .setTurboThreshold(20000)));
 
             {
