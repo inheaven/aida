@@ -414,7 +414,7 @@ public class TraderList extends AbstractPage{
         //Chart
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(300));
+            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(366));
             options.setGlobal(new Global().setUseUTC(false));
             options.setCredits(new CreditOptions().setEnabled(false));
 
@@ -478,7 +478,7 @@ public class TraderList extends AbstractPage{
 
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(300).setZoomType(ZoomType.X));
+            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(366).setZoomType(ZoomType.X));
             options.setGlobal(new Global().setUseUTC(false));
             options.setCredits(new CreditOptions().setEnabled(false));
 
@@ -511,7 +511,7 @@ public class TraderList extends AbstractPage{
         //Chart 4
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(300).setZoomType(ZoomType.X));
+            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(366).setZoomType(ZoomType.X));
             options.setGlobal(new Global().setUseUTC(false));
             options.setCredits(new CreditOptions().setEnabled(false));
 
