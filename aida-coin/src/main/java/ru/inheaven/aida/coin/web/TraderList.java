@@ -420,7 +420,6 @@ public class TraderList extends AbstractPage{
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
             options.setTitle(new Title(""));
-            //options.setLegend(new Legend(Boolean.FALSE));
 
             options.setxAxis(new Axis().setType(AxisType.DATETIME));
 
@@ -430,28 +429,6 @@ public class TraderList extends AbstractPage{
                     .setMarker(new Marker(false))
                     .setLineWidth(1)));
 
-//            for (ExchangeType exchangeType : ExchangeType.values()){
-//                AccountInfo accountInfo = traderService.getAccountInfo(exchangeType);
-//
-//                BigDecimal value = BigDecimal.ZERO;
-//
-//                if (accountInfo != null) {
-//                    for (Wallet wallet :accountInfo.getWallets()){
-//                        value = value.add(traderService.getEstimateBalance(exchangeType, wallet.getCurrency(), wallet.getBalance()));
-//                    }
-//                }
-//
-//                List<Point> data = new ArrayList<>();
-//                for (int i = 0; i < 500; ++i) {
-//                    data.add(new Point(0, value));
-//                }
-//
-//                options.addSeries(new PointSeries().setData(data).setName(exchangeType.name()));
-//
-//                lastChartValueMap.put(exchangeType, value);
-//            }
-
-
             BigDecimal sum = BigDecimal.ZERO;
 
             for (ExchangeType exchangeType : ExchangeType.values()){
@@ -460,6 +437,15 @@ public class TraderList extends AbstractPage{
                 if (accountInfo != null) {
                     for (Wallet wallet :accountInfo.getWallets()){
                         sum = sum.add(traderService.getEstimateBalance(exchangeType, wallet.getCurrency(), wallet.getBalance()));
+                    }
+                }
+
+                if (ExchangeType.BTCE.equals(exchangeType)){
+                    OpenOrders openOrders = traderService.getOpenOrders(ExchangeType.BTCE);
+                    for (LimitOrder limitOrder : openOrders.getOpenOrders()){
+                        sum = sum.add(traderService.getEstimateVolume(
+                                TraderUtil.getPair(limitOrder.getCurrencyPair()),
+                                limitOrder.getTradableAmount().multiply(limitOrder.getLimitPrice())));
                     }
                 }
             }
@@ -487,38 +473,7 @@ public class TraderList extends AbstractPage{
                 time = orderVolume.getDate().getTime();
             }
         }
-//        {
-//            Options options = new Options();
-//            options.setChartOptions(new ChartOptions(SeriesType.AREASPLINE).setHeight(500).setZoomType(ZoomType.X));
-//            options.setGlobal(new Global().setUseUTC(false));
-//
-//            options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
-//            options.setTitle(new Title(""));
-//            //options.setLegend(new Legend(Boolean.FALSE));
-//
-//            options.setxAxis(new Axis().setType(AxisType.LINEAR));
-//
-//            options.setyAxis(new Axis().setTitle(new Title("")));
-//
-//            options.setPlotOptions(new PlotOptionsChoice().setAreaspline(new PlotOptions()
-//                    .setFillColor(new LinearGradient(LinearGradient.GradientDirection.VERTICAL))
-//                    .setMarker(new Marker(false))
-//                    .setLineWidth(1)
-//                    .setTurboThreshold(20000)));
-//
-//            {
-//                List<Point> data = new ArrayList<>();
-//                for (OrderVolume orderVolume : filteredOrderVolumes){
-//                    data.add(new Point(chart2Index++, orderVolume.getVolume()));
-//                }
-//
-//                options.addSeries(new PointSeries().setData(data).setName("Заявки / час").setColor(new HighchartsColor(1)));
-//            }
-//
-//            add(chart2 = new Chart("chart2", options));
-//        }
 
-        //Chart 3
         {
             Options options = new Options();
             options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(300).setZoomType(ZoomType.X));
@@ -527,7 +482,6 @@ public class TraderList extends AbstractPage{
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
             options.setTitle(new Title(""));
-            //options.setLegend(new Legend(Boolean.FALSE));
 
             options.setxAxis(new Axis().setType(AxisType.DATETIME));
 
@@ -561,7 +515,6 @@ public class TraderList extends AbstractPage{
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
             options.setTitle(new Title(""));
-            //options.setLegend(new Legend(Boolean.FALSE));
 
             options.setxAxis(new Axis().setType(AxisType.DATETIME));
 
