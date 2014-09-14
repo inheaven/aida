@@ -521,23 +521,8 @@ public class TraderService {
                                 continue;
                             }
 
-                            //ASK
-                            BigDecimal randomDelta = random50(delta);
-                            BigDecimal askPrice = middlePrice.add(randomDelta.compareTo(ZERO) == 0
-                                    ? new BigDecimal("0.00000001")
-                                    : randomDelta);
-
-                            if ("USD".equals(currencyPair.counterSymbol)){
-                                askPrice = askPrice.setScale(2, HALF_UP);
-                            }
-
-                            tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.ASK,
-                                    randomAskAmount,
-                                    currencyPair, "", new Date(),
-                                    askPrice));
-
                             //BID
-                            randomDelta = random50(delta);
+                            BigDecimal randomDelta = random50(delta);
                             BigDecimal bidPrice = middlePrice.subtract(randomDelta.compareTo(ZERO) == 0
                                     ? new BigDecimal("0.00000001")
                                     : randomDelta);
@@ -550,6 +535,21 @@ public class TraderService {
                                     randomBidAmount,
                                     currencyPair, "", new Date(),
                                     bidPrice));
+
+                            //ASK
+                            randomDelta = random50(delta);
+                            BigDecimal askPrice = middlePrice.add(randomDelta.compareTo(ZERO) == 0
+                                    ? new BigDecimal("0.00000001")
+                                    : randomDelta);
+
+                            if ("USD".equals(currencyPair.counterSymbol)){
+                                askPrice = askPrice.setScale(2, HALF_UP);
+                            }
+
+                            tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.ASK,
+                                    randomAskAmount,
+                                    currencyPair, "", new Date(),
+                                    askPrice));
                         } catch (Exception e) {
                             log.error("alpha trade error", e);
 
