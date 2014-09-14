@@ -371,31 +371,30 @@ public class TraderList extends AbstractPage{
 
                         countBuyMap.forEach(new BiConsumer<ExchangePair, BigDecimal>() {
                             @Override
-                            public void accept(ExchangePair exchangePair, BigDecimal bigDecimal) {
+                            public void accept(ExchangePair exchangePair, BigDecimal amount) {
                                 Ticker ticker = traderService.getTicker(exchangePair);
 
                                 if (ticker != null) {
-                                    update(handler, buyMap.get(exchangePair), bigDecimal.multiply(ticker.getLast()
-                                            .setScale(8, ROUND_HALF_UP)));
+                                    update(handler, buyMap.get(exchangePair), traderService.getBTCVolume(
+                                            exchangePair.getPair(), amount, ticker.getLast()));
                                 }
                             }
                         });
 
                         countSellMap.forEach(new BiConsumer<ExchangePair, BigDecimal>() {
                             @Override
-                            public void accept(ExchangePair exchangePair, BigDecimal bigDecimal) {
+                            public void accept(ExchangePair exchangePair, BigDecimal amount) {
                                 Ticker ticker = traderService.getTicker(exchangePair);
 
                                 if (ticker != null) {
-                                    update(handler, sellMap.get(exchangePair), bigDecimal.multiply(ticker.getLast()
-                                            .setScale(8, ROUND_HALF_UP)));
+                                    update(handler, sellMap.get(exchangePair), traderService.getBTCVolume(
+                                            exchangePair.getPair(), amount, ticker.getLast()));
 
-                                    update(handler, estimateMap.get(exchangePair),ticker.getLast()
-                                            .multiply(traderService.getAccountInfo(exchangeMessage.getExchangeType())
-                                                    .getBalance(exchangePair.getCurrency()))
-                                            .setScale(8, BigDecimal.ROUND_HALF_UP));
+                                    BigDecimal balance = traderService.getAccountInfo(exchangeMessage.getExchangeType())
+                                            .getBalance(exchangePair.getCurrency());
+                                    update(handler, estimateMap.get(exchangePair), traderService.getBTCVolume(
+                                            exchangePair.getPair(), amount.add(balance), ticker.getLast()));
                                 }
-
                             }
                         });
                     }else if (payload instanceof String){
