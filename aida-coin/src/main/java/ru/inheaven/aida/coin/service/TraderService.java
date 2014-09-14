@@ -279,13 +279,15 @@ public class TraderService {
     }
 
     public Volume getVolume(BalanceHistory history){
-        return new Volume(getEstimateVolume(history.getPair(), history.getPrevious().getBalance()
+        return new Volume(getBTCVolume(history.getPair(), history.getPrevious().getBalance()
                 .add(history.getPrevious().getAskAmount())
                 .subtract(history.getBalance().add(history.getAskAmount()))
-                .multiply(history.getPrice().subtract(history.getPrevious().getPrice()))), history.getDate());
+                , (history.getPrice().subtract(history.getPrevious().getPrice()))), history.getDate());
     }
 
-    public BigDecimal getEstimateVolume(String pair, BigDecimal volume){
+    public BigDecimal getBTCVolume(String pair, BigDecimal amount, BigDecimal price){
+        BigDecimal volume = amount.multiply(price);
+
         try {
             if (pair.contains("/BTC")) {
                 return volume.setScale(8, ROUND_HALF_UP);
@@ -472,17 +474,16 @@ public class TraderService {
                 for (int index : Arrays.asList(1, 2, 3, 5, 8)) {
                     BigDecimal spread = minSpread.multiply(BigDecimal.valueOf(index));
 
-                    boolean hasOrder = false;
+                    BigDecimal spreadSumAmount = ZERO;
 
                     for (LimitOrder order : getOpenOrders(exchangeType).getOpenOrders()){
-                        if (currencyPair.equals(order.getCurrencyPair())
-                                && order.getLimitPrice().subtract(middlePrice).abs().compareTo(spread) <= 0){
-                            hasOrder = true;
-                            break;
+                        if (currencyPair.equals(order.getCurrencyPair()) && order.getLimitPrice().subtract(middlePrice)
+                                .abs().compareTo(spread) <= 0){
+                            spreadSumAmount = spreadSumAmount.add(order.getTradableAmount());
                         }
                     }
 
-                    if (!hasOrder){
+                    if (spreadSumAmount.compareTo(minOrderAmount.multiply(BigDecimal.valueOf(index))) < 0){
                         PollingTradeService tradeService = getExchange(exchangeType).getPollingTradeService();
                         AccountInfo accountInfo = getAccountInfo(exchangeType);
 

@@ -243,9 +243,9 @@ public class TraderList extends AbstractPage{
                             case BTCE:
                                 OpenOrders openOrders = traderService.getOpenOrders(ExchangeType.BTCE);
                                 for (LimitOrder limitOrder : openOrders.getOpenOrders()){
-                                    estimate = estimate.add(traderService.getEstimateVolume(
+                                    estimate = estimate.add(traderService.getBTCVolume(
                                             TraderUtil.getPair(limitOrder.getCurrencyPair()),
-                                            limitOrder.getTradableAmount().multiply(limitOrder.getLimitPrice())));
+                                            limitOrder.getTradableAmount(), limitOrder.getLimitPrice()));
                                 }
 
                                 update(handler, btceCoins, estimate);
@@ -445,9 +445,9 @@ public class TraderList extends AbstractPage{
                 if (ExchangeType.BTCE.equals(exchangeType)){
                     OpenOrders openOrders = traderService.getOpenOrders(ExchangeType.BTCE);
                     for (LimitOrder limitOrder : openOrders.getOpenOrders()){
-                        sum = sum.add(traderService.getEstimateVolume(
+                        sum = sum.add(traderService.getBTCVolume(
                                 TraderUtil.getPair(limitOrder.getCurrencyPair()),
-                                limitOrder.getTradableAmount().multiply(limitOrder.getLimitPrice())));
+                                limitOrder.getTradableAmount(), limitOrder.getLimitPrice()));
                     }
                 }
             }
