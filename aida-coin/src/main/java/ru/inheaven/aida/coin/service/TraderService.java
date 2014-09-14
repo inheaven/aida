@@ -520,7 +520,8 @@ public class TraderService {
                             }
 
                             //ASK
-                            BigDecimal askPrice = middlePrice.add(random50(delta));
+                            BigDecimal randomDelta = random50(delta);
+                            BigDecimal askPrice = middlePrice.add(randomDelta.compareTo(ZERO) == 0 ? ONE : randomDelta);
 
                             if ("USD".equals(currencyPair.counterSymbol)){
                                 askPrice = askPrice.setScale(2, ROUND_HALF_UP);
@@ -532,7 +533,8 @@ public class TraderService {
                                     askPrice));
 
                             //BID
-                            BigDecimal bidPrice = middlePrice.subtract(random50(delta));
+                            randomDelta = random50(delta);
+                            BigDecimal bidPrice = middlePrice.subtract(randomDelta.compareTo(ZERO) == 0 ? ONE : randomDelta);
 
                             if ("USD".equals(currencyPair.counterSymbol)){
                                 bidPrice = bidPrice.setScale(2, ROUND_HALF_UP);
