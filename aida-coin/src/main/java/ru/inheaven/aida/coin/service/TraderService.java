@@ -34,8 +34,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.xeiam.xchange.ExchangeFactory.INSTANCE;
 import static java.math.BigDecimal.*;
+import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.coin.entity.ExchangeType.*;
-import static ru.inheaven.aida.coin.util.TraderUtil.*;
+import static ru.inheaven.aida.coin.util.TraderUtil.getCurrencyPair;
+import static ru.inheaven.aida.coin.util.TraderUtil.random50;
 
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
@@ -290,15 +292,15 @@ public class TraderService {
 
         try {
             if (pair.contains("/BTC")) {
-                return volume.setScale(8, ROUND_HALF_UP);
+                return volume.setScale(8, HALF_UP);
             } else if (pair.contains("/LTC")) {
-                return volume.multiply(getTicker(ExchangePair.of(CEXIO, "LTC/BTC")).getLast()).setScale(8, ROUND_HALF_UP);
+                return volume.multiply(getTicker(ExchangePair.of(CEXIO, "LTC/BTC")).getLast()).setScale(8, HALF_UP);
             } else if (pair.contains("/BC")) {
-                return volume.multiply(getTicker(ExchangePair.of(BITTREX, "BC/BTC")).getLast()).setScale(8, ROUND_HALF_UP);
+                return volume.multiply(getTicker(ExchangePair.of(BITTREX, "BC/BTC")).getLast()).setScale(8, HALF_UP);
             } else if (pair.contains("/USD")) {
-                return volume.divide(getTicker(ExchangePair.of(BTCE, "BTC/USD")).getLast(), 8, ROUND_HALF_UP);
+                return volume.divide(getTicker(ExchangePair.of(BTCE, "BTC/USD")).getLast(), 8, HALF_UP);
             } else if (pair.contains("/CNY")) {
-                return volume.divide(getTicker(ExchangePair.of(BTER, "BTC/CNY")).getLast(), 8, ROUND_HALF_UP);
+                return volume.divide(getTicker(ExchangePair.of(BTER, "BTC/CNY")).getLast(), 8, HALF_UP);
             }
         } catch (Exception e) {
             //no ticker
@@ -313,12 +315,12 @@ public class TraderService {
                 case "BTC":
                     return balance;
                 case "USD":
-                    return balance.divide(getTicker(ExchangePair.of(BTCE, "BTC/USD")).getLast(), 8, ROUND_HALF_UP);
+                    return balance.divide(getTicker(ExchangePair.of(BTCE, "BTC/USD")).getLast(), 8, HALF_UP);
                 case "CNY":
-                    return balance.divide(getTicker(ExchangePair.of(BTER, "BTC/CNY")).getLast(), 8, ROUND_HALF_UP);
+                    return balance.divide(getTicker(ExchangePair.of(BTER, "BTC/CNY")).getLast(), 8, HALF_UP);
                 default:
                     return balance.multiply(getTicker(new ExchangePair(exchangeType, currency + "/BTC")).getLast())
-                            .setScale(8, ROUND_HALF_UP);
+                            .setScale(8, HALF_UP);
             }
         } catch (Exception e) {
             return ZERO;
@@ -452,13 +454,13 @@ public class TraderService {
                     case "BC":
                         try {
                             middlePrice = getTicker(new ExchangePair(BITTREX, currencyPair.baseSymbol + "/BTC")).getLast()
-                                    .divide(getTicker(new ExchangePair(BITTREX, "BC/BTC")).getLast(), 8 , ROUND_HALF_UP);
+                                    .divide(getTicker(new ExchangePair(BITTREX, "BC/BTC")).getLast(), 8 , HALF_UP);
                         } catch (Exception e) {
                             continue;
                         }
                         break;
                     default:
-                        middlePrice = ticker.getAsk().add(ticker.getBid()).divide(new BigDecimal("2"), 8, ROUND_HALF_UP);
+                        middlePrice = ticker.getAsk().add(ticker.getBid()).divide(new BigDecimal("2"), 8, HALF_UP);
                 }
 
                 if (middlePrice.compareTo(trader.getHigh()) > 0 || middlePrice.compareTo(trader.getLow()) < 0){
@@ -469,7 +471,7 @@ public class TraderService {
 
                 BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.021")).setScale(8, ROUND_HALF_DOWN);
 
-                BigDecimal minOrderAmount = getMinOrderVolume(currencyPair.counterSymbol).divide(middlePrice, 8, ROUND_HALF_UP);
+                BigDecimal minOrderAmount = getMinOrderVolume(currencyPair.counterSymbol).divide(middlePrice, 8, HALF_UP);
 
                 for (int index : Arrays.asList(1, 2, 3, 5, 8)) {
                     BigDecimal spread = minSpread.multiply(BigDecimal.valueOf(index));
@@ -488,7 +490,7 @@ public class TraderService {
                         AccountInfo accountInfo = getAccountInfo(exchangeType);
 
                         try {
-                            BigDecimal delta = spread.divide(new BigDecimal("2"), 8, ROUND_HALF_DOWN);
+                            BigDecimal delta = spread.divide(new BigDecimal("2"), 8, HALF_UP);
 
                             BigDecimal randomAskAmount = ZERO;
                             BigDecimal minRandomAskAmount = random50(minOrderAmount.multiply(BigDecimal.valueOf(index)));
@@ -526,7 +528,7 @@ public class TraderService {
                                     : randomDelta);
 
                             if ("USD".equals(currencyPair.counterSymbol)){
-                                askPrice = askPrice.setScale(2, ROUND_HALF_UP);
+                                askPrice = askPrice.setScale(2, HALF_UP);
                             }
 
                             tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.ASK,
@@ -541,7 +543,7 @@ public class TraderService {
                                     : randomDelta);
 
                             if ("USD".equals(currencyPair.counterSymbol)){
-                                bidPrice = bidPrice.setScale(2, ROUND_HALF_UP);
+                                bidPrice = bidPrice.setScale(2, HALF_UP);
                             }
 
                             tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.BID,
