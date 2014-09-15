@@ -32,7 +32,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.xeiam.xchange.ExchangeFactory.INSTANCE;
-import static java.math.BigDecimal.ROUND_HALF_DOWN;
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.coin.entity.ExchangeType.*;
@@ -488,7 +487,7 @@ public class TraderService {
                     continue;
                 }
 
-                BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.021")).setScale(8, ROUND_HALF_DOWN);
+                BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.021")).setScale(8, HALF_UP);
 
                 BigDecimal minOrderAmount = getMinOrderVolume(currencyPair.counterSymbol).divide(middlePrice, 8, HALF_UP);
 
@@ -547,16 +546,18 @@ public class TraderService {
 
                             //BID
                             BigDecimal randomDelta = random50(delta);
+                            BigDecimal bidPrice;
+
                             if ("USD".equals(currencyPair.counterSymbol)){
                                 randomDelta = middlePrice.setScale(2, HALF_UP);
-                            }
 
-                            BigDecimal bidPrice = middlePrice.subtract(randomDelta.compareTo(ZERO) == 0
-                                    ? new BigDecimal("0.00000001")
-                                    : randomDelta);
-
-                            if ("USD".equals(currencyPair.counterSymbol)){
-                                bidPrice = bidPrice.setScale(2, HALF_UP);
+                                bidPrice = middlePrice.subtract(randomDelta.compareTo(ZERO) == 0
+                                        ? new BigDecimal("0.01")
+                                        : randomDelta).setScale(2, HALF_UP);
+                            }else {
+                                bidPrice = middlePrice.subtract(randomDelta.compareTo(ZERO) == 0
+                                        ? new BigDecimal("0.00000001")
+                                        : randomDelta);
                             }
 
                             tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.BID,
@@ -566,16 +567,18 @@ public class TraderService {
 
                             //ASK
                             randomDelta = random50(delta);
+                            BigDecimal askPrice;
+
                             if ("USD".equals(currencyPair.counterSymbol)){
                                 randomDelta = middlePrice.setScale(2, HALF_UP);
-                            }
 
-                            BigDecimal askPrice = middlePrice.add(randomDelta.compareTo(ZERO) == 0
-                                    ? new BigDecimal("0.00000001")
-                                    : randomDelta);
-
-                            if ("USD".equals(currencyPair.counterSymbol)){
-                                askPrice = askPrice.setScale(2, HALF_UP);
+                                askPrice = middlePrice.add(randomDelta.compareTo(ZERO) == 0
+                                        ? new BigDecimal("0.01")
+                                        : randomDelta).setScale(2, HALF_UP);
+                            }else {
+                                askPrice = middlePrice.add(randomDelta.compareTo(ZERO) == 0
+                                        ? new BigDecimal("0.00000001")
+                                        : randomDelta);
                             }
 
                             tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.ASK,
