@@ -441,10 +441,10 @@ public class TraderService {
 
         for (Trader trader : traders){
             ExchangePair exchangePair = ExchangePair.of(exchangeType, trader.getPair());
-            Integer errorCount = errorMap.get(exchangePair) != null ? errorMap.get(exchangePair) : 0;
+            Integer errorCount = errorMap.containsKey(exchangePair) ? errorMap.get(exchangePair) : 0;
 
-            if (errorCount >= 5){
-                if (errorCount == 5) {
+            if (errorCount > 5){
+                if (!errorTimeMap.containsKey(exchangePair)) {
                     errorTimeMap.put(exchangePair, System.currentTimeMillis());
                 }
 
