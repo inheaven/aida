@@ -442,14 +442,14 @@ public class TraderService {
 
         for (Trader trader : traders){
             ExchangePair exchangePair = ExchangePair.of(exchangeType, trader.getPair());
-            Integer errorCount = errorMap.get(exchangePair);
-            Long errorTime = errorTimeMap.get(exchangePair);
+            Integer errorCount = errorMap.get(exchangePair) != null ? errorMap.get(exchangePair) : 0;
 
-            if (errorCount != null && errorCount >= 5){
+            if (errorCount >= 5){
                 if (errorCount == 5) {
                     errorTimeMap.put(exchangePair, System.currentTimeMillis());
                 }
 
+                Long errorTime = errorTimeMap.get(exchangePair);
                 if (errorTime != null && System.currentTimeMillis() - errorTime > 1000*60*60){
                     errorMap.remove(exchangePair);
                     errorTimeMap.remove(exchangePair);
