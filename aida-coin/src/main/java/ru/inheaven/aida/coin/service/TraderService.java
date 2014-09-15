@@ -22,7 +22,6 @@ import org.apache.wicket.protocol.ws.WebSocketSettings;
 import org.apache.wicket.protocol.ws.api.WebSocketPushBroadcaster;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.inheaven.aida.coin.cexio.CexIO;
 import ru.inheaven.aida.coin.entity.*;
 import ru.inheaven.aida.coin.util.TraderUtil;
 
@@ -33,7 +32,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.xeiam.xchange.ExchangeFactory.INSTANCE;
-import static java.math.BigDecimal.*;
+import static java.math.BigDecimal.ROUND_HALF_DOWN;
+import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.coin.entity.ExchangeType.*;
 import static ru.inheaven.aida.coin.util.TraderUtil.getCurrencyPair;
@@ -58,7 +58,8 @@ public class TraderService {
 
     private Map<ExchangePair, BalanceHistory> balanceHistoryMap = new ConcurrentHashMap<>();
 
-    private CexIO cexIO;
+    private Map<ExchangePair,Integer> errorMap = new ConcurrentHashMap<>();
+    private Map<ExchangePair,Long> errorTimeMap = new ConcurrentHashMap<>();
 
     private Exchange bittrexExchange = INSTANCE.createExchange(new ExchangeSpecification(BittrexExchange.class){{
         setApiKey("14935ef36d8b4afc8204946be7ddd152");
@@ -440,6 +441,23 @@ public class TraderService {
         List<Trader> traders = traderBean.getTraders(exchangeType);
 
         for (Trader trader : traders){
+            ExchangePair exchangePair = ExchangePair.of(exchangeType, trader.getPair());
+            Integer errorCount = errorMap.get(exchangePair);
+            Long errorTime = errorTimeMap.get(exchangePair);
+
+            if (errorCount != null && errorCount >= 5){
+                if (errorCount == 5) {
+                    errorTimeMap.put(exchangePair, System.currentTimeMillis());
+                }
+
+                if (errorTime != null && System.currentTimeMillis() - errorTime > 1000*60*60){
+                    errorMap.remove(exchangePair);
+                    errorTimeMap.remove(exchangePair);
+                }
+
+                continue;
+            }
+
             if (trader.isRunning()){
                 Ticker ticker = getTicker(new ExchangePair(exchangeType, trader.getPair()));
                 CurrencyPair currencyPair = getCurrencyPair(trader.getPair());
@@ -464,8 +482,9 @@ public class TraderService {
                 }
 
                 if (middlePrice.compareTo(trader.getHigh()) > 0 || middlePrice.compareTo(trader.getLow()) < 0){
-                    broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": Price outside the range " + middlePrice.toString());
+                    errorMap.put(exchangePair, errorCount++);
 
+                    broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": Price outside the range " + middlePrice.toString());
                     continue;
                 }
 
@@ -511,6 +530,8 @@ public class TraderService {
                                 broadcast(exchangeType,  exchangeType.name() + " " + trader.getPair() + ": Buy "
                                         + randomAskAmount.toString() + " / " + middlePrice.toString());
 
+                                errorMap.put(exchangePair, errorCount++);
+
                                 continue;
                             }
 
@@ -518,6 +539,9 @@ public class TraderService {
                             if (accountInfo.getBalance(currencyPair.baseSymbol).compareTo(randomBidAmount) < 0){
                                 broadcast(exchangeType,  exchangeType.name() + " " + trader.getPair() + ": Sell "
                                         + randomBidAmount.toString() + " / " + middlePrice.toString());
+
+                                errorMap.put(exchangePair, errorCount++);
+
                                 continue;
                             }
 
