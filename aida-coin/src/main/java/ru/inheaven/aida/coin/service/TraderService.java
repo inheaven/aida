@@ -547,6 +547,10 @@ public class TraderService {
 
                             //BID
                             BigDecimal randomDelta = random50(delta);
+                            if ("USD".equals(currencyPair.counterSymbol)){
+                                randomDelta = middlePrice.setScale(2, HALF_UP);
+                            }
+
                             BigDecimal bidPrice = middlePrice.subtract(randomDelta.compareTo(ZERO) == 0
                                     ? new BigDecimal("0.00000001")
                                     : randomDelta);
@@ -562,6 +566,10 @@ public class TraderService {
 
                             //ASK
                             randomDelta = random50(delta);
+                            if ("USD".equals(currencyPair.counterSymbol)){
+                                randomDelta = middlePrice.setScale(2, HALF_UP);
+                            }
+
                             BigDecimal askPrice = middlePrice.add(randomDelta.compareTo(ZERO) == 0
                                     ? new BigDecimal("0.00000001")
                                     : randomDelta);
