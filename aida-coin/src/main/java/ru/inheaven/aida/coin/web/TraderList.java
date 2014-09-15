@@ -94,7 +94,7 @@ public class TraderList extends AbstractPage{
     public TraderList() {
         setVersioned(false);
 
-        notificationPanel = new NotificationPanel("notification").hideAfter(Duration.seconds(15));
+        notificationPanel = new NotificationPanel("notification").hideAfter(Duration.seconds(5));
         notificationPanel.setMaxMessages(3);
         notificationPanel.setOutputMarkupId(true);
         add(notificationPanel);

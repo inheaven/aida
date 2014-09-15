@@ -443,13 +443,13 @@ public class TraderService {
             ExchangePair exchangePair = ExchangePair.of(exchangeType, trader.getPair());
             Integer errorCount = errorMap.containsKey(exchangePair) ? errorMap.get(exchangePair) : 0;
 
-            if (errorCount > 5){
+            if (errorCount > 2){
                 if (!errorTimeMap.containsKey(exchangePair)) {
                     errorTimeMap.put(exchangePair, System.currentTimeMillis());
                 }
 
                 Long errorTime = errorTimeMap.get(exchangePair);
-                if (errorTime != null && System.currentTimeMillis() - errorTime > 1000*60*10){
+                if (errorTime != null && System.currentTimeMillis() - errorTime > 1000*60*TraderUtil.random.nextInt(10)){
                     errorMap.remove(exchangePair);
                     errorTimeMap.remove(exchangePair);
                 }

@@ -12,7 +12,7 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
  *         Date: 006 06.08.14 11:25
  */
 public class TraderUtil {
-    private static SecureRandom random = new SecureRandom();
+    public static SecureRandom random = new SecureRandom();
 
     public static CurrencyPair getCurrencyPair(String pair){
         String[] cp = pair.split("/");
