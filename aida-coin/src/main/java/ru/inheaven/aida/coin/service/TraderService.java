@@ -450,7 +450,7 @@ public class TraderService {
                 }
 
                 Long errorTime = errorTimeMap.get(exchangePair);
-                if (errorTime != null && System.currentTimeMillis() - errorTime > 1000*60*15){
+                if (errorTime != null && System.currentTimeMillis() - errorTime > 1000*60*10){
                     errorMap.remove(exchangePair);
                     errorTimeMap.remove(exchangePair);
                 }
