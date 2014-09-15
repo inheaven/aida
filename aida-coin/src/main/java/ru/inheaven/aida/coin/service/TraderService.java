@@ -481,7 +481,7 @@ public class TraderService {
                 }
 
                 if (middlePrice.compareTo(trader.getHigh()) > 0 || middlePrice.compareTo(trader.getLow()) < 0){
-                    errorMap.put(exchangePair, errorCount++);
+                    errorMap.put(exchangePair, ++errorCount);
 
                     broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": Price outside the range " + middlePrice.toString());
                     continue;
@@ -529,7 +529,7 @@ public class TraderService {
                                 broadcast(exchangeType,  exchangeType.name() + " " + trader.getPair() + ": Buy "
                                         + randomAskAmount.toString() + " / " + middlePrice.toString());
 
-                                errorMap.put(exchangePair, errorCount++);
+                                errorMap.put(exchangePair, ++errorCount);
 
                                 continue;
                             }
@@ -539,7 +539,7 @@ public class TraderService {
                                 broadcast(exchangeType,  exchangeType.name() + " " + trader.getPair() + ": Sell "
                                         + randomBidAmount.toString() + " / " + middlePrice.toString());
 
-                                errorMap.put(exchangePair, errorCount++);
+                                errorMap.put(exchangePair, ++errorCount);
 
                                 continue;
                             }
