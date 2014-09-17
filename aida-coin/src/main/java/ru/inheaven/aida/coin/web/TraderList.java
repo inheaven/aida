@@ -13,7 +13,6 @@ import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.OpenOrders;
 import com.xeiam.xchange.dto.trade.Wallet;
-import de.agilecoders.wicket.core.markup.html.bootstrap.common.NotificationPanel;
 import de.agilecoders.wicket.core.markup.html.bootstrap.image.GlyphIconType;
 import de.agilecoders.wicket.core.markup.html.bootstrap.navbar.NavbarAjaxLink;
 import de.agilecoders.wicket.core.markup.html.bootstrap.table.TableBehavior;
@@ -34,7 +33,6 @@ import org.apache.wicket.protocol.ws.api.WebSocketRequestHandler;
 import org.apache.wicket.protocol.ws.api.message.IWebSocketPushMessage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
-import org.apache.wicket.util.time.Duration;
 import org.odlabs.wiquery.core.javascript.JsStatement;
 import org.odlabs.wiquery.ui.effects.HighlightEffectJavaScriptResourceReference;
 import ru.inheaven.aida.coin.entity.*;
@@ -69,7 +67,7 @@ public class TraderList extends AbstractPage{
     private Map<ExchangePair, Component> buyMap = new HashMap<>();
     private Map<ExchangePair, Component> sellMap = new HashMap<>();
 
-    private NotificationPanel notificationPanel;
+    private Label notificationLabel;
 
     private Component bittrexBTC, bittrexCoins;
     private Component cexioBTC, cexioCoins;
@@ -94,10 +92,9 @@ public class TraderList extends AbstractPage{
     public TraderList() {
         setVersioned(false);
 
-        notificationPanel = new NotificationPanel("notification").hideAfter(Duration.seconds(5));
-        notificationPanel.setMaxMessages(3);
-        notificationPanel.setOutputMarkupId(true);
-        add(notificationPanel);
+        notificationLabel = new Label("notification", Model.of(""));
+        notificationLabel.setOutputMarkupId(true);
+        add(notificationLabel);
 
         add(new Label("header", of(getTitle())));
 
@@ -402,9 +399,9 @@ public class TraderList extends AbstractPage{
                             return;
                         }
 
-                        warn((String) payload);
+                        notificationLabel.setDefaultModelObject(payload);
 
-                        handler.add(notificationPanel);
+                        handler.add(notificationLabel);
                     }
                 }
             }

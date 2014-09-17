@@ -530,8 +530,8 @@ public class TraderService {
 
                             //check ask
                             if (accountInfo.getBalance(currencyPair.counterSymbol).compareTo(randomAskAmount.multiply(middlePrice)) < 0){
-                                broadcast(exchangeType,  exchangeType.name() + " " + trader.getPair() + ": Buy "
-                                        + randomAskAmount.toString() + " / " + middlePrice.toString());
+                                broadcast(exchangeType,  exchangeType.name() + " " + trader.getPair() + ": Buy Error "
+                                        + randomAskAmount.toString() + " @ " + middlePrice.toString());
 
                                 errorMap.put(exchangePair, ++errorCount);
 
@@ -540,8 +540,8 @@ public class TraderService {
 
                             //check bid
                             if (accountInfo.getBalance(currencyPair.baseSymbol).compareTo(randomBidAmount) < 0){
-                                broadcast(exchangeType,  exchangeType.name() + " " + trader.getPair() + ": Sell "
-                                        + randomBidAmount.toString() + " / " + middlePrice.toString());
+                                broadcast(exchangeType,  exchangeType.name() + " " + trader.getPair() + ": Sell Error "
+                                        + randomBidAmount.toString() + " @ " + middlePrice.toString());
 
                                 errorMap.put(exchangePair, ++errorCount);
 
@@ -569,6 +569,9 @@ public class TraderService {
                                     currencyPair, "", new Date(),
                                     bidPrice));
 
+                            broadcast(exchangeType,  exchangeType.name() + " " + trader.getPair() + ": Buy "
+                                    + randomBidAmount.toString() + " @ " + bidPrice.toString());
+
                             //ASK
                             randomDelta = random50(delta);
                             BigDecimal askPrice;
@@ -589,6 +592,9 @@ public class TraderService {
                                     randomAskAmount,
                                     currencyPair, "", new Date(),
                                     askPrice));
+
+                            broadcast(exchangeType,  exchangeType.name() + " " + trader.getPair() + ": Sell "
+                                    + randomAskAmount.toString() + " @ " + askPrice.toString());
                         } catch (Exception e) {
                             log.error("alpha trade error", e);
 
