@@ -68,6 +68,7 @@ public class TraderList extends AbstractPage{
     private Map<ExchangePair, Component> sellMap = new HashMap<>();
 
     private Label notificationLabel;
+    private long notificationTime = System.currentTimeMillis();
 
     private Component bittrexBTC, bittrexCoins;
     private Component cexioBTC, cexioCoins;
@@ -399,9 +400,12 @@ public class TraderList extends AbstractPage{
                             return;
                         }
 
-                        notificationLabel.setDefaultModelObject(payload);
+                        if (System.currentTimeMillis() - notificationTime > 1000) {
+                            notificationLabel.setDefaultModelObject(payload);
+                            handler.add(notificationLabel);
 
-                        handler.add(notificationLabel);
+                            notificationTime = System.currentTimeMillis();
+                        }
                     }
                 }
             }
