@@ -489,6 +489,10 @@ public class TraderService {
 
                 BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.021")).setScale(8, HALF_UP);
 
+                if (minSpread.compareTo(ZERO) == 0){
+                    minSpread = trader.getPair().contains("/USD") ? new BigDecimal("0.02") : new BigDecimal("0.00000002");
+                }
+
                 BigDecimal minOrderAmount = getMinOrderVolume(currencyPair.counterSymbol).divide(middlePrice, 8, HALF_UP);
 
                 for (int index : Arrays.asList(1, 2, 3, 5, 8)) {
