@@ -317,7 +317,7 @@ public class TraderList extends AbstractPage{
                                 }
 
                                 //chart4
-                                lastChart4Value = lastChart4Value.add(orderVolume.getVolume());
+                                lastChart4Value = orderVolume.getVolume();
 
                                 String javaScript = "eval("+chart4.getJavaScriptVarName()+").series[" + 0 + "].addPoint("
                                         + renderer.toJson(new Point(System.currentTimeMillis(), lastChart4Value))
