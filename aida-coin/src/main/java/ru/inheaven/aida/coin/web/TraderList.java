@@ -449,7 +449,7 @@ public class TraderList extends AbstractPage{
             }
 
             List<Point> data = new ArrayList<>();
-                for (int i = 0; i < 500; ++i) {
+                for (int i = 0; i < 1000; ++i) {
                     data.add(new Point(System.currentTimeMillis(), sum));
                 }
 
