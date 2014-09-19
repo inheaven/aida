@@ -353,7 +353,7 @@ public class TraderService {
             log.error("Schedule update error", e);
 
             //noinspection ThrowableResultOfMethodCallIgnored
-            broadcast(exchangeType, Throwables.getRootCause(e).getMessage());
+            broadcast(exchangeType, exchangeType.name() + ": " + Throwables.getRootCause(e).getMessage());
         }
     }
 
@@ -421,7 +421,7 @@ public class TraderService {
                     log.error("updateOrderBook error", e);
 
                     //noinspection ThrowableResultOfMethodCallIgnored
-                    broadcast(exchangeType, Throwables.getRootCause(e).getMessage());
+                    broadcast(exchangeType, exchangeType.name() + ": " + Throwables.getRootCause(e).getMessage());
                 }
             }
         }
@@ -478,12 +478,23 @@ public class TraderService {
                         middlePrice = ticker.getAsk().add(ticker.getBid()).divide(new BigDecimal("2"), 8, HALF_UP);
                 }
 
-                if (middlePrice.compareTo(trader.getHigh()) > 0 || middlePrice.compareTo(trader.getLow()) < 0){
+                if (middlePrice.compareTo(trader.getHigh()) > 0){
                     errorMap.put(exchangePair, ++errorCount);
 
-                    broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": Price outside the range " + middlePrice.toString());
+                    broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": " + middlePrice.toString()
+                            + " > " + trader.getHigh().toString());
                     continue;
                 }
+
+                if (middlePrice.compareTo(trader.getLow()) < 0){
+                    errorMap.put(exchangePair, ++errorCount);
+
+                    broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": " + middlePrice.toString()
+                     + " < " + trader.getLow().toString());
+
+                    continue;
+                }
+
 
                 BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.021")).setScale(8, HALF_UP);
 
