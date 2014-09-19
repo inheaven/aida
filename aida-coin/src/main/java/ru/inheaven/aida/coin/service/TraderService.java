@@ -528,8 +528,8 @@ public class TraderService {
 
                             //check ask
                             if (accountInfo.getBalance(currencyPair.counterSymbol).compareTo(randomAskAmount.multiply(middlePrice)) < 0){
-                                broadcast(exchangeType,  exchangeType.name() + " " + trader.getPair() + ": Buy Skip "
-                                        + randomAskAmount.toString() + " @ " + middlePrice.toString());
+                                broadcast(exchangeType,  exchangeType.name() + " " + trader.getPair() + ": Buy "
+                                        + randomAskAmount.toString() + " ^ " + middlePrice.toString());
 
                                 errorMap.put(exchangePair, ++errorCount);
 
@@ -538,8 +538,8 @@ public class TraderService {
 
                             //check bid
                             if (accountInfo.getBalance(currencyPair.baseSymbol).compareTo(randomBidAmount) < 0){
-                                broadcast(exchangeType,  exchangeType.name() + " " + trader.getPair() + ": Sell Skip "
-                                        + randomBidAmount.toString() + " @ " + middlePrice.toString());
+                                broadcast(exchangeType,  exchangeType.name() + " " + trader.getPair() + ": Sell "
+                                        + randomBidAmount.toString() + " ^ " + middlePrice.toString());
 
                                 errorMap.put(exchangePair, ++errorCount);
 
