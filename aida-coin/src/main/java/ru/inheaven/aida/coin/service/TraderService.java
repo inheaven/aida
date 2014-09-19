@@ -44,6 +44,7 @@ import static ru.inheaven.aida.coin.util.TraderUtil.random50;
  */
 @Singleton
 @ConcurrencyManagement(ConcurrencyManagementType.BEAN)
+@TransactionManagement(TransactionManagementType.BEAN)
 public class TraderService {
     private Logger log = LoggerFactory.getLogger(TraderService.class);
 
