@@ -238,6 +238,7 @@ public class TraderService {
         List<Volume> volumes = getVolumes(new Date(System.currentTimeMillis() - 1000*60*60*24));
 
         OrderVolume orderVolume = new OrderVolume(new Date());
+        orderVolume.setVolume(volumes.get(volumes.size() - 1).getVolume());
 
         for (int j = volumes.size() - 1; j >= 0; --j){
             Volume v = volumes.get(j);
@@ -249,8 +250,6 @@ public class TraderService {
                     orderVolume.addBidVolume(v.getVolume());
                 }
             }
-
-            orderVolume.addVolume(v.getVolume());
         }
 
         return orderVolume;
