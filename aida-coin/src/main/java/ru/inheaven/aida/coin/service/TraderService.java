@@ -496,7 +496,7 @@ public class TraderService {
                 }
 
 
-                BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.021")).setScale(8, HALF_UP);
+                BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.013")).setScale(8, HALF_UP);
 
                 if (minSpread.compareTo(ZERO) == 0){
                     minSpread = trader.getPair().contains("/USD") ? new BigDecimal("0.02") : new BigDecimal("0.00000002");
