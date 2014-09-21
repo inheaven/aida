@@ -90,6 +90,8 @@ public class TraderList extends AbstractPage{
     private int chart3Index1 = 1;
     private int chart3Index2 = 1;
 
+    long startDate = System.currentTimeMillis() - 1000 * 60 * 60 * 24;
+
     public TraderList() {
         setVersioned(false);
 
@@ -282,12 +284,10 @@ public class TraderList extends AbstractPage{
                             lastChartValue = sum;
                         }
                     }else if (payload instanceof BalanceHistory){
-                        BalanceHistory balanceHistory = (BalanceHistory) payload;
-
                         if (System.currentTimeMillis() - lastChart4Time > 1000*60){
                             lastChart4Time = System.currentTimeMillis();
 
-                            OrderVolume orderVolume = traderService.getOrderVolumeRate();
+                            OrderVolume orderVolume = traderService.getOrderVolumeRate(new Date(startDate));
 
                             JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
 
@@ -459,7 +459,6 @@ public class TraderList extends AbstractPage{
         }
 
         //Chart 2
-        long startDate = System.currentTimeMillis() - 1000 * 60 * 60 * 24;
         List<OrderVolume> orderVolumes = traderService.getOrderVolumeRates(new Date(startDate));
 
         List<OrderVolume> filteredOrderVolumes = new ArrayList<>();

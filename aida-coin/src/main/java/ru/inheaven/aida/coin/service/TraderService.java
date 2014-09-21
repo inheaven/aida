@@ -234,14 +234,14 @@ public class TraderService {
         return orderVolumes;
     }
 
-    public OrderVolume getOrderVolumeRate(){
-        List<Volume> volumes = getVolumes(new Date(System.currentTimeMillis() - 1000*60*60*24));
+    public OrderVolume getOrderVolumeRate(Date startDate){
+        List<Volume> volumes = getVolumes(startDate);
 
         OrderVolume orderVolume = new OrderVolume(new Date());
-        orderVolume.setVolume(volumes.get(volumes.size() - 1).getVolume());
 
         for (int j = volumes.size() - 1; j >= 0; --j){
             Volume v = volumes.get(j);
+            orderVolume.addVolume(v.getVolume());
 
             if (orderVolume.getDate().getTime() - v.getDate().getTime() < 1000*60*60) {
                 if (v.getVolume().compareTo(ZERO) > 0){
