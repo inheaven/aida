@@ -36,6 +36,7 @@ import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.coin.entity.ExchangeType.*;
 import static ru.inheaven.aida.coin.util.TraderUtil.getCurrencyPair;
+import static ru.inheaven.aida.coin.util.TraderUtil.random20;
 import static ru.inheaven.aida.coin.util.TraderUtil.random50;
 
 /**
@@ -558,7 +559,7 @@ public class TraderService {
                             }
 
                             //BID
-                            BigDecimal randomDelta = random50(delta);
+                            BigDecimal randomDelta = random20(delta);
                             BigDecimal bidPrice;
 
                             if ("USD".equals(currencyPair.counterSymbol)){
@@ -582,7 +583,7 @@ public class TraderService {
                                     + randomBidAmount.toString() + " @ " + bidPrice.toString());
 
                             //ASK
-                            randomDelta = random50(delta);
+                            randomDelta = random20(delta);
                             BigDecimal askPrice;
 
                             if ("USD".equals(currencyPair.counterSymbol)){
