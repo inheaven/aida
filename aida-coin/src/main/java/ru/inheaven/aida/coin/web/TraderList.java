@@ -396,12 +396,10 @@ public class TraderList extends AbstractPage{
                         }
 
                         if (System.currentTimeMillis() - notificationTime > 1000) {
-                            if (((String) payload).contains("^")) {
-                                notificationLabel.setDefaultModelObject(payload);
-                                handler.add(notificationLabel);
+                            if (!((String) payload).contains("@")) {
+                                handler.add(notificationLabel.setDefaultModelObject(payload));
                             }else {
-                                notificationLabel2.setDefaultModelObject(payload);
-                                handler.add(notificationLabel2);
+                                handler.add(notificationLabel2.setDefaultModelObject(payload));
                             }
 
                             notificationTime = System.currentTimeMillis();
