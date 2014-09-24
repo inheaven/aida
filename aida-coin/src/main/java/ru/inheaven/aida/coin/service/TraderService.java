@@ -505,7 +505,7 @@ public class TraderService {
 
                 BigDecimal minOrderAmount = getMinOrderVolume(currencyPair.counterSymbol).divide(middlePrice, 8, HALF_UP);
 
-                for (int index : Arrays.asList(1, 2, 3, 5, 8)) {
+                for (int index : Arrays.asList(1, 2, 3, 5)) {
                     BigDecimal spread = minSpread.multiply(BigDecimal.valueOf(index));
 
                     BigDecimal spreadSumAmount = ZERO;
