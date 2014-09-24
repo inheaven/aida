@@ -67,7 +67,7 @@ public class TraderList extends AbstractPage{
     private Map<ExchangePair, Component> buyMap = new HashMap<>();
     private Map<ExchangePair, Component> sellMap = new HashMap<>();
 
-    private Label notificationLabel;
+    private Component notificationLabel, notificationLabel2;
     private long notificationTime = System.currentTimeMillis();
 
     private Component bittrexBTC, bittrexCoins;
@@ -95,9 +95,8 @@ public class TraderList extends AbstractPage{
     public TraderList() {
         setVersioned(false);
 
-        notificationLabel = new Label("notification", Model.of(""));
-        notificationLabel.setOutputMarkupId(true);
-        add(notificationLabel);
+        add(notificationLabel = new Label("notification", Model.of("")).setOutputMarkupId(true));
+        add(notificationLabel2 = new Label("notification2", Model.of("")).setOutputMarkupId(true));
 
         add(new Label("header", of(getTitle())));
 
@@ -397,8 +396,13 @@ public class TraderList extends AbstractPage{
                         }
 
                         if (System.currentTimeMillis() - notificationTime > 1000) {
-                            notificationLabel.setDefaultModelObject(payload);
-                            handler.add(notificationLabel);
+                            if (((String) payload).contains("^")) {
+                                notificationLabel.setDefaultModelObject(payload);
+                                handler.add(notificationLabel);
+                            }else {
+                                notificationLabel2.setDefaultModelObject(payload);
+                                handler.add(notificationLabel2);
+                            }
 
                             notificationTime = System.currentTimeMillis();
                         }
