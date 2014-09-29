@@ -329,15 +329,15 @@ public class TraderService {
     public BigDecimal getMinOrderVolume(String counterSymbol) {
         switch (counterSymbol) {
             case "BTC":
-                return new BigDecimal("0.0021");
+                return new BigDecimal("0.0034");
             case "LTC":
-                return new BigDecimal("0.021");
+                return new BigDecimal("0.034");
             case "USD":
-                return new BigDecimal("13");
+                return new BigDecimal("21");
             case "CNY":
-                return new BigDecimal("21");
+                return new BigDecimal("34");
             case "BC":
-                return new BigDecimal("21");
+                return new BigDecimal("34");
 
             default: return null;
         }
