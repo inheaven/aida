@@ -136,7 +136,7 @@ public class TraderList extends AbstractPage{
                     if (ticker != null ){
                         BigDecimal price = ticker.getLast();
 
-                        BigDecimal minOrderAmount = traderService.getMinOrderVolume(trader.getCounterSymbol());
+                        BigDecimal minOrderAmount = traderService.getMinOrderVolume(trader.getExchange(), trader.getCounterSymbol());
 
                         minOrderAmount = minOrderAmount.divide(price, 8, ROUND_HALF_UP);
 

@@ -326,20 +326,33 @@ public class TraderService {
         }
     }
 
-    public BigDecimal getMinOrderVolume(String counterSymbol) {
-        switch (counterSymbol) {
-            case "BTC":
-                return new BigDecimal("0.0034");
-            case "LTC":
-                return new BigDecimal("0.034");
-            case "USD":
-                return new BigDecimal("21");
-            case "CNY":
-                return new BigDecimal("34");
-            case "BC":
-                return new BigDecimal("34");
+    public BigDecimal getMinOrderVolume(ExchangeType exchangeType, String counterSymbol) {
+        if (BITTREX.equals(exchangeType)) {
+            switch (counterSymbol) {
+                case "BTC":
+                    return new BigDecimal("0.0013");
+                case "LTC":
+                    return new BigDecimal("0.013");
+                case "BC":
+                    return new BigDecimal("13");
 
-            default: return null;
+                default: return null;
+            }
+        }else{
+            switch (counterSymbol) {
+                case "BTC":
+                    return new BigDecimal("0.0034");
+                case "LTC":
+                    return new BigDecimal("0.034");
+                case "USD":
+                    return new BigDecimal("21");
+                case "CNY":
+                    return new BigDecimal("34");
+                case "BC":
+                    return new BigDecimal("34");
+
+                default: return null;
+            }
         }
     }
 
@@ -503,9 +516,13 @@ public class TraderService {
                     minSpread = trader.getPair().contains("/USD") ? new BigDecimal("0.02") : new BigDecimal("0.00000002");
                 }
 
-                BigDecimal minOrderAmount = getMinOrderVolume(currencyPair.counterSymbol).divide(middlePrice, 8, HALF_UP);
+                BigDecimal minOrderAmount = getMinOrderVolume(exchangeType, currencyPair.counterSymbol).divide(middlePrice, 8, HALF_UP);
 
-                for (int index : Arrays.asList(1, 2, 3, 5)) {
+                for (int index : Arrays.asList(1, 2, 3, 5, 8)) {
+                    if (!BITTREX.equals(exchangeType) && index > 5){
+                        continue;
+                    }
+
                     BigDecimal spread = minSpread.multiply(BigDecimal.valueOf(index));
 
                     BigDecimal spreadSumAmount = ZERO;
