@@ -37,10 +37,10 @@ public class TraderUtil {
     }
 
     public static BigDecimal random20(BigDecimal decimal){
-        return decimal.multiply(new BigDecimal(1 - random.nextDouble()/5)).setScale(8, ROUND_HALF_UP);
+        return decimal.multiply(new BigDecimal(1 + random.nextGaussian()/5)).setScale(8, ROUND_HALF_UP);
     }
 
     public static BigDecimal random50(BigDecimal decimal){
-        return decimal.multiply(BigDecimal.valueOf(1 - random.nextDouble()/2)).setScale(8, ROUND_HALF_UP);
+        return decimal.multiply(BigDecimal.valueOf(1 + random.nextGaussian()/2)).setScale(8, ROUND_HALF_UP);
     }
 }
