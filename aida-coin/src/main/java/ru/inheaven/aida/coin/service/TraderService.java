@@ -74,8 +74,8 @@ public class TraderService {
     }});
 
     private Exchange cryptsyExchange = INSTANCE.createExchange(new ExchangeSpecification(CryptsyExchange.class){{
-        setApiKey("50d34971bc49011fd7cbaabc24f49b90a18a67be");
-        setSecretKey("427fa87a1a83d8d9ef84324b978e932a9e9d90392a9ec27ca30615cce7958042514d488b2cc4c92b");
+        setApiKey("d5569da15ae4d9b58c11220e424747289df76627");
+        setSecretKey("f3a4732d55f7b9162ea6105187b36f9b1a88323c7f5bc8d1fcb2b8c98d3456384c31d1cf3ae443a6");
     }});
 
     private Exchange btceExchange = INSTANCE.createExchange(new ExchangeSpecification(BTCEExchange.class){{
