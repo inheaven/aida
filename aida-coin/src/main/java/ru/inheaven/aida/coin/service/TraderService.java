@@ -530,8 +530,8 @@ public class TraderService {
 
                 //volatility
                 BigDecimal volatility = traderBean.getSigma(exchangePair).divide(ticker.getLast(), 8, ROUND_UP);
-                minSpread = minSpread.multiply(volatility.multiply(BigDecimal.valueOf(Math.PI).add(ONE)));
-                minOrderAmount = minOrderAmount.multiply(volatility.multiply(BigDecimal.valueOf(Math.PI).add(ONE)));
+                minSpread = minSpread.multiply(volatility.multiply(BigDecimal.valueOf(Math.PI).add(ONE))).setScale(8, HALF_UP);
+                minOrderAmount = minOrderAmount.multiply(volatility.multiply(BigDecimal.valueOf(Math.PI).add(ONE))).setScale(8, HALF_UP);
 
                 for (int index : Arrays.asList(1, 2, 3, 5)) {
                     BigDecimal spread = minSpread.multiply(BigDecimal.valueOf(index));
@@ -610,7 +610,7 @@ public class TraderService {
                                     bidPrice));
 
                             broadcast(exchangeType,  exchangeType.name() + " " + trader.getPair() + ": Buy "
-                                    + randomBidAmount.toString() + " @ " + bidPrice.toString());
+                                    + randomBidAmount.toString() + " @ " + bidPrice.toString()  + " | " + delta.toString());
 
                             //ASK
                             randomDelta = random10(delta);
