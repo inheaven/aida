@@ -69,7 +69,6 @@ public class TraderList extends AbstractPage{
     private Map<ExchangePair, Component> buyMap = new HashMap<>();
     private Map<ExchangePair, Component> sellMap = new HashMap<>();
     private Map<ExchangePair, Component> volatilityMap = new HashMap<>();
-    private Map<ExchangePair, Component> sigmaMap = new HashMap<>();
 
     private Component notificationLabel, notificationLabel2;
     private long notificationTime = System.currentTimeMillis();
@@ -176,7 +175,6 @@ public class TraderList extends AbstractPage{
         list.add(new PropertyColumn<>(of("Low"), "low"));
         list.add(new PropertyColumn<>(of("High"), "high"));
         list.add(new TraderColumn(of("Volatility"),volatilityMap));
-        list.add(new TraderColumn(of("Sigma"),sigmaMap));
 
         list.add(new AbstractColumn<Trader, String>(of("")) {
             @Override
@@ -353,12 +351,6 @@ public class TraderList extends AbstractPage{
                         update(handler, bidMap.get(exchangePair), ticker.getBid());
 
                         //volatility
-                        update(handler, volatilityMap.get(exchangePair),
-                                traderBean.getSigma(exchangePair)
-                                        .multiply(BigDecimal.valueOf(100))
-                                        .divide(new BigDecimal("0.05234239225902137035388574178766"), 2, ROUND_UP), true);
-
-                        //sigma
                         update(handler, volatilityMap.get(exchangePair),
                                 traderBean.getSigma(exchangePair)
                                         .multiply(BigDecimal.valueOf(100))
