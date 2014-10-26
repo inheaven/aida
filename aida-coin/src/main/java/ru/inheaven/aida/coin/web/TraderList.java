@@ -339,8 +339,11 @@ public class TraderList extends AbstractPage{
                         update(handler, bidMap.get(exchangePair), ticker.getBid());
 
                         //volatility
-                        update(handler, volatilityMap.get(exchangePair), traderBean.getSigma(exchangePair)
-                                .divide(new BigDecimal("0.05234239225902137035388574178766"), 8, ROUND_UP));
+                        update(handler, volatilityMap.get(exchangePair),
+                                traderBean.getSigma(exchangePair)
+                                .divide(new BigDecimal("0.05234239225902137035388574178766"), 32, ROUND_UP)
+                                .divide(ticker.getLast(), 32, ROUND_UP)
+                                .multiply(BigDecimal.valueOf(100)).setScale(2, ROUND_UP), true);
 
                     }else if (payload instanceof OpenOrders){
                         OpenOrders openOrders = (OpenOrders) exchangeMessage.getPayload();
@@ -559,10 +562,14 @@ public class TraderList extends AbstractPage{
     }
 
     private void update(WebSocketRequestHandler handler, Component component, BigDecimal newValue){
+        update(handler, component, newValue, false);
+    }
+
+    private void update(WebSocketRequestHandler handler, Component component, BigDecimal newValue, boolean percent){
         if (component != null){
             String s = getConverter(BigDecimal.class).convertToString(newValue, getLocale());
 
-            int compare = s.compareTo(component.getDefaultModelObjectAsString());
+            int compare = s.compareTo(component.getDefaultModelObjectAsString().replace("%", ""));
 
             if (compare != 0){
                 String color = compare > 0 ? "'#EFFBEF'" : "'#FBEFEF'";
@@ -577,7 +584,7 @@ public class TraderList extends AbstractPage{
                         .chain("animate", "{backgroundColor:" + color + "}")
                         .render());
 
-                component.setDefaultModelObject(s);
+                component.setDefaultModelObject(s + (percent ? "%" : ""));
                 handler.add(component);
             }
         }
