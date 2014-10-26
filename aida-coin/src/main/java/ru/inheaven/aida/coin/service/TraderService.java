@@ -538,20 +538,19 @@ public class TraderService {
                 //cancel orders
                 for (LimitOrder order : getOpenOrders(exchangeType).getOpenOrders()){
                     if (currencyPair.equals(order.getCurrencyPair()) && order.getLimitPrice().subtract(middlePrice)
-                            .abs().compareTo(minSpread.multiply(BigDecimal.valueOf(4))) > 0){
+                            .abs().compareTo(minSpread.multiply(BigDecimal.valueOf(2))) > 0){
                         tradeService.cancelOrder(order.getId());
                     }
                 }
 
                 //create order
                 for (int index : Arrays.asList(1, 2, 3)) {
-                    BigDecimal spread = minSpread.multiply(BigDecimal.valueOf(index));
+                    BigDecimal delta = minSpread.multiply(BigDecimal.valueOf(index)).divide(new BigDecimal("2"), 8, HALF_UP);
 
                     BigDecimal spreadSumAmount = ZERO;
-
                     for (LimitOrder order : getOpenOrders(exchangeType).getOpenOrders()){
                         if (currencyPair.equals(order.getCurrencyPair()) && order.getLimitPrice().subtract(middlePrice)
-                                .abs().compareTo(spread) <= 0){
+                                .abs().compareTo(delta) <= 0){
                             spreadSumAmount = spreadSumAmount.add(order.getTradableAmount());
                         }
                     }
@@ -560,8 +559,6 @@ public class TraderService {
                         AccountInfo accountInfo = getAccountInfo(exchangeType);
 
                         try {
-                            BigDecimal delta = spread.divide(new BigDecimal("2"), 8, HALF_UP);
-
                             BigDecimal randomAskAmount = ZERO;
                             BigDecimal minRandomAskAmount = BITTREX.equals(exchangeType)
                                     ? random10(minOrderAmount.multiply(BigDecimal.valueOf(index)))
