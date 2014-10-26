@@ -1,23 +1,16 @@
 package com.xeiam.xchange.cexio;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-
-import si.mazi.rescu.ParamsDigest;
-
 import com.xeiam.xchange.cexio.dto.account.CexIOBalanceInfo;
 import com.xeiam.xchange.cexio.dto.account.GHashIOHashrate;
 import com.xeiam.xchange.cexio.dto.account.GHashIOWorkers;
 import com.xeiam.xchange.cexio.dto.trade.CexIOOpenOrders;
 import com.xeiam.xchange.cexio.dto.trade.CexIOOrder;
+import si.mazi.rescu.ParamsDigest;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import java.io.IOException;
+import java.math.BigDecimal;
 
 /**
  * Author: brox
@@ -40,7 +33,7 @@ public interface CexIOAuthenticated {
 
   @POST
   @Path("cancel_order/")
-  Object cancelOrder(@FormParam("key") String apiKey, @FormParam("signature") ParamsDigest signer, @FormParam("nonce") long nonce, @FormParam("id") int orderId) throws IOException;
+  Object cancelOrder(@FormParam("key") String apiKey, @FormParam("signature") ParamsDigest signer, @FormParam("nonce") long nonce, @FormParam("id") long orderId) throws IOException;
 
   @POST
   @Path("place_order/{ident}/{currency}/")
