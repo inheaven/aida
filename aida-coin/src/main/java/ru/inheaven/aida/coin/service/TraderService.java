@@ -58,7 +58,7 @@ public class TraderService {
     private Map<ExchangePair, BalanceHistory> balanceHistoryMap = new ConcurrentHashMap<>();
 
     private Map<ExchangePair,Integer> errorMap = new ConcurrentHashMap<>();
-    private Map<ExchangePair,Long> errorTimeMap = new ConcurrentHashMap<>();
+    private Map<ExchangePair,  Long> errorTimeMap = new ConcurrentHashMap<>();
 
     private Exchange bittrexExchange = INSTANCE.createExchange(new ExchangeSpecification(BittrexExchange.class){{
         setApiKey("14935ef36d8b4afc8204946be7ddd152");
@@ -383,16 +383,20 @@ public class TraderService {
             CurrencyPair currencyPair = getCurrencyPair(pair);
 
             if (currencyPair != null) {
-                Ticker ticker;
-
-                if (CRYPTSY.equals(exchangeType)) {
-                    ticker = ((CryptsyExchange)cryptsyExchange).getPublicPollingMarketDataService().getTicker(currencyPair);
-                }else{
-                    ticker = getExchange(exchangeType).getPollingMarketDataService().getTicker(currencyPair);
-                }
+                Ticker ticker = getExchange(exchangeType).getPollingMarketDataService().getTicker(currencyPair);
 
                 if (ticker.getLast() != null && ticker.getLast().compareTo(ZERO) != 0 && ticker.getBid() != null && ticker.getAsk() != null) {
-                    tickerMap.put(new ExchangePair(exchangeType, pair), ticker);
+                    ExchangePair exchangePair = new ExchangePair(exchangeType, pair);
+
+                    //ticker history
+                    Ticker previous = tickerMap.get(exchangePair);
+
+                    if (previous != null && previous.getLast().compareTo(ticker.getLast()) != 0){
+                        traderBean.save(new TickerHistory(exchangeType, pair, ticker.getLast(), ticker.getVolume()));
+                    }
+
+                    //ticker map
+                    tickerMap.put(exchangePair, ticker);
 
                     broadcast(exchangeType, ticker);
                 }
