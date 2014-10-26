@@ -32,6 +32,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.xeiam.xchange.ExchangeFactory.INSTANCE;
+import static java.math.BigDecimal.ONE;
+import static java.math.BigDecimal.ROUND_UP;
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.coin.entity.ExchangeType.*;
@@ -526,6 +528,11 @@ public class TraderService {
 
                 BigDecimal minOrderAmount = getMinOrderVolume(exchangeType, currencyPair.counterSymbol).divide(middlePrice, 8, HALF_UP);
 
+                //volatility
+                BigDecimal volatility = traderBean.getSigma(exchangePair).divide(ticker.getLast(), 8, ROUND_UP);
+                minSpread = minSpread.multiply(volatility.multiply(BigDecimal.valueOf(Math.PI).add(ONE)));
+                minOrderAmount = minOrderAmount.multiply(volatility.multiply(BigDecimal.valueOf(Math.PI).add(ONE)));
+
                 for (int index : Arrays.asList(1, 2, 3, 5)) {
                     BigDecimal spread = minSpread.multiply(BigDecimal.valueOf(index));
 
@@ -582,7 +589,7 @@ public class TraderService {
                             }
 
                             //BID
-                            BigDecimal randomDelta = random20(delta);
+                            BigDecimal randomDelta = random10(delta);
                             BigDecimal bidPrice;
 
                             if ("USD".equals(currencyPair.counterSymbol)){
@@ -606,7 +613,7 @@ public class TraderService {
                                     + randomBidAmount.toString() + " @ " + bidPrice.toString());
 
                             //ASK
-                            randomDelta = random20(delta);
+                            randomDelta = random10(delta);
                             BigDecimal askPrice;
 
                             if ("USD".equals(currencyPair.counterSymbol)){
@@ -627,7 +634,7 @@ public class TraderService {
                                     askPrice));
 
                             broadcast(exchangeType,  exchangeType.name() + " " + trader.getPair() + ": Sell "
-                                    + randomAskAmount.toString() + " @ " + askPrice.toString());
+                                    + randomAskAmount.toString() + " @ " + askPrice.toString() + " | " + delta.toString());
                         } catch (Exception e) {
                             log.error("alpha trade error", e);
 
