@@ -1,10 +1,5 @@
 package com.xeiam.xchange.cexio.dto.trade;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.ObjectCodec;
@@ -15,6 +10,11 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.xeiam.xchange.ExchangeException;
 import com.xeiam.xchange.cexio.dto.trade.CexIOOpenOrders.CexIOOpenOrdersDeserializer;
 import com.xeiam.xchange.cexio.dto.trade.CexIOOrder.Type;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @JsonDeserialize(using = CexIOOpenOrdersDeserializer.class)
 public class CexIOOpenOrders {
@@ -74,7 +74,7 @@ public class CexIOOpenOrders {
       final List<CexIOOrder> openOrders = new ArrayList<CexIOOrder>();
       if (openOrdersNode.isArray()) {
         for (JsonNode openOrderNode : openOrdersNode) {
-          final int id = openOrderNode.path("id").asInt();
+          final long id = openOrderNode.path("id").asLong();
           final long time = openOrderNode.path("time").asLong();
           final Type type = Type.valueOf(openOrderNode.path("type").asText());
           final BigDecimal price = new BigDecimal(openOrderNode.path("price").asText());
