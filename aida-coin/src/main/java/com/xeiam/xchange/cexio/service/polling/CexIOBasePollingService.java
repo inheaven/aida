@@ -34,7 +34,9 @@ public class CexIOBasePollingService extends BaseExchangeService implements Base
             new CurrencyPair("DOGE", "LTC"),
             new CurrencyPair("DRK", "LTC"),
             new CurrencyPair("MEC", "LTC"),
-            new CurrencyPair("WDC", "LTC")
+            new CurrencyPair("WDC", "LTC"),
+            new CurrencyPair("ANC", "LTC"),
+            new CurrencyPair("FTC", "LTC")
             );
 
     /**
