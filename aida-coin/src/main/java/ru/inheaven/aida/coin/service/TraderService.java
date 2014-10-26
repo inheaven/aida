@@ -383,7 +383,13 @@ public class TraderService {
             CurrencyPair currencyPair = getCurrencyPair(pair);
 
             if (currencyPair != null) {
-                Ticker ticker = getExchange(exchangeType).getPollingMarketDataService().getTicker(currencyPair);
+                Ticker ticker;
+
+                if (CRYPTSY.equals(exchangeType)) {
+                    ticker = ((CryptsyExchange)cryptsyExchange).getPublicPollingMarketDataService().getTicker(currencyPair);
+                }else{
+                    ticker = getExchange(exchangeType).getPollingMarketDataService().getTicker(currencyPair);
+                }
 
                 if (ticker.getLast() != null && ticker.getLast().compareTo(ZERO) != 0 && ticker.getBid() != null && ticker.getAsk() != null) {
                     ExchangePair exchangePair = new ExchangePair(exchangeType, pair);
