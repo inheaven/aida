@@ -540,6 +540,9 @@ public class TraderService {
                     if (currencyPair.equals(order.getCurrencyPair()) && order.getLimitPrice().subtract(middlePrice)
                             .abs().compareTo(minSpread.multiply(BigDecimal.valueOf(2))) > 0){
                         tradeService.cancelOrder(order.getId());
+
+                        broadcast(exchangeType,  exchangeType.name() + " " + trader.getPair() + ": Cancel "
+                                + order.getCurrencyPair().toString() + " ~ " + order.getLimitPrice().toString());
                     }
                 }
 
