@@ -35,9 +35,7 @@ import static com.xeiam.xchange.ExchangeFactory.INSTANCE;
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.coin.entity.ExchangeType.*;
-import static ru.inheaven.aida.coin.util.TraderUtil.getCurrencyPair;
-import static ru.inheaven.aida.coin.util.TraderUtil.random20;
-import static ru.inheaven.aida.coin.util.TraderUtil.random50;
+import static ru.inheaven.aida.coin.util.TraderUtil.*;
 
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
@@ -518,11 +516,7 @@ public class TraderService {
 
                 BigDecimal minOrderAmount = getMinOrderVolume(exchangeType, currencyPair.counterSymbol).divide(middlePrice, 8, HALF_UP);
 
-                for (int index : Arrays.asList(1, 2, 3, 5, 8)) {
-                    if (!BITTREX.equals(exchangeType) && index > 5){
-                        continue;
-                    }
-
+                for (int index : Arrays.asList(1, 2, 3, 5)) {
                     BigDecimal spread = minSpread.multiply(BigDecimal.valueOf(index));
 
                     BigDecimal spreadSumAmount = ZERO;
@@ -542,7 +536,9 @@ public class TraderService {
                             BigDecimal delta = spread.divide(new BigDecimal("2"), 8, HALF_UP);
 
                             BigDecimal randomAskAmount = ZERO;
-                            BigDecimal minRandomAskAmount = random50(minOrderAmount.multiply(BigDecimal.valueOf(index)));
+                            BigDecimal minRandomAskAmount = BITTREX.equals(exchangeType)
+                                    ? random10(minOrderAmount.multiply(BigDecimal.valueOf(index)))
+                                    : random50(minOrderAmount.multiply(BigDecimal.valueOf(index)));
 
                             randomAskAmount = randomAskAmount.compareTo(minRandomAskAmount) > 0
                                     ? randomAskAmount

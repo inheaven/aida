@@ -36,8 +36,16 @@ public class TraderUtil {
         return currencyPair.baseSymbol + "/" + currencyPair.counterSymbol;
     }
 
+    public static BigDecimal random10(BigDecimal decimal){
+        return decimal.multiply(new BigDecimal(1 + random.nextGaussian()/10)).setScale(8, ROUND_HALF_UP);
+    }
+
     public static BigDecimal random20(BigDecimal decimal){
         return decimal.multiply(new BigDecimal(1 + random.nextGaussian()/5)).setScale(8, ROUND_HALF_UP);
+    }
+
+    public static BigDecimal random30(BigDecimal decimal){
+        return decimal.multiply(new BigDecimal(1 + random.nextGaussian()/3)).setScale(8, ROUND_HALF_UP);
     }
 
     public static BigDecimal random50(BigDecimal decimal){
