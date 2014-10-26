@@ -521,11 +521,6 @@ public class TraderService {
 
 
                 BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.013")).setScale(8, HALF_UP);
-
-                if (minSpread.compareTo(ZERO) == 0){
-                    minSpread = trader.getPair().contains("/USD") ? new BigDecimal("0.02") : new BigDecimal("0.00000002");
-                }
-
                 BigDecimal minOrderAmount = getMinOrderVolume(exchangeType, currencyPair.counterSymbol).divide(middlePrice, 8, HALF_UP);
 
                 //volatility
@@ -533,6 +528,10 @@ public class TraderService {
 
                 minSpread = minSpread.multiply(ONE.add(volatility.multiply(BigDecimal.valueOf(Math.PI)))).setScale(8, HALF_UP);
                 minOrderAmount = minOrderAmount.multiply(ONE.add(volatility.multiply(BigDecimal.valueOf(Math.PI)))).setScale(8, HALF_UP);
+
+                if (minSpread.compareTo(ZERO) == 0){
+                    minSpread = trader.getPair().contains("/USD") ? new BigDecimal("0.02") : new BigDecimal("0.00000002");
+                }
 
                 for (int index : Arrays.asList(1, 2, 3, 5)) {
                     BigDecimal spread = minSpread.multiply(BigDecimal.valueOf(index));
