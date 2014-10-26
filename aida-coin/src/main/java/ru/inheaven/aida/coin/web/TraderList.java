@@ -341,9 +341,8 @@ public class TraderList extends AbstractPage{
                         //volatility
                         update(handler, volatilityMap.get(exchangePair),
                                 traderBean.getSigma(exchangePair)
-                                .divide(new BigDecimal("0.05234239225902137035388574178766"), 32, ROUND_UP)
-                                .divide(ticker.getLast(), 32, ROUND_UP)
-                                .multiply(BigDecimal.valueOf(100)).setScale(2, ROUND_UP), true);
+                                .multiply(BigDecimal.valueOf(100))
+                                .divide(new BigDecimal("0.05234239225902137035388574178766"), 8, ROUND_UP));
 
                     }else if (payload instanceof OpenOrders){
                         OpenOrders openOrders = (OpenOrders) exchangeMessage.getPayload();
