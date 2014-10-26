@@ -330,9 +330,9 @@ public class TraderService {
         if (BITTREX.equals(exchangeType)) {
             switch (counterSymbol) {
                 case "BTC":
-                    return new BigDecimal("0.0013");
+                    return new BigDecimal("0.008");
                 case "LTC":
-                    return new BigDecimal("0.013");
+                    return new BigDecimal("0.08");
                 case "BC":
                     return new BigDecimal("13");
 
