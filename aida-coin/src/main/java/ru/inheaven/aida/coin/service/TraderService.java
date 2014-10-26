@@ -533,7 +533,7 @@ public class TraderService {
                     minSpread = trader.getPair().contains("/USD") ? new BigDecimal("0.02") : new BigDecimal("0.00000002");
                 }
 
-                for (int index : Arrays.asList(1, 2, 3, 5)) {
+                for (int index : Arrays.asList(1, 2, 3)) {
                     BigDecimal spread = minSpread.multiply(BigDecimal.valueOf(index));
 
                     BigDecimal spreadSumAmount = ZERO;
