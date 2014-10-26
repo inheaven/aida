@@ -483,6 +483,8 @@ public class TraderService {
                 Ticker ticker = getTicker(new ExchangePair(exchangeType, trader.getPair()));
                 CurrencyPair currencyPair = getCurrencyPair(trader.getPair());
 
+                PollingTradeService tradeService = getExchange(exchangeType).getPollingTradeService();
+
                 if (ticker == null){
                     continue;
                 }
@@ -533,6 +535,15 @@ public class TraderService {
                     minSpread = trader.getPair().contains("/USD") ? new BigDecimal("0.02") : new BigDecimal("0.00000002");
                 }
 
+                //cancel orders
+                for (LimitOrder order : getOpenOrders(exchangeType).getOpenOrders()){
+                    if (currencyPair.equals(order.getCurrencyPair()) && order.getLimitPrice().subtract(middlePrice)
+                            .abs().compareTo(minSpread.multiply(BigDecimal.valueOf(4))) > 0){
+                        tradeService.cancelOrder(order.getId());
+                    }
+                }
+
+                //create order
                 for (int index : Arrays.asList(1, 2, 3)) {
                     BigDecimal spread = minSpread.multiply(BigDecimal.valueOf(index));
 
@@ -546,7 +557,6 @@ public class TraderService {
                     }
 
                     if (spreadSumAmount.compareTo(minOrderAmount.multiply(BigDecimal.valueOf(index))) < 0){
-                        PollingTradeService tradeService = getExchange(exchangeType).getPollingTradeService();
                         AccountInfo accountInfo = getAccountInfo(exchangeType);
 
                         try {
