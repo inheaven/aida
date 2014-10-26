@@ -33,6 +33,8 @@ import org.apache.wicket.protocol.ws.api.WebSocketRequestHandler;
 import org.apache.wicket.protocol.ws.api.message.IWebSocketPushMessage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
+import org.apache.wicket.util.convert.IConverter;
+import org.apache.wicket.util.convert.converter.BigDecimalConverter;
 import org.odlabs.wiquery.core.javascript.JsStatement;
 import org.odlabs.wiquery.ui.effects.HighlightEffectJavaScriptResourceReference;
 import ru.inheaven.aida.coin.entity.*;
@@ -42,12 +44,11 @@ import ru.inheaven.aida.coin.util.TraderUtil;
 
 import javax.ejb.EJB;
 import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.util.*;
 import java.util.function.BiConsumer;
 
-import static java.math.BigDecimal.ROUND_HALF_UP;
-import static java.math.BigDecimal.ROUND_UP;
-import static java.math.BigDecimal.ZERO;
+import static java.math.BigDecimal.*;
 import static org.apache.wicket.model.Model.of;
 
 /**
@@ -93,6 +94,17 @@ public class TraderList extends AbstractPage{
     private int chart3Index2 = 1;
 
     long startDate = System.currentTimeMillis() - 1000 * 60 * 60 * 24;
+
+    BigDecimalConverter bigDecimalConverter2 = new BigDecimalConverter() {
+        @Override
+        protected NumberFormat newNumberFormat(Locale locale) {
+            NumberFormat numberFormat = super.newNumberFormat(locale);
+            numberFormat.setMinimumFractionDigits(2);
+            numberFormat.setMaximumFractionDigits(2);
+
+            return numberFormat;
+        }
+    };
 
     public TraderList() {
         setVersioned(false);
@@ -341,8 +353,8 @@ public class TraderList extends AbstractPage{
                         //volatility
                         update(handler, volatilityMap.get(exchangePair),
                                 traderBean.getSigma(exchangePair)
-                                .multiply(BigDecimal.valueOf(100))
-                                .divide(new BigDecimal("0.05234239225902137035388574178766"), 8, ROUND_UP));
+                                        .multiply(BigDecimal.valueOf(100))
+                                        .divide(new BigDecimal("0.05234239225902137035388574178766"), 8, ROUND_UP), true);
 
                     }else if (payload instanceof OpenOrders){
                         OpenOrders openOrders = (OpenOrders) exchangeMessage.getPayload();
@@ -566,7 +578,9 @@ public class TraderList extends AbstractPage{
 
     private void update(WebSocketRequestHandler handler, Component component, BigDecimal newValue, boolean percent){
         if (component != null){
-            String s = getConverter(BigDecimal.class).convertToString(newValue, getLocale());
+            IConverter<BigDecimal> converter = percent ? bigDecimalConverter2 : getConverter(BigDecimal.class);
+
+            String s =  converter.convertToString(newValue, getLocale());
 
             int compare = s.compareTo(component.getDefaultModelObjectAsString().replace("%", ""));
 
