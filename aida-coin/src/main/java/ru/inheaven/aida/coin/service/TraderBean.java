@@ -1,13 +1,11 @@
 package ru.inheaven.aida.coin.service;
 
-import ru.inheaven.aida.coin.entity.AbstractEntity;
-import ru.inheaven.aida.coin.entity.BalanceHistory;
-import ru.inheaven.aida.coin.entity.ExchangeType;
-import ru.inheaven.aida.coin.entity.Trader;
+import ru.inheaven.aida.coin.entity.*;
 
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
@@ -85,5 +83,13 @@ public class TraderBean {
         return em.createQuery("select h from BalanceHistory h where h.date >= :startDate order by h.date asc", BalanceHistory.class)
                 .setParameter("startDate", startDate)
                 .getResultList();
+    }
+
+    public BigDecimal getSigma(ExchangePair exchangePair){
+        return (BigDecimal) em.createNativeQuery("select std(price) from ticker_history " +
+                "where exchangetype = :exchangetype and pair = :pair", BigDecimal.class)
+                .setParameter("exchangetype", exchangePair.getExchangeType().name())
+                .setParameter("pair", exchangePair.getPair())
+                .getSingleResult();
     }
 }

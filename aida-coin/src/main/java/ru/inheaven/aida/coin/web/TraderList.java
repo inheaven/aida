@@ -46,6 +46,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
+import static java.math.BigDecimal.ROUND_UP;
 import static java.math.BigDecimal.ZERO;
 import static org.apache.wicket.model.Model.of;
 
@@ -66,6 +67,7 @@ public class TraderList extends AbstractPage{
     private Map<ExchangePair, Component> balanceMap = new HashMap<>();
     private Map<ExchangePair, Component> buyMap = new HashMap<>();
     private Map<ExchangePair, Component> sellMap = new HashMap<>();
+    private Map<ExchangePair, Component> volatilityMap = new HashMap<>();
 
     private Component notificationLabel, notificationLabel2;
     private long notificationTime = System.currentTimeMillis();
@@ -160,6 +162,7 @@ public class TraderList extends AbstractPage{
         list.add(new TraderColumn(of("Ask"),askMap));
         list.add(new PropertyColumn<>(of("Low"), "low"));
         list.add(new PropertyColumn<>(of("High"), "high"));
+        list.add(new TraderColumn(of("Volatility"),volatilityMap));
 
         list.add(new AbstractColumn<Trader, String>(of("")) {
             @Override
@@ -334,6 +337,11 @@ public class TraderList extends AbstractPage{
 
                         //bid
                         update(handler, bidMap.get(exchangePair), ticker.getBid());
+
+                        //volatility
+                        update(handler, volatilityMap.get(exchangePair), traderBean.getSigma(exchangePair)
+                                .divide(new BigDecimal("0.05234239225902137035388574178766"), 8, ROUND_UP));
+
                     }else if (payload instanceof OpenOrders){
                         OpenOrders openOrders = (OpenOrders) exchangeMessage.getPayload();
 
