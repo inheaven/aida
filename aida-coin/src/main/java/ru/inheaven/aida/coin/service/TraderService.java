@@ -565,14 +565,14 @@ public class TraderService {
                             BigDecimal randomAskAmount = ZERO;
                             BigDecimal minRandomAskAmount = BITTREX.equals(exchangeType)
                                     ? random10(minOrderAmount.multiply(BigDecimal.valueOf(index)))
-                                    : random50(minOrderAmount.multiply(BigDecimal.valueOf(index)));
+                                    : random30(minOrderAmount.multiply(BigDecimal.valueOf(index)));
 
                             randomAskAmount = randomAskAmount.compareTo(minRandomAskAmount) > 0
                                     ? randomAskAmount
                                     : minRandomAskAmount;
 
                             BigDecimal randomBidAmount = ZERO;
-                            BigDecimal minRandomBidAmount = random50(minOrderAmount.multiply(BigDecimal.valueOf(index)));
+                            BigDecimal minRandomBidAmount = random30(minOrderAmount.multiply(BigDecimal.valueOf(index)));
 
                             randomBidAmount = randomBidAmount.compareTo(minOrderAmount) > 0
                                     ? randomBidAmount
