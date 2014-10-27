@@ -20,12 +20,7 @@ public class CexIOUtils {
     }
 
     public static int nextNonce() {
-        //fix nonce increment
-        for (int i=0; i < 32; ++i) {
-            lastNonce.incrementAndGet();
-        }
-
-        return lastNonce.incrementAndGet();
+        return lastNonce.addAndGet(32);
     }
 
 }
