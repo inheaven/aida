@@ -1,20 +1,7 @@
 package com.xeiam.xchange.bitfinex.v1;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.xeiam.xchange.bitfinex.v1.dto.account.BitfinexBalancesResponse;
-import com.xeiam.xchange.bitfinex.v1.dto.marketdata.BitfinexDepth;
-import com.xeiam.xchange.bitfinex.v1.dto.marketdata.BitfinexLendLevel;
-import com.xeiam.xchange.bitfinex.v1.dto.marketdata.BitfinexLevel;
-import com.xeiam.xchange.bitfinex.v1.dto.marketdata.BitfinexTicker;
-import com.xeiam.xchange.bitfinex.v1.dto.marketdata.BitfinexTrade;
+import com.xeiam.xchange.bitfinex.v1.dto.marketdata.*;
 import com.xeiam.xchange.bitfinex.v1.dto.trade.BitfinexOrderStatusResponse;
 import com.xeiam.xchange.bitfinex.v1.dto.trade.BitfinexTradeResponse;
 import com.xeiam.xchange.currency.CurrencyPair;
@@ -26,12 +13,16 @@ import com.xeiam.xchange.dto.marketdata.Ticker.TickerBuilder;
 import com.xeiam.xchange.dto.marketdata.Trade;
 import com.xeiam.xchange.dto.marketdata.Trades;
 import com.xeiam.xchange.dto.marketdata.Trades.TradeSortType;
-import com.xeiam.xchange.dto.trade.FixedRateLoanOrder;
-import com.xeiam.xchange.dto.trade.FloatingRateLoanOrder;
-import com.xeiam.xchange.dto.trade.LimitOrder;
-import com.xeiam.xchange.dto.trade.OpenOrders;
-import com.xeiam.xchange.dto.trade.Wallet;
+import com.xeiam.xchange.dto.trade.*;
 import com.xeiam.xchange.utils.DateUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 
 public final class BitfinexAdapters {
 
@@ -212,7 +203,7 @@ public final class BitfinexAdapters {
     List<Wallet> wallets = new ArrayList<Wallet>(response.length);
 
     for (BitfinexBalancesResponse balance : response) {
-      if ("exchange".equals(balance.getType())) {
+      if ("trading".equals(balance.getType())) {
         wallets.add(new Wallet(balance.getCurrency().toUpperCase(), balance.getAmount()));
       }
     }
