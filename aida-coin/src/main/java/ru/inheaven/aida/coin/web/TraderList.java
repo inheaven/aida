@@ -78,6 +78,8 @@ public class TraderList extends AbstractPage{
     private Component cryptsyBTC, cryptsyCoins;
     private Component btceBTC, btceCoins;
     private Component bterBTC, bterCoins;
+    private Component bitfinexBTC, bitfinexCoins;
+
     private Component sumEstimate;
 
     private Map<ExchangeType, BigDecimal> lastChartValueMap = new HashMap<>();
@@ -131,6 +133,9 @@ public class TraderList extends AbstractPage{
 
         add(bterBTC = new Label("bterBTC", Model.of("0")).setOutputMarkupId(true));
         add(bterCoins = new Label("bterCoins", Model.of("0")).setOutputMarkupId(true));
+
+        add(bitfinexBTC = new Label("bitfinexBTC", Model.of("0")).setOutputMarkupId(true));
+        add(bitfinexCoins = new Label("bitfinexCoins", Model.of("0")).setOutputMarkupId(true));
 
         List<IColumn<Trader, String>> list = new ArrayList<>();
 
@@ -269,6 +274,10 @@ public class TraderList extends AbstractPage{
                                 update(handler, bterCoins, estimate);
                                 update(handler, bterBTC, ((AccountInfo) payload).getBalance("BTC"));
                                 break;
+                            case BITFINEX:
+                                update(handler, bitfinexCoins, estimate);
+                                update(handler, bitfinexBTC, ((AccountInfo) payload).getBalance("BTC"));
+                                break;
                         }
 
                         //sumEstimate
@@ -277,6 +286,7 @@ public class TraderList extends AbstractPage{
                                 .add(new BigDecimal(bittrexCoins.getDefaultModelObjectAsString()))
                                 .add(new BigDecimal(btceCoins.getDefaultModelObjectAsString()))
                                 .add(new BigDecimal(bterCoins.getDefaultModelObjectAsString()))
+                                .add(new BigDecimal(bitfinexCoins.getDefaultModelObjectAsString()))
                                 .setScale(8, ROUND_HALF_UP);
 
                         update(handler, sumEstimate, sum);
@@ -287,7 +297,8 @@ public class TraderList extends AbstractPage{
                                 && !cryptsyCoins.getDefaultModelObjectAsString().equals("0")
                                 && !bittrexCoins.getDefaultModelObjectAsString().equals("0")
                                 && !btceCoins.getDefaultModelObjectAsString().equals("0")
-                                && !bterCoins.getDefaultModelObjectAsString().equals("0")) {
+                                && !bterCoins.getDefaultModelObjectAsString().equals("0")
+                                && !bitfinexCoins.getDefaultModelObjectAsString().equals("0")) {
                             JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
 
                             String javaScript = "eval("+chart.getJavaScriptVarName()+").series[" + 0 +"].addPoint("

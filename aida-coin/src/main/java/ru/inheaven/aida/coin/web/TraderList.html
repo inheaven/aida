@@ -8,9 +8,9 @@
 <body>
 <wicket:extend>
 
-    <h1 class="pull-left" wicket:id="header" style="margin-top: 0"></h1>
+    <h3 class="pull-left" wicket:id="header" style="margin-top: 0"></h3>
 
-    <table class="table table-bordered pull-right" style="width: auto">
+    <table class="table table-bordered table-condensed pull-right" style="width: auto">
         <tr>
             <th>Bittrex</th>
             <td><span wicket:id="bittrexCoins"></span></td>
@@ -31,6 +31,10 @@
             <th>BTER</th>
             <td><span wicket:id="bterCoins"></span></td>
             <td><span wicket:id="bterBTC"></span></td>
+
+            <th>BITFINEX</th>
+            <td><span wicket:id="bitfinexCoins"></span></td>
+            <td><span wicket:id="bitfinexBTC"></span></td>
 
             <th><span wicket:id="tradersCount"></span></th>
             <td><span wicket:id="sumEstimate"></span></td>

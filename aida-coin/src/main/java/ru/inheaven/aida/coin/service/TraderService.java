@@ -3,6 +3,7 @@ package ru.inheaven.aida.coin.service;
 import com.google.common.base.Throwables;
 import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.ExchangeSpecification;
+import com.xeiam.xchange.bitfinex.v1.BitfinexExchange;
 import com.xeiam.xchange.bittrex.v1.BittrexExchange;
 import com.xeiam.xchange.btce.v3.BTCEExchange;
 import com.xeiam.xchange.bter.BTERExchange;
@@ -88,6 +89,11 @@ public class TraderService {
         setSecretKey("0bf365f96b17f1828736df787c872796be51fe70a588062cc9630c3eedc144ad");
     }});
 
+    private Exchange bitfinexExchange = INSTANCE.createExchange(new ExchangeSpecification(BitfinexExchange.class){{
+        setApiKey("mn6dQmAnpKPp3GZyN6Plxhmt5WdJwVVj6zFdIel6fRZ");
+        setSecretKey("B8UxOTb6cdKwz7jDu1m1FMjFCxMiz82g21z78Z8tDeB");
+    }});
+
     public Exchange getExchange(ExchangeType exchangeType){
         switch (exchangeType){
             case BITTREX:
@@ -100,6 +106,8 @@ public class TraderService {
                 return btceExchange;
             case BTER:
                 return bterExchange;
+            case BITFINEX:
+                return bitfinexExchange;
         }
 
         throw new IllegalArgumentException();
@@ -128,6 +136,11 @@ public class TraderService {
     @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
     public void scheduleBTERUpdate(){
         scheduleUpdate(BTER);
+    }
+
+    @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
+    public void scheduleBITFINEXUpdate(){
+        scheduleUpdate(BITFINEX);
     }
 
     @Schedule(second = "*/1", minute="*", hour="*", persistent=false)
