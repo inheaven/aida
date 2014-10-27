@@ -35,11 +35,6 @@ public class CexIOAccountServiceRaw extends CexIOBasePollingService {
   }
 
   public CexIOBalanceInfo getCexIOAccountInfo() throws IOException {
-    //fix nonce increment
-      for (int i=0; i < 32; ++i) {
-          CexIOUtils.nextNonce();
-      }
-
       CexIOBalanceInfo info = cexIOAuthenticated.getBalance(exchangeSpecification.getApiKey(), signatureCreator, CexIOUtils.nextNonce());
     if (info.getError() != null) {
       throw new ExchangeException("Error getting balance. " + info.getError());
