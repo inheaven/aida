@@ -110,7 +110,7 @@ public class TraderService {
         scheduleUpdate(BITTREX);
     }
 
-    @Schedule(second = "*/21", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/30", minute="*", hour="*", persistent=false)
     public void scheduleCexIOUpdate(){
         scheduleUpdate(CEXIO);
     }
