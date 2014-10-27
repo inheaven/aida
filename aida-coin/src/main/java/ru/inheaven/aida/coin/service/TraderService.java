@@ -541,7 +541,7 @@ public class TraderService {
                         tradeService.cancelOrder(order.getId());
 
                         broadcast(exchangeType,  exchangeType.name() + " " + trader.getPair() + ": Cancel "
-                                + order.getLimitPrice().toString() + " @ " + order.getTradableAmount().toString());
+                                + order.getTradableAmount().toString() + " @ " + order.getLimitPrice().toString());
                     }
                 }
 

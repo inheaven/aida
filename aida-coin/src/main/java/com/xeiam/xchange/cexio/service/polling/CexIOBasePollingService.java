@@ -21,6 +21,7 @@ public class CexIOBasePollingService extends BaseExchangeService implements Base
             new CurrencyPair("GHS", "BTC"),
             new CurrencyPair("LTC", "BTC"),
             new CurrencyPair("DOGE", "BTC"),
+            new CurrencyPair("DRK", "BTC"),
             new CurrencyPair("NMC", "BTC"),
             new CurrencyPair("IXC", "BTC"),
             new CurrencyPair("POT", "BTC"),
@@ -28,7 +29,10 @@ public class CexIOBasePollingService extends BaseExchangeService implements Base
             new CurrencyPair("MEC", "BTC"),
             new CurrencyPair("WDC", "BTC"),
             new CurrencyPair("FTC", "BTC"),
-            new CurrencyPair("DRK", "BTC"),
+            new CurrencyPair("DGB", "BTC"),
+            new CurrencyPair("USDE", "BTC"),
+            new CurrencyPair("MYR", "BTC"),
+            new CurrencyPair("AUR", "BTC"),
 
             new CurrencyPair("GHS", "LTC"),
             new CurrencyPair("DOGE", "LTC"),
@@ -36,8 +40,7 @@ public class CexIOBasePollingService extends BaseExchangeService implements Base
             new CurrencyPair("MEC", "LTC"),
             new CurrencyPair("WDC", "LTC"),
             new CurrencyPair("ANC", "LTC"),
-            new CurrencyPair("FTC", "LTC")
-            );
+            new CurrencyPair("FTC", "LTC"));
 
     /**
      * Constructor

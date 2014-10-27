@@ -1,9 +1,9 @@
 package com.xeiam.xchange.cryptsy;
 
+import com.xeiam.xchange.currency.CurrencyPair;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import com.xeiam.xchange.currency.CurrencyPair;
 
 /**
  * @author ObsessiveOrange
@@ -40,6 +40,7 @@ public final class CryptsyCurrencyUtils {
       put(49, new CurrencyPair("BTE", "BTC"));
       put(50, new CurrencyPair("BTG", "BTC"));
       put(102, new CurrencyPair("BUK", "BTC"));
+        put(300, new CurrencyPair("CANN", "BTC"));
       put(154, new CurrencyPair("CACH", "BTC"));
       put(221, new CurrencyPair("CAIx", "BTC"));
       put(53, new CurrencyPair("CAP", "BTC"));
@@ -290,6 +291,7 @@ public final class CryptsyCurrencyUtils {
       put(new CurrencyPair("BTE", "BTC"), 49);
       put(new CurrencyPair("BTG", "BTC"), 50);
       put(new CurrencyPair("BUK", "BTC"), 102);
+        put(new CurrencyPair("CANN", "BTC"), 300);
       put(new CurrencyPair("CACH", "BTC"), 154);
       put(new CurrencyPair("CAIx", "BTC"), 221);
       put(new CurrencyPair("CAP", "BTC"), 53);
