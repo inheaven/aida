@@ -26,10 +26,10 @@ public class Trader extends AbstractEntity{
     private BigDecimal low;
 
     @Column(nullable = false, precision = 19,  scale = 8)
-    private BigDecimal volume;
+    private BigDecimal volume = BigDecimal.ZERO;
 
     @Column(nullable = false, precision = 19,  scale = 8)
-    private BigDecimal spread;
+    private BigDecimal spread = BigDecimal.ZERO;
 
     @Column(nullable = true, precision = 19,  scale = 8)
     private BigDecimal lot;
