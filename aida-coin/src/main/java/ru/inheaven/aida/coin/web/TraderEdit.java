@@ -7,6 +7,7 @@ import de.agilecoders.wicket.core.markup.html.bootstrap.form.FormGroup;
 import de.agilecoders.wicket.core.markup.html.bootstrap.form.FormType;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.RequiredTextField;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -15,7 +16,6 @@ import ru.inheaven.aida.coin.entity.Trader;
 import ru.inheaven.aida.coin.service.TraderBean;
 
 import javax.ejb.EJB;
-
 import java.util.Arrays;
 
 import static org.apache.wicket.model.Model.of;
@@ -42,8 +42,9 @@ public class TraderEdit extends AbstractPage{
         form.add(new FormGroup("pair", of("Pair")).add(new RequiredTextField("pair")));
         form.add(new FormGroup("high", of("High")).add(new RequiredTextField<>("high")));
         form.add(new FormGroup("low", of("Low")).add(new RequiredTextField<>("low")));
-        form.add(new FormGroup("volume", of("Volume")).add(new RequiredTextField<>("volume")));
-        form.add(new FormGroup("spread", of("Spread")).add(new RequiredTextField<>("spread")));
+//        form.add(new FormGroup("volume", of("Volume")).add(new RequiredTextField<>("volume")));
+//        form.add(new FormGroup("spread", of("Spread")).add(new RequiredTextField<>("spread")));
+        form.add(new FormGroup("lot", of("Lot")).add(new TextField<>("lot").setConvertEmptyInputStringToNull(true)));
         form.add(new FormGroup("running", of("Active")).add(new DropDownChoice<>("running",
                 Arrays.asList(new Boolean[]{true, false})).setRequired(true)));
 

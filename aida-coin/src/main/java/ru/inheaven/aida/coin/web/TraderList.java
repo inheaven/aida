@@ -147,28 +147,10 @@ public class TraderList extends AbstractPage{
             @Override
             public void populateItem(Item<ICellPopulator<Trader>> cellItem, String componentId, IModel<Trader> rowModel) {
                 Trader trader = rowModel.getObject();
-                BigDecimal lot = new BigDecimal("0");
 
-                try {
-                    Ticker ticker = traderService.getTicker(trader.getExchangePair());
-
-                    if (ticker != null ){
-                        BigDecimal price = ticker.getLast();
-
-                        BigDecimal minOrderAmount = traderService.getMinOrderVolume(trader.getExchange(), trader.getCounterSymbol());
-
-                        minOrderAmount = minOrderAmount.divide(price, 8, ROUND_HALF_UP);
-
-                        lot = trader.getVolume().divide(trader.getHigh().subtract(trader.getLow()).divide(trader.getSpread(),
-                                8, ROUND_HALF_UP), 8, ROUND_HALF_UP);
-
-                        lot = lot.compareTo(minOrderAmount) > 0 ? lot : minOrderAmount;
-
-                        lot = lot.multiply(price);
-                    }
-                } catch (Exception e) {
-                    //zero
-                }
+                BigDecimal lot = trader.getLot() != null
+                        ? trader.getLot()
+                        : traderService.getMinOrderVolume(trader.getExchange(), trader.getCounterSymbol());
 
                 cellItem.add(new Label(componentId, of(lot)));
             }

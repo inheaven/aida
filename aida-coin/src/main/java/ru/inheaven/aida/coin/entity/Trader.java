@@ -31,6 +31,9 @@ public class Trader extends AbstractEntity{
     @Column(nullable = false, precision = 19,  scale = 8)
     private BigDecimal spread;
 
+    @Column(nullable = true, precision = 19,  scale = 8)
+    private BigDecimal lot;
+
     @Column(nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date date;
@@ -102,6 +105,14 @@ public class Trader extends AbstractEntity{
 
     public void setSpread(BigDecimal spread) {
         this.spread = spread;
+    }
+
+    public BigDecimal getLot() {
+        return lot;
+    }
+
+    public void setLot(BigDecimal lot) {
+        this.lot = lot;
     }
 
     public Date getDate() {

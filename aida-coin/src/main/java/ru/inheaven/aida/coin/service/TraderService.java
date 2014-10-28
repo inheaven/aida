@@ -536,7 +536,9 @@ public class TraderService {
                     }
 
                     BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.013")).setScale(8, HALF_UP);
-                    BigDecimal minOrderAmount = getMinOrderVolume(exchangeType, currencyPair.counterSymbol).divide(middlePrice, 8, HALF_UP);
+                    BigDecimal minOrderAmount = trader.getLot() != null
+                            ? trader.getLot().divide(middlePrice, 8, HALF_UP)
+                            : getMinOrderVolume(exchangeType, currencyPair.counterSymbol).divide(middlePrice, 8, HALF_UP);
 
                     //volatility
                     BigDecimal volatility = traderBean.getSigma(exchangePair).divide(ticker.getLast(), 8, ROUND_UP);
