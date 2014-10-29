@@ -1,8 +1,7 @@
 package ru.inheaven.aida.coin.service;
 
 import com.google.common.base.Throwables;
-import com.xeiam.xchange.Exchange;
-import com.xeiam.xchange.ExchangeSpecification;
+import com.xeiam.xchange.*;
 import com.xeiam.xchange.bitfinex.v1.BitfinexExchange;
 import com.xeiam.xchange.bittrex.v1.BittrexExchange;
 import com.xeiam.xchange.btce.v3.BTCEExchange;
@@ -395,32 +394,38 @@ public class TraderService {
         List<String> pairs = traderBean.getTraderPairs(exchangeType);
 
         for (String pair : pairs) {
-            CurrencyPair currencyPair = getCurrencyPair(pair);
+            try {
+                CurrencyPair currencyPair = getCurrencyPair(pair);
 
-            if (currencyPair != null) {
-                Ticker ticker;
+                if (currencyPair != null) {
+                    Ticker ticker;
 
-                if (CRYPTSY.equals(exchangeType)) {
-                    ticker = ((CryptsyExchange)cryptsyExchange).getPublicPollingMarketDataService().getTicker(currencyPair);
-                }else{
-                    ticker = getExchange(exchangeType).getPollingMarketDataService().getTicker(currencyPair);
-                }
-
-                if (ticker.getLast() != null && ticker.getLast().compareTo(ZERO) != 0 && ticker.getBid() != null && ticker.getAsk() != null) {
-                    ExchangePair exchangePair = new ExchangePair(exchangeType, pair);
-
-                    //ticker history
-                    Ticker previous = tickerMap.get(exchangePair);
-
-                    if (previous != null && previous.getLast().compareTo(ticker.getLast()) != 0){
-                        traderBean.save(new TickerHistory(exchangeType, pair, ticker.getLast(), ticker.getVolume()));
+                    if (CRYPTSY.equals(exchangeType)) {
+                        ticker = ((CryptsyExchange)cryptsyExchange).getPublicPollingMarketDataService().getTicker(currencyPair);
+                    }else{
+                        ticker = getExchange(exchangeType).getPollingMarketDataService().getTicker(currencyPair);
                     }
 
-                    //ticker map
-                    tickerMap.put(exchangePair, ticker);
+                    if (ticker.getLast() != null && ticker.getLast().compareTo(ZERO) != 0 && ticker.getBid() != null && ticker.getAsk() != null) {
+                        ExchangePair exchangePair = new ExchangePair(exchangeType, pair);
 
-                    broadcast(exchangeType, ticker);
+                        //ticker history
+                        Ticker previous = tickerMap.get(exchangePair);
+
+                        if (previous != null && previous.getLast().compareTo(ticker.getLast()) != 0){
+                            traderBean.save(new TickerHistory(exchangeType, pair, ticker.getLast(), ticker.getVolume()));
+                        }
+
+                        //ticker map
+                        tickerMap.put(exchangePair, ticker);
+
+                        broadcast(exchangeType, ticker);
+                    }
                 }
+            } catch (Exception e) {
+                log.error("Error update ticker {} {}", exchangeType, pair);
+
+                throw e;
             }
         }
     }
