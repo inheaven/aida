@@ -548,8 +548,8 @@ public class TraderService {
                     //volatility
                     BigDecimal volatility = traderBean.getSigma(exchangePair).divide(ticker.getLast(), 8, ROUND_UP);
 
-                    minSpread = minSpread.multiply(ONE.add(volatility.multiply(BigDecimal.valueOf(Math.PI)))).setScale(8, HALF_UP);
-                    minOrderAmount = minOrderAmount.multiply(ONE.add(volatility.multiply(BigDecimal.valueOf(Math.PI)))).setScale(8, HALF_UP);
+                    minOrderAmount = minOrderAmount.multiply(ONE.add(volatility.multiply(BigDecimal.valueOf(2*Math.PI))))
+                            .setScale(8, HALF_UP);
 
                     if (minSpread.compareTo(ZERO) == 0) {
                         minSpread = trader.getPair().contains("/USD") ? new BigDecimal("0.02") : new BigDecimal("0.00000002");
@@ -567,7 +567,7 @@ public class TraderService {
                     }
 
                     //create order
-                    for (int index : Arrays.asList(1, 2, 3)) {
+                    for (double index : new double[]{1, 1.5, 2, 2.5}) {
                         BigDecimal delta = minSpread.multiply(BigDecimal.valueOf(index)).divide(new BigDecimal("2"), 8, HALF_UP);
 
                         BigDecimal spreadSumAmount = ZERO;
