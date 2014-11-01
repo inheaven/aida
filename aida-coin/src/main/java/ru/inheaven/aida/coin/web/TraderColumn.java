@@ -29,11 +29,15 @@ public class TraderColumn extends AbstractColumn<Trader, String> {
     public void populateItem(Item<ICellPopulator<Trader>> cellItem, String componentId, IModel<Trader> rowModel) {
         Trader trader = rowModel.getObject();
 
-        Label label = new Label(componentId, Model.of("0"));
+        Label label = new Label(componentId, Model.of(getInitValue(trader)));
         label.setOutputMarkupId(true);
 
         cellItem.add(label);
 
         map.put(new ExchangePair(trader.getExchange(), trader.getPair()), label);
+    }
+
+    protected String getInitValue(Trader trader){
+        return "0";
     }
 }

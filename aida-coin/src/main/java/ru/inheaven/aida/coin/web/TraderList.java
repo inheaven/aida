@@ -163,7 +163,13 @@ public class TraderList extends AbstractPage{
         list.add(new PropertyColumn<>(of("Low"), "low"));
         list.add(new PropertyColumn<>(of("High"), "high"));
         list.add(new TraderColumn(of("Volatility"),volatilityMap));
-        list.add(new TraderColumn(of("Profit"),profitMap));
+        list.add(new TraderColumn(of("Profit"),profitMap){
+            @Override
+            protected String getInitValue(Trader trader) {
+                OrderVolume ov = traderService.getOrderVolumeRate(trader.getExchangePair(), new Date(startDate));
+                return getConverter(BigDecimal.class).convertToString(ov.getVolume(), getLocale());
+            }
+        });
 
         list.add(new AbstractColumn<Trader, String>(of("")) {
             @Override
@@ -565,6 +571,8 @@ public class TraderList extends AbstractPage{
 
             add(chart4 = new Chart("chart4", options));
         }
+
+
     }
 
     private void update(WebSocketRequestHandler handler, Component component, BigDecimal newValue){
