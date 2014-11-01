@@ -218,8 +218,8 @@ public class TraderService {
         }
     }
 
-    public List<OrderVolume> getOrderVolumeRates(Date startDate){
-        List<Volume> volumes = getVolumes(startDate);
+    public List<OrderVolume> getOrderVolumeRates(ExchangePair exchangePair, Date startDate){
+        List<Volume> volumes = getVolumes(exchangePair, startDate);
 
         List<OrderVolume> orderVolumes = new ArrayList<>();
 
@@ -248,7 +248,11 @@ public class TraderService {
     }
 
     public OrderVolume getOrderVolumeRate(Date startDate){
-        List<Volume> volumes = getVolumes(startDate);
+        return getOrderVolumeRate(null, startDate);
+    }
+
+    public OrderVolume getOrderVolumeRate(ExchangePair exchangePair, Date startDate){
+        List<Volume> volumes = getVolumes(exchangePair, startDate);
 
         OrderVolume orderVolume = new OrderVolume(new Date());
 
@@ -269,23 +273,27 @@ public class TraderService {
     }
 
     public List<Volume> getVolumes(Date startDate){
+        return getVolumes(null, startDate);
+    }
+
+    public List<Volume> getVolumes(ExchangePair exchangePair, Date startDate){
         List<Volume> volumes = new ArrayList<>();
 
         Map<ExchangePair, BalanceHistory> previousMap = new HashMap<>();
 
-        List<BalanceHistory> balanceHistories = traderBean.getBalanceHistories(startDate);
+        List<BalanceHistory> balanceHistories = traderBean.getBalanceHistories(exchangePair, startDate);
 
         for (BalanceHistory history : balanceHistories){
-            ExchangePair exchangePair = ExchangePair.of(history.getExchangeType(), history.getPair());
+            ExchangePair ep = ExchangePair.of(history.getExchangeType(), history.getPair());
 
-            BalanceHistory previous = previousMap.get(exchangePair);
+            BalanceHistory previous = previousMap.get(ep);
 
             if (previous != null && previous.getBalance().compareTo(history.getBalance()) != 0) {
                 history.setPrevious(previous);
                 volumes.add(getVolume(history));
             }
 
-            previousMap.put(exchangePair, history);
+            previousMap.put(ep, history);
         }
 
         return volumes;

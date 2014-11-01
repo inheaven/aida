@@ -69,6 +69,7 @@ public class TraderList extends AbstractPage{
     private Map<ExchangePair, Component> buyMap = new HashMap<>();
     private Map<ExchangePair, Component> sellMap = new HashMap<>();
     private Map<ExchangePair, Component> volatilityMap = new HashMap<>();
+    private Map<ExchangePair, Component> profitMap = new HashMap<>();
 
     private Component notificationLabel, notificationLabel2;
     private long notificationTime = System.currentTimeMillis();
@@ -162,6 +163,7 @@ public class TraderList extends AbstractPage{
         list.add(new PropertyColumn<>(of("Low"), "low"));
         list.add(new PropertyColumn<>(of("High"), "high"));
         list.add(new TraderColumn(of("Volatility"),volatilityMap));
+        list.add(new TraderColumn(of("Profit"),profitMap));
 
         list.add(new AbstractColumn<Trader, String>(of("")) {
             @Override
@@ -291,6 +293,13 @@ public class TraderList extends AbstractPage{
                             lastChartValue = sum;
                         }
                     }else if (payload instanceof BalanceHistory){
+                        //update profit column
+                        BalanceHistory bh = (BalanceHistory) payload;
+                        ExchangePair ep = ExchangePair.of(bh.getExchangeType(), bh.getPair());
+                        OrderVolume orderVolumePair = traderService.getOrderVolumeRate(ep, new Date(startDate));
+                        update(handler, profitMap.get(ep), orderVolumePair.getVolume());
+
+                        //update total
                         if (System.currentTimeMillis() - lastChart4Time > 1000*60){
                             lastChart4Time = System.currentTimeMillis();
 
@@ -300,13 +309,6 @@ public class TraderList extends AbstractPage{
 
                             //update chart order rate
                             if (orderVolume.getVolume().compareTo(ZERO) != 0) {
-//                                javaScript = "var chartVarName = " + chart2.getJavaScriptVarName() + ";";
-//                                javaScript += "eval(chartVarName).series[" + 0 + "].addPoint("
-//                                        + renderer.toJson(new Point(chart2Index++, orderVolume.getVolume()))
-//                                        + ", true, true);";
-//
-//                                handler.appendJavaScript(javaScript);
-
                                 {
                                     String javaScript = "eval("+chart3.getJavaScriptVarName()+").series[" + 0 + "].addPoint("
                                             + renderer.toJson(new Point(orderVolume.getDate().getTime(), orderVolume.getBidVolume()))
@@ -476,7 +478,7 @@ public class TraderList extends AbstractPage{
         }
 
         //Chart 2
-        List<OrderVolume> orderVolumes = traderService.getOrderVolumeRates(new Date(startDate));
+        List<OrderVolume> orderVolumes = traderService.getOrderVolumeRates(null, new Date(startDate));
 
         List<OrderVolume> filteredOrderVolumes = new ArrayList<>();
         long time = 0L;

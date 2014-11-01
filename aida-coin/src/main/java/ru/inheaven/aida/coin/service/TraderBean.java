@@ -79,10 +79,19 @@ public class TraderBean {
         }
     }
 
-    public List<BalanceHistory> getBalanceHistories(Date startDate){
-        return em.createQuery("select h from BalanceHistory h where h.date >= :startDate order by h.date asc", BalanceHistory.class)
-                .setParameter("startDate", startDate)
-                .getResultList();
+    public List<BalanceHistory> getBalanceHistories(ExchangePair exchangePair, Date startDate){
+        if (exchangePair != null){
+            return em.createQuery("select h from BalanceHistory h where h.pair = :pair and h.exchangeType = :exchangeType " +
+                    "and h.date >= :startDate order by h.date asc", BalanceHistory.class)
+                    .setParameter("pair", exchangePair.getPair())
+                    .setParameter("exchangeType", exchangePair.getExchangeType())
+                    .setParameter("startDate", startDate)
+                    .getResultList();
+        }else {
+            return em.createQuery("select h from BalanceHistory h where h.date >= :startDate order by h.date asc", BalanceHistory.class)
+                    .setParameter("startDate", startDate)
+                    .getResultList();
+        }
     }
 
     public BigDecimal getSigma(ExchangePair exchangePair){
