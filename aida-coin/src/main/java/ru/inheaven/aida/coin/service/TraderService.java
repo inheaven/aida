@@ -738,8 +738,9 @@ public class TraderService {
                 timeSeries[i] = tickerHistories.get(i).getPrice().floatValue();
             }
 
-            return BigDecimal.valueOf(100 * (predictorService.getPrediction(timeSeries) - timeSeries[99]) / timeSeries[99])
-                    .setScale(2, ROUND_UP);
+            float index = 100 * (predictorService.getPrediction(timeSeries) - timeSeries[99]) / timeSeries[99];
+
+            return BigDecimal.valueOf(index < 1000 ? index : 1000).setScale(2, ROUND_UP);
         }
 
         return ZERO;
