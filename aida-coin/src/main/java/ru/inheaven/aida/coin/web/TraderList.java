@@ -426,9 +426,17 @@ public class TraderList extends AbstractPage{
                                             ep.getPair(), amount.add(balance), ticker.getLast()));
 
                                     //position
-                                    update(handler, positionMap.get(ep), traderService.getBTCVolume(ep.getPair(),
-                                            countBuyMap.get(ep).subtract(countSellMap.get(ep)), ticker.getLast()),
-                                            false, true);
+                                    BigDecimal position;
+                                    if (countBuyMap.get(ep).compareTo(countSellMap.get(ep)) == 0){
+                                        position = ZERO;
+                                    }else if (countBuyMap.get(ep).compareTo(ZERO) == 0){
+                                        position = BigDecimal.valueOf(-100);
+                                    }else{
+                                        position = BigDecimal.valueOf(100 * (countBuyMap.get(ep).floatValue() -
+                                                countSellMap.get(ep).floatValue()) / countBuyMap.get(ep).floatValue());
+                                    }
+
+                                    update(handler, positionMap.get(ep), position, true, true);
                                 }
                             }
                         });
