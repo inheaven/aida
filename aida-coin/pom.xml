@@ -89,6 +89,11 @@
             <groupId>org.wicketstuff</groupId>
             <artifactId>wicketstuff-datatables</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+        </dependency>
     </dependencies>
 
     <profiles>
