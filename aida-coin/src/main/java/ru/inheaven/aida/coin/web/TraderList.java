@@ -427,7 +427,7 @@ public class TraderList extends AbstractPage{
 
                                     //position
                                     update(handler, positionMap.get(ep), traderService.getBTCVolume(ep.getPair(),
-                                                    countSellMap.get(ep).subtract(countBuyMap.get(ep)), ticker.getLast()),
+                                            countBuyMap.get(ep).subtract(countSellMap.get(ep)), ticker.getLast()),
                                             false, true);
                                 }
                             }
