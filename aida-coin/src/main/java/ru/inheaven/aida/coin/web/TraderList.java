@@ -165,14 +165,14 @@ public class TraderList extends AbstractPage{
         list.add(new TraderColumn(of("Ask"), askMap));
         list.add(new TraderColumn(of("Volatility"), volatilityMap));
         list.add(new TraderColumn(of("Prediction"), predictionMap));
-        list.add(new TraderColumn(of("Day Profit"), profitMap){
+        list.add(new TraderColumn(of("Day"), profitMap){
             @Override
             protected String getInitValue(Trader trader) {
                 OrderVolume ov = traderService.getOrderVolumeRate(trader.getExchangePair(), new Date(startDate));
                 return getConverter(BigDecimal.class).convertToString(ov.getVolume(), getLocale());
             }
         });
-        list.add(new TraderColumn(of("Week Profit"), profitWeekMap){
+        list.add(new TraderColumn(of("Week"), profitWeekMap){
             @Override
             protected String getInitValue(Trader trader) {
                 OrderVolume ov = traderService.getOrderVolumeRate(trader.getExchangePair(), new Date(startWeekDate));
