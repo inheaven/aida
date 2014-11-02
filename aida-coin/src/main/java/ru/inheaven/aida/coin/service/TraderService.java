@@ -292,7 +292,8 @@ public class TraderService {
 
             BalanceHistory previous = previousMap.get(ep);
 
-            if (previous != null && previous.getBalance().compareTo(history.getBalance()) != 0) {
+            if (previous != null && (previous.getAskAmount().compareTo(history.getAskAmount()) != 0
+                    || previous.getBidAmount().compareTo(history.getBidAmount()) != 0)) {
                 history.setPrevious(previous);
                 volumes.add(getVolume(history));
             }
