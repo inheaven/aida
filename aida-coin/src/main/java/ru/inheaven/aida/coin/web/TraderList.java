@@ -70,7 +70,7 @@ public class TraderList extends AbstractPage{
     private Map<ExchangePair, Component> sellMap = new HashMap<>();
     private Map<ExchangePair, Component> volatilityMap = new HashMap<>();
     private Map<ExchangePair, Component> profitMap = new HashMap<>();
-    private Map<ExchangePair, Component> predictMap = new HashMap<>();
+    private Map<ExchangePair, Component> predictionMap = new HashMap<>();
 
     private Component notificationLabel, notificationLabel2;
     private long notificationTime = System.currentTimeMillis();
@@ -162,6 +162,7 @@ public class TraderList extends AbstractPage{
         list.add(new TraderColumn(of("Bid"), bidMap));
         list.add(new TraderColumn(of("Ask"), askMap));
         list.add(new TraderColumn(of("Volatility"), volatilityMap));
+        list.add(new TraderColumn(of("Prediction"), predictionMap));
         list.add(new TraderColumn(of("Profit"), profitMap){
             @Override
             protected String getInitValue(Trader trader) {
@@ -169,7 +170,6 @@ public class TraderList extends AbstractPage{
                 return getConverter(BigDecimal.class).convertToString(ov.getVolume(), getLocale());
             }
         });
-        list.add(new TraderColumn(of("Predict"), predictMap));
 
         list.add(new AbstractColumn<Trader, String>(of("")) {
             @Override
@@ -357,7 +357,7 @@ public class TraderList extends AbstractPage{
                                         .multiply(BigDecimal.valueOf(100))
                                         .divide(ticker.getLast(), 2, ROUND_UP), true);
                         //predict
-                        update(handler, predictMap.get(exchangePair), traderService.getPredictIndex(exchangePair), true);
+                        update(handler, predictionMap.get(exchangePair), traderService.getPredictionIndex(exchangePair), true);
 
                     }else if (payload instanceof OpenOrders){
                         OpenOrders openOrders = (OpenOrders) exchangeMessage.getPayload();

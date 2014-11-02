@@ -12,7 +12,7 @@ import javax.ejb.Singleton;
 public class PredictorService {
     private VectorForecastSSA vectorForecastSSA = new VectorForecastSSA(100, 50, 5, 5);
 
-    public float getPredict(float[] timeSeries){
+    public float getPrediction(float[] timeSeries){
         if (timeSeries.length < 100){
             return 0;
         }
