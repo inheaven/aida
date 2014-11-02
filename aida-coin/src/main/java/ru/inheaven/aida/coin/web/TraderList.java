@@ -68,6 +68,7 @@ public class TraderList extends AbstractPage{
     private Map<ExchangePair, Component> balanceMap = new HashMap<>();
     private Map<ExchangePair, Component> buyMap = new HashMap<>();
     private Map<ExchangePair, Component> sellMap = new HashMap<>();
+    private Map<ExchangePair, Component> positionMap = new HashMap<>();
     private Map<ExchangePair, Component> volatilityMap = new HashMap<>();
     private Map<ExchangePair, Component> profitMap = new HashMap<>();
     private Map<ExchangePair, Component> profitWeekMap = new HashMap<>();
@@ -161,6 +162,7 @@ public class TraderList extends AbstractPage{
         });
         list.add(new TraderColumn(of("Buy"), buyMap));
         list.add(new TraderColumn(of("Sell"), sellMap));
+        list.add(new TraderColumn(of("Position"), positionMap));
         list.add(new TraderColumn(of("Bid"), bidMap));
         list.add(new TraderColumn(of("Ask"), askMap));
         list.add(new TraderColumn(of("Volatility"), volatilityMap));
@@ -376,8 +378,8 @@ public class TraderList extends AbstractPage{
 
                         for (ExchangePair ep : buyMap.keySet()){
                             if (ep.getExchangeType().equals(exchangeMessage.getExchangeType())) {
-                                countBuyMap.put(ep, new BigDecimal("0"));
-                                countSellMap.put(ep, new BigDecimal("0"));
+                                countBuyMap.put(ep, ZERO);
+                                countSellMap.put(ep, ZERO);
                             }
                         }
 
@@ -398,29 +400,33 @@ public class TraderList extends AbstractPage{
 
                         countBuyMap.forEach(new BiConsumer<ExchangePair, BigDecimal>() {
                             @Override
-                            public void accept(ExchangePair exchangePair, BigDecimal amount) {
-                                Ticker ticker = traderService.getTicker(exchangePair);
+                            public void accept(ExchangePair ep, BigDecimal amount) {
+                                Ticker ticker = traderService.getTicker(ep);
 
                                 if (ticker != null) {
-                                    update(handler, buyMap.get(exchangePair), traderService.getBTCVolume(
-                                            exchangePair.getPair(), amount, ticker.getLast()));
+                                    update(handler, buyMap.get(ep), traderService.getBTCVolume(
+                                            ep.getPair(), amount, ticker.getLast()));
                                 }
                             }
                         });
 
                         countSellMap.forEach(new BiConsumer<ExchangePair, BigDecimal>() {
                             @Override
-                            public void accept(ExchangePair exchangePair, BigDecimal amount) {
-                                Ticker ticker = traderService.getTicker(exchangePair);
+                            public void accept(ExchangePair ep, BigDecimal amount) {
+                                Ticker ticker = traderService.getTicker(ep);
 
                                 if (ticker != null) {
-                                    update(handler, sellMap.get(exchangePair), traderService.getBTCVolume(
-                                            exchangePair.getPair(), amount, ticker.getLast()));
+                                    update(handler, sellMap.get(ep), traderService.getBTCVolume(
+                                            ep.getPair(), amount, ticker.getLast()));
 
+                                    //estimate
                                     BigDecimal balance = traderService.getAccountInfo(exchangeMessage.getExchangeType())
-                                            .getBalance(exchangePair.getCurrency());
-                                    update(handler, estimateMap.get(exchangePair), traderService.getBTCVolume(
-                                            exchangePair.getPair(), amount.add(balance), ticker.getLast()));
+                                            .getBalance(ep.getCurrency());
+                                    update(handler, estimateMap.get(ep), traderService.getBTCVolume(
+                                            ep.getPair(), amount.add(balance), ticker.getLast()));
+
+                                    //position
+                                    update(handler, positionMap.get(ep), countSellMap.get(ep).subtract(countBuyMap.get(ep)), false, true);
                                 }
                             }
                         });
