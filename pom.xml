@@ -95,7 +95,6 @@
         <module>aida-mybatis</module>
         <module>aida-level</module>
         <module>aida-coin</module>
-        <module>aida-predictor</module>
     </modules>
 
     <dependencyManagement>
@@ -139,11 +138,6 @@
              <dependency>
                 <groupId>ru.inhell.aida</groupId>
                 <artifactId>aida-coin</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>ru.inhell.aida</groupId>
-                <artifactId>aida-predictor</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
