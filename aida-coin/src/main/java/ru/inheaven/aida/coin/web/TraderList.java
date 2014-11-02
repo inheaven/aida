@@ -432,8 +432,9 @@ public class TraderList extends AbstractPage{
                                     }else if (countBuyMap.get(ep).compareTo(ZERO) == 0){
                                         position = BigDecimal.valueOf(-100);
                                     }else{
-                                        position = BigDecimal.valueOf(100 * (countBuyMap.get(ep).floatValue() -
-                                                countSellMap.get(ep).floatValue()) / countBuyMap.get(ep).floatValue());
+                                        position = BigDecimal.valueOf(100 * (countBuyMap.get(ep).floatValue()
+                                                - countSellMap.get(ep).floatValue()) / (countBuyMap.get(ep).floatValue()
+                                                + countSellMap.get(ep).floatValue()));
                                     }
 
                                     update(handler, positionMap.get(ep), position, true, true);
