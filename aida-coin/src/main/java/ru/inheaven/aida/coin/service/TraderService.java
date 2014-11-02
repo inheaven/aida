@@ -611,9 +611,9 @@ public class TraderService {
 
                         //random bid
                         BigDecimal randomBidAmount = ZERO;
-                        BigDecimal minRandomBidAmount = predictionIndex.compareTo(ZERO) >= 0
-                                ? random30(minOrderAmount.multiply(BigDecimal.valueOf(index)))
-                                : random10(minOrderAmount.multiply(BigDecimal.valueOf(index)));
+                        BigDecimal minRandomBidAmount = predictionIndex.compareTo(ZERO) <= 0
+                                ? random10(minOrderAmount.multiply(BigDecimal.valueOf(index)))
+                                : random30(minOrderAmount.multiply(BigDecimal.valueOf(index)));
 
                         randomBidAmount = randomBidAmount.compareTo(minOrderAmount) > 0
                                 ? randomBidAmount
