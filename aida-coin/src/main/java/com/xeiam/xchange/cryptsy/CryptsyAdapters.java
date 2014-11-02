@@ -295,10 +295,12 @@ public final class CryptsyAdapters {
 
         Map<String, BigDecimal> balancesHold = cryptsyAccountInfo.getBalancesHold();
 
-        for (String lcCurrency : balancesHold.keySet()) {
-            String currency = lcCurrency.toUpperCase();
+        if (balancesHold != null) {
+            for (String lcCurrency : balancesHold.keySet()) {
+                String currency = lcCurrency.toUpperCase();
 
-            wallets.add(new Wallet(currency, balancesHold.get(lcCurrency),  "orders"));
+                wallets.add(new Wallet(currency, balancesHold.get(lcCurrency),  "orders"));
+            }
         }
 
         return new AccountInfo(null, wallets);
