@@ -596,7 +596,7 @@ public class TraderList extends AbstractPage{
 
             String s =  converter.convertToString(newValue, getLocale());
 
-            int compare = s.compareTo(component.getDefaultModelObjectAsString().replace("%", ""));
+            int compare = s.contains("-") ? -1 : s.compareTo(component.getDefaultModelObjectAsString().replace("%", ""));
 
             if (compare != 0){
                 String color = compare > 0 ? "'#EFFBEF'" : "'#FBEFEF'";
