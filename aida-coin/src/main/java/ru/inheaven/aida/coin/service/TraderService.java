@@ -579,7 +579,7 @@ public class TraderService {
                     }
 
                     //create order
-                    for (double index : new double[]{1, 1.5, 2, 2.5}) {
+                    for (double index : new double[]{1, 1.5, 2.5}) {
                         BigDecimal delta = minSpread.multiply(BigDecimal.valueOf(index)).divide(new BigDecimal("2"), 8, HALF_UP);
 
                         BigDecimal spreadSumAmount = ZERO;
@@ -603,7 +603,7 @@ public class TraderService {
                         BigDecimal randomAskAmount = ZERO;
                         BigDecimal minRandomAskAmount = predictionIndex.compareTo(ZERO) >= 0
                                 ? random10(minOrderAmount.multiply(BigDecimal.valueOf(index)))
-                                : random30(minOrderAmount.multiply(BigDecimal.valueOf(index)));
+                                : random50(minOrderAmount.multiply(BigDecimal.valueOf(index)));
 
                         randomAskAmount = randomAskAmount.compareTo(minRandomAskAmount) > 0
                                 ? randomAskAmount
@@ -613,7 +613,7 @@ public class TraderService {
                         BigDecimal randomBidAmount = ZERO;
                         BigDecimal minRandomBidAmount = predictionIndex.compareTo(ZERO) <= 0
                                 ? random10(minOrderAmount.multiply(BigDecimal.valueOf(index)))
-                                : random30(minOrderAmount.multiply(BigDecimal.valueOf(index)));
+                                : random50(minOrderAmount.multiply(BigDecimal.valueOf(index)));
 
                         randomBidAmount = randomBidAmount.compareTo(minOrderAmount) > 0
                                 ? randomBidAmount
