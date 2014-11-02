@@ -95,6 +95,7 @@
         <module>aida-mybatis</module>
         <module>aida-level</module>
         <module>aida-coin</module>
+        <module>aida-predictor</module>
     </modules>
 
     <dependencyManagement>
@@ -290,7 +291,7 @@
             <dependency>
                 <groupId>net.java.dev.jna</groupId>
                 <artifactId>jna</artifactId>
-                <version>3.4.0</version>
+                <version>4.1.0</version>
             </dependency>
 
             <dependency>
