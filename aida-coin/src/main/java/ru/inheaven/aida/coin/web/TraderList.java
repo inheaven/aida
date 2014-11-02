@@ -172,7 +172,7 @@ public class TraderList extends AbstractPage{
                 return getConverter(BigDecimal.class).convertToString(ov.getVolume(), getLocale());
             }
         });
-        list.add(new TraderColumn(of("Week Profit"), profitMap){
+        list.add(new TraderColumn(of("Week Profit"), profitWeekMap){
             @Override
             protected String getInitValue(Trader trader) {
                 OrderVolume ov = traderService.getOrderVolumeRate(trader.getExchangePair(), new Date(startWeekDate));
