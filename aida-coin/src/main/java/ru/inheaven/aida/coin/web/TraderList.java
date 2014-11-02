@@ -70,6 +70,7 @@ public class TraderList extends AbstractPage{
     private Map<ExchangePair, Component> sellMap = new HashMap<>();
     private Map<ExchangePair, Component> volatilityMap = new HashMap<>();
     private Map<ExchangePair, Component> profitMap = new HashMap<>();
+    private Map<ExchangePair, Component> profitWeekMap = new HashMap<>();
     private Map<ExchangePair, Component> predictionMap = new HashMap<>();
 
     private Component notificationLabel, notificationLabel2;
@@ -98,6 +99,7 @@ public class TraderList extends AbstractPage{
     private int chart3Index2 = 1;
 
     long startDate = System.currentTimeMillis() - 1000 * 60 * 60 * 24;
+    long startWeekDate = System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 7;
 
     BigDecimalConverter bigDecimalConverter2 = new BigDecimalConverter() {
         @Override
@@ -163,10 +165,17 @@ public class TraderList extends AbstractPage{
         list.add(new TraderColumn(of("Ask"), askMap));
         list.add(new TraderColumn(of("Volatility"), volatilityMap));
         list.add(new TraderColumn(of("Prediction"), predictionMap));
-        list.add(new TraderColumn(of("Profit"), profitMap){
+        list.add(new TraderColumn(of("Day Profit"), profitMap){
             @Override
             protected String getInitValue(Trader trader) {
                 OrderVolume ov = traderService.getOrderVolumeRate(trader.getExchangePair(), new Date(startDate));
+                return getConverter(BigDecimal.class).convertToString(ov.getVolume(), getLocale());
+            }
+        });
+        list.add(new TraderColumn(of("Week Profit"), profitMap){
+            @Override
+            protected String getInitValue(Trader trader) {
+                OrderVolume ov = traderService.getOrderVolumeRate(trader.getExchangePair(), new Date(startWeekDate));
                 return getConverter(BigDecimal.class).convertToString(ov.getVolume(), getLocale());
             }
         });
