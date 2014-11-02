@@ -312,7 +312,7 @@ public class TraderList extends AbstractPage{
                         BalanceHistory bh = (BalanceHistory) payload;
                         ExchangePair ep = ExchangePair.of(bh.getExchangeType(), bh.getPair());
                         OrderVolume orderVolumePair = traderService.getOrderVolumeRate(ep, new Date(startDate));
-                        update(handler, profitMap.get(ep), orderVolumePair.getVolume());
+                        update(handler, profitMap.get(ep), orderVolumePair.getVolume(), false, true);
 
                         //update total
                         if (System.currentTimeMillis() - lastChart4Time > 1000*60){
@@ -364,9 +364,9 @@ public class TraderList extends AbstractPage{
                         update(handler, volatilityMap.get(exchangePair),
                                 traderBean.getSigma(exchangePair)
                                         .multiply(BigDecimal.valueOf(100))
-                                        .divide(ticker.getLast(), 2, ROUND_UP), true);
+                                        .divide(ticker.getLast(), 2, ROUND_UP), true, false);
                         //predict
-                        update(handler, predictionMap.get(exchangePair), traderService.getPredictionIndex(exchangePair), true);
+                        update(handler, predictionMap.get(exchangePair), traderService.getPredictionIndex(exchangePair), true, true);
 
                     }else if (payload instanceof OpenOrders){
                         OpenOrders openOrders = (OpenOrders) exchangeMessage.getPayload();
@@ -587,16 +587,22 @@ public class TraderList extends AbstractPage{
     }
 
     private void update(WebSocketRequestHandler handler, Component component, BigDecimal newValue){
-        update(handler, component, newValue, false);
+        update(handler, component, newValue, false, false);
     }
 
-    private void update(WebSocketRequestHandler handler, Component component, BigDecimal newValue, boolean percent){
+    private void update(WebSocketRequestHandler handler, Component component, BigDecimal newValue, boolean percent, boolean negative){
         if (component != null){
             IConverter<BigDecimal> converter = percent ? bigDecimalConverter2 : getConverter(BigDecimal.class);
 
             String s =  converter.convertToString(newValue, getLocale());
 
-            int compare = s.compareTo(component.getDefaultModelObjectAsString().replace("%", ""));
+            int compare;
+
+            if (!negative) {
+                compare = s.compareTo(component.getDefaultModelObjectAsString().replace("%", ""));
+            }else {
+                compare = s.contains("-") ? -1 : 1;
+            }
 
             if (compare != 0){
                 String color = compare > 0 ? "'#EFFBEF'" : "'#FBEFEF'";
