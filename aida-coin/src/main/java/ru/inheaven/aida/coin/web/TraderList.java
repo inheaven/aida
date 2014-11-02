@@ -162,11 +162,11 @@ public class TraderList extends AbstractPage{
         });
         list.add(new TraderColumn(of("Buy"), buyMap));
         list.add(new TraderColumn(of("Sell"), sellMap));
-        list.add(new TraderColumn(of("Position"), positionMap));
         list.add(new TraderColumn(of("Bid"), bidMap));
         list.add(new TraderColumn(of("Ask"), askMap));
         list.add(new TraderColumn(of("Volatility"), volatilityMap));
         list.add(new TraderColumn(of("Prediction"), predictionMap));
+        list.add(new TraderColumn(of("Position"), positionMap));
         list.add(new TraderColumn(of("Day"), profitMap){
             @Override
             protected String getInitValue(Trader trader) {
