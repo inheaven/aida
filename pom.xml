@@ -141,6 +141,11 @@
                 <artifactId>aida-coin</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>ru.inhell.aida</groupId>
+                <artifactId>aida-predictor</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <!--APACHE-->
             <dependency>

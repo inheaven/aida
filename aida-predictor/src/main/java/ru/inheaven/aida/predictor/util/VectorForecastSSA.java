@@ -12,7 +12,7 @@ import java.util.Arrays;
 public class VectorForecastSSA {
     private static final Logger log = LoggerFactory.getLogger(VectorForecastSSA.class);
 
-    private final static boolean timing = true;
+    private final static boolean timing = false;
 
     private final int N;
     private final int L;

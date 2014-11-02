@@ -7,18 +7,18 @@ import com.sun.jna.Native;
  *         Date: 02.11.2014 5:29
  */
 public class ACML {
+    private static ThreadLocal<ACML> instance = new ThreadLocal<>();
+
     static {
         Native.register("c:\\dll\\libacml_dll");
     }
 
-    private static ACML instance;
-
-    public static ACML jna() {
-        if (instance == null){
-            instance = new ACML();
+    public static ACML jna(){
+        if (instance.get() == null){
+            instance.set(new ACML());
         }
 
-        return instance;
+        return instance.get();
     }
 
     public native void sgesvd(char jobu, char jobvt, int m, int n, float[] a, int lda, float[] s, float[] u,

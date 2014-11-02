@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.coin.entity.*;
 import ru.inheaven.aida.coin.util.TraderUtil;
+import ru.inheaven.aida.predictor.service.PredictorService;
 
 import javax.ejb.*;
 import java.io.IOException;
@@ -51,6 +52,9 @@ public class TraderService {
 
     @EJB
     private TraderBean traderBean;
+
+    @EJB
+    private PredictorService predictorService;
 
     private Map<ExchangePair, Ticker> tickerMap = new ConcurrentHashMap<>();
     private Map<ExchangePair, OrderBook> orderBookMap = new ConcurrentHashMap<>();
@@ -717,4 +721,21 @@ public class TraderService {
     }
 
     public BalanceHistory getBalanceHistory(ExchangePair exchangePair){ return balanceHistoryMap.get(exchangePair); }
+
+    public BigDecimal getPredictIndex(ExchangePair exchangePair){
+        List<TickerHistory> tickerHistories = traderBean.getTickerHistories(exchangePair, 100);
+
+        if (tickerHistories.size() == 100){
+            float[] timeSeries = new float[100];
+
+            for (int i=0; i < 100; ++i){
+                timeSeries[i] = tickerHistories.get(i).getPrice().floatValue();
+            }
+
+            return BigDecimal.valueOf(100 * (predictorService.getPredict(timeSeries) - timeSeries[99]) / timeSeries[99])
+                    .setScale(2, ROUND_UP);
+        }
+
+        return ZERO;
+    }
 }

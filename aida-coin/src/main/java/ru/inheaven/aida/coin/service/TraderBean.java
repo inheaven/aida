@@ -6,6 +6,7 @@ import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
@@ -104,5 +105,18 @@ public class TraderBean {
         } catch (Exception e) {
             return BigDecimal.ZERO;
         }
+    }
+
+    public List<TickerHistory> getTickerHistories(ExchangePair exchangePair, int count){
+        List<TickerHistory> list =  em.createQuery("select th from TickerHistory th where th.pair = :pair and th.exchangeType = :exchangeType " +
+                "order by th.date desc", TickerHistory.class)
+                .setParameter("pair", exchangePair.getPair())
+                .setParameter("exchangeType", exchangePair.getExchangeType())
+                .setMaxResults(count)
+                .getResultList();
+
+        Collections.reverse(list);
+
+        return list;
     }
 }

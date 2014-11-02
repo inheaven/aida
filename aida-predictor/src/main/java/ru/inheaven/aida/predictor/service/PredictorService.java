@@ -3,7 +3,6 @@ package ru.inheaven.aida.predictor.service;
 import ru.inheaven.aida.predictor.util.VectorForecastSSA;
 
 import javax.ejb.Singleton;
-import java.util.Arrays;
 
 /**
  * @author Anatoly Ivanov
@@ -11,9 +10,17 @@ import java.util.Arrays;
  */
 @Singleton
 public class PredictorService {
-    public void test(){
-        VectorForecastSSA vectorForecastSSA = new VectorForecastSSA(10, 5, 2, 2);
+    private VectorForecastSSA vectorForecastSSA = new VectorForecastSSA(100, 50, 5, 5);
 
-        System.out.println(Arrays.toString(vectorForecastSSA.execute(new float[]{0,1,2,3,4,5,6,7,8,9})));
+    public float getPredict(float[] timeSeries){
+        if (timeSeries.length < 100){
+            return 0;
+        }
+
+        try {
+            return vectorForecastSSA.execute(timeSeries)[104];
+        } catch (Exception e) {
+            return 0;
+        }
     }
 }

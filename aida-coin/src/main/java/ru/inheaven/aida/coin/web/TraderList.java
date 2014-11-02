@@ -70,6 +70,7 @@ public class TraderList extends AbstractPage{
     private Map<ExchangePair, Component> sellMap = new HashMap<>();
     private Map<ExchangePair, Component> volatilityMap = new HashMap<>();
     private Map<ExchangePair, Component> profitMap = new HashMap<>();
+    private Map<ExchangePair, Component> predictMap = new HashMap<>();
 
     private Component notificationLabel, notificationLabel2;
     private long notificationTime = System.currentTimeMillis();
@@ -159,17 +160,16 @@ public class TraderList extends AbstractPage{
         list.add(new TraderColumn(of("Buy"), buyMap));
         list.add(new TraderColumn(of("Sell"), sellMap));
         list.add(new TraderColumn(of("Bid"), bidMap));
-        list.add(new TraderColumn(of("Ask"),askMap));
-        list.add(new PropertyColumn<>(of("Low"), "low"));
-        list.add(new PropertyColumn<>(of("High"), "high"));
-        list.add(new TraderColumn(of("Volatility"),volatilityMap));
-        list.add(new TraderColumn(of("Profit"),profitMap){
+        list.add(new TraderColumn(of("Ask"), askMap));
+        list.add(new TraderColumn(of("Volatility"), volatilityMap));
+        list.add(new TraderColumn(of("Profit"), profitMap){
             @Override
             protected String getInitValue(Trader trader) {
                 OrderVolume ov = traderService.getOrderVolumeRate(trader.getExchangePair(), new Date(startDate));
                 return getConverter(BigDecimal.class).convertToString(ov.getVolume(), getLocale());
             }
         });
+        list.add(new TraderColumn(of("Predict"), predictMap));
 
         list.add(new AbstractColumn<Trader, String>(of("")) {
             @Override
@@ -356,6 +356,8 @@ public class TraderList extends AbstractPage{
                                 traderBean.getSigma(exchangePair)
                                         .multiply(BigDecimal.valueOf(100))
                                         .divide(ticker.getLast(), 2, ROUND_UP), true);
+                        //predict
+                        update(handler, predictMap.get(exchangePair), traderService.getPredictIndex(exchangePair), true);
 
                     }else if (payload instanceof OpenOrders){
                         OpenOrders openOrders = (OpenOrders) exchangeMessage.getPayload();
