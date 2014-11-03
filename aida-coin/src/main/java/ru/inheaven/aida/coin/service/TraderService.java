@@ -292,11 +292,14 @@ public class TraderService {
 
             BalanceHistory previous = previousMap.get(ep);
 
-            if (previous != null && previous.getBalance().compareTo(history.getBalance()) != 0
-                    && (previous.getAskAmount().compareTo(history.getAskAmount()) != 0
-                    || previous.getBidAmount().compareTo(history.getBidAmount()) != 0)) {
-                history.setPrevious(previous);
-                volumes.add(getVolume(history));
+            if (previous != null) {
+                float pr =  previous.getBalance().floatValue() + previous.getAskAmount().floatValue();
+                float h = history.getBalance().floatValue() + history.getAskAmount().floatValue();
+
+                if (Math.abs((pr - h) / (pr + h)) > 0.00000001) {
+                    history.setPrevious(previous);
+                    volumes.add(getVolume(history));
+                }
             }
 
             previousMap.put(ep, history);
