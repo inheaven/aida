@@ -497,6 +497,8 @@ public class TraderService {
     private void tradeAlpha(ExchangeType exchangeType) throws IOException {
         List<Trader> traders = traderBean.getTraders(exchangeType);
 
+        Collections.shuffle(traders);
+
         for (Trader trader : traders) {
             try {
                 ExchangePair exchangePair = ExchangePair.of(exchangeType, trader.getPair());
