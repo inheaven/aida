@@ -211,7 +211,7 @@ public class TraderList extends AbstractPage{
                 Collections.sort(traders, new Comparator<Trader>() {
                     @Override
                     public int compare(Trader t1, Trader t2) {
-                        return t1.getWeekProfit().compareTo(t2.getWeekProfit());
+                        return t2.getWeekProfit().compareTo(t1.getWeekProfit());
                     }
                 });
 
