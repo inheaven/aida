@@ -174,13 +174,7 @@ public class TraderList extends AbstractPage{
                 return getConverter(BigDecimal.class).convertToString(ov.getVolume(), getLocale());
             }
         });
-        list.add(new TraderColumn(of("Week"), profitWeekMap){
-            @Override
-            protected String getInitValue(Trader trader) {
-                OrderVolume ov = traderService.getOrderVolumeRate(trader.getExchangePair(), new Date(startWeekDate));
-                return getConverter(BigDecimal.class).convertToString(ov.getVolume(), getLocale());
-            }
-        });
+        list.add(new PropertyColumn<>(of("Week"), "weekProfit"));
 
         list.add(new AbstractColumn<Trader, String>(of("")) {
             @Override
@@ -208,7 +202,20 @@ public class TraderList extends AbstractPage{
         DataTable<Trader, String> table = new DataTable<>("traders", list, new ListDataProvider<Trader>(){
             @Override
             protected List<Trader> getData() {
-                return traderBean.getLiquidTraders();
+                List<Trader> traders = traderBean.getTraders();
+
+                for (Trader trader : traders){
+                    trader.setWeekProfit(traderService.getOrderVolumeRate(trader.getExchangePair(), new Date(startWeekDate)).getVolume());
+                }
+
+                Collections.sort(traders, new Comparator<Trader>() {
+                    @Override
+                    public int compare(Trader t1, Trader t2) {
+                        return t1.getWeekProfit().compareTo(t2.getWeekProfit());
+                    }
+                });
+
+                return traders;
             }
         }, 500);
         table.setOutputMarkupId(true);

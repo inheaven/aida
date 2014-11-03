@@ -41,6 +41,9 @@ public class Trader extends AbstractEntity{
     @Column
     private boolean running = false;
 
+    @Transient
+    private BigDecimal weekProfit;
+
     @PrePersist
     @PreUpdate
     protected void preUpdate(){
@@ -129,5 +132,13 @@ public class Trader extends AbstractEntity{
 
     public void setRunning(boolean running) {
         this.running = running;
+    }
+
+    public BigDecimal getWeekProfit() {
+        return weekProfit;
+    }
+
+    public void setWeekProfit(BigDecimal weekProfit) {
+        this.weekProfit = weekProfit;
     }
 }
