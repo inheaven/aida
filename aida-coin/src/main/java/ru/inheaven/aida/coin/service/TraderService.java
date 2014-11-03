@@ -292,7 +292,8 @@ public class TraderService {
 
             BalanceHistory previous = previousMap.get(ep);
 
-            if (previous != null) {
+            if (previous != null && (previous.getAskAmount().compareTo(history.getAskAmount()) != 0
+                    || previous.getBidAmount().compareTo(history.getBidAmount()) != 0)) {
                 float pr =  previous.getBalance().floatValue() + previous.getAskAmount().floatValue();
                 float h = history.getBalance().floatValue() + history.getAskAmount().floatValue();
 
