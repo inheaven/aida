@@ -563,6 +563,11 @@ public class TraderService {
 
                     BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.013")).setScale(8, HALF_UP);
 
+                    //bitfinex spread
+                    if (BITFINEX.equals(trader.getExchange())){
+                        minSpread =  middlePrice.multiply(new BigDecimal("0.008")).setScale(8, HALF_UP);
+                    }
+
                     //ticker spread
                     BigDecimal tickerSpread = ticker.getAsk().subtract(ticker.getBid());
                     if (tickerSpread.compareTo(minSpread) > 0){
