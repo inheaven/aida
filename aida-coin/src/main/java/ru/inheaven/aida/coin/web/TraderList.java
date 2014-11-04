@@ -176,13 +176,13 @@ public class TraderList extends AbstractPage{
         list.add(new TraderColumn(of("Volatility"), volatilityMap){
             @Override
             protected String getInitValue(Trader trader) {
-                return traderService.getVolatilityIndex(trader.getExchangePair()).toPlainString();
+                return traderService.getVolatilityIndex(trader.getExchangePair()).toPlainString() + "%";
             }
         });
         list.add(new TraderColumn(of("Prediction"), predictionMap){
             @Override
             protected String getInitValue(Trader trader) {
-                return traderService.getPredictionIndex(trader.getExchangePair()).toPlainString();
+                return traderService.getPredictionIndex(trader.getExchangePair()).toPlainString() + "%";
             }
         });
         list.add(new TraderColumn(of("Position"), positionMap));
