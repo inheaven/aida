@@ -754,18 +754,20 @@ public class TraderService {
     }
 
     public BigDecimal getPredictionTestIndex(ExchangePair exchangePair){
-        List<TickerHistory> tickerHistories = traderBean.getTickerHistories(exchangePair, 5);
+        int size = 15;
+        int step = 5;
 
-        if (tickerHistories.size() == 5){
-            Ticker t = getTicker(exchangePair);
-            TickerHistory h = tickerHistories.get(0);
+        List<TickerHistory> list = traderBean.getTickerHistories(exchangePair, size);
 
-            if (h.getPrediction() != null && t != null){
-                float p1 = h.getPrediction().floatValue();
-                float p2 = 100 * (t.getLast().floatValue() - h.getPrice().floatValue()) / h.getPrice().floatValue();
+        if (list.size() == size){
+            int p = 0;
 
-                return BigDecimal.valueOf(p1 != 0 ? 100 * p2 / p1 : 0).setScale(2, ROUND_UP);
+            for (int i=0; i < size-step; ++i){
+                p += list.get(i).getPrediction().floatValue() * (list.get(i + step).getPrice().floatValue() -
+                        list.get(i).getPrice().floatValue()) >= 0 ? 1: -1;
             }
+
+            return BigDecimal.valueOf(p / (size-step)).setScale(2, ROUND_UP);
         }
 
         return ZERO;
