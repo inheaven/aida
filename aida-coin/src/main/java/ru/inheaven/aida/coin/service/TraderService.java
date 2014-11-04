@@ -748,6 +748,22 @@ public class TraderService {
         return ZERO;
     }
 
+    public BigDecimal getPredictionTestIndex(ExchangePair exchangePair){
+        List<TickerHistory> tickerHistories = traderBean.getTickerHistories(exchangePair, 5);
+
+        if (tickerHistories.size() == 5){
+            Ticker t = getTicker(exchangePair);
+            TickerHistory h = tickerHistories.get(0);
+
+            if (h.getPrediction() != null && t != null){
+                return BigDecimal.valueOf(h.getPrediction().floatValue()
+                        - ((t.getLast().floatValue() - h.getPrice().floatValue()) / h.getPrice().floatValue()));
+            }
+        }
+
+        return ZERO;
+    }
+
     public BigDecimal getVolatilityIndex(ExchangePair exchangePair){
         return traderBean.getSigma(exchangePair).multiply(BigDecimal.valueOf(100))
                 .divide(tickerMap.get(exchangePair).getLast(), 2, ROUND_UP);

@@ -72,6 +72,7 @@ public class TraderList extends AbstractPage{
     private Map<ExchangePair, Component> volatilityMap = new HashMap<>();
     private Map<ExchangePair, Component> profitMap = new HashMap<>();
     private Map<ExchangePair, Component> predictionMap = new HashMap<>();
+    private Map<ExchangePair, Component> predictionTestMap = new HashMap<>();
 
     private Component notificationLabel, notificationLabel2;
     private long notificationTime = System.currentTimeMillis();
@@ -183,6 +184,12 @@ public class TraderList extends AbstractPage{
             @Override
             protected String getInitValue(Trader trader) {
                 return traderService.getPredictionIndex(trader.getExchangePair()).toPlainString() + "%";
+            }
+        });
+        list.add(new TraderColumn(of("Test"), predictionTestMap){
+            @Override
+            protected String getInitValue(Trader trader) {
+                return traderService.getPredictionTestIndex(trader.getExchangePair()).toPlainString() + "%";
             }
         });
         list.add(new TraderColumn(of("Position"), positionMap));
@@ -379,19 +386,22 @@ public class TraderList extends AbstractPage{
                     }else if (payload instanceof TickerHistory) {
                         TickerHistory tickerHistory = (TickerHistory) exchangeMessage.getPayload();
 
-                        ExchangePair exchangePair = ExchangePair.of(exchangeMessage.getExchangeType(), tickerHistory.getPair());
+                        ExchangePair ep = ExchangePair.of(exchangeMessage.getExchangeType(), tickerHistory.getPair());
 
                         //ask
-                        update(handler, askMap.get(exchangePair), tickerHistory.getAsk());
+                        update(handler, askMap.get(ep), tickerHistory.getAsk());
 
                         //bid
-                        update(handler, bidMap.get(exchangePair), tickerHistory.getBid());
+                        update(handler, bidMap.get(ep), tickerHistory.getBid());
 
                         //volatility
-                        update(handler, volatilityMap.get(exchangePair), tickerHistory.getVolatility(), true, false);
+                        update(handler, volatilityMap.get(ep), tickerHistory.getVolatility(), true, false);
 
-                        //predict
-                        update(handler, predictionMap.get(exchangePair), tickerHistory.getPrediction(), true, true);
+                        //prediction
+                        update(handler, predictionMap.get(ep), tickerHistory.getPrediction(), true, true);
+
+                        //prediction test
+                        update(handler, predictionTestMap.get(ep), traderService.getPredictionTestIndex(ep), true, true);
                     }else if (payload instanceof OpenOrders){
                         OpenOrders openOrders = (OpenOrders) exchangeMessage.getPayload();
 
