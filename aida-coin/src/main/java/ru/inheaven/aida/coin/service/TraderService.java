@@ -771,7 +771,7 @@ public class TraderService {
                         list.get(i).getPrice().floatValue()) >= 0 ? 1: -1;
             }
 
-            return BigDecimal.valueOf(p / (size-step)).setScale(2, ROUND_UP);
+            return BigDecimal.valueOf(100* p / (size-step)).setScale(2, ROUND_UP);
         }
 
         return ZERO;
