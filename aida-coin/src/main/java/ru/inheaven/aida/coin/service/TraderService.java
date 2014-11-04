@@ -759,7 +759,7 @@ public class TraderService {
                 float p1 = h.getPrediction().floatValue();
                 float p2 = (t.getLast().floatValue() - h.getPrice().floatValue()) / h.getPrice().floatValue();
 
-                return BigDecimal.valueOf(p1 + p2 != 0 ? (p1 - p2) / (p1 + p2) : 100).setScale(2, ROUND_UP);
+                return BigDecimal.valueOf(p1 + p2 != 0 ? 100 * (p1 - p2) / (p1 + p2) : 0).setScale(2, ROUND_UP);
             }
         }
 
