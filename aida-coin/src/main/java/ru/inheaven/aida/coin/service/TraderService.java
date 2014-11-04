@@ -756,8 +756,10 @@ public class TraderService {
             TickerHistory h = tickerHistories.get(0);
 
             if (h.getPrediction() != null && t != null){
-                return BigDecimal.valueOf(h.getPrediction().floatValue() - ((t.getLast().floatValue() -
-                        h.getPrice().floatValue()) / h.getPrice().floatValue())).setScale(2, ROUND_UP);
+                float p1 = h.getPrediction().floatValue();
+                float p2 = (t.getLast().floatValue() -h.getPrice().floatValue()) / h.getPrice().floatValue();
+
+                return BigDecimal.valueOf((p1 - p2) / (p1 + p2)).setScale(2, ROUND_UP);
             }
         }
 
