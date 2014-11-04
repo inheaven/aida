@@ -561,6 +561,13 @@ public class TraderService {
                     }
 
                     BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.013")).setScale(8, HALF_UP);
+
+                    //ticker spread
+                    BigDecimal tickerSpread = ticker.getAsk().subtract(ticker.getBid());
+                    if (tickerSpread.compareTo(minSpread) > 0){
+                        minSpread = tickerSpread;
+                    }
+
                     BigDecimal minOrderAmount = trader.getLot() != null
                             ? trader.getLot().divide(middlePrice, 8, HALF_UP)
                             : getMinOrderVolume(exchangeType, currencyPair.counterSymbol).divide(middlePrice, 8, HALF_UP);
@@ -592,8 +599,9 @@ public class TraderService {
 
                         BigDecimal spreadSumAmount = ZERO;
                         for (LimitOrder order : getOpenOrders(exchangeType).getOpenOrders()) {
-                            if (currencyPair.equals(order.getCurrencyPair()) && order.getLimitPrice().subtract(middlePrice)
-                                    .abs().compareTo(delta.multiply(BigDecimal.valueOf(2))) <= 0) {
+                            if (currencyPair.equals(order.getCurrencyPair())
+                                    && order.getLimitPrice().subtract(middlePrice).abs()
+                                    .compareTo(delta.multiply(BigDecimal.valueOf(2))) <= 0) {
                                 spreadSumAmount = spreadSumAmount.add(order.getTradableAmount());
                             }
                         }
@@ -648,7 +656,7 @@ public class TraderService {
                         }
 
                         //BID
-                        BigDecimal randomDelta = random20(delta);
+                        BigDecimal randomDelta = randomMinus20(delta);
                         BigDecimal bidPrice;
 
                         if ("USD".equals(currencyPair.counterSymbol)) {
@@ -672,7 +680,7 @@ public class TraderService {
                                 + randomBidAmount.toString() + " @ " + bidPrice.toString() + " | " + delta.toString());
 
                         //ASK
-                        randomDelta = random20(delta);
+                        randomDelta = randomMinus20(delta);
                         BigDecimal askPrice;
 
                         if ("USD".equals(currencyPair.counterSymbol)) {
