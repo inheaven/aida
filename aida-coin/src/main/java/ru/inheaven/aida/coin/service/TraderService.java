@@ -747,7 +747,7 @@ public class TraderService {
 
             float index = 100 * (predictorService.getPrediction(timeSeries) - timeSeries[99]) / timeSeries[99];
 
-            return BigDecimal.valueOf(index < 1000 ? index : 1000).setScale(2, ROUND_UP);
+            return BigDecimal.valueOf(Math.abs(index) < 1000 ? index : 100*Math.signum(index)).setScale(2, ROUND_UP);
         }
 
         return ZERO;
