@@ -29,10 +29,10 @@ public class TickerHistory extends AbstractEntity{
     @Column(nullable = false, precision = 19, scale = 8)
     private BigDecimal volume;
 
-    @Column(nullable = false, precision = 19, scale = 8)
+    @Column(nullable = true, precision = 19, scale = 8)
     private BigDecimal volatility;
 
-    @Column(nullable = false, precision = 19, scale = 8)
+    @Column(nullable = true, precision = 19, scale = 8)
     private BigDecimal prediction;
 
     @Column(nullable = false) @Temporal(TemporalType.TIMESTAMP)

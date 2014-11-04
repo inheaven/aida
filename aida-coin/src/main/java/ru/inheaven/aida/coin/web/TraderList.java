@@ -161,16 +161,35 @@ public class TraderList extends AbstractPage{
         });
         list.add(new TraderColumn(of("Buy"), buyMap));
         list.add(new TraderColumn(of("Sell"), sellMap));
-        list.add(new TraderColumn(of("Bid"), bidMap));
-        list.add(new TraderColumn(of("Ask"), askMap));
-        list.add(new TraderColumn(of("Volatility"), volatilityMap));
-        list.add(new TraderColumn(of("Prediction"), predictionMap));
+        list.add(new TraderColumn(of("Bid"), bidMap){
+            @Override
+            protected String getInitValue(Trader trader) {
+                return traderService.getTicker(trader.getExchangePair()).getBid().toPlainString();
+            }
+        });
+        list.add(new TraderColumn(of("Ask"), askMap){
+            @Override
+            protected String getInitValue(Trader trader) {
+                return traderService.getTicker(trader.getExchangePair()).getAsk().toPlainString();
+            }
+        });
+        list.add(new TraderColumn(of("Volatility"), volatilityMap){
+            @Override
+            protected String getInitValue(Trader trader) {
+                return traderService.getVolatilityIndex(trader.getExchangePair()).toPlainString();
+            }
+        });
+        list.add(new TraderColumn(of("Prediction"), predictionMap){
+            @Override
+            protected String getInitValue(Trader trader) {
+                return traderService.getPredictionIndex(trader.getExchangePair()).toPlainString();
+            }
+        });
         list.add(new TraderColumn(of("Position"), positionMap));
         list.add(new TraderColumn(of("Day"), profitMap){
             @Override
             protected String getInitValue(Trader trader) {
-                return getConverter(BigDecimal.class).convertToString(traderService.getOrderVolumeRate(
-                        trader.getExchangePair(), new Date(startDate)).getVolume(), getLocale());
+                return traderService.getOrderVolumeRate(trader.getExchangePair(), new Date(startDate)).getVolume().toPlainString();
             }
         });
         list.add(new PropertyColumn<>(of("Week"), "weekProfit"));
