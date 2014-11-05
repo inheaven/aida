@@ -608,6 +608,12 @@ public class TraderService {
                     for (double index : new double[]{1, 1.5, 2.5}) {
                         BigDecimal delta = minSpread.multiply(BigDecimal.valueOf(index/2)).setScale(8, HALF_UP);
 
+                        if (BTCE.equals(trader.getExchange())){
+                            if (delta.compareTo(new BigDecimal("0.00001")) < 0){
+                                delta = new BigDecimal("0.00001").setScale(5, ROUND_UP);
+                            }
+                        }
+
                         BigDecimal spreadSumAmount = ZERO;
                         for (LimitOrder order : getOpenOrders(exchangeType).getOpenOrders()) {
                             if (currencyPair.equals(order.getCurrencyPair())
@@ -667,13 +673,6 @@ public class TraderService {
 
                         //random delta
                         BigDecimal randomDelta = randomMinus20(delta);
-
-                        if (BTCE.equals(trader.getExchange())){
-                            if (randomDelta.compareTo(new BigDecimal("0.00001")) < 0){
-                                randomDelta = new BigDecimal("0.00001").setScale(5, ROUND_UP);
-                            }
-                        }
-
                         if (randomDelta.compareTo(ZERO) == 0){
                             randomDelta = "USD".equals(currencyPair.counterSymbol)
                                     ? new BigDecimal("0.01")
