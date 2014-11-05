@@ -779,9 +779,14 @@ public class TraderService {
         if (list.size() == size){
             int p = 0;
 
-            for (int i=0; i < size-step; ++i){
-                p += list.get(i).getPrediction().floatValue() * (list.get(i + step).getPrice().floatValue() -
-                        list.get(i).getPrice().floatValue()) >= 0 ? 1: 0;
+            for (int i = 0; i < size-step; ++i){
+                for (int j = 0; j < step; ++j){
+                    if (list.get(i).getPrediction().floatValue() *
+                            (list.get(i + j).getPrice().floatValue() - list.get(i).getPrice().floatValue()) >= 0){
+                        p ++;
+                        break;
+                    }
+                }
             }
 
             return BigDecimal.valueOf(100* p / (size-step)).setScale(2, ROUND_UP);
