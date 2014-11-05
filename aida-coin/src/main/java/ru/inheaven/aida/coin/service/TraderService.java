@@ -591,10 +591,6 @@ public class TraderService {
                         }
                     }else if (minSpread.compareTo(new BigDecimal("0.00000003")) < 0){
                         minSpread = new BigDecimal("0.00000002");
-                    }else if (BTCE.equals(trader.getExchange())){
-                        if (minSpread.compareTo(new BigDecimal("0.00002")) < 0){
-                            minSpread = new BigDecimal("0.00002").setScale(5, ROUND_UP);
-                        }
                     }
 
                     //cancel orders
@@ -671,6 +667,13 @@ public class TraderService {
 
                         //random delta
                         BigDecimal randomDelta = randomMinus20(delta);
+
+                        if (BTCE.equals(trader.getExchange())){
+                            if (randomDelta.compareTo(new BigDecimal("0.00001")) < 0){
+                                randomDelta = new BigDecimal("0.00001").setScale(5, ROUND_UP);
+                            }
+                        }
+
                         if (randomDelta.compareTo(ZERO) == 0){
                             randomDelta = "USD".equals(currencyPair.counterSymbol)
                                     ? new BigDecimal("0.01")
