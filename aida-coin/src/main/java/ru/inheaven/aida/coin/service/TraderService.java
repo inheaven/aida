@@ -584,13 +584,13 @@ public class TraderService {
                     minOrderAmount = minOrderAmount.multiply(ONE.add(volatility.multiply(BigDecimal.valueOf(2*Math.PI))))
                             .setScale(8, HALF_UP);
 
-                    //usd scale
+                    //min spread scale
                     if (trader.getPair().contains("/USD")){
-                        minSpread = minSpread.setScale(2, ROUND_UP);
-                    }
-
-                    if (minSpread.compareTo(ZERO) == 0) {
-                        minSpread = trader.getPair().contains("/USD") ? new BigDecimal("0.02") : new BigDecimal("0.00000002");
+                        if (minSpread.compareTo(new BigDecimal("0.03")) < 0){
+                            minSpread = new BigDecimal("0.02").setScale(2, ROUND_UP);
+                        }
+                    }else if (minSpread.compareTo(new BigDecimal("0.00000003")) < 0){
+                        minSpread = new BigDecimal("0.00000002");
                     }
 
                     //cancel orders
@@ -607,13 +607,6 @@ public class TraderService {
                     //create order
                     for (double index : new double[]{1, 1.5, 2.5}) {
                         BigDecimal delta = minSpread.multiply(BigDecimal.valueOf(index/2)).setScale(8, HALF_UP);
-
-                        if (trader.getPair().contains("/USD")){
-                            delta = delta.setScale(2, ROUND_UP);
-                        }
-                        if (minSpread.compareTo(ZERO) == 0) {
-                            delta = trader.getPair().contains("/USD") ? new BigDecimal("0.02") : new BigDecimal("0.00000002");
-                        }
 
                         BigDecimal spreadSumAmount = ZERO;
                         for (LimitOrder order : getOpenOrders(exchangeType).getOpenOrders()) {
