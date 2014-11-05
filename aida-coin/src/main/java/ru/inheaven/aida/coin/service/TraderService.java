@@ -608,6 +608,13 @@ public class TraderService {
                     for (double index : new double[]{1, 1.5, 2.5}) {
                         BigDecimal delta = minSpread.multiply(BigDecimal.valueOf(index/2)).setScale(8, HALF_UP);
 
+                        if (trader.getPair().contains("/USD")){
+                            delta = delta.setScale(2, ROUND_UP);
+                        }
+                        if (minSpread.compareTo(ZERO) == 0) {
+                            delta = trader.getPair().contains("/USD") ? new BigDecimal("0.02") : new BigDecimal("0.00000002");
+                        }
+
                         BigDecimal spreadSumAmount = ZERO;
                         for (LimitOrder order : getOpenOrders(exchangeType).getOpenOrders()) {
                             if (currencyPair.equals(order.getCurrencyPair())
