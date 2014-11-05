@@ -736,12 +736,14 @@ public class TraderService {
     public BalanceHistory getBalanceHistory(ExchangePair exchangePair){ return balanceHistoryMap.get(exchangePair); }
 
     public BigDecimal getPredictionIndex(ExchangePair exchangePair){
-        List<TickerHistory> tickerHistories = traderBean.getTickerHistories(exchangePair, 100);
+        int size = 256;
 
-        if (tickerHistories.size() == 100){
-            float[] timeSeries = new float[100];
+        List<TickerHistory> tickerHistories = traderBean.getTickerHistories(exchangePair, size);
 
-            for (int i=0; i < 100; ++i){
+        if (tickerHistories.size() == size){
+            float[] timeSeries = new float[size];
+
+            for (int i=0; i < size; ++i){
                 timeSeries[i] = tickerHistories.get(i).getPrice().floatValue();
             }
 
@@ -758,8 +760,8 @@ public class TraderService {
     }
 
     public BigDecimal getPredictionTestIndex(ExchangePair exchangePair){
-        int size = 35;
-        int step = 5;
+        int size = 64;
+        int step = 16;
 
         List<TickerHistory> list = traderBean.getTickerHistories(exchangePair, size);
 
