@@ -608,6 +608,7 @@ public class TraderService {
                     for (double index : new double[]{1, 1.5, 2.5}) {
                         BigDecimal delta = minSpread.multiply(BigDecimal.valueOf(index/2)).setScale(8, HALF_UP);
 
+                        //btc-e delta
                         if (BTCE.equals(trader.getExchange())){
                             if (delta.compareTo(new BigDecimal("0.00002")) < 0){
                                 delta = new BigDecimal("0.00002").setScale(5, ROUND_UP);
