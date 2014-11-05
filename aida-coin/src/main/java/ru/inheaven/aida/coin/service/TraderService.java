@@ -585,13 +585,13 @@ public class TraderService {
                             .setScale(8, HALF_UP);
 
                     if (minSpread.compareTo(ZERO) == 0) {
-                        minSpread = trader.getPair().contains("/USD") ? new BigDecimal("0.02") : new BigDecimal("0.00000002");
+                        minSpread = trader.getPair().contains("/USD") ? new BigDecimal("0.03") : new BigDecimal("0.00000003");
                     }
 
                     //cancel orders
                     for (LimitOrder order : getOpenOrders(exchangeType).getOpenOrders()) {
                         if (currencyPair.equals(order.getCurrencyPair()) && order.getLimitPrice().subtract(middlePrice)
-                                .abs().compareTo(minSpread.multiply(BigDecimal.valueOf(2))) > 0) {
+                                .abs().compareTo(minSpread.multiply(BigDecimal.valueOf(4))) > 0) {
                             tradeService.cancelOrder(order.getId());
 
                             broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": Cancel "
@@ -601,7 +601,7 @@ public class TraderService {
 
                     //create order
                     for (double index : new double[]{1, 1.5, 2.5}) {
-                        BigDecimal delta = minSpread.multiply(BigDecimal.valueOf(index)).divide(new BigDecimal("2"), 8, HALF_UP);
+                        BigDecimal delta = minSpread.multiply(BigDecimal.valueOf(index/2)).setScale(8, HALF_UP);
 
                         BigDecimal spreadSumAmount = ZERO;
                         for (LimitOrder order : getOpenOrders(exchangeType).getOpenOrders()) {
@@ -612,7 +612,7 @@ public class TraderService {
                             }
                         }
 
-                        if (spreadSumAmount.compareTo(minOrderAmount.multiply(BigDecimal.valueOf(index))) > 0) {
+                        if (spreadSumAmount.compareTo(minOrderAmount.multiply(BigDecimal.valueOf(2*index))) > 0) {
                             break;
                         }
 
