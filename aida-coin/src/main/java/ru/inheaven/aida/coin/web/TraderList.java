@@ -401,7 +401,7 @@ public class TraderList extends AbstractPage{
                         update(handler, predictionMap.get(ep), tickerHistory.getPrediction(), true, true);
 
                         //prediction test
-                        update(handler, predictionTestMap.get(ep), traderService.getPredictionTestIndex(ep), true, true);
+                        update(handler, predictionTestMap.get(ep), traderService.getPredictionTestIndex(ep), true, false);
                     }else if (payload instanceof OpenOrders){
                         OpenOrders openOrders = (OpenOrders) exchangeMessage.getPayload();
 
