@@ -605,7 +605,7 @@ public class TraderService {
                     }
 
                     //create order
-                    for (double index : new double[]{1, 1.5, 2.5}) {
+                    for (double index : new double[]{1, 2, 3}) {
                         BigDecimal delta = minSpread.multiply(BigDecimal.valueOf(index/2)).setScale(8, HALF_UP);
 
                         //btc-e delta
