@@ -591,6 +591,10 @@ public class TraderService {
                         }
                     }else if (minSpread.compareTo(new BigDecimal("0.00000003")) < 0){
                         minSpread = new BigDecimal("0.00000002");
+                    }else if (BTCE.equals(trader.getExchange())){
+                        if (minSpread.compareTo(new BigDecimal("0.00002")) < 0){
+                            minSpread = new BigDecimal("0.00002").setScale(5, ROUND_UP);
+                        }
                     }
 
                     //cancel orders
