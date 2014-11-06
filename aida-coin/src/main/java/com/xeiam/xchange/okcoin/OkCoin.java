@@ -1,5 +1,6 @@
 package com.xeiam.xchange.okcoin;
 
+import com.xeiam.xchange.okcoin.dto.account.OkCoinFutureUserInfo;
 import com.xeiam.xchange.okcoin.dto.account.OkCoinUserInfo;
 import com.xeiam.xchange.okcoin.dto.marketdata.OkCoinDepth;
 import com.xeiam.xchange.okcoin.dto.marketdata.OkCoinTickerResponse;
@@ -58,7 +59,7 @@ public interface OkCoin {
 
 	@POST
 	@Path("future_userinfo.do")
-	OkCoinUserInfo getUserFutuersInfo(@FormParam("partner") long partner, @FormParam("sign") ParamsDigest sign) throws IOException;
+    OkCoinFutureUserInfo getUserFutureInfo(@FormParam("partner") long partner, @FormParam("sign") ParamsDigest sign) throws IOException;
 
 	@POST
 	@Path("trade.do")

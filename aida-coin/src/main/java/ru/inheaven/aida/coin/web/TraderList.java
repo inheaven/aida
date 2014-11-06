@@ -176,7 +176,11 @@ public class TraderList extends AbstractPage{
         list.add(new TraderColumn(of("Bid"), bidMap){
             @Override
             protected String getInitValue(Trader trader) {
-                return traderService.getTicker(trader.getExchangePair()).getBid().toPlainString();
+                try {
+                    return traderService.getTicker(trader.getExchangePair()).getBid().toPlainString();
+                } catch (Exception e) {
+                    return "";
+                }
             }
         });
         list.add(new TraderColumn(of("Ask"), askMap){

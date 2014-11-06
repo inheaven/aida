@@ -1,22 +1,24 @@
 package com.xeiam.xchange.okcoin.service.polling;
 
 import com.xeiam.xchange.ExchangeSpecification;
+import com.xeiam.xchange.okcoin.dto.account.OkCoinFutureUserInfo;
 import com.xeiam.xchange.okcoin.dto.account.OkCoinUserInfo;
 
 import java.io.IOException;
 
 public class OkCoinAccountServiceRaw extends OKCoinBaseTradePollingService {
 
-  protected OkCoinAccountServiceRaw(ExchangeSpecification exchangeSpecification) {
+    protected OkCoinAccountServiceRaw(ExchangeSpecification exchangeSpecification) {
 
-    super(exchangeSpecification);
-  }
+        super(exchangeSpecification);
+    }
 
-  public OkCoinUserInfo getUserInfo() throws IOException {
+    public OkCoinUserInfo getUserInfo() throws IOException {
+        return returnOrThrow(okCoin.getUserInfo(partner, signatureCreator));
+    }
 
-    OkCoinUserInfo userInfo = okCoin.getUserInfo(partner, signatureCreator);
-
-    return returnOrThrow(userInfo);
-  }
+    public OkCoinFutureUserInfo getFutureUserInfo() throws IOException {
+        return returnOrThrow(okCoin.getUserFutureInfo(partner, signatureCreator));
+    }
 
 }
