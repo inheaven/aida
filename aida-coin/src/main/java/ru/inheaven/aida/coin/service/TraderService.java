@@ -125,42 +125,42 @@ public class TraderService {
         throw new IllegalArgumentException();
     }
 
-    @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/3", minute="*", hour="*", persistent=true)
     public void scheduleBittrexUpdate(){
         scheduleUpdate(BITTREX);
     }
 
-    @Schedule(second = "*/30", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/30", minute="*", hour="*", persistent=true)
     public void scheduleCexIOUpdate(){
         scheduleUpdate(CEXIO);
     }
 
-    @Schedule(second = "*/5", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/5", minute="*", hour="*", persistent=true)
     public void scheduleCryptsyUpdate(){
         scheduleUpdate(CRYPTSY);
     }
 
-    @Schedule(second = "*/5", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/5", minute="*", hour="*", persistent=true)
     public void scheduleBTCEUpdate(){
         scheduleUpdate(BTCE);
     }
 
-    @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/3", minute="*", hour="*", persistent=true)
     public void scheduleBTERUpdate(){
         scheduleUpdate(BTER);
     }
 
-    @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/3", minute="*", hour="*", persistent=true)
     public void scheduleBITFINEXUpdate(){
         scheduleUpdate(BITFINEX);
     }
 
-    @Schedule(second = "*/59", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/59", minute="*", hour="*", persistent=true)
     public void scheduleOKCoinUpdate(){
         scheduleUpdate(OKCOIN);
     }
 
-    @Schedule(second = "*/1", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/1", minute="*", hour="*", persistent=true)
     public void scheduleBalanceHistory() throws Exception{
         try {
             for (ExchangeType exchangeType : ExchangeType.values()){
