@@ -80,7 +80,7 @@ public class OkCoinDigest implements ParamsDigest {
 
     final String message = newParams.asQueryString() + "&secret_key=" + secretKey;
 
-    return DigestUtils.md5Hex(message);
+    return DigestUtils.md5Hex(message).toUpperCase();
 
 //    try {
 //      md.reset();
