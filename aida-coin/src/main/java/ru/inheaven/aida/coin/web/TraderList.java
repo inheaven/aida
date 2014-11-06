@@ -149,7 +149,7 @@ public class TraderList extends AbstractPage{
         add(okcoinCoins = new Label("okcoinCoins", Model.of("0")).setOutputMarkupId(true));
 
 
-        String quote = "¸.·´¯`·.¸¸.·´¯`·.´¯`·.¸¸.·´¯`· ><º>";
+        String quote = ".·´¯`·.¸¸.·´¯`·.¸.·´¯`·.¸.·´¯`·.´¯`·.¸¸.·´¯`· ><º>";
 
         add(new Label("quote", Model.of(quote)));
 
@@ -544,7 +544,7 @@ public class TraderList extends AbstractPage{
 
                 if (ExchangeType.BTCE.equals(exchangeType)){
                     OpenOrders openOrders = traderService.getOpenOrders(ExchangeType.BTCE);
-                    if (openOrders.getOpenOrders() != null) {
+                    if (openOrders != null) {
                         for (LimitOrder limitOrder : openOrders.getOpenOrders()){
                             sum = sum.add(traderService.getBTCVolume(
                                     TraderUtil.getPair(limitOrder.getCurrencyPair()),
