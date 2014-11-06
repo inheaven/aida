@@ -83,6 +83,7 @@ public class TraderList extends AbstractPage{
     private Component btceBTC, btceCoins;
     private Component bterBTC, bterCoins;
     private Component bitfinexBTC, bitfinexCoins;
+    private Component okcoinBTC, okcoinCoins;
 
     private Component sumEstimate;
 
@@ -141,6 +142,9 @@ public class TraderList extends AbstractPage{
 
         add(bitfinexBTC = new Label("bitfinexBTC", Model.of("0")).setOutputMarkupId(true));
         add(bitfinexCoins = new Label("bitfinexCoins", Model.of("0")).setOutputMarkupId(true));
+
+        add(okcoinBTC = new Label("okcoinBTC", Model.of("0")).setOutputMarkupId(true));
+        add(okcoinCoins = new Label("okcoinCoins", Model.of("0")).setOutputMarkupId(true));
 
         List<IColumn<Trader, String>> list = new ArrayList<>();
 
@@ -311,6 +315,10 @@ public class TraderList extends AbstractPage{
                                 update(handler, bitfinexCoins, estimate);
                                 update(handler, bitfinexBTC, ((AccountInfo) payload).getBalance("BTC"));
                                 break;
+                            case OKCOIN:
+                                update(handler, okcoinCoins, estimate);
+                                update(handler, okcoinBTC, ((AccountInfo) payload).getBalance("BTC"));
+                                break;
                         }
 
                         //sumEstimate
@@ -320,6 +328,7 @@ public class TraderList extends AbstractPage{
                                 .add(new BigDecimal(btceCoins.getDefaultModelObjectAsString()))
                                 .add(new BigDecimal(bterCoins.getDefaultModelObjectAsString()))
                                 .add(new BigDecimal(bitfinexCoins.getDefaultModelObjectAsString()))
+                                .add(new BigDecimal(okcoinCoins.getDefaultModelObjectAsString()))
                                 .setScale(8, ROUND_HALF_UP);
 
                         update(handler, sumEstimate, sum);
@@ -331,7 +340,8 @@ public class TraderList extends AbstractPage{
                                 && !bittrexCoins.getDefaultModelObjectAsString().equals("0")
                                 && !btceCoins.getDefaultModelObjectAsString().equals("0")
                                 && !bterCoins.getDefaultModelObjectAsString().equals("0")
-                                && !bitfinexCoins.getDefaultModelObjectAsString().equals("0")) {
+                                && !bitfinexCoins.getDefaultModelObjectAsString().equals("0")
+                                && !okcoinCoins.getDefaultModelObjectAsString().equals("0")) {
                             JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
 
                             String javaScript = "eval("+chart.getJavaScriptVarName()+").series[" + 0 +"].addPoint("

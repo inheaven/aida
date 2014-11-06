@@ -15,6 +15,7 @@ import com.xeiam.xchange.dto.marketdata.OrderBook;
 import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.OpenOrders;
+import com.xeiam.xchange.okcoin.OkCoinExchange;
 import com.xeiam.xchange.service.polling.PollingTradeService;
 import org.apache.wicket.Application;
 import org.apache.wicket.protocol.ws.IWebSocketSettings;
@@ -97,6 +98,11 @@ public class TraderService {
         setSecretKey("B8UxOTb6cdKwz7jDu1m1FMjFCxMiz82g21z78Z8tDeB");
     }});
 
+    private Exchange okcoinExchange = INSTANCE.createExchange(new ExchangeSpecification(OkCoinExchange.class){{
+        setApiKey("2017677");
+        setSecretKey("F41C04C8917B62967D12030DA66DF202");
+    }});
+
     public Exchange getExchange(ExchangeType exchangeType){
         switch (exchangeType){
             case BITTREX:
@@ -111,6 +117,8 @@ public class TraderService {
                 return bterExchange;
             case BITFINEX:
                 return bitfinexExchange;
+            case OKCOIN:
+                return okcoinExchange;
         }
 
         throw new IllegalArgumentException();
