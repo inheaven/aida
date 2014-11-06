@@ -5,7 +5,6 @@ import si.mazi.rescu.ParamsDigest;
 import si.mazi.rescu.RestInvocation;
 
 import javax.ws.rs.FormParam;
-import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -78,16 +77,42 @@ public class OkCoinDigest implements ParamsDigest {
       newParams.add(param.getKey(), param.getValue());
     }
 
-    final String message = newParams.asQueryString() + "&secret_key=" +secretKey;
+    final String message = newParams.asQueryString() + "&secret_key=" + secretKey;
 
-    try {
-      md.reset();
+      return getMD5String(message);
 
-      byte[] digest = md.digest(message.getBytes("UTF-8"));
-
-      return String.valueOf(encodeHex(digest, DIGITS_UPPER));
-    } catch (UnsupportedEncodingException e) {
-      throw new RuntimeException("Codec error", e);
-    }
+//    try {
+//      md.reset();
+//
+//      byte[] digest = md.digest(message.getBytes("UTF-8"));
+//
+//      return String.valueOf(encodeHex(digest, DIGITS_UPPER));
+//    } catch (UnsupportedEncodingException e) {
+//      throw new RuntimeException("Codec error", e);
+//    }
   }
+
+    private static final char HEX_DIGITS[] = { '0', '1', '2', '3', '4', '5',
+            '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+
+    public static String getMD5String(String str) {
+        try {
+            if (str == null || str.trim().length() == 0) {
+                return "";
+            }
+            byte[] bytes = str.getBytes();
+            MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+            messageDigest.update(bytes);
+            bytes = messageDigest.digest();
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < bytes.length; i++) {
+                sb.append(HEX_DIGITS[(bytes[i] & 0xf0) >> 4] + ""
+                        + HEX_DIGITS[bytes[i] & 0xf]);
+            }
+            return sb.toString();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
 }
