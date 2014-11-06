@@ -393,7 +393,8 @@ public class TraderService {
         }
     }
 
-    private void scheduleUpdate(ExchangeType exchangeType){
+    @Asynchronous
+    public void scheduleUpdate(ExchangeType exchangeType){
         try {
             updateBalance(exchangeType);
             updateOpenOrders(exchangeType);
