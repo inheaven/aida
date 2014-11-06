@@ -58,7 +58,7 @@ public interface OkCoin {
 	OkCoinUserInfo getUserInfo(@FormParam("partner") long partner, @FormParam("sign") ParamsDigest sign) throws IOException;
 
 	@POST
-	@Path("future_userinfo.do")
+	@Path("uture_userinfo_4fix.do")
     OkCoinFutureUserInfo getUserFutureInfo(@FormParam("partner") long partner, @FormParam("sign") ParamsDigest sign) throws IOException;
 
 	@POST

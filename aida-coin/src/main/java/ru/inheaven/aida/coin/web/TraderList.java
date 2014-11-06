@@ -176,13 +176,13 @@ public class TraderList extends AbstractPage{
         list.add(new TraderColumn(of("Bid"), bidMap){
             @Override
             protected String getInitValue(Trader trader) {
-                return traderService.getTicker(trader.getExchangePair()).getBid().toPlainString();
+                return traderService.getTickerNotNull(trader.getExchangePair()).getBid().toPlainString();
             }
         });
         list.add(new TraderColumn(of("Ask"), askMap){
             @Override
             protected String getInitValue(Trader trader) {
-                return traderService.getTicker(trader.getExchangePair()).getAsk().toPlainString();
+                return traderService.getTickerNotNull(trader.getExchangePair()).getAsk().toPlainString();
             }
         });
         list.add(new TraderColumn(of("Volatility"), volatilityMap){
@@ -454,7 +454,7 @@ public class TraderList extends AbstractPage{
                         countBuyMap.forEach(new BiConsumer<ExchangePair, BigDecimal>() {
                             @Override
                             public void accept(ExchangePair ep, BigDecimal amount) {
-                                Ticker ticker = traderService.getTicker(ep);
+                                Ticker ticker = traderService.getTickerNotNull(ep);
 
                                 if (ticker != null) {
                                     update(handler, buyMap.get(ep), traderService.getBTCVolume(
@@ -466,7 +466,7 @@ public class TraderList extends AbstractPage{
                         countSellMap.forEach(new BiConsumer<ExchangePair, BigDecimal>() {
                             @Override
                             public void accept(ExchangePair ep, BigDecimal amount) {
-                                Ticker ticker = traderService.getTicker(ep);
+                                Ticker ticker = traderService.getTickerNotNull(ep);
 
                                 if (ticker != null) {
                                     update(handler, sellMap.get(ep), traderService.getBTCVolume(

@@ -762,6 +762,17 @@ public class TraderService {
         return tickerMap.get(exchangePair);
     }
 
+    public Ticker getTickerNotNull(ExchangePair exchangePair){
+        Ticker ticker = tickerMap.get(exchangePair);
+
+        if (ticker == null){
+            ticker = new Ticker.Builder().currencyPair(TraderUtil.getCurrencyPair(exchangePair.getPair()))
+                    .last(ZERO).bid(ZERO).ask(ZERO).high(ZERO).low(ZERO).volume(ZERO).timestamp(new Date()).build();
+        }
+
+        return ticker;
+    }
+
     public OrderBook getOrderBook(ExchangePair exchangePair){
         return orderBookMap.get(exchangePair);
     }
