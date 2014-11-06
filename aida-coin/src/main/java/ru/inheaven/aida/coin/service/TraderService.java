@@ -160,7 +160,7 @@ public class TraderService {
     }
 
     @Schedule(second = "*/1", minute="*", hour="*", persistent=false)
-    public void scheduleBalanceHistory() throws Exception{
+    public void scheduleBalanceHistory(){
         try {
             for (ExchangeType exchangeType : ExchangeType.values()){
                 AccountInfo accountInfo = getAccountInfo(exchangeType);
