@@ -6,7 +6,7 @@ public class OkCoinPositionResult extends OkCoinErrorResult {
 
 	private final OkCoinPosition[] positions;
 
-	public OkCoinPositionResult(@JsonProperty("result") final boolean result, @JsonProperty("errorCode") final int errorCode,
+	public OkCoinPositionResult(@JsonProperty("result") final boolean result, @JsonProperty("error_code") final int errorCode,
 			@JsonProperty("holding") final OkCoinPosition[] positions) {
 
 		super(result, errorCode);

@@ -1,7 +1,8 @@
 package ru.inheaven.aida.coin.service;
 
 import com.google.common.base.Throwables;
-import com.xeiam.xchange.*;
+import com.xeiam.xchange.Exchange;
+import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.bitfinex.v1.BitfinexExchange;
 import com.xeiam.xchange.bittrex.v1.BittrexExchange;
 import com.xeiam.xchange.btce.v3.BTCEExchange;
@@ -27,16 +28,17 @@ import ru.inheaven.aida.coin.entity.*;
 import ru.inheaven.aida.coin.util.TraderUtil;
 import ru.inheaven.aida.predictor.service.PredictorService;
 
+import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
 import javax.ejb.*;
+import javax.ejb.Timer;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.xeiam.xchange.ExchangeFactory.INSTANCE;
-import static java.math.BigDecimal.ONE;
-import static java.math.BigDecimal.ROUND_UP;
-import static java.math.BigDecimal.ZERO;
+import static java.math.BigDecimal.*;
 import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.coin.entity.ExchangeType.*;
 import static ru.inheaven.aida.coin.util.TraderUtil.*;
@@ -56,6 +58,9 @@ public class TraderService {
 
     @EJB
     private PredictorService predictorService;
+
+    @Resource
+    private TimerService timerService;
 
     private Map<ExchangePair, Ticker> tickerMap = new ConcurrentHashMap<>();
     private Map<ExchangePair, OrderBook> orderBookMap = new ConcurrentHashMap<>();
@@ -123,6 +128,13 @@ public class TraderService {
         }
 
         throw new IllegalArgumentException();
+    }
+
+    @PreDestroy
+    public void cancelTimers(){
+        for (Timer timer : timerService.getAllTimers()){
+            timer.cancel();
+        }
     }
 
     @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
