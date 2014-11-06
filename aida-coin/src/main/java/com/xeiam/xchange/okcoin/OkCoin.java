@@ -14,6 +14,7 @@ import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 
 @Path("/v1")
+@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 @Produces(MediaType.APPLICATION_JSON)
 public interface OkCoin {
 
