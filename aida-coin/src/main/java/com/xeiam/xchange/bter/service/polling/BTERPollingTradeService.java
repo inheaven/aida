@@ -1,20 +1,20 @@
 package com.xeiam.xchange.bter.service.polling;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.NotAvailableFromExchangeException;
 import com.xeiam.xchange.bter.BTERAdapters;
 import com.xeiam.xchange.bter.dto.trade.BTEROpenOrders;
 import com.xeiam.xchange.bter.dto.trade.BTERTrade;
 import com.xeiam.xchange.currency.CurrencyPair;
-import com.xeiam.xchange.dto.marketdata.Trades;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.MarketOrder;
 import com.xeiam.xchange.dto.trade.OpenOrders;
+import com.xeiam.xchange.dto.trade.UserTrades;
 import com.xeiam.xchange.service.polling.PollingTradeService;
+
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 
 public class BTERPollingTradeService extends BTERPollingTradeServiceRaw implements PollingTradeService {
 
@@ -71,7 +71,7 @@ public class BTERPollingTradeService extends BTERPollingTradeServiceRaw implemen
   }
 
   @Override
-  public Trades getTradeHistory(Object... args) throws IOException {
+  public UserTrades getTradeHistory(Object... args) throws IOException {
 
     if (args.length == 0) {
 

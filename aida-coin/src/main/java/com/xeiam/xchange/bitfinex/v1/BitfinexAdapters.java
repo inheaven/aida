@@ -9,7 +9,6 @@ import com.xeiam.xchange.dto.Order.OrderType;
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.marketdata.OrderBook;
 import com.xeiam.xchange.dto.marketdata.Ticker;
-import com.xeiam.xchange.dto.marketdata.Ticker.TickerBuilder;
 import com.xeiam.xchange.dto.marketdata.Trade;
 import com.xeiam.xchange.dto.marketdata.Trades;
 import com.xeiam.xchange.dto.marketdata.Trades.TradeSortType;
@@ -195,7 +194,7 @@ public final class BitfinexAdapters {
 
     Date timestamp = DateUtils.fromMillisUtc((long) (bitfinexTicker.getTimestamp() * 1000L));
 
-    return TickerBuilder.newInstance().withCurrencyPair(currencyPair).withLast(last).withBid(bid).withAsk(ask).withHigh(high).withLow(low).withVolume(volume).withTimestamp(timestamp).build();
+    return new Ticker.Builder().currencyPair(currencyPair).last(last).bid(bid).ask(ask).high(high).low(low).volume(volume).timestamp(timestamp).build();
   }
 
   public static AccountInfo adaptAccountInfo(BitfinexBalancesResponse[] response) {
@@ -224,18 +223,19 @@ public final class BitfinexAdapters {
     return new OpenOrders(limitOrders);
   }
 
-  public static Trades adaptTradeHistory(BitfinexTradeResponse[] trades, String symbol) {
+  public static UserTrades adaptTradeHistory(BitfinexTradeResponse[] trades, String symbol) {
 
-    List<Trade> pastTrades = new ArrayList<Trade>(trades.length);
+    List<UserTrade> pastTrades = new ArrayList<UserTrade>(trades.length);
     CurrencyPair currencyPair = adaptCurrencyPair(symbol);
 
     for (BitfinexTradeResponse trade : trades) {
       OrderType orderType = trade.getType().equalsIgnoreCase("buy") ? OrderType.BID : OrderType.ASK;
 
-      pastTrades.add(new Trade(orderType, trade.getAmount(), currencyPair, trade.getPrice(), new Date((long) (trade.getTimestamp() * 1000L)), trade.getTradeId(), trade.getOrderId()));
+      pastTrades.add(new UserTrade(orderType, trade.getAmount(), currencyPair, trade.getPrice(), new Date((long) (trade.getTimestamp() * 1000L)),
+              trade.getTradeId(), trade.getOrderId(), null, null));
     }
 
-    return new Trades(pastTrades, TradeSortType.SortByTimestamp);
+    return new UserTrades(pastTrades, TradeSortType.SortByTimestamp);
   }
 }
 

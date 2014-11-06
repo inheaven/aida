@@ -1,33 +1,10 @@
 package com.xeiam.xchange.cryptsy;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.xeiam.xchange.cryptsy.dto.CryptsyOrder;
 import com.xeiam.xchange.cryptsy.dto.CryptsyOrder.CryptsyOrderType;
 import com.xeiam.xchange.cryptsy.dto.account.CryptsyAccountInfo;
 import com.xeiam.xchange.cryptsy.dto.account.CryptsyAccountInfoReturn;
-import com.xeiam.xchange.cryptsy.dto.marketdata.CryptsyBuyOrder;
-import com.xeiam.xchange.cryptsy.dto.marketdata.CryptsyGetMarketsReturn;
-import com.xeiam.xchange.cryptsy.dto.marketdata.CryptsyMarketData;
-import com.xeiam.xchange.cryptsy.dto.marketdata.CryptsyMarketTradesReturn;
-import com.xeiam.xchange.cryptsy.dto.marketdata.CryptsyOrderBook;
-import com.xeiam.xchange.cryptsy.dto.marketdata.CryptsyOrderBookReturn;
-import com.xeiam.xchange.cryptsy.dto.marketdata.CryptsyPublicMarketData;
-import com.xeiam.xchange.cryptsy.dto.marketdata.CryptsyPublicOrder;
-import com.xeiam.xchange.cryptsy.dto.marketdata.CryptsyPublicOrderbook;
-import com.xeiam.xchange.cryptsy.dto.marketdata.CryptsyPublicTrade;
-import com.xeiam.xchange.cryptsy.dto.marketdata.CryptsySellOrder;
+import com.xeiam.xchange.cryptsy.dto.marketdata.*;
 import com.xeiam.xchange.cryptsy.dto.trade.CryptsyOpenOrders;
 import com.xeiam.xchange.cryptsy.dto.trade.CryptsyOpenOrdersReturn;
 import com.xeiam.xchange.cryptsy.dto.trade.CryptsyTradeHistory;
@@ -37,13 +14,15 @@ import com.xeiam.xchange.dto.Order.OrderType;
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.marketdata.OrderBook;
 import com.xeiam.xchange.dto.marketdata.Ticker;
-import com.xeiam.xchange.dto.marketdata.Ticker.TickerBuilder;
 import com.xeiam.xchange.dto.marketdata.Trade;
 import com.xeiam.xchange.dto.marketdata.Trades;
 import com.xeiam.xchange.dto.marketdata.Trades.TradeSortType;
-import com.xeiam.xchange.dto.trade.LimitOrder;
-import com.xeiam.xchange.dto.trade.OpenOrders;
-import com.xeiam.xchange.dto.trade.Wallet;
+import com.xeiam.xchange.dto.trade.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.math.BigDecimal;
+import java.util.*;
 
 /**
  * @author ObsessiveOrange
@@ -237,7 +216,7 @@ public final class CryptsyAdapters {
         BigDecimal volume = targetMarket.get24hVolume();
         Date timestamp = new Date();
 
-        return TickerBuilder.newInstance().withCurrencyPair(currencyPair).withLast(last).withBid(bid).withAsk(ask).withHigh(high).withLow(low).withVolume(volume).withTimestamp(timestamp).build();
+        return new Ticker.Builder().currencyPair(currencyPair).last(last).bid(bid).ask(ask).high(high).low(low).volume(volume).timestamp(timestamp).build();
     }
 
     public static List<Ticker> adaptPublicTickers(Map<Integer, CryptsyPublicMarketData> marketsReturnData) {
@@ -254,7 +233,6 @@ public final class CryptsyAdapters {
      * Note: Cryptsy does not natively have a Ticker method, so getCryptsyMarketData function will have to be called to get summary data
      *
      * @param publicMarketData Raw returned data from Cryptsy, CryptsyGetMarketsReturn DTO
-     * @param currencyPair The market for which this CryptsyGetMarketsReturn belongs to (Usually not given in Cryptsy response)
      * @return Standard XChange Ticker DTO
      */
     public static Ticker adaptPublicTicker(CryptsyPublicMarketData publicMarketData) {
@@ -270,8 +248,8 @@ public final class CryptsyAdapters {
         BigDecimal volume = publicMarketData.getVolume();
         Date timestamp = new Date();
 
-        return TickerBuilder.newInstance().withCurrencyPair(adaptCurrencyPair(publicMarketData)).withLast(last).withBid(bid).withAsk(ask).withHigh(high).withLow(low).withVolume(volume).withTimestamp(
-                timestamp).build();
+        return new Ticker.Builder().currencyPair(adaptCurrencyPair(publicMarketData)).last(last).bid(bid).ask(ask)
+                .high(high).low(low).volume(volume).timestamp(timestamp).build();
     }
 
     /**
@@ -336,20 +314,22 @@ public final class CryptsyAdapters {
      * @param tradeHistoryReturnData Raw returned data from Cryptsy, CryptsyTradeHistoryReturn DTO
      * @return Standard XChange Trades DTO
      */
-    public static Trades adaptTradeHistory(CryptsyTradeHistoryReturn tradeHistoryReturnData) {
+    public static UserTrades adaptTradeHistory(CryptsyTradeHistoryReturn tradeHistoryReturnData) {
 
         List<CryptsyTradeHistory> cryptsyTradeHistory = tradeHistoryReturnData.getReturnValue();
 
-        List<Trade> trades = new ArrayList<Trade>();
+        List<UserTrade> trades = new ArrayList<>();
+
         if (cryptsyTradeHistory != null) {
             for (CryptsyTradeHistory trade : cryptsyTradeHistory) {
                 OrderType tradeType = trade.getTradeType() == CryptsyOrderType.Buy ? OrderType.BID : OrderType.ASK;
                 CurrencyPair currencyPair = CryptsyCurrencyUtils.convertToCurrencyPair(trade.getMarketId());
 
-                trades.add(new Trade(tradeType, trade.getQuantity(), currencyPair, trade.getPrice(), trade.getTimestamp(), String.valueOf(trade.getTradeId()), String.valueOf(trade.getOrderId())));
+                trades.add(new UserTrade(tradeType, trade.getQuantity(), currencyPair, trade.getPrice(), trade.getTimestamp(),
+                        String.valueOf(trade.getTradeId()), String.valueOf(trade.getOrderId()), null, null));
             }
         }
-        return new Trades(trades, TradeSortType.SortByTimestamp);
+        return new UserTrades(trades, TradeSortType.SortByTimestamp);
     }
 
     /**

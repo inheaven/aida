@@ -1,15 +1,5 @@
 package com.xeiam.xchange.btce.v3;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.xeiam.xchange.btce.v3.dto.account.BTCEAccountInfo;
 import com.xeiam.xchange.btce.v3.dto.marketdata.BTCETicker;
 import com.xeiam.xchange.btce.v3.dto.marketdata.BTCETrade;
@@ -19,14 +9,20 @@ import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.dto.Order.OrderType;
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.marketdata.Ticker;
-import com.xeiam.xchange.dto.marketdata.Ticker.TickerBuilder;
 import com.xeiam.xchange.dto.marketdata.Trade;
 import com.xeiam.xchange.dto.marketdata.Trades;
 import com.xeiam.xchange.dto.marketdata.Trades.TradeSortType;
-import com.xeiam.xchange.dto.trade.LimitOrder;
-import com.xeiam.xchange.dto.trade.OpenOrders;
-import com.xeiam.xchange.dto.trade.Wallet;
+import com.xeiam.xchange.dto.trade.*;
 import com.xeiam.xchange.utils.DateUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Various adapters for converting from BTCE DTOs to XChange DTOs
@@ -78,14 +74,6 @@ public final class BTCEAdapters {
         return new LimitOrder(orderType, amount, currencyPair, id, null, price);
     }
 
-    /**
-     * Adapts a BTCETradeV3 to a Trade Object
-     *
-     * @param bTCETrade BTCE trade object v.3
-     * @param tradableIdentifier First currency in the pair
-     * @param currency Second currency in the pair
-     * @return The XChange Trade
-     */
     public static Trade adaptTrade(BTCETrade bTCETrade, CurrencyPair currencyPair) {
 
         OrderType orderType = bTCETrade.getTradeType().equalsIgnoreCase("bid") ? OrderType.BID : OrderType.ASK;
@@ -97,14 +85,6 @@ public final class BTCEAdapters {
         return new Trade(orderType, amount, currencyPair, price, date, tradeId);
     }
 
-    /**
-     * Adapts a BTCETradeV3[] to a Trades Object
-     *
-     * @param bTCETrades The BTCE trade data returned by API v.3
-     * @param tradableIdentifier First currency of the pair
-     * @param currency Second currency of the pair
-     * @return The trades
-     */
     public static Trades adaptTrades(BTCETrade[] bTCETrades, CurrencyPair currencyPair) {
 
         List<Trade> tradesList = new ArrayList<Trade>();
@@ -135,7 +115,7 @@ public final class BTCEAdapters {
         BigDecimal volume = bTCETicker.getVolCur();
         Date timestamp = DateUtils.fromMillisUtc(bTCETicker.getUpdated() * 1000L);
 
-        return TickerBuilder.newInstance().withCurrencyPair(currencyPair).withLast(last).withBid(bid).withAsk(ask).withHigh(high).withLow(low).withVolume(volume).withTimestamp(timestamp).build();
+        return new Ticker.Builder().currencyPair(currencyPair).last(last).bid(bid).ask(ask).high(high).low(low).volume(volume).timestamp(timestamp).build();
     }
 
     public static AccountInfo adaptAccountInfo(BTCEAccountInfo btceAccountInfo) {
@@ -167,9 +147,10 @@ public final class BTCEAdapters {
         return new OpenOrders(limitOrders);
     }
 
-    public static Trades adaptTradeHistory(Map<Long, BTCETradeHistoryResult> tradeHistory) {
+    public static UserTrades adaptTradeHistory(Map<Long, BTCETradeHistoryResult> tradeHistory) {
 
-        List<Trade> trades = new ArrayList<Trade>(tradeHistory.size());
+        List<UserTrade> trades = new ArrayList<UserTrade>(tradeHistory.size());
+
         for (Entry<Long, BTCETradeHistoryResult> entry : tradeHistory.entrySet()) {
             BTCETradeHistoryResult result = entry.getValue();
             OrderType type = result.getType() == BTCETradeHistoryResult.Type.buy ? OrderType.BID : OrderType.ASK;
@@ -180,9 +161,10 @@ public final class BTCEAdapters {
             String orderId = String.valueOf(result.getOrderId());
             String tradeId = String.valueOf(entry.getKey());
             CurrencyPair currencyPair = new CurrencyPair(pair[0].toUpperCase(), pair[1].toUpperCase());
-            trades.add(new Trade(type, tradableAmount, currencyPair, price, timeStamp, tradeId, orderId));
+            trades.add(new UserTrade(type, tradableAmount, currencyPair, price, timeStamp, tradeId, orderId, null, null));
         }
-        return new Trades(trades, TradeSortType.SortByTimestamp);
+
+        return new UserTrades(trades, TradeSortType.SortByTimestamp);
     }
 
     public static CurrencyPair adaptCurrencyPair(String btceCurrencyPair) {

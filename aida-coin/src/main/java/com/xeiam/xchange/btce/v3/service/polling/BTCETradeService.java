@@ -1,8 +1,5 @@
 package com.xeiam.xchange.btce.v3.service.polling;
 
-import java.io.IOException;
-import java.util.Map;
-
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.NotAvailableFromExchangeException;
 import com.xeiam.xchange.btce.v3.BTCEAdapters;
@@ -12,11 +9,14 @@ import com.xeiam.xchange.btce.v3.dto.trade.BTCEOrder;
 import com.xeiam.xchange.btce.v3.dto.trade.BTCEPlaceOrderResult;
 import com.xeiam.xchange.btce.v3.dto.trade.BTCETradeHistoryResult;
 import com.xeiam.xchange.dto.Order;
-import com.xeiam.xchange.dto.marketdata.Trades;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.MarketOrder;
 import com.xeiam.xchange.dto.trade.OpenOrders;
+import com.xeiam.xchange.dto.trade.UserTrades;
 import com.xeiam.xchange.service.polling.PollingTradeService;
+
+import java.io.IOException;
+import java.util.Map;
 
 /**
  * @author Matija Mazi
@@ -77,7 +77,7 @@ public class BTCETradeService extends BTCETradeServiceRaw implements PollingTrad
    * @throws IOException
    */
   @Override
-  public Trades getTradeHistory(final Object... arguments) throws IOException {
+  public UserTrades getTradeHistory(final Object... arguments) throws IOException {
 
     Long numberOfTransactions = Long.MAX_VALUE;
     String tradableIdentifier = "";

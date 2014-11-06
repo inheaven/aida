@@ -1,11 +1,5 @@
 package com.xeiam.xchange.cexio;
 
-import java.math.BigDecimal;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import com.xeiam.xchange.cexio.dto.account.CexIOBalanceInfo;
 import com.xeiam.xchange.cexio.dto.marketdata.CexIODepth;
 import com.xeiam.xchange.cexio.dto.marketdata.CexIOTicker;
@@ -25,6 +19,12 @@ import com.xeiam.xchange.dto.trade.OpenOrders;
 import com.xeiam.xchange.dto.trade.Wallet;
 import com.xeiam.xchange.utils.DateUtils;
 
+import java.math.BigDecimal;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 /**
  * Author: brox
  * Since: 2/6/14
@@ -32,14 +32,7 @@ import com.xeiam.xchange.utils.DateUtils;
 
 public class CexIOAdapters {
 
-    /**
-     * Adapts a CexIOTrade to a Trade Object
-     *
-     * @param trade CexIO trade object
-     * @param tradableIdentifier First currency in the pair
-     * @param currency Second currency in the pair
-     * @return The XChange Trade
-     */
+
     public static Trade adaptTrade(CexIOTrade trade, CurrencyPair currencyPair) {
 
         BigDecimal amount = trade.getAmount();
@@ -49,14 +42,6 @@ public class CexIOAdapters {
         return new Trade(null, amount, currencyPair, price, date, String.valueOf(trade.getTid()));
     }
 
-    /**
-     * Adapts a CexIOTrade[] to a Trades Object
-     *
-     * @param cexioTrades The CexIO trade data returned by API
-     * @param tradableIdentifier First currency of the pair
-     * @param currency Second currency of the pair
-     * @return The trades
-     */
     public static Trades adaptTrades(CexIOTrade[] cexioTrades, CurrencyPair currencyPair) {
 
         List<Trade> tradesList = new ArrayList<Trade>();
@@ -71,14 +56,6 @@ public class CexIOAdapters {
         return new Trades(tradesList, lastTradeId, TradeSortType.SortByID);
     }
 
-    /**
-     * Adapts a CexIOTicker to a Ticker Object
-     *
-     * @param ticker The exchange specific ticker
-     * @param tradableIdentifier The tradeable identifier (e.g. BTC in BTC/USD)
-     * @param currency The currency (e.g. USD in BTC/USD)
-     * @return The ticker
-     */
     public static Ticker adaptTicker(CexIOTicker ticker, CurrencyPair currencyPair) {
 
         BigDecimal last = ticker.getLast();
@@ -89,17 +66,9 @@ public class CexIOAdapters {
         BigDecimal volume = ticker.getVolume();
         Date timestamp = new Date(ticker.getTimestamp() * 1000L);
 
-        return Ticker.TickerBuilder.newInstance().withCurrencyPair(currencyPair).withLast(last).withBid(bid).withAsk(ask).withHigh(high).withLow(low).withVolume(volume).withTimestamp(timestamp).build();
+        return new Ticker.Builder().currencyPair(currencyPair).last(last).bid(bid).ask(ask).high(high).low(low).volume(volume).timestamp(timestamp).build();
     }
 
-    /**
-     * Adapts Cex.IO Depth to OrderBook Object
-     *
-     * @param depth Cex.IO order book
-     * @param tradableIdentifier The tradable identifier (e.g. BTC in BTC/USD)
-     * @param currency The currency (e.g. USD in BTC/USD)
-     * @return The XChange OrderBook
-     */
     public static OrderBook adaptOrderBook(CexIODepth depth, CurrencyPair currencyPair) {
         if (depth != null) {
             List<LimitOrder> asks = createOrders(currencyPair, Order.OrderType.ASK, depth.getAsks());
