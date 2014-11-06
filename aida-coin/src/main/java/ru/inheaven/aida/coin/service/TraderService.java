@@ -138,13 +138,15 @@ public class TraderService {
     }
 
     @Schedule(second = "*/5", minute="*", hour="*", persistent=false)
-    public void scheduleBittrexUpdate() throws Exception{
+    public void scheduleBittrexUpdate(){
         scheduleUpdate(BITTREX);
         scheduleUpdate(CRYPTSY);
         scheduleUpdate(BTCE);
         scheduleUpdate(BTER);
         scheduleUpdate(BITFINEX);
         scheduleUpdate(OKCOIN);
+
+        scheduleBalanceHistory();
     }
 
     @Schedule(second = "*/30", minute="*", hour="*", persistent=false)
@@ -152,8 +154,7 @@ public class TraderService {
         scheduleUpdate(CEXIO);
     }
 
-    @Schedule(second = "*/5", minute="*", hour="*", persistent=false)
-    public void scheduleBalanceHistory() throws Exception{
+    public void scheduleBalanceHistory(){
         try {
             for (ExchangeType exchangeType : ExchangeType.values()){
                 AccountInfo accountInfo = getAccountInfo(exchangeType);

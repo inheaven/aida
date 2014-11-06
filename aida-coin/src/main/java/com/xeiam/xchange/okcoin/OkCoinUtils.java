@@ -41,7 +41,7 @@ public class OkCoinUtils {
     case (10216):
       return "Non-public API";
     default:
-      return "Unknown error";
+      return "Error Code" + errorCode;
     }
   }
 }

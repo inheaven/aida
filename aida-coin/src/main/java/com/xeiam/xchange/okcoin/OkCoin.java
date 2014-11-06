@@ -90,7 +90,7 @@ public interface OkCoin {
 	@Path("future_order_info.do")
 	OkCoinOrderResult getOrder(@FormParam("partner") long partner, @FormParam("order_id") long orderId, @FormParam("symbol") String symbol,
 			@FormParam("contract_type") String prompt,
-            @FormParam("status") Integer status, @FormParam("current_page") Integer currentPage, @FormParam("page_length") Integer pageLength,
+            @FormParam("status") String status, @FormParam("current_page") Integer currentPage, @FormParam("page_length") Integer pageLength,
             @FormParam("sign") ParamsDigest sign) throws IOException;
 
 	@POST
