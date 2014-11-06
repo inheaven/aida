@@ -154,6 +154,11 @@ public class TraderService {
         scheduleUpdate(BITFINEX);
     }
 
+    @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
+    public void scheduleOKCoinUpdate(){
+        scheduleUpdate(OKCOIN);
+    }
+
     @Schedule(second = "*/1", minute="*", hour="*", persistent=false)
     public void scheduleBalanceHistory() throws Exception{
         try {
