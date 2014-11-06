@@ -48,7 +48,8 @@ import java.text.NumberFormat;
 import java.util.*;
 import java.util.function.BiConsumer;
 
-import static java.math.BigDecimal.*;
+import static java.math.BigDecimal.ROUND_HALF_UP;
+import static java.math.BigDecimal.ZERO;
 import static org.apache.wicket.model.Model.of;
 
 /**
@@ -148,7 +149,7 @@ public class TraderList extends AbstractPage{
         add(okcoinCoins = new Label("okcoinCoins", Model.of("0")).setOutputMarkupId(true));
 
 
-        String quote = "¸.·´¯`·.´¯`·.¸¸.·´¯`·.¸><(((º>";
+        String quote = "¸.·´¯`·.´¯`·.¸¸.·´¯`·.¸¸.·´¯`·.´¯`·.¸¸.·´";
 
         add(new Label("quote", Model.of(quote)));
 
