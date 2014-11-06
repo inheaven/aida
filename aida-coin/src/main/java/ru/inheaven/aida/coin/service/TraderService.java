@@ -47,6 +47,7 @@ import static ru.inheaven.aida.coin.util.TraderUtil.*;
  * @author Anatoly A. Ivanov java@inheaven.ru
  *         Date: 09.01.14 17:06
  */
+@Startup
 @Singleton
 @ConcurrencyManagement(ConcurrencyManagementType.BEAN)
 @TransactionManagement(TransactionManagementType.BEAN)
