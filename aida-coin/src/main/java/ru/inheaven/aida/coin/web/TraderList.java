@@ -149,7 +149,7 @@ public class TraderList extends AbstractPage{
         add(okcoinCoins = new Label("okcoinCoins", Model.of("0")).setOutputMarkupId(true));
 
 
-        String quote = "¸.·´¯`·.´¯`·.¸¸.·´¯`·.¸¸.·´¯`·.´¯`·.¸¸.·´";
+        String quote = ".·´¯`·.¸¸.·´¯`·.´¯`·.¸¸.·´¯`·.><º>";
 
         add(new Label("quote", Model.of(quote)));
 
