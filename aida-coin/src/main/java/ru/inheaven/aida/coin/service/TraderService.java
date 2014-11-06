@@ -101,7 +101,6 @@ public class TraderService {
     private Exchange okcoinExchange = INSTANCE.createExchange(new ExchangeSpecification(OkCoinExchange.class){{
         setApiKey("2017677");
         setSecretKey("F41C04C8917B62967D12030DA66DF202");
-        setExchangeSpecificParametersItem("Use_Intl", true);
     }});
 
     public Exchange getExchange(ExchangeType exchangeType){

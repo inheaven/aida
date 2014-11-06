@@ -1,20 +1,15 @@
 package com.xeiam.xchange.okcoin;
 
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.ws.rs.FormParam;
-
 import si.mazi.rescu.Params;
 import si.mazi.rescu.ParamsDigest;
 import si.mazi.rescu.RestInvocation;
+
+import javax.ws.rs.FormParam;
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
+import java.util.Map.Entry;
 
 public class OkCoinDigest implements ParamsDigest {
 
@@ -83,7 +78,7 @@ public class OkCoinDigest implements ParamsDigest {
       newParams.add(param.getKey(), param.getValue());
     }
 
-    final String message = newParams.asQueryString() + secretKey;
+    final String message = newParams.asQueryString() + "'&secret_key=" +secretKey;
 
     try {
       md.reset();

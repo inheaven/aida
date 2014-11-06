@@ -123,8 +123,8 @@ public class TraderList extends AbstractPage{
         add(new Label("header", of(getTitle())));
 
         add(new Label("tradersCount", of(traderBean.getTradersCount())));
-        add(sumEstimate = new Label("sumEstimate", Model.of("0")).setOutputMarkupId(true));
         add(tradesCount = new Label("tradesCount", Model.of("0")).setOutputMarkupId(true));
+        add(sumEstimate = new Label("sumEstimate", Model.of("0")).setOutputMarkupId(true));
 
         add(bittrexBTC = new Label("bittrexBTC", Model.of("0")).setOutputMarkupId(true));
         add(bittrexCoins = new Label("bittrexCoins", Model.of("0")).setOutputMarkupId(true));
