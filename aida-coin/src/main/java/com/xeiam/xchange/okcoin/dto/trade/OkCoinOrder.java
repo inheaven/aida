@@ -1,9 +1,9 @@
 package com.xeiam.xchange.okcoin.dto.trade;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.math.BigDecimal;
 import java.util.Date;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class OkCoinOrder {
 
@@ -26,8 +26,8 @@ public class OkCoinOrder {
   private final Date createDate;
 
   public OkCoinOrder(@JsonProperty("orders_id") final long orderId, @JsonProperty("status") final int status, @JsonProperty("symbol") final String symbol, @JsonProperty("type") final String type,
-      @JsonProperty("rate") final BigDecimal rate, @JsonProperty("amount") final BigDecimal amount, @JsonProperty("deal_amount") final BigDecimal dealAmount,
-      @JsonProperty("avg_rate") final BigDecimal avgRate, @JsonProperty("createDate") final Date createDate) {
+      @JsonProperty("price") final BigDecimal rate, @JsonProperty("amount") final BigDecimal amount, @JsonProperty("deal_amount") final BigDecimal dealAmount,
+      @JsonProperty("avg_rate") final BigDecimal avgRate, @JsonProperty("created_date") final Date createDate) {
 
     this.orderId = orderId;
     this.status = status;
