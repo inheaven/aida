@@ -85,7 +85,7 @@ public class TraderList extends AbstractPage{
     private Component bitfinexBTC, bitfinexCoins;
     private Component okcoinBTC, okcoinCoins;
 
-    private Component sumEstimate;
+    private Component sumEstimate, tradesCount;
 
     private Map<ExchangeType, BigDecimal> lastChartValueMap = new HashMap<>();
 
@@ -100,7 +100,7 @@ public class TraderList extends AbstractPage{
     private int chart3Index1 = 1;
     private int chart3Index2 = 1;
 
-    long startDate = System.currentTimeMillis() - 1000 * 60 * 60 * 24;
+    Date startDate = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24);
     long startWeekDate = System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 7;
 
     BigDecimalConverter bigDecimalConverter2 = new BigDecimalConverter() {
@@ -124,6 +124,9 @@ public class TraderList extends AbstractPage{
 
         add(new Label("tradersCount", of(traderBean.getTradersCount())));
         add(sumEstimate = new Label("sumEstimate", Model.of("0")).setOutputMarkupId(true));
+
+        add(new Label("tradesCount", of(traderBean.getTradersCount())));
+        add(tradesCount = new Label("tradesCount", Model.of("0")).setOutputMarkupId(true));
 
         add(bittrexBTC = new Label("bittrexBTC", Model.of("0")).setOutputMarkupId(true));
         add(bittrexCoins = new Label("bittrexCoins", Model.of("0")).setOutputMarkupId(true));
@@ -200,7 +203,7 @@ public class TraderList extends AbstractPage{
         list.add(new TraderColumn(of("Day"), profitMap){
             @Override
             protected String getInitValue(Trader trader) {
-                return traderService.getOrderVolumeRate(trader.getExchangePair(), new Date(startDate)).getVolume().toPlainString();
+                return traderService.getOrderVolumeRate(trader.getExchangePair(), startDate).getVolume().toPlainString();
             }
         });
         list.add(new PropertyColumn<>(of("Week"), "weekProfit"));
@@ -355,14 +358,18 @@ public class TraderList extends AbstractPage{
                         //update profit column
                         BalanceHistory bh = (BalanceHistory) payload;
                         ExchangePair ep = ExchangePair.of(bh.getExchangeType(), bh.getPair());
-                        OrderVolume orderVolumePair = traderService.getOrderVolumeRate(ep, new Date(startDate));
+                        OrderVolume orderVolumePair = traderService.getOrderVolumeRate(ep, startDate);
                         update(handler, profitMap.get(ep), orderVolumePair.getVolume(), false, true);
+
+                        //update trades count
+                        tradesCount.setDefaultModelObject(traderBean.getBalanceHistoryCount(startDate));
+                        handler.add(tradesCount);
 
                         //update total
                         if (System.currentTimeMillis() - lastChart4Time > 1000*60){
                             lastChart4Time = System.currentTimeMillis();
 
-                            OrderVolume orderVolume = traderService.getOrderVolumeRate(new Date(startDate));
+                            OrderVolume orderVolume = traderService.getOrderVolumeRate(startDate);
 
                             JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
 
@@ -552,7 +559,7 @@ public class TraderList extends AbstractPage{
         }
 
         //Chart 2
-        List<OrderVolume> orderVolumes = traderService.getOrderVolumeRates(null, new Date(startDate));
+        List<OrderVolume> orderVolumes = traderService.getOrderVolumeRates(null, startDate);
 
         List<OrderVolume> filteredOrderVolumes = new ArrayList<>();
         long time = 0L;
@@ -619,7 +626,7 @@ public class TraderList extends AbstractPage{
 
             {
                 List<Point> data = new ArrayList<>();
-                List<Volume> volumes = traderService.getVolumes(new Date(startDate));
+                List<Volume> volumes = traderService.getVolumes(startDate);
 
                 BigDecimal volumeSum = BigDecimal.ZERO;
 

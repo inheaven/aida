@@ -78,6 +78,12 @@ public class TraderBean {
         }
     }
 
+    public Integer getBalanceHistoryCount(Date startDate){
+        return em.createQuery("select count(h) from BalanceHistory h where h.date >= :startDate", Integer.class)
+                .setParameter("startDate", startDate)
+                .getSingleResult();
+    }
+
     public BigDecimal getSigma(ExchangePair exchangePair){
         try {
             return new BigDecimal((Double) em.createNativeQuery("select std(price) from ticker_history " +
