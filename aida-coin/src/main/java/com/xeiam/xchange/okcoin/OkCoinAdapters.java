@@ -107,8 +107,8 @@ public final class OkCoinAdapters {
     }
 
     public static AccountInfo adaptAccountInfo(OkCoinFutureUserInfo futureUserInfo) {
-        Wallet btc = new Wallet(BTC, futureUserInfo.getFutureInfoMap().get("btc").getBalance(), "equity");
-        Wallet ltc = new Wallet(BTC, futureUserInfo.getFutureInfoMap().get("ltc").getBalance(), "equity");
+        Wallet btc = new Wallet(BTC, futureUserInfo.getFutureInfoMap().get("btc").getRights(), "equity");
+        Wallet ltc = new Wallet(BTC, futureUserInfo.getFutureInfoMap().get("ltc").getRights(), "equity");
 
         return new AccountInfo(null, Arrays.asList(btc, ltc));
     }
