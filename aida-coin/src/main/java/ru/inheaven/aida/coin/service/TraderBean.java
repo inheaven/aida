@@ -49,6 +49,12 @@ public class TraderBean {
         return em.createQuery("select count(t) from Trader t", Long.class).getSingleResult();
     }
 
+    public Long getBalanceHistoryCount(Date startDate){
+        return em.createQuery("select count(h) from BalanceHistory h where h.date >= :startDate", Long.class)
+                .setParameter("startDate", startDate)
+                .getSingleResult();
+    }
+
     public Trader getTrader(Long id){
         return em.createQuery("select t from Trader t where t.id = :id", Trader.class).setParameter("id", id).getSingleResult();
     }
@@ -76,12 +82,6 @@ public class TraderBean {
                     .setParameter("startDate", startDate)
                     .getResultList();
         }
-    }
-
-    public Integer getBalanceHistoryCount(Date startDate){
-        return em.createQuery("select count(h) from BalanceHistory h where h.date >= :startDate", Integer.class)
-                .setParameter("startDate", startDate)
-                .getSingleResult();
     }
 
     public BigDecimal getSigma(ExchangePair exchangePair){
