@@ -147,6 +147,11 @@ public class TraderList extends AbstractPage{
         add(okcoinBTC = new Label("okcoinBTC", Model.of("0")).setOutputMarkupId(true));
         add(okcoinCoins = new Label("okcoinCoins", Model.of("0")).setOutputMarkupId(true));
 
+
+        String quote = "¸.·´¯`·.´¯`·.¸¸.·´¯`·.¸><(((º>";
+
+        add(new Label("quote", Model.of(quote)));
+
         List<IColumn<Trader, String>> list = new ArrayList<>();
 
         list.add(new PropertyColumn<>(of("Exchange"), "exchange"));
