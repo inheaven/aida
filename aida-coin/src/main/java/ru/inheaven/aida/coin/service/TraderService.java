@@ -152,7 +152,7 @@ public class TraderService {
         scheduleUpdate(CEXIO);
     }
 
-    @Schedule(second = "*/1", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/5", minute="*", hour="*", persistent=false)
     public void scheduleBalanceHistory() throws Exception{
         try {
             for (ExchangeType exchangeType : ExchangeType.values()){
