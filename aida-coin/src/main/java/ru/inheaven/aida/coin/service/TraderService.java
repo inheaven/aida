@@ -126,42 +126,42 @@ public class TraderService {
     }
 
     @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
-    public void scheduleBittrexUpdate(){
+    public void scheduleBittrexUpdate() throws Exception{
         scheduleUpdate(BITTREX);
     }
 
     @Schedule(second = "*/30", minute="*", hour="*", persistent=false)
-    public void scheduleCexIOUpdate(){
+    public void scheduleCexIOUpdate() throws Exception{
         scheduleUpdate(CEXIO);
     }
 
     @Schedule(second = "*/5", minute="*", hour="*", persistent=false)
-    public void scheduleCryptsyUpdate(){
+    public void scheduleCryptsyUpdate() throws Exception{
         scheduleUpdate(CRYPTSY);
     }
 
     @Schedule(second = "*/5", minute="*", hour="*", persistent=false)
-    public void scheduleBTCEUpdate(){
+    public void scheduleBTCEUpdate() throws Exception{
         scheduleUpdate(BTCE);
     }
 
     @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
-    public void scheduleBTERUpdate(){
+    public void scheduleBTERUpdate() throws Exception{
         scheduleUpdate(BTER);
     }
 
     @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
-    public void scheduleBITFINEXUpdate(){
+    public void scheduleBITFINEXUpdate() throws Exception{
         scheduleUpdate(BITFINEX);
     }
 
     @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
-    public void scheduleOKCoinUpdate(){
+    public void scheduleOKCoinUpdate() throws Exception{
         scheduleUpdate(OKCOIN);
     }
 
     @Schedule(second = "*/1", minute="*", hour="*", persistent=false)
-    public void scheduleBalanceHistory(){
+    public void scheduleBalanceHistory() throws Exception{
         try {
             for (ExchangeType exchangeType : ExchangeType.values()){
                 AccountInfo accountInfo = getAccountInfo(exchangeType);
