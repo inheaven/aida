@@ -138,7 +138,7 @@ public class TraderService {
         }
     }
 
-    @Schedule(second = "*/5", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
     public void scheduleBittrexUpdate(){
         scheduleUpdate(BITTREX);
         scheduleUpdate(CRYPTSY);
@@ -155,6 +155,7 @@ public class TraderService {
         scheduleUpdate(CEXIO);
     }
 
+    @Asynchronous
     public void scheduleBalanceHistory(){
         try {
             for (ExchangeType exchangeType : ExchangeType.values()){
@@ -833,8 +834,12 @@ public class TraderService {
     }
 
     public BigDecimal getVolatilityIndex(ExchangePair exchangePair){
-        return traderBean.getSigma(exchangePair).multiply(BigDecimal.valueOf(100))
-                .divide(tickerMap.get(exchangePair).getLast(), 2, ROUND_UP);
+        try {
+            return traderBean.getSigma(exchangePair).multiply(BigDecimal.valueOf(100))
+                    .divide(tickerMap.get(exchangePair).getLast(), 2, ROUND_UP);
+        } catch (Exception e) {
+            return ZERO;
+        }
     }
 
 }

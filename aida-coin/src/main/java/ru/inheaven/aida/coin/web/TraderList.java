@@ -544,10 +544,12 @@ public class TraderList extends AbstractPage{
 
                 if (ExchangeType.BTCE.equals(exchangeType)){
                     OpenOrders openOrders = traderService.getOpenOrders(ExchangeType.BTCE);
-                    for (LimitOrder limitOrder : openOrders.getOpenOrders()){
-                        sum = sum.add(traderService.getBTCVolume(
-                                TraderUtil.getPair(limitOrder.getCurrencyPair()),
-                                limitOrder.getTradableAmount(), limitOrder.getLimitPrice()));
+                    if (openOrders.getOpenOrders() != null) {
+                        for (LimitOrder limitOrder : openOrders.getOpenOrders()){
+                            sum = sum.add(traderService.getBTCVolume(
+                                    TraderUtil.getPair(limitOrder.getCurrencyPair()),
+                                    limitOrder.getTradableAmount(), limitOrder.getLimitPrice()));
+                        }
                     }
                 }
             }
