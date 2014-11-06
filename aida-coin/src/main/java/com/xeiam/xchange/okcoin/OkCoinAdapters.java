@@ -19,6 +19,7 @@ import com.xeiam.xchange.okcoin.dto.trade.OkCoinOrder;
 import com.xeiam.xchange.okcoin.dto.trade.OkCoinOrderResult;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 import static com.xeiam.xchange.currency.Currencies.*;
@@ -107,8 +108,8 @@ public final class OkCoinAdapters {
     }
 
     public static AccountInfo adaptAccountInfo(OkCoinFutureUserInfo futureUserInfo) {
-        Wallet btc = new Wallet(BTC, futureUserInfo.getFutureInfoMap().get("btc").getAccountRights(), "equity");
-        Wallet ltc = new Wallet(BTC, futureUserInfo.getFutureInfoMap().get("ltc").getAccountRights(), "equity");
+        Wallet btc = new Wallet(BTC, futureUserInfo.getFutureInfoMap().get("btc").getBalance().divide(BigDecimal.valueOf(350), 8, RoundingMode.HALF_UP), "equity");
+        Wallet ltc = new Wallet(BTC, futureUserInfo.getFutureInfoMap().get("ltc").getBalance().divide(BigDecimal.valueOf(3.5), 8, RoundingMode.HALF_UP), "equity");
 
         return new AccountInfo(null, Arrays.asList(btc, ltc));
     }
