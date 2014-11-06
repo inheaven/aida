@@ -123,6 +123,7 @@
                                 <configuration>
                                     <type>runtime</type>
                                     <properties>
+                                        <cargo.runtime.args>force=true</cargo.runtime.args>
                                         <cargo.hostname>localhost</cargo.hostname>
                                         <cargo.glassfish.domain.name>domain1</cargo.glassfish.domain.name>
                                         <cargo.remote.username>admin</cargo.remote.username>
