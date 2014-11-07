@@ -125,8 +125,7 @@
                                     <type>existing</type>
                                     <home>c:/glassfish4/glassfish/domains</home>
                                     <properties>
-                                        <cargo.glassfish.domain.name>domain1</cargo.glassfish.domain.name>
-                                        <cargo.runtime.args>force=true</cargo.runtime.args>
+                                        <!--<cargo.runtime.args>force=true</cargo.runtime.args>-->
                                         <cargo.hostname>localhost</cargo.hostname>
                                         <cargo.glassfish.domain.name>domain1</cargo.glassfish.domain.name>
                                         <cargo.remote.username>admin</cargo.remote.username>
