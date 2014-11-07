@@ -708,7 +708,7 @@ public class TraderService {
                 return volume.multiply(getTicker(ExchangePair.of(BITTREX, "BC/BTC")).getLast()).setScale(8, HALF_UP);
             } else if (pair.contains("/USD")) {
                 if (OKCOIN.equals(ep.getExchangeType())){
-                    volume = volume.multiply(BigDecimal.valueOf(100));
+                    volume = volume.divide(BigDecimal.valueOf(100), 8, ROUND_UP);
                 }
 
                 return volume.divide(getTicker(ExchangePair.of(BTCE, "BTC/USD")).getLast(), 8, HALF_UP);
