@@ -119,11 +119,12 @@
                                 <container>
                                     <containerId>glassfish4x</containerId>
                                     <type>installed</type>
-                                    <home>c:/glassfish4/glassfish/domains/domain1</home>
+                                    <home>c:/glassfish4</home>
                                 </container>
                                 <configuration>
                                     <type>existing</type>
                                     <properties>
+                                        <cargo.glassfish.domain.name>domain1</cargo.glassfish.domain.name>
                                         <cargo.runtime.args>force=true</cargo.runtime.args>
                                         <cargo.hostname>localhost</cargo.hostname>
                                         <cargo.glassfish.domain.name>domain1</cargo.glassfish.domain.name>
