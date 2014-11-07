@@ -119,7 +119,7 @@
                                 <container>
                                     <containerId>glassfish4x</containerId>
                                     <type>installed</type>
-                                    <home>c:\glassfish4\glassfish\domains\domain1</home>
+                                    <home>c:\glassfish4\glassfish\domains</home>
                                 </container>
                                 <configuration>
                                     <type>existing</type>
