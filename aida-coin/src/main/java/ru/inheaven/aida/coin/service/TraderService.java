@@ -682,9 +682,8 @@ public class TraderService {
 
     public Volume getVolume(BalanceHistory history){
         if (OKCOIN.equals(history.getExchangeType())) {
-            return new Volume(getBTCVolume(ExchangePair.of(history.getExchangeType(), history.getPair()),
-                    history.getPrevious().getBalance().subtract(history.getBalance()),
-                    (history.getPrice().subtract(history.getPrevious().getPrice()))), history.getDate());
+            return new Volume((history.getPrevious().getBalance().subtract(history.getBalance())
+                    .multiply(history.getPrice().subtract(history.getPrevious().getPrice()))), history.getDate());
 
         } else {
             return new Volume(getBTCVolume(ExchangePair.of(history.getExchangeType(), history.getPair()),
@@ -695,6 +694,14 @@ public class TraderService {
     }
 
     public BigDecimal getBTCVolume(ExchangePair ep, BigDecimal amount, BigDecimal price){
+        if (OKCOIN.equals(ep.getExchangeType())){
+            if ("BTC".equals(ep.getCurrency())) {
+                return amount.multiply(BigDecimal.valueOf(100)).divide(price, 8 , ROUND_UP);
+            }else if ("LTC".equals(ep.getCurrency())){
+                return amount.multiply(BigDecimal.valueOf(10)).divide(price, 8 , ROUND_UP);
+            }
+        }
+
         BigDecimal volume = amount.multiply(price);
 
         String pair = ep.getPair();
@@ -707,10 +714,6 @@ public class TraderService {
             } else if (pair.contains("/BC")) {
                 return volume.multiply(getTicker(ExchangePair.of(BITTREX, "BC/BTC")).getLast()).setScale(8, HALF_UP);
             } else if (pair.contains("/USD")) {
-                if (OKCOIN.equals(ep.getExchangeType())){
-                    volume = volume.divide(BigDecimal.valueOf(100), 8, ROUND_UP);
-                }
-
                 return volume.divide(getTicker(ExchangePair.of(BTCE, "BTC/USD")).getLast(), 8, HALF_UP);
             } else if (pair.contains("/CNY")) {
                 return volume.divide(getTicker(ExchangePair.of(BTER, "BTC/CNY")).getLast(), 8, HALF_UP);
