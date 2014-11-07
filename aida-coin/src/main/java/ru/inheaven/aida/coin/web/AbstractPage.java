@@ -14,7 +14,7 @@ import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
  *         Date: 07.01.14 21:15
  */
 public abstract class AbstractPage extends WebPage {
-    private String title = randomAlphanumeric(16);
+    private String title = randomAlphanumeric(32);
 
     protected AbstractPage() {
         HtmlTag htmlTag = new HtmlTag("html", new Locale("ru"));

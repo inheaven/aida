@@ -366,7 +366,7 @@ public class TraderList extends AbstractPage{
                         update(handler, profitMap.get(ep), orderVolumePair.getVolume(), false, true);
 
                         //update trades count
-                        tradesCount.setDefaultModelObject(traderBean.getBalanceHistoryCount(startDate));
+                        tradesCount.setDefaultModelObject(traderBean.getBalanceHistoryCount(startDate) + " tx/d");
                         handler.add(tradesCount);
 
                         //update total
