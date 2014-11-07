@@ -136,7 +136,6 @@
 
                                 <deployables>
                                     <deployable>
-                                        <artifactId>aida-coin</artifactId>
                                         <properties>
                                             <context>/</context>
                                         </properties>
