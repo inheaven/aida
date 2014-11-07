@@ -681,14 +681,16 @@ public class TraderService {
     }
 
     public Volume getVolume(BalanceHistory history){
-        return new Volume(getBTCVolume(history.getPair(), history.getPrevious().getBalance()
-                .add(history.getPrevious().getAskAmount())
-                .subtract(history.getBalance().add(history.getAskAmount()))
+        return new Volume(getBTCVolume(ExchangePair.of(history.getExchangeType(), history.getPair()),
+                history.getPrevious().getBalance().add(history.getPrevious().getAskAmount())
+                        .subtract(history.getBalance().add(history.getAskAmount()))
                 , (history.getPrice().subtract(history.getPrevious().getPrice()))), history.getDate());
     }
 
-    public BigDecimal getBTCVolume(String pair, BigDecimal amount, BigDecimal price){
+    public BigDecimal getBTCVolume(ExchangePair ep, BigDecimal amount, BigDecimal price){
         BigDecimal volume = amount.multiply(price);
+
+        String pair = ep.getPair();
 
         try {
             if (pair.contains("/BTC")) {
@@ -698,6 +700,10 @@ public class TraderService {
             } else if (pair.contains("/BC")) {
                 return volume.multiply(getTicker(ExchangePair.of(BITTREX, "BC/BTC")).getLast()).setScale(8, HALF_UP);
             } else if (pair.contains("/USD")) {
+                if (OKCOIN.equals(ep.getExchangeType())){
+                    volume = volume.multiply(BigDecimal.valueOf(100));
+                }
+
                 return volume.divide(getTicker(ExchangePair.of(BTCE, "BTC/USD")).getLast(), 8, HALF_UP);
             } else if (pair.contains("/CNY")) {
                 return volume.divide(getTicker(ExchangePair.of(BTER, "BTC/CNY")).getLast(), 8, HALF_UP);

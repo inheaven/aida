@@ -307,7 +307,7 @@ public class TraderList extends AbstractPage{
                                 OpenOrders openOrders = traderService.getOpenOrders(ExchangeType.BTCE);
                                 for (LimitOrder limitOrder : openOrders.getOpenOrders()){
                                     estimate = estimate.add(traderService.getBTCVolume(
-                                            TraderUtil.getPair(limitOrder.getCurrencyPair()),
+                                            ExchangePair.of(ExchangeType.BTCE, TraderUtil.getPair(limitOrder.getCurrencyPair())),
                                             limitOrder.getTradableAmount(), limitOrder.getLimitPrice()));
                                 }
 
@@ -456,8 +456,7 @@ public class TraderList extends AbstractPage{
                                 Ticker ticker = traderService.getTickerNotNull(ep);
 
                                 if (ticker != null) {
-                                    update(handler, buyMap.get(ep), traderService.getBTCVolume(
-                                            ep.getPair(), amount, ticker.getLast()));
+                                    update(handler, buyMap.get(ep), traderService.getBTCVolume(ep, amount, ticker.getLast()));
                                 }
                             }
                         });
@@ -469,13 +468,13 @@ public class TraderList extends AbstractPage{
 
                                 if (ticker != null) {
                                     update(handler, sellMap.get(ep), traderService.getBTCVolume(
-                                            ep.getPair(), amount, ticker.getLast()));
+                                            ep, amount, ticker.getLast()));
 
                                     //estimate
                                     BigDecimal balance = traderService.getAccountInfo(exchangeMessage.getExchangeType())
                                             .getBalance(ep.getCurrency());
                                     update(handler, estimateMap.get(ep), traderService.getBTCVolume(
-                                            ep.getPair(), amount.add(balance), ticker.getLast()));
+                                            ep, amount.add(balance), ticker.getLast()));
 
                                     //position
                                     BigDecimal position;
@@ -546,7 +545,7 @@ public class TraderList extends AbstractPage{
                     if (openOrders != null) {
                         for (LimitOrder limitOrder : openOrders.getOpenOrders()){
                             sum = sum.add(traderService.getBTCVolume(
-                                    TraderUtil.getPair(limitOrder.getCurrencyPair()),
+                                    ExchangePair.of(ExchangeType.BTCE, TraderUtil.getPair(limitOrder.getCurrencyPair())),
                                     limitOrder.getTradableAmount(), limitOrder.getLimitPrice()));
                         }
                     }
