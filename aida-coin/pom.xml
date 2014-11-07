@@ -122,7 +122,7 @@
                                     <home>C:\glassfish4</home>
                                 </container>
                                 <configuration>
-                                    <type>existing</type>
+                                    <type>installed</type>
                                     <properties>
                                         <cargo.runtime.args>force=true</cargo.runtime.args>
                                         <cargo.hostname>localhost</cargo.hostname>
