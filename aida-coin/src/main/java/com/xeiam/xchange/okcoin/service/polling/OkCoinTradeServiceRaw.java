@@ -1,6 +1,7 @@
 package com.xeiam.xchange.okcoin.service.polling;
 
 import com.xeiam.xchange.ExchangeSpecification;
+import com.xeiam.xchange.okcoin.dto.trade.OkCoinOrder;
 import com.xeiam.xchange.okcoin.dto.trade.OkCoinOrderResult;
 import com.xeiam.xchange.okcoin.dto.trade.OkCoinTradeResult;
 
@@ -46,6 +47,10 @@ public class OkCoinTradeServiceRaw extends OKCoinBaseTradePollingService {
 
     public OkCoinOrderResult getOrder(long orderId, String symbol, String prompt) throws IOException {
         OkCoinOrderResult orderResult = okCoin.getOrder(partner, orderId, symbol, prompt, "1", 0, 50, signatureCreator);
+
+        if (!orderResult.isResult() && orderResult.getErrorCode() == 20015){
+            return new OkCoinOrderResult(true, 20015, new OkCoinOrder[]{});
+        }
 
         return returnOrThrow(orderResult);
     }
