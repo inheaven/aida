@@ -761,7 +761,7 @@ public class TraderService {
             int p = 0;
 
             for (int i = 0; i < size-step; ++i){
-                for (int j = 1; j < step; ++j){
+                for (int j = step/2; j < step; ++j){
                     if (list.get(i).getPrediction().floatValue() *
                             (list.get(i + j).getPrice().floatValue() - list.get(i).getPrice().floatValue()) >= 0){
                         p++;

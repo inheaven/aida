@@ -366,8 +366,7 @@ public class TraderList extends AbstractPage{
                         update(handler, profitMap.get(ep), orderVolumePair.getVolume(), false, true);
 
                         //update trades count
-                        tradesCount.setDefaultModelObject(traderBean.getBalanceHistoryCount(startDate) + " tx/d");
-                        handler.add(tradesCount);
+                        update(handler, tradesCount, traderBean.getBalanceHistoryCount(startDate) + "/d");
 
                         //update total
                         if (System.currentTimeMillis() - lastChart4Time > 1000*60){
@@ -690,6 +689,28 @@ public class TraderList extends AbstractPage{
                 component.setDefaultModelObject(s + (percent ? "%" : ""));
                 handler.add(component);
             }
+        }
+    }
+
+    private void update(WebSocketRequestHandler handler, Component component, String newValue){
+        int compare = newValue.compareTo(component.getDefaultModelObjectAsString());
+
+        if (compare != 0){
+            String color = compare > 0 ? "'#EFFBEF'" : "'#FBEFEF'";
+
+            handler.appendJavaScript(new JsStatement().$(component)
+                    .chain("parent")
+                    .chain("animate", "{backgroundColor: '#FAFAFA'}")
+                    .render());
+
+            handler.appendJavaScript(new JsStatement().$(component)
+                    .chain("parent")
+                    .chain("animate", "{backgroundColor:" + color + "}")
+                    .render());
+
+            component.setDefaultModelObject(newValue);
+
+            handler.add(component);
         }
     }
 
