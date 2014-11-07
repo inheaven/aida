@@ -1,13 +1,6 @@
 package ru.inheaven.aida.coin.service;
 
 import com.google.common.base.Throwables;
-import com.xeiam.xchange.Exchange;
-import com.xeiam.xchange.ExchangeSpecification;
-import com.xeiam.xchange.bitfinex.v1.BitfinexExchange;
-import com.xeiam.xchange.bittrex.v1.BittrexExchange;
-import com.xeiam.xchange.btce.v3.BTCEExchange;
-import com.xeiam.xchange.bter.BTERExchange;
-import com.xeiam.xchange.cexio.CexIOExchange;
 import com.xeiam.xchange.cryptsy.CryptsyExchange;
 import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.dto.Order;
@@ -16,7 +9,6 @@ import com.xeiam.xchange.dto.marketdata.OrderBook;
 import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.OpenOrders;
-import com.xeiam.xchange.okcoin.OkCoinExchange;
 import com.xeiam.xchange.service.polling.PollingTradeService;
 import org.apache.wicket.Application;
 import org.apache.wicket.protocol.ws.IWebSocketSettings;
@@ -37,10 +29,10 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.xeiam.xchange.ExchangeFactory.INSTANCE;
 import static java.math.BigDecimal.*;
 import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.coin.entity.ExchangeType.*;
+import static ru.inheaven.aida.coin.service.ExchangeApi.getExchange;
 import static ru.inheaven.aida.coin.util.TraderUtil.*;
 
 /**
@@ -73,64 +65,6 @@ public class TraderService {
     private Map<ExchangePair,Integer> errorMap = new ConcurrentHashMap<>();
     private Map<ExchangePair,  Long> errorTimeMap = new ConcurrentHashMap<>();
 
-    private Exchange bittrexExchange = INSTANCE.createExchange(new ExchangeSpecification(BittrexExchange.class){{
-        setApiKey("14935ef36d8b4afc8204946be7ddd152");
-        setSecretKey("44d84de3865e4fbfa4c17dd42c026d11");
-    }});
-
-    private Exchange cexIOExchange = INSTANCE.createExchange(new ExchangeSpecification(CexIOExchange.class){{
-        setUserName("inheaven");
-        setApiKey("0rt9tOzQG2rGfZfGxsx1CtR9JA");
-        setSecretKey("5ZpuaGOfpFdn96JisyCfR6wQvc");
-    }});
-
-    private Exchange cryptsyExchange = INSTANCE.createExchange(new ExchangeSpecification(CryptsyExchange.class){{
-        setApiKey("d5569da15ae4d9b58c11220e424747289df76627");
-        setSecretKey("f3a4732d55f7b9162ea6105187b36f9b1a88323c7f5bc8d1fcb2b8c98d3456384c31d1cf3ae443a6");
-    }});
-
-    private Exchange btceExchange = INSTANCE.createExchange(new ExchangeSpecification(BTCEExchange.class){{
-        setApiKey("IR3KMDK9-JPP06NXH-GKGO2GPA-EC4BK5W0-L9QG482O");
-        setSecretKey("05e3dbb59c2586df33c12e189382e18cb5de5af736a9a0897b6b23a1bca359b6");
-    }});
-
-    private Exchange bterExchange = INSTANCE.createExchange(new ExchangeSpecification(BTERExchange.class){{
-        setApiKey("2DD5DEB3-720C-404C-95FE-84B52369F6E3");
-        setSecretKey("0bf365f96b17f1828736df787c872796be51fe70a588062cc9630c3eedc144ad");
-    }});
-
-    private Exchange bitfinexExchange = INSTANCE.createExchange(new ExchangeSpecification(BitfinexExchange.class){{
-        setApiKey("mn6dQmAnpKPp3GZyN6Plxhmt5WdJwVVj6zFdIel6fRZ");
-        setSecretKey("B8UxOTb6cdKwz7jDu1m1FMjFCxMiz82g21z78Z8tDeB");
-    }});
-
-    private Exchange okcoinExchange = INSTANCE.createExchange(new ExchangeSpecification(OkCoinExchange.class){{
-        setApiKey("2017677");
-        setSecretKey("F41C04C8917B62967D12030DA66DF202");
-        setExchangeSpecificParametersItem("Use_Intl", true);
-    }});
-
-    public Exchange getExchange(ExchangeType exchangeType){
-        switch (exchangeType){
-            case BITTREX:
-                return bittrexExchange;
-            case CEXIO:
-                return cexIOExchange;
-            case CRYPTSY:
-                return cryptsyExchange;
-            case BTCE:
-                return btceExchange;
-            case BTER:
-                return bterExchange;
-            case BITFINEX:
-                return bitfinexExchange;
-            case OKCOIN:
-                return okcoinExchange;
-        }
-
-        throw new IllegalArgumentException();
-    }
-
     @PreDestroy
     public void cancelTimers(){
         for (Timer timer : timerService.getAllTimers()){
@@ -153,6 +87,22 @@ public class TraderService {
     @Schedule(second = "*/30", minute="*", hour="*", persistent=false)
     public void scheduleCexIOUpdate() throws Exception{
         scheduleUpdate(CEXIO);
+    }
+
+    @Asynchronous
+    public void scheduleUpdate(ExchangeType exchangeType){
+        try {
+            updateBalance(exchangeType);
+            updateOpenOrders(exchangeType);
+            updateTicker(exchangeType);
+
+            tradeAlpha(exchangeType);
+        } catch (Exception e) {
+            log.error("Schedule update error", e);
+
+            //noinspection ThrowableResultOfMethodCallIgnored
+            broadcast(exchangeType, exchangeType.name() + ": " + Throwables.getRootCause(e).getMessage());
+        }
     }
 
     @Asynchronous
@@ -230,6 +180,418 @@ public class TraderService {
             log.error("schedule balance history error", e);
         }
     }
+
+    private void updateBalance(ExchangeType exchangeType) throws IOException {
+        AccountInfo accountInfo = getExchange(exchangeType).getPollingAccountService().getAccountInfo();
+        accountInfoMap.put(exchangeType, accountInfo);
+
+        broadcast(exchangeType, accountInfo);
+    }
+
+    private void updateOpenOrders(ExchangeType exchangeType) throws IOException {
+        OpenOrders openOrders = getExchange(exchangeType).getPollingTradeService().getOpenOrders();
+        openOrdersMap.put(exchangeType, openOrders);
+
+        broadcast(exchangeType, openOrders);
+    }
+
+    private void updateTicker(ExchangeType exchangeType) throws IOException {
+        List<String> pairs = traderBean.getTraderPairs(exchangeType);
+
+        for (String pair : pairs) {
+            try {
+                CurrencyPair currencyPair = getCurrencyPair(pair);
+
+                if (currencyPair != null) {
+                    Ticker ticker;
+
+                    if (CRYPTSY.equals(exchangeType)) {
+                        ticker = ((CryptsyExchange)getExchange(exchangeType)).getPublicPollingMarketDataService().getTicker(currencyPair);
+                    }else{
+                        ticker = getExchange(exchangeType).getPollingMarketDataService().getTicker(currencyPair);
+                    }
+
+                    if (ticker.getLast() != null && ticker.getLast().compareTo(ZERO) != 0 && ticker.getBid() != null && ticker.getAsk() != null) {
+                        ExchangePair ep = new ExchangePair(exchangeType, pair);
+
+                        //ticker history
+                        Ticker previous = tickerMap.put(ep, ticker);
+
+                        if (previous != null && previous.getLast().compareTo(ticker.getLast()) != 0){
+                            TickerHistory tickerHistory = new TickerHistory(exchangeType, pair,
+                                    ticker.getLast(), ticker.getBid(), ticker.getAsk(),
+                                    ticker.getVolume(), getVolatilityIndex(ep), getPredictionIndex(ep));
+
+                            traderBean.save(tickerHistory);
+
+                            broadcast(exchangeType, tickerHistory);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Error update ticker {} {}", exchangeType, pair);
+
+                throw e;
+            }
+        }
+    }
+
+    private void updateOrderBook(ExchangeType exchangeType) throws IOException {
+        List<String> pairs = traderBean.getTraderPairs(exchangeType);
+
+        for (String pair : pairs) {
+            CurrencyPair currencyPair = getCurrencyPair(pair);
+
+            if (currencyPair != null) {
+                try {
+                    OrderBook orderBook = getExchange(exchangeType).getPollingMarketDataService().getOrderBook(currencyPair);
+
+                    if (orderBook != null && !orderBook.getBids().isEmpty()) {
+                        orderBook.getBids().sort(new Comparator<LimitOrder>() {
+                            @Override
+                            public int compare(LimitOrder o1, LimitOrder o2) {
+                                return o1.getLimitPrice().compareTo(o2.getLimitPrice());
+                            }
+                        });
+
+                        orderBook.getAsks().sort(new Comparator<LimitOrder>() {
+                            @Override
+                            public int compare(LimitOrder o1, LimitOrder o2) {
+                                return o1.getLimitPrice().compareTo(o2.getLimitPrice());
+                            }
+                        });
+
+                        orderBookMap.put(new ExchangePair(exchangeType, pair), orderBook);
+
+                        broadcast(exchangeType, orderBook);
+                    }
+                } catch (Exception e) {
+                    log.error("updateOrderBook error", e);
+
+                    //noinspection ThrowableResultOfMethodCallIgnored
+                    broadcast(exchangeType, exchangeType.name() + ": " + Throwables.getRootCause(e).getMessage());
+                }
+            }
+        }
+    }
+
+    public BigDecimal getMinSpread(Trader trader, Ticker ticker){
+        BigDecimal minSpread;
+
+        BigDecimal middlePrice = ticker.getAsk().add(ticker.getBid()).divide(BigDecimal.valueOf(2), 8, HALF_UP);
+
+        //bitfinex spread
+        if (BITFINEX.equals(trader.getExchange())){
+            minSpread = middlePrice.multiply(new BigDecimal("0.008")).setScale(8, HALF_UP);
+        }else{
+            minSpread = middlePrice.multiply(new BigDecimal("0.013")).setScale(8, HALF_UP);
+        }
+
+        //ticker spread
+        BigDecimal tickerSpread = ticker.getAsk().subtract(ticker.getBid());
+        if (tickerSpread.compareTo(minSpread) > 0){
+            minSpread = tickerSpread;
+        }
+
+        //min spread scale
+        if (trader.getPair().contains("/USD")){
+            if (minSpread.compareTo(new BigDecimal("0.03")) < 0){
+                minSpread = new BigDecimal("0.02").setScale(2, ROUND_UP);
+            }
+        }else if (minSpread.compareTo(new BigDecimal("0.00000003")) < 0){
+            minSpread = new BigDecimal("0.00000002");
+        }
+
+        return minSpread;
+    }
+
+    public BigDecimal getMinOrderVolume(ExchangePair exchangePair) {
+        if (BITTREX.equals(exchangePair.getExchangeType())) {
+            switch (exchangePair.getCounterSymbol()) {
+                case "BTC":
+                    return new BigDecimal("0.0013");
+                case "LTC":
+                    return new BigDecimal("0.08");
+                case "BC":
+                    return new BigDecimal("13");
+
+                default: return null;
+            }
+        }else{
+            switch (exchangePair.getCounterSymbol()) {
+                case "BTC":
+                    return new BigDecimal("0.0034");
+                case "LTC":
+                    return new BigDecimal("0.034");
+                case "USD":
+                    return new BigDecimal("7");
+                case "CNY":
+                    return new BigDecimal("34");
+                case "BC":
+                    return new BigDecimal("34");
+
+                default: return null;
+            }
+        }
+    }
+
+    public BigDecimal getMinOrderAmount(Trader trader, Ticker ticker){
+        if (trader.isFuture()){
+            return ONE;
+        }
+
+        BigDecimal middlePrice = ticker.getAsk().add(ticker.getBid()).divide(BigDecimal.valueOf(2), 8, HALF_UP);
+
+        BigDecimal minOrderAmount = trader.getLot() != null
+                ? trader.getLot().divide(middlePrice, 8, HALF_UP)
+                : getMinOrderVolume(trader.getExchangePair()).divide(middlePrice, 8, HALF_UP);
+
+        //volatility
+        BigDecimal volatility = traderBean.getSigma(trader.getExchangePair()).divide(ticker.getLast(), 8, ROUND_UP);
+        minOrderAmount = minOrderAmount.multiply(ONE.add(volatility.multiply(BigDecimal.valueOf(2*Math.PI))))
+                .setScale(8, HALF_UP);
+
+        return minOrderAmount;
+    }
+
+    private void tradeAlpha(ExchangeType exchangeType) throws IOException {
+        List<Trader> traders = traderBean.getTraders(exchangeType);
+
+        Collections.shuffle(traders);
+
+        for (Trader trader : traders) {
+            ExchangePair exchangePair = ExchangePair.of(exchangeType, trader.getPair());
+            CurrencyPair currencyPair = getCurrencyPair(trader.getPair());
+
+            Integer errorCount = errorMap.containsKey(exchangePair) ? errorMap.get(exchangePair) : 0;
+
+            try {
+                if (errorCount > 2) {
+                    if (!errorTimeMap.containsKey(exchangePair)) {
+                        errorTimeMap.put(exchangePair, System.currentTimeMillis());
+                    }
+
+                    Long errorTime = errorTimeMap.get(exchangePair);
+                    if (errorTime != null && System.currentTimeMillis() - errorTime > 1000 * 60 * TraderUtil.random.nextInt(10)) {
+                        errorMap.remove(exchangePair);
+                        errorTimeMap.remove(exchangePair);
+                    }
+
+                    continue;
+                }
+
+                if (trader.isRunning()) {
+                    Ticker ticker = getTicker(exchangePair);
+
+                    if (ticker == null) {
+                        continue;
+                    }
+
+                    PollingTradeService tradeService = getExchange(exchangeType).getPollingTradeService();
+                    AccountInfo accountInfo = getAccountInfo(exchangeType);
+
+                    //middle price
+                    BigDecimal middlePrice = ticker.getAsk().add(ticker.getBid()).divide(BigDecimal.valueOf(2), 8, HALF_UP);
+
+                    if (middlePrice.compareTo(trader.getHigh()) > 0) {
+                        errorMap.put(exchangePair, ++errorCount);
+
+                        broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": " + middlePrice.toString()
+                                + " > " + trader.getHigh().toString());
+                        continue;
+                    }
+
+                    if (middlePrice.compareTo(trader.getLow()) < 0) {
+                        errorMap.put(exchangePair, ++errorCount);
+
+                        broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": " + middlePrice.toString()
+                                + " < " + trader.getLow().toString());
+
+                        continue;
+                    }
+
+                    //min spread
+                    BigDecimal minSpread = getMinSpread(trader, ticker);
+
+                    //min order amount
+                    BigDecimal minOrderAmount = getMinOrderAmount(trader, ticker);
+
+                    //cancel orders
+                    for (LimitOrder order : getOpenOrders(exchangeType).getOpenOrders()) {
+                        if (currencyPair.equals(order.getCurrencyPair()) && order.getLimitPrice().subtract(middlePrice)
+                                .abs().compareTo(minSpread.multiply(BigDecimal.valueOf(4))) > 0) {
+                            tradeService.cancelOrder(order.getId());
+
+                            broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": Cancel "
+                                    + order.getTradableAmount().toString() + " @ " + order.getLimitPrice().toString());
+                        }
+                    }
+
+                    //prediction
+                    BigDecimal predictionIndex = getPredictionIndex(exchangePair);
+
+                    //create order
+                    for (double index : new double[]{1, 2, 3}) {
+                        BigDecimal delta = minSpread.multiply(BigDecimal.valueOf(index/2)).setScale(8, HALF_UP);
+
+                        //btc-e delta
+                        if (BTCE.equals(trader.getExchange())){
+                            if (delta.compareTo(new BigDecimal("0.00002")) < 0){
+                                delta = new BigDecimal("0.00002").setScale(5, ROUND_UP);
+                            }
+                        }
+
+                        //magic
+                        BigDecimal spreadSumAmount = ZERO;
+                        for (LimitOrder order : getOpenOrders(exchangeType).getOpenOrders()) {
+                            if (currencyPair.equals(order.getCurrencyPair())
+                                    && order.getLimitPrice().subtract(middlePrice).abs()
+                                    .compareTo(delta.multiply(BigDecimal.valueOf(1.5))) <= 0) {
+                                spreadSumAmount = spreadSumAmount.add(order.getTradableAmount());
+                            }
+                        }
+                        if (spreadSumAmount.compareTo(minOrderAmount.multiply(BigDecimal.valueOf(2*index))) > 0) {
+                            break;
+                        }
+
+                        //random ask
+                        BigDecimal askAmount = minOrderAmount.multiply(BigDecimal.valueOf(index));
+                        BigDecimal bidAmount = minOrderAmount.multiply(BigDecimal.valueOf(index));
+
+                        //random prediction
+                        if (!trader.isFuture()) {
+                            askAmount = predictionIndex.compareTo(ZERO) > 0
+                                    ? randomMinus20(minOrderAmount.multiply(BigDecimal.valueOf(index)))
+                                    : random20(minOrderAmount.multiply(BigDecimal.valueOf(index)));
+
+                            bidAmount = predictionIndex.compareTo(ZERO) > 0
+                                    ? random20(minOrderAmount.multiply(BigDecimal.valueOf(index)))
+                                    : randomMinus20(minOrderAmount.multiply(BigDecimal.valueOf(index)));
+
+                            //check ask
+                            if (accountInfo.getBalance(currencyPair.counterSymbol).compareTo(askAmount.multiply(middlePrice)) < 0) {
+                                broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": Buy "
+                                        + askAmount.toString() + " ^ " + middlePrice.toString());
+
+                                errorMap.put(exchangePair, ++errorCount);
+
+                                continue;
+                            }
+
+                            //check bid
+                            if (accountInfo.getBalance(currencyPair.baseSymbol).compareTo(bidAmount) < 0) {
+                                broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": Sell "
+                                        + bidAmount.toString() + " ^ " + middlePrice.toString());
+
+                                errorMap.put(exchangePair, ++errorCount);
+
+                                continue;
+                            }
+                        }else {
+                            askAmount = askAmount.setScale(0, ROUND_UP);
+                            bidAmount = askAmount.setScale(0, ROUND_UP);
+
+                            //[check future create order balance here]
+                        }
+
+                        //random ask delta
+                        BigDecimal randomAskDelta = predictionIndex.compareTo(ZERO) > 0
+                                ? random20(delta) : randomMinus20(delta);
+
+                        if (randomAskDelta.compareTo(ZERO) == 0){
+                            randomAskDelta = "USD".equals(currencyPair.counterSymbol)
+                                    ? new BigDecimal("0.01")
+                                    : new BigDecimal("0.00000001");
+                        }else {
+                            randomAskDelta = "USD".equals(currencyPair.counterSymbol)
+                                    ? randomAskDelta.setScale(2, HALF_UP)
+                                    : randomAskDelta.setScale(8, HALF_UP);
+                        }
+
+                        //random bid delta
+                        BigDecimal randomBidDelta = predictionIndex.compareTo(ZERO) > 0
+                                ? randomMinus20(delta) : random20(delta);
+
+                        if (randomBidDelta.compareTo(ZERO) == 0){
+                            randomBidDelta = "USD".equals(currencyPair.counterSymbol)
+                                    ? new BigDecimal("0.01")
+                                    : new BigDecimal("0.00000001");
+                        }else {
+                            randomBidDelta = "USD".equals(currencyPair.counterSymbol)
+                                    ? randomAskDelta.setScale(2, HALF_UP)
+                                    : randomAskDelta.setScale(8, HALF_UP);
+                        }
+
+                        //ASK
+                        BigDecimal askPrice = middlePrice.add(randomAskDelta);
+
+                        tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.ASK, askAmount, currencyPair, "",
+                                new Date(), askPrice));
+
+                        broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": Sell "
+                                + askAmount.toString() + " @ " + askPrice.toString() + " | " + delta.toString());
+
+                        //BID
+                        BigDecimal bidPrice =  middlePrice.subtract(randomBidDelta);
+
+                        tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.BID, bidAmount, currencyPair, "",
+                                new Date(), bidPrice));
+
+                        broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": Buy "
+                                + bidAmount.toString() + " @ " + bidPrice.toString() + " | " + delta.toString());
+                    }
+                }
+            } catch (Exception e) {
+                log.error("alpha trade error", e);
+
+                errorMap.put(exchangePair, ++errorCount);
+
+                //noinspection ThrowableResultOfMethodCallIgnored
+                broadcast(exchangeType, trader.getPair() + ": " + Throwables.getRootCause(e).getMessage());
+            }
+        }
+    }
+
+    private void broadcast(ExchangeType exchange, Object payload){
+        try {
+            Application application = Application.get("aida-coin");
+            IWebSocketSettings webSocketSettings = WebSocketSettings.Holder.get(application);
+
+            WebSocketPushBroadcaster broadcaster = new WebSocketPushBroadcaster(webSocketSettings.getConnectionRegistry());
+            broadcaster.broadcastAll(application, new ExchangeMessage<>(exchange, payload));
+        } catch (Exception e) {
+            log.error("broadcast error", e);
+        }
+    }
+
+    public AccountInfo getAccountInfo(ExchangeType exchangeType){
+        return accountInfoMap.get(exchangeType);
+    }
+
+    public Ticker getTicker(ExchangePair exchangePair){
+        return tickerMap.get(exchangePair);
+    }
+
+    public Ticker getTickerNotNull(ExchangePair exchangePair){
+        Ticker ticker = tickerMap.get(exchangePair);
+
+        if (ticker == null){
+            ticker = new Ticker.Builder().currencyPair(TraderUtil.getCurrencyPair(exchangePair.getPair()))
+                    .last(ZERO).bid(ZERO).ask(ZERO).high(ZERO).low(ZERO).volume(ZERO).timestamp(new Date()).build();
+        }
+
+        return ticker;
+    }
+
+    public OrderBook getOrderBook(ExchangePair exchangePair){
+        return orderBookMap.get(exchangePair);
+    }
+
+    public OpenOrders getOpenOrders(ExchangeType exchangeType){
+        return openOrdersMap.get(exchangeType);
+    }
+
+    public BalanceHistory getBalanceHistory(ExchangePair exchangePair){ return balanceHistoryMap.get(exchangePair); }
 
     public List<OrderVolume> getOrderVolumeRates(ExchangePair exchangePair, Date startDate){
         List<Volume> volumes = getVolumes(exchangePair, startDate);
@@ -364,425 +726,6 @@ public class TraderService {
             return ZERO;
         }
     }
-
-    public BigDecimal getMinOrderVolume(ExchangeType exchangeType, String counterSymbol) {
-        if (BITTREX.equals(exchangeType)) {
-            switch (counterSymbol) {
-                case "BTC":
-                    return new BigDecimal("0.0013");
-                case "LTC":
-                    return new BigDecimal("0.08");
-                case "BC":
-                    return new BigDecimal("13");
-
-                default: return null;
-            }
-        }else{
-            switch (counterSymbol) {
-                case "BTC":
-                    return new BigDecimal("0.0034");
-                case "LTC":
-                    return new BigDecimal("0.034");
-                case "USD":
-                    return new BigDecimal("7");
-                case "CNY":
-                    return new BigDecimal("34");
-                case "BC":
-                    return new BigDecimal("34");
-
-                default: return null;
-            }
-        }
-    }
-
-    @Asynchronous
-    public void scheduleUpdate(ExchangeType exchangeType){
-        try {
-            updateBalance(exchangeType);
-            updateOpenOrders(exchangeType);
-            updateTicker(exchangeType);
-
-            tradeAlpha(exchangeType);
-        } catch (Exception e) {
-            log.error("Schedule update error", e);
-
-            //noinspection ThrowableResultOfMethodCallIgnored
-            broadcast(exchangeType, exchangeType.name() + ": " + Throwables.getRootCause(e).getMessage());
-        }
-    }
-
-    private void updateBalance(ExchangeType exchangeType) throws IOException {
-        AccountInfo accountInfo = getExchange(exchangeType).getPollingAccountService().getAccountInfo();
-        accountInfoMap.put(exchangeType, accountInfo);
-
-        broadcast(exchangeType, accountInfo);
-    }
-
-    private void updateTicker(ExchangeType exchangeType) throws IOException {
-        List<String> pairs = traderBean.getTraderPairs(exchangeType);
-
-        for (String pair : pairs) {
-            try {
-                CurrencyPair currencyPair = getCurrencyPair(pair);
-
-                if (currencyPair != null) {
-                    Ticker ticker;
-
-                    if (CRYPTSY.equals(exchangeType)) {
-                        ticker = ((CryptsyExchange)cryptsyExchange).getPublicPollingMarketDataService().getTicker(currencyPair);
-                    }else{
-                        ticker = getExchange(exchangeType).getPollingMarketDataService().getTicker(currencyPair);
-                    }
-
-                    if (ticker.getLast() != null && ticker.getLast().compareTo(ZERO) != 0 && ticker.getBid() != null && ticker.getAsk() != null) {
-                        ExchangePair ep = new ExchangePair(exchangeType, pair);
-
-                        //ticker history
-                        Ticker previous = tickerMap.put(ep, ticker);
-
-                        if (previous != null && previous.getLast().compareTo(ticker.getLast()) != 0){
-                            TickerHistory tickerHistory = new TickerHistory(exchangeType, pair,
-                                    ticker.getLast(), ticker.getBid(), ticker.getAsk(),
-                                    ticker.getVolume(), getVolatilityIndex(ep), getPredictionIndex(ep));
-
-                            traderBean.save(tickerHistory);
-
-                            broadcast(exchangeType, tickerHistory);
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                log.error("Error update ticker {} {}", exchangeType, pair);
-
-                throw e;
-            }
-        }
-    }
-
-    private void updateOrderBook(ExchangeType exchangeType) throws IOException {
-        List<String> pairs = traderBean.getTraderPairs(exchangeType);
-
-        for (String pair : pairs) {
-            CurrencyPair currencyPair = getCurrencyPair(pair);
-
-            if (currencyPair != null) {
-                try {
-                    OrderBook orderBook = getExchange(exchangeType).getPollingMarketDataService().getOrderBook(currencyPair);
-
-                    if (orderBook != null && !orderBook.getBids().isEmpty()) {
-                        orderBook.getBids().sort(new Comparator<LimitOrder>() {
-                            @Override
-                            public int compare(LimitOrder o1, LimitOrder o2) {
-                                return o1.getLimitPrice().compareTo(o2.getLimitPrice());
-                            }
-                        });
-
-                        orderBook.getAsks().sort(new Comparator<LimitOrder>() {
-                            @Override
-                            public int compare(LimitOrder o1, LimitOrder o2) {
-                                return o1.getLimitPrice().compareTo(o2.getLimitPrice());
-                            }
-                        });
-
-                        orderBookMap.put(new ExchangePair(exchangeType, pair), orderBook);
-
-                        broadcast(exchangeType, orderBook);
-                    }
-                } catch (Exception e) {
-                    log.error("updateOrderBook error", e);
-
-                    //noinspection ThrowableResultOfMethodCallIgnored
-                    broadcast(exchangeType, exchangeType.name() + ": " + Throwables.getRootCause(e).getMessage());
-                }
-            }
-        }
-    }
-
-    private void updateOpenOrders(ExchangeType exchangeType) throws IOException {
-        OpenOrders openOrders = getExchange(exchangeType).getPollingTradeService().getOpenOrders();
-        openOrdersMap.put(exchangeType, openOrders);
-
-        broadcast(exchangeType, openOrders);
-    }
-
-    private void tradeAlpha(ExchangeType exchangeType) throws IOException {
-        List<Trader> traders = traderBean.getTraders(exchangeType);
-
-        Collections.shuffle(traders);
-
-        for (Trader trader : traders) {
-            try {
-                ExchangePair exchangePair = ExchangePair.of(exchangeType, trader.getPair());
-                Integer errorCount = errorMap.containsKey(exchangePair) ? errorMap.get(exchangePair) : 0;
-
-                if (errorCount > 2) {
-                    if (!errorTimeMap.containsKey(exchangePair)) {
-                        errorTimeMap.put(exchangePair, System.currentTimeMillis());
-                    }
-
-                    Long errorTime = errorTimeMap.get(exchangePair);
-                    if (errorTime != null && System.currentTimeMillis() - errorTime > 1000 * 60 * TraderUtil.random.nextInt(10)) {
-                        errorMap.remove(exchangePair);
-                        errorTimeMap.remove(exchangePair);
-                    }
-
-                    continue;
-                }
-
-                if (trader.isRunning()) {
-                    Ticker ticker = getTicker(new ExchangePair(exchangeType, trader.getPair()));
-                    CurrencyPair currencyPair = getCurrencyPair(trader.getPair());
-
-                    PollingTradeService tradeService = getExchange(exchangeType).getPollingTradeService();
-
-                    if (ticker == null) {
-                        continue;
-                    }
-
-                    BigDecimal middlePrice;
-
-                    switch (currencyPair.counterSymbol) {
-                        case "BC":
-                            try {
-                                middlePrice = getTicker(new ExchangePair(BITTREX, currencyPair.baseSymbol + "/BTC")).getLast()
-                                        .divide(getTicker(new ExchangePair(BITTREX, "BC/BTC")).getLast(), 8, HALF_UP);
-                            } catch (Exception e) {
-                                continue;
-                            }
-                            break;
-                        default:
-                            middlePrice = ticker.getAsk().add(ticker.getBid()).divide(new BigDecimal("2"), 8, HALF_UP);
-                    }
-
-                    if (middlePrice.compareTo(trader.getHigh()) > 0) {
-                        errorMap.put(exchangePair, ++errorCount);
-
-                        broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": " + middlePrice.toString()
-                                + " > " + trader.getHigh().toString());
-                        continue;
-                    }
-
-                    if (middlePrice.compareTo(trader.getLow()) < 0) {
-                        errorMap.put(exchangePair, ++errorCount);
-
-                        broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": " + middlePrice.toString()
-                                + " < " + trader.getLow().toString());
-
-                        continue;
-                    }
-
-                    BigDecimal minSpread = middlePrice.multiply(new BigDecimal("0.013")).setScale(8, HALF_UP);
-
-                    //bitfinex spread
-                    if (BITFINEX.equals(trader.getExchange())){
-                        minSpread =  middlePrice.multiply(new BigDecimal("0.008")).setScale(8, HALF_UP);
-                    }
-
-                    //ticker spread
-                    BigDecimal tickerSpread = ticker.getAsk().subtract(ticker.getBid());
-                    if (tickerSpread.compareTo(minSpread) > 0){
-                        minSpread = tickerSpread;
-                    }
-
-                    BigDecimal minOrderAmount = trader.getLot() != null
-                            ? trader.getLot().divide(middlePrice, 8, HALF_UP)
-                            : getMinOrderVolume(exchangeType, currencyPair.counterSymbol).divide(middlePrice, 8, HALF_UP);
-
-                    //volatility
-                    BigDecimal volatility = traderBean.getSigma(exchangePair).divide(ticker.getLast(), 8, ROUND_UP);
-
-                    minOrderAmount = minOrderAmount.multiply(ONE.add(volatility.multiply(BigDecimal.valueOf(2*Math.PI))))
-                            .setScale(8, HALF_UP);
-
-                    //min spread scale
-                    if (trader.getPair().contains("/USD")){
-                        if (minSpread.compareTo(new BigDecimal("0.03")) < 0){
-                            minSpread = new BigDecimal("0.02").setScale(2, ROUND_UP);
-                        }
-                    }else if (minSpread.compareTo(new BigDecimal("0.00000003")) < 0){
-                        minSpread = new BigDecimal("0.00000002");
-                    }
-
-                    //cancel orders
-                    for (LimitOrder order : getOpenOrders(exchangeType).getOpenOrders()) {
-                        if (currencyPair.equals(order.getCurrencyPair()) && order.getLimitPrice().subtract(middlePrice)
-                                .abs().compareTo(minSpread.multiply(BigDecimal.valueOf(4))) > 0) {
-                            tradeService.cancelOrder(order.getId());
-
-                            broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": Cancel "
-                                    + order.getTradableAmount().toString() + " @ " + order.getLimitPrice().toString());
-                        }
-                    }
-
-                    //create order
-                    for (double index : new double[]{1, 2, 3}) {
-                        BigDecimal delta = minSpread.multiply(BigDecimal.valueOf(index/2)).setScale(8, HALF_UP);
-
-                        //btc-e delta
-                        if (BTCE.equals(trader.getExchange())){
-                            if (delta.compareTo(new BigDecimal("0.00002")) < 0){
-                                delta = new BigDecimal("0.00002").setScale(5, ROUND_UP);
-                            }
-                        }
-
-                        BigDecimal spreadSumAmount = ZERO;
-                        for (LimitOrder order : getOpenOrders(exchangeType).getOpenOrders()) {
-                            if (currencyPair.equals(order.getCurrencyPair())
-                                    && order.getLimitPrice().subtract(middlePrice).abs()
-                                    .compareTo(delta.multiply(BigDecimal.valueOf(1.5))) <= 0) {
-                                spreadSumAmount = spreadSumAmount.add(order.getTradableAmount());
-                            }
-                        }
-
-                        if (spreadSumAmount.compareTo(minOrderAmount.multiply(BigDecimal.valueOf(2*index))) > 0) {
-                            break;
-                        }
-
-                        AccountInfo accountInfo = getAccountInfo(exchangeType);
-
-                        //prediction
-                        BigDecimal predictionIndex = getPredictionIndex(exchangePair);
-
-                        //random ask
-                        BigDecimal randomAskAmount = ZERO;
-                        BigDecimal minRandomAskAmount = predictionIndex.compareTo(ZERO) >= 0
-                                ? randomMinus20(minOrderAmount.multiply(BigDecimal.valueOf(index)))
-                                : random20(minOrderAmount.multiply(BigDecimal.valueOf(index)));
-
-                        randomAskAmount = randomAskAmount.compareTo(minRandomAskAmount) > 0
-                                ? randomAskAmount
-                                : minRandomAskAmount;
-
-                        //random bid
-                        BigDecimal randomBidAmount = ZERO;
-                        BigDecimal minRandomBidAmount = predictionIndex.compareTo(ZERO) >= 0
-                                ? random20(minOrderAmount.multiply(BigDecimal.valueOf(index)))
-                                : randomMinus20(minOrderAmount.multiply(BigDecimal.valueOf(index)));
-
-                        randomBidAmount = randomBidAmount.compareTo(minOrderAmount) > 0
-                                ? randomBidAmount
-                                : minRandomBidAmount;
-
-                        //check ask
-                        if (accountInfo.getBalance(currencyPair.counterSymbol).compareTo(randomAskAmount.multiply(middlePrice)) < 0) {
-                            broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": Buy "
-                                    + randomAskAmount.toString() + " ^ " + middlePrice.toString());
-
-                            errorMap.put(exchangePair, ++errorCount);
-
-                            continue;
-                        }
-
-                        //check bid
-                        if (accountInfo.getBalance(currencyPair.baseSymbol).compareTo(randomBidAmount) < 0) {
-                            broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": Sell "
-                                    + randomBidAmount.toString() + " ^ " + middlePrice.toString());
-
-                            errorMap.put(exchangePair, ++errorCount);
-
-                            continue;
-                        }
-
-                        //random ask delta
-                        BigDecimal randomAskDelta = predictionIndex.compareTo(ZERO) >= 0
-                                ? random20(delta)
-                                : randomMinus20(delta);
-                        if (randomAskDelta.compareTo(ZERO) == 0){
-                            randomAskDelta = "USD".equals(currencyPair.counterSymbol)
-                                    ? new BigDecimal("0.01")
-                                    : new BigDecimal("0.00000001");
-                        }else {
-                            randomAskDelta = "USD".equals(currencyPair.counterSymbol)
-                                    ? randomAskDelta.setScale(2, HALF_UP)
-                                    : randomAskDelta.setScale(8, HALF_UP);
-                        }
-
-                        //random bid delta
-                        BigDecimal randomBidDelta = predictionIndex.compareTo(ZERO) >= 0
-                                ? randomMinus20(delta)
-                                : random20(delta);
-                        if (randomBidDelta.compareTo(ZERO) == 0){
-                            randomBidDelta = "USD".equals(currencyPair.counterSymbol)
-                                    ? new BigDecimal("0.01")
-                                    : new BigDecimal("0.00000001");
-                        }else {
-                            randomBidDelta = "USD".equals(currencyPair.counterSymbol)
-                                    ? randomAskDelta.setScale(2, HALF_UP)
-                                    : randomAskDelta.setScale(8, HALF_UP);
-                        }
-
-                        //ASK
-                        BigDecimal askPrice = middlePrice.add(randomAskDelta);
-
-                        tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.ASK,
-                                randomAskAmount,
-                                currencyPair, "", new Date(),
-                                askPrice));
-
-                        broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": Sell "
-                                + randomAskAmount.toString() + " @ " + askPrice.toString() + " | " + delta.toString());
-
-                        //BID
-                        BigDecimal bidPrice =  middlePrice.subtract(randomBidDelta);
-
-                        tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.BID,
-                                randomBidAmount,
-                                currencyPair, "", new Date(),
-                                bidPrice));
-
-                        broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": Buy "
-                                + randomBidAmount.toString() + " @ " + bidPrice.toString() + " | " + delta.toString());
-                    }
-                }
-            } catch (Exception e) {
-                log.error("alpha trade error", e);
-
-                //noinspection ThrowableResultOfMethodCallIgnored
-                broadcast(exchangeType, trader.getPair() + ": " + Throwables.getRootCause(e).getMessage());
-            }
-        }
-    }
-
-    private void broadcast(ExchangeType exchange, Object payload){
-        try {
-            Application application = Application.get("aida-coin");
-            IWebSocketSettings webSocketSettings = WebSocketSettings.Holder.get(application);
-
-            WebSocketPushBroadcaster broadcaster = new WebSocketPushBroadcaster(webSocketSettings.getConnectionRegistry());
-            broadcaster.broadcastAll(application, new ExchangeMessage<>(exchange, payload));
-        } catch (Exception e) {
-            log.error("broadcast error", e);
-        }
-    }
-
-    public AccountInfo getAccountInfo(ExchangeType exchangeType){
-        return accountInfoMap.get(exchangeType);
-    }
-
-    public Ticker getTicker(ExchangePair exchangePair){
-        return tickerMap.get(exchangePair);
-    }
-
-    public Ticker getTickerNotNull(ExchangePair exchangePair){
-        Ticker ticker = tickerMap.get(exchangePair);
-
-        if (ticker == null){
-            ticker = new Ticker.Builder().currencyPair(TraderUtil.getCurrencyPair(exchangePair.getPair()))
-                    .last(ZERO).bid(ZERO).ask(ZERO).high(ZERO).low(ZERO).volume(ZERO).timestamp(new Date()).build();
-        }
-
-        return ticker;
-    }
-
-    public OrderBook getOrderBook(ExchangePair exchangePair){
-        return orderBookMap.get(exchangePair);
-    }
-
-    public OpenOrders getOpenOrders(ExchangeType exchangeType){
-        return openOrdersMap.get(exchangeType);
-    }
-
-    public BalanceHistory getBalanceHistory(ExchangePair exchangePair){ return balanceHistoryMap.get(exchangePair); }
 
     public BigDecimal getPredictionIndex(ExchangePair exchangePair){
         int size = 256;

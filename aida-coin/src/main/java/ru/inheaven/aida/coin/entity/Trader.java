@@ -50,6 +50,10 @@ public class Trader extends AbstractEntity{
         date = new Date();
     }
 
+    public boolean isFuture(){
+        return ExchangeType.OKCOIN.equals(exchange);
+    }
+
     public ExchangePair getExchangePair(){
         return new ExchangePair(exchange, pair);
     }

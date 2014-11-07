@@ -166,7 +166,7 @@ public class TraderList extends AbstractPage{
 
                 BigDecimal lot = trader.getLot() != null
                         ? trader.getLot()
-                        : traderService.getMinOrderVolume(trader.getExchange(), trader.getCounterSymbol());
+                        : traderService.getMinOrderVolume(trader.getExchangePair());
 
                 cellItem.add(new Label(componentId, of(lot)));
             }
