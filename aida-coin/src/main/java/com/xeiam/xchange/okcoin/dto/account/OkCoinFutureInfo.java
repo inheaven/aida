@@ -15,7 +15,9 @@ public class OkCoinFutureInfo {
     private BigDecimal profitUnreal;
     private BigDecimal riskRate;
 
-    public OkCoinFutureInfo(@JsonProperty("free") BigDecimal accountRights, BigDecimal keepDeposit, BigDecimal profitReal, BigDecimal profitUnreal, BigDecimal riskRate) {
+    public OkCoinFutureInfo(@JsonProperty("account_rights") BigDecimal accountRights, @JsonProperty("keep_deposit") BigDecimal keepDeposit,
+                            @JsonProperty("profit_real") BigDecimal profitReal, @JsonProperty("profit_unreal") BigDecimal profitUnreal,
+                            @JsonProperty("risk_rate") BigDecimal riskRate) {
         this.accountRights = accountRights;
         this.keepDeposit = keepDeposit;
         this.profitReal = profitReal;
