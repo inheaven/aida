@@ -24,99 +24,99 @@ import java.util.Collections;
 import java.util.List;
 
 public class OkCoinTradeService extends OkCoinTradeServiceRaw implements PollingTradeService {
-  private static final OpenOrders noOpenOrders = new OpenOrders(Collections.<LimitOrder>emptyList());
-  
-  private final Logger log = LoggerFactory.getLogger(OkCoinTradeService.class);
-  private final List<CurrencyPair> exchangeSymbols = (List<CurrencyPair>) getExchangeSymbols();
+    private static final OpenOrders noOpenOrders = new OpenOrders(Collections.<LimitOrder>emptyList());
 
-  
-  public OkCoinTradeService(ExchangeSpecification exchangeSpecification) {
+    private final Logger log = LoggerFactory.getLogger(OkCoinTradeService.class);
+    private final List<CurrencyPair> exchangeSymbols = (List<CurrencyPair>) getExchangeSymbols();
 
-    super(exchangeSpecification);
 
-  }
+    public OkCoinTradeService(ExchangeSpecification exchangeSpecification) {
 
-  @Override
-  public OpenOrders getOpenOrders() throws ExchangeException, NotAvailableFromExchangeException, NotYetImplementedForExchangeException, IOException {
+        super(exchangeSpecification);
 
-    List<OkCoinOrderResult> orderResults = new ArrayList<OkCoinOrderResult>(exchangeSymbols.size());
-
-      for (CurrencyPair symbol : exchangeSymbols) {
-          log.debug("Getting order: {}", symbol);
-
-          OkCoinOrderResult orderResult = getOrder(-1, OkCoinAdapters.adaptSymbol(symbol), "this_week");
-          if (orderResult.getOrders().length > 0) {
-              orderResults.add(orderResult);
-          }
-      }
-    
-    if(orderResults.size() <= 0) {
-      return noOpenOrders;
     }
 
-    return OkCoinAdapters.adaptOpenOrders(orderResults);
-  }
+    @Override
+    public OpenOrders getOpenOrders() throws ExchangeException, NotAvailableFromExchangeException, NotYetImplementedForExchangeException, IOException {
 
-  @Override
-  public String placeMarketOrder(MarketOrder marketOrder) throws ExchangeException, NotAvailableFromExchangeException, NotYetImplementedForExchangeException, IOException {
+        List<OkCoinOrderResult> orderResults = new ArrayList<OkCoinOrderResult>(exchangeSymbols.size());
 
-    String marketOrderType = null;
-    String rate = null;
-    String amount = null;
+        for (CurrencyPair symbol : exchangeSymbols) {
+            log.debug("Getting order: {}", symbol);
 
-    if (marketOrder.getType().equals(OrderType.BID)) {
-      marketOrderType = "buy_market";
-      rate = marketOrder.getTradableAmount().toPlainString();
-      amount = "1";
+            OkCoinOrderResult orderResult = getOrder(-1, OkCoinAdapters.adaptSymbol(symbol), "this_week");
+            if (orderResult.getOrders().length > 0) {
+                orderResults.add(orderResult);
+            }
+        }
+
+        if(orderResults.size() <= 0) {
+            return noOpenOrders;
+        }
+
+        return OkCoinAdapters.adaptOpenOrders(orderResults);
     }
-    else {
-      marketOrderType = "sell_market";
-      rate = "1";
-      amount = marketOrder.getTradableAmount().toPlainString();
+
+    @Override
+    public String placeMarketOrder(MarketOrder marketOrder) throws ExchangeException, NotAvailableFromExchangeException, NotYetImplementedForExchangeException, IOException {
+
+        String marketOrderType = null;
+        String rate = null;
+        String amount = null;
+
+        if (marketOrder.getType().equals(OrderType.BID)) {
+            marketOrderType = "buy_market";
+            rate = marketOrder.getTradableAmount().toPlainString();
+            amount = "1";
+        }
+        else {
+            marketOrderType = "sell_market";
+            rate = "1";
+            amount = marketOrder.getTradableAmount().toPlainString();
+        }
+
+        long orderId = trade(OkCoinAdapters.adaptSymbol(marketOrder.getCurrencyPair()), marketOrderType, rate, amount).getOrderId();
+        return String.valueOf(orderId);
     }
 
-    long orderId = trade(OkCoinAdapters.adaptSymbol(marketOrder.getCurrencyPair()), marketOrderType, rate, amount).getOrderId();
-    return String.valueOf(orderId);
-  }
+    @Override
+    public String placeLimitOrder(LimitOrder limitOrder) throws ExchangeException, NotAvailableFromExchangeException, NotYetImplementedForExchangeException, IOException {
+        // type 1: open long position    2: open short position    3:liquidate long position    4: liquidate short position
+        long orderId = trade(OkCoinAdapters.adaptSymbol(limitOrder.getCurrencyPair()), "this_week",
+                limitOrder.getType() == OrderType.BID ? "1" : "2", limitOrder.getLimitPrice().toPlainString(),
+                limitOrder.getTradableAmount().toPlainString()).getOrderId();
 
-  @Override
-  public String placeLimitOrder(LimitOrder limitOrder) throws ExchangeException, NotAvailableFromExchangeException, NotYetImplementedForExchangeException, IOException {
+        return String.valueOf(orderId);
+    }
 
-    long orderId = trade(OkCoinAdapters.adaptSymbol(limitOrder.getCurrencyPair()),
-            limitOrder.getType() == OrderType.BID ? "buy" : "sell", limitOrder.getLimitPrice().toPlainString(),
-            "this_week", limitOrder.getTradableAmount().toPlainString()).getOrderId();
+    @Override
+    public boolean cancelOrder(String orderId) throws ExchangeException, NotAvailableFromExchangeException, NotYetImplementedForExchangeException, IOException {
 
-      return String.valueOf(orderId);
-  }
+        boolean ret = false;
+        long id = Long.valueOf(orderId);
 
-  @Override
-  public boolean cancelOrder(String orderId) throws ExchangeException, NotAvailableFromExchangeException, NotYetImplementedForExchangeException, IOException {
+        for (CurrencyPair symbol : exchangeSymbols) {
+            try {
+                OkCoinTradeResult cancelResult = cancelOrder(id, OkCoinAdapters.adaptSymbol(symbol), "this_week");
 
-    boolean ret = false;
-    long id = Long.valueOf(orderId);
+                if (id == cancelResult.getOrderId()) {
+                    ret = true;
+                }
+                break;
+            } catch (OkCoinException e) {
+                // order not found.
+            }
+        }
+        return ret;
+    }
 
-      for (CurrencyPair symbol : exchangeSymbols) {
-          try {
-              OkCoinTradeResult cancelResult = cancelOrder(id, OkCoinAdapters.adaptSymbol(symbol), "this_week");
+    @Override
+    public UserTrades getTradeHistory(Object... arguments) throws ExchangeException, NotAvailableFromExchangeException, NotYetImplementedForExchangeException, IOException {
 
-              if (id == cancelResult.getOrderId()) {
-                  ret = true;
-              }
-              break;
-          } catch (OkCoinException e) {
-              // order not found.
-          }
-      }
-    return ret;
-  }
+        CurrencyPair currencyPair = arguments.length > 0 ? (CurrencyPair) arguments[0] : (useIntl ? CurrencyPair.BTC_USD : CurrencyPair.BTC_CNY);
+        Integer page = arguments.length > 1 ? (Integer) arguments[1] : 0;
 
-  @Override
-  public UserTrades getTradeHistory(Object... arguments) throws ExchangeException, NotAvailableFromExchangeException, NotYetImplementedForExchangeException, IOException {
-
-    CurrencyPair currencyPair = arguments.length > 0 ? (CurrencyPair) arguments[0] : (useIntl ? CurrencyPair.BTC_USD : CurrencyPair.BTC_CNY);
-    Integer page = arguments.length > 1 ? (Integer) arguments[1] : 0;
-
-    OkCoinOrderResult orderHistory = getOrderHistory(OkCoinAdapters.adaptSymbol(currencyPair), "1", page.toString(), "1000");
-    return OkCoinAdapters.adaptTrades(orderHistory);
-  }
+        OkCoinOrderResult orderHistory = getOrderHistory(OkCoinAdapters.adaptSymbol(currencyPair), "1", page.toString(), "1000");
+        return OkCoinAdapters.adaptTrades(orderHistory);
+    }
 }
