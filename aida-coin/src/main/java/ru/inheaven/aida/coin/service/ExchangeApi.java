@@ -18,7 +18,7 @@ import static com.xeiam.xchange.ExchangeFactory.INSTANCE;
  *         Date: 07.11.2014 9:13
  */
 public class ExchangeApi {
-    private final static boolean debug = true;
+    private final static boolean debug = false;
 
     private static Exchange bittrexExchange = INSTANCE.createExchange(new ExchangeSpecification(BittrexExchange.class){{
         if (debug) {

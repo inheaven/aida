@@ -9,27 +9,37 @@ import java.math.BigDecimal;
  *         Date: 06.11.2014 22:25
  */
 public class OkCoinFutureInfo {
-    private BigDecimal balance;
-    private BigDecimal rights;
+    private BigDecimal accountRights;
+    private BigDecimal keepDeposit;
+    private BigDecimal profitReal;
+    private BigDecimal profitUnreal;
+    private BigDecimal riskRate;
 
-    public OkCoinFutureInfo(@JsonProperty("balance") BigDecimal balance, @JsonProperty("rights") BigDecimal rights) {
-        this.balance = balance;
-        this.rights = rights;
+    public OkCoinFutureInfo(@JsonProperty("free") BigDecimal accountRights, BigDecimal keepDeposit, BigDecimal profitReal, BigDecimal profitUnreal, BigDecimal riskRate) {
+        this.accountRights = accountRights;
+        this.keepDeposit = keepDeposit;
+        this.profitReal = profitReal;
+        this.profitUnreal = profitUnreal;
+        this.riskRate = riskRate;
     }
 
-    public BigDecimal getBalance() {
-        return balance;
+    public BigDecimal getAccountRights() {
+        return accountRights;
     }
 
-    public void setBalance(BigDecimal balance) {
-        this.balance = balance;
+    public BigDecimal getKeepDeposit() {
+        return keepDeposit;
     }
 
-    public BigDecimal getRights() {
-        return rights;
+    public BigDecimal getProfitReal() {
+        return profitReal;
     }
 
-    public void setRights(BigDecimal rights) {
-        this.rights = rights;
+    public BigDecimal getProfitUnreal() {
+        return profitUnreal;
+    }
+
+    public BigDecimal getRiskRate() {
+        return riskRate;
     }
 }

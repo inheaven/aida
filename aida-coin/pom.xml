@@ -118,10 +118,11 @@
                             <configuration>
                                 <container>
                                     <containerId>glassfish4x</containerId>
-                                    <type>remote</type>
+                                    <type>installed</type>
+                                    <home>C:\glassfish4</home>
                                 </container>
                                 <configuration>
-                                    <type>runtime</type>
+                                    <type>existing</type>
                                     <properties>
                                         <cargo.runtime.args>force=true</cargo.runtime.args>
                                         <cargo.hostname>localhost</cargo.hostname>

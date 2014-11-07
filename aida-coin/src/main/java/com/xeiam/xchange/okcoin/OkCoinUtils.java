@@ -1,8 +1,37 @@
 package com.xeiam.xchange.okcoin;
 
-public class OkCoinUtils {
+import java.util.HashMap;
+import java.util.Map;
 
-  public static String getErrorMessage(int errorCode) {
+public class OkCoinUtils {
+    private static Map<Integer, String> ERROR_CODES = new HashMap<Integer, String>(){{
+        put(20001, "user does not exist");
+        put(20002, "user frozen");
+        put(20003, "frozen due to force liquidation");
+        put(20004, "future account frozen");
+        put(20005, "user future account does not exist");
+        put(20006, "required field can not be null");
+        put(20007, "illegal parameter");
+        put(20008, "future account fund balance is zero");
+        put(20009, "future contract status error");
+        put(20010, "risk rate information does not exist");
+        put(20011, "risk rate bigger than 90% before opening position");
+        put(20012, "risk rate bigger than 90% after opening position");
+        put(20013, "temporally no counter party price");
+        put(20014, "system error");
+        put(20015, "order does not exist");
+        put(20016, "liquidation quantity bigger than holding");
+        put(20017, "not authorized/illegal order ID");
+        put(20018, "order price higher than 105% or lower than 95% of the price of last minute");
+        put(20019, "IP restrained to access the resource");
+        put(20020, "secret key does not exist");
+        put(20021, "index information does not exist");
+        put(20022, "wrong API interface");
+    }};
+
+
+
+    public static String getErrorMessage(int errorCode) {
 
     switch (errorCode) {
 
@@ -41,7 +70,9 @@ public class OkCoinUtils {
     case (10216):
       return "Non-public API";
     default:
-      return "Error Code " + errorCode;
+        String code =  ERROR_CODES.get(errorCode);
+
+      return code != null ?  code : "Error Code " + errorCode;
     }
   }
 }
