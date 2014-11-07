@@ -114,15 +114,15 @@
                         <plugin>
                             <groupId>org.codehaus.cargo</groupId>
                             <artifactId>cargo-maven2-plugin</artifactId>
-                            <version>1.4.9</version>
+                            <version>1.4.10</version>
                             <configuration>
                                 <container>
                                     <containerId>glassfish4x</containerId>
-                                    <type>installed</type>
+                                    <type>runtime</type>
                                     <home>c:/glassfish4</home>
                                 </container>
                                 <configuration>
-                                    <type>existing</type>
+                                    <type>remote</type>
                                     <properties>
                                         <cargo.runtime.args>force=true</cargo.runtime.args>
                                         <cargo.hostname>localhost</cargo.hostname>
