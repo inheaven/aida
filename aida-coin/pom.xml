@@ -121,6 +121,7 @@
                                     <type>installed</type>
                                     <home>c:/glassfish4</home>
                                 </container>
+
                                 <configuration>
                                     <type>existing</type>
                                     <home>c:/glassfish4/glassfish/domains</home>
@@ -132,6 +133,14 @@
                                         <cargo.remote.password>admin</cargo.remote.password>
                                     </properties>
                                 </configuration>
+
+                                <deployables>
+                                    <deployable>
+                                        <properties>
+                                            <context>/</context>
+                                        </properties>
+                                    </deployable>
+                                </deployables>
                             </configuration>
                             <dependencies>
                                 <dependency>
