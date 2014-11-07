@@ -14,7 +14,7 @@ import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
  *         Date: 07.01.14 21:15
  */
 public abstract class AbstractPage extends WebPage {
-    private String title = randomAlphanumeric(4) + "-" + randomAlphanumeric(4);
+    private String title = randomAlphanumeric(16);
 
     protected AbstractPage() {
         HtmlTag htmlTag = new HtmlTag("html", new Locale("ru"));
@@ -31,6 +31,6 @@ public abstract class AbstractPage extends WebPage {
     }
 
     protected String getTitle(){
-        return title.toUpperCase();
+        return title;
     }
 }
