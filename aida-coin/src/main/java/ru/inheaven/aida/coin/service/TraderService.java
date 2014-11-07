@@ -682,9 +682,7 @@ public class TraderService {
 
     public Volume getVolume(BalanceHistory history){
         if (OKCOIN.equals(history.getExchangeType())) {
-            return new Volume((history.getPrevious().getBalance().subtract(history.getBalance())
-                    .multiply(history.getPrice().subtract(history.getPrevious().getPrice()))), history.getDate());
-
+            return new Volume(history.getPrevious().getBalance().subtract(history.getBalance()), history.getDate());
         } else {
             return new Volume(getBTCVolume(ExchangePair.of(history.getExchangeType(), history.getPair()),
                     history.getPrevious().getBalance().add(history.getPrevious().getAskAmount())
