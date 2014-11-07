@@ -681,10 +681,17 @@ public class TraderService {
     }
 
     public Volume getVolume(BalanceHistory history){
-        return new Volume(getBTCVolume(ExchangePair.of(history.getExchangeType(), history.getPair()),
-                history.getPrevious().getBalance().add(history.getPrevious().getAskAmount())
-                        .subtract(history.getBalance().add(history.getAskAmount()))
-                , (history.getPrice().subtract(history.getPrevious().getPrice()))), history.getDate());
+        if (OKCOIN.equals(history.getExchangeType())) {
+            return new Volume(getBTCVolume(ExchangePair.of(history.getExchangeType(), history.getPair()),
+                    history.getPrevious().getBalance().subtract(history.getBalance()),
+                    (history.getPrice().subtract(history.getPrevious().getPrice()))), history.getDate());
+
+        } else {
+            return new Volume(getBTCVolume(ExchangePair.of(history.getExchangeType(), history.getPair()),
+                    history.getPrevious().getBalance().add(history.getPrevious().getAskAmount())
+                            .subtract(history.getBalance().add(history.getAskAmount())),
+                    (history.getPrice().subtract(history.getPrevious().getPrice()))), history.getDate());
+        }
     }
 
     public BigDecimal getBTCVolume(ExchangePair ep, BigDecimal amount, BigDecimal price){
