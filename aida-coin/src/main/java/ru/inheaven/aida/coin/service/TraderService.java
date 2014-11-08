@@ -170,7 +170,7 @@ public class TraderService {
                                     p2 = h.getBalance().floatValue();
                                 }else{
                                     p1 = previous.getBalance().floatValue() + previous.getAskAmount().floatValue();
-                                    p2 = h.getBalance().floatValue() + h.getBalance().floatValue();
+                                    p2 = h.getBalance().floatValue() + h.getAskAmount().floatValue();
                                 }
 
                                 if (Math.abs(p1 - p2) / p1 > 0.005) {
