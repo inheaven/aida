@@ -152,26 +152,39 @@ public class TraderService {
                             ExchangePair exchangePair = trader.getExchangePair();
                             BalanceHistory previous = balanceHistoryMap.get(exchangePair);
 
-                            BalanceHistory balanceHistory = new BalanceHistory();
-                            balanceHistory.setExchangeType(exchangeType);
-                            balanceHistory.setPair(trader.getPair());
-                            balanceHistory.setBalance(accountInfo.getBalance(trader.getCurrency()));
-                            balanceHistory.setAskAmount(askAmount);
-                            balanceHistory.setBidAmount(bidAmount);
-                            balanceHistory.setPrice(ticker.getLast());
-                            balanceHistory.setPrevious(previous);
+                            BalanceHistory h = new BalanceHistory();
+                            h.setExchangeType(exchangeType);
+                            h.setPair(trader.getPair());
+                            h.setBalance(accountInfo.getBalance(trader.getCurrency()));
+                            h.setAskAmount(askAmount);
+                            h.setBidAmount(bidAmount);
+                            h.setPrice(ticker.getLast());
+                            h.setPrevious(previous);
 
-                            if (previous != null && !balanceHistory.equals(previous) && balanceHistory.getPrice() != null){
-                                try {
-                                    traderBean.save(balanceHistory);
-                                } catch (Exception e) {
-                                    log.error("save balance history error", e);
+                            if (previous != null &&  h.getPrice() != null){
+                                float p1;
+                                float p2;
+
+                                if (OKCOIN.equals(trader.getExchange())){
+                                    p1 = previous.getBalance().floatValue();
+                                    p2 = h.getBalance().floatValue();
+                                }else{
+                                    p1 = previous.getBalance().floatValue() + previous.getAskAmount().floatValue();
+                                    p2 = h.getBalance().floatValue() + h.getBalance().floatValue();
                                 }
 
-                                broadcast(exchangeType, balanceHistory);
+                                if (Math.abs(p1 - p2) / p1 > 0.005) {
+                                    try {
+                                        traderBean.save(h);
+                                    } catch (Exception e) {
+                                        log.error("save balance history error", e);
+                                    }
+                                }
+
+                                broadcast(exchangeType, h);
                             }
 
-                            balanceHistoryMap.put(exchangePair, balanceHistory);
+                            balanceHistoryMap.put(exchangePair, h);
                         }
                     }
                 }
