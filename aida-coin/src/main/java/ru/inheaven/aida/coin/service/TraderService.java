@@ -173,7 +173,7 @@ public class TraderService {
                                     p2 = h.getBalance().floatValue() + h.getAskAmount().floatValue();
                                 }
 
-                                if (Math.abs(p1 - p2) / p1 > 0.01) {
+                                if (Math.abs(p1 - p2) / p1 > 0.005) {
                                     try {
                                         traderBean.save(h);
                                     } catch (Exception e) {
