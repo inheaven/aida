@@ -162,18 +162,18 @@ public class TraderService {
                             h.setPrevious(previous);
 
                             if (previous != null &&  h.getPrice() != null){
-                                float p1;
-                                float p2;
+                                boolean changed;
 
                                 if (OKCOIN.equals(trader.getExchange())){
-                                    p1 = previous.getBalance().floatValue();
-                                    p2 = h.getBalance().floatValue();
+                                    float p1 = previous.getBalance().floatValue();
+                                    float p2 = h.getBalance().floatValue();
+
+                                    changed = Math.abs(p1 - p2) / p1 > 0.005;
                                 }else{
-                                    p1 = previous.getBalance().floatValue() + previous.getAskAmount().floatValue();
-                                    p2 = h.getBalance().floatValue() + h.getAskAmount().floatValue();
+                                    changed = !h.equals(previous);
                                 }
 
-                                if (Math.abs(p1 - p2) / p1 > 0.005) {
+                                if (changed) {
                                     try {
                                         traderBean.save(h);
                                     } catch (Exception e) {
