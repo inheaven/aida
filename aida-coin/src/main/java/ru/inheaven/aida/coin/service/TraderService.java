@@ -535,14 +535,6 @@ public class TraderService {
                                     : randomAskDelta.setScale(8, HALF_UP);
                         }
 
-                        //ASK
-                        BigDecimal askPrice = middlePrice.add(randomAskDelta);
-
-                        tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.ASK, askAmount, currencyPair, "",
-                                new Date(), askPrice));
-
-                        broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": Sell "
-                                + askAmount.toString() + " @ " + askPrice.toString() + " | " + delta.toString());
 
                         //BID
                         BigDecimal bidPrice =  middlePrice.subtract(randomBidDelta);
@@ -552,6 +544,15 @@ public class TraderService {
 
                         broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": Buy "
                                 + bidAmount.toString() + " @ " + bidPrice.toString() + " | " + delta.toString());
+
+                        //ASK
+                        BigDecimal askPrice = middlePrice.add(randomAskDelta);
+
+                        tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.ASK, askAmount, currencyPair, "",
+                                new Date(), askPrice));
+
+                        broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": Sell "
+                                + askAmount.toString() + " @ " + askPrice.toString() + " | " + delta.toString());
                     }
                 }
             } catch (Exception e) {
