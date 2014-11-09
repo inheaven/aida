@@ -10,7 +10,7 @@ import java.util.Map;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("org.jsonschema2pojo")
 @JsonPropertyOrder({ "Uuid", "OrderUuid", "Exchange", "OrderType", "Quantity", "QuantityRemaining", "Limit", "CommissionPaid",
-        "Price", "PricePerUnit", "Opened", "isOpen", "Closed", "CancelInitiated",
+        "Price", "PricePerUnit", "Opened", "Closed", "CancelInitiated",
     "ImmediateOrCancel", "IsConditional", "Condition", "ConditionTarget" })
 public class BittrexOpenOrder {
 
@@ -36,8 +36,6 @@ public class BittrexOpenOrder {
   private Object pricePerUnit;
   @JsonProperty("Opened")
   private String opened;
-  @JsonProperty("IsOpen")
-  private Boolean isOpen;
   @JsonProperty("Closed")
   private Object closed;
   @JsonProperty("CancelInitiated")
@@ -195,16 +193,6 @@ public class BittrexOpenOrder {
   public void setClosed(Object closed) {
 
     this.closed = closed;
-  }
-
-  @JsonProperty("isOpen")
-  public Boolean getIsOpen() {
-    return isOpen;
-  }
-
-  @JsonProperty("isOpen")
-  public void setIsOpen(Boolean open) {
-    this.isOpen = isOpen;
   }
 
   @JsonProperty("CancelInitiated")
