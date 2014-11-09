@@ -98,7 +98,7 @@ public class TraderService {
         scheduleUpdate(CEXIO);
     }
 
-    @Schedule(second = "*", minute="1", hour="*", persistent=false)
+    @Schedule(second = "*", minute="*/1", hour="*", persistent=false)
     public void scheduleOrders(){
         for(ExchangeType exchangeType : ExchangeType.values()){
             updateOrders(exchangeType);
