@@ -125,8 +125,12 @@ public class TraderBean {
     }
 
     public OrderHistory getOrderHistory(String orderId){
-        return em.createQuery("select h from OrderHistory h where h.orderId = :orderId", OrderHistory.class)
-                .setParameter("orderId", orderId)
-                .getSingleResult();
+        try {
+            return em.createQuery("select h from OrderHistory h where h.orderId = :orderId", OrderHistory.class)
+                    .setParameter("orderId", orderId)
+                    .getSingleResult();
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

@@ -337,7 +337,7 @@ public class TraderService {
         OpenOrders openOrders = getOpenOrders(exchangeType);
 
         for (OrderHistory h : traderBean.getOrderHistories(exchangeType, OPENED)) {
-            if (openOrders.getOpenOrders() == null || System.currentTimeMillis() - h.getOpened().getTime() < 60000){
+            if (openOrders == null || System.currentTimeMillis() - h.getOpened().getTime() < 60000){
                 continue;
             }
 
@@ -594,7 +594,7 @@ public class TraderService {
                             }
                         }else {
                             askAmount = askAmount.setScale(0, ROUND_UP);
-                            bidAmount = askAmount.setScale(0, ROUND_UP);
+                            bidAmount = bidAmount.setScale(0, ROUND_UP);
 
                             //[check future create order balance here]
                         }
@@ -642,6 +642,7 @@ public class TraderService {
 
                         traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), ASK, askAmount, askPrice, new Date()));
 
+                        //notification
                         broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": " +
                                 bidAmount.toString() + " @ " + bidPrice.toString() + " | " +
                                 askAmount.toString() + " @ " + askPrice.toString());
