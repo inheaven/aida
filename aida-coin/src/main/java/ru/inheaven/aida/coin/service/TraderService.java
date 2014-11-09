@@ -334,15 +334,17 @@ public class TraderService {
     }
 
     public void updateOrders(ExchangeType exchangeType){
+        OpenOrders openOrders = getOpenOrders(exchangeType);
+
         for (OrderHistory h : traderBean.getOrderHistories(exchangeType, OPENED)) {
-            if (System.currentTimeMillis() - h.getOpened().getTime() < 60000){
+            if (openOrders.getOpenOrders() == null || System.currentTimeMillis() - h.getOpened().getTime() < 60000){
                 continue;
             }
 
             try {
                 boolean found = false;
 
-                for (LimitOrder o : getOpenOrders(exchangeType).getOpenOrders()){
+                for (LimitOrder o : openOrders.getOpenOrders()){
                     if (o.getId().equals(h.getOrderId())){
                         found = true;
                         break;
