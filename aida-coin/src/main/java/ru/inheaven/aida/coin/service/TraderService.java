@@ -336,14 +336,6 @@ public class TraderService {
     }
 
     public void updateOrders(ExchangeType exchangeType){
-        if (exchangeType.equals(CEXIO)){
-            try {
-                updateOpenOrders(exchangeType);
-            } catch (IOException e) {
-                log.error("updateOpenOrders error", e);
-            }
-        }
-
         for (OrderHistory h : traderBean.getOrderHistories(exchangeType, OPENED)) {
             try {
                 switch (exchangeType){
@@ -539,12 +531,13 @@ public class TraderService {
 
                             //update order status
                             if (CEXIO.equals(exchangeType)) {
-                                OrderHistory orderHistory = traderBean.getOrderHistory(order.getId());
-                                if (orderHistory != null){
-                                    orderHistory.setStatus(CANCELED);
-                                    orderHistory.setClosed(new Date());
+                                OrderHistory h = traderBean.getOrderHistory(order.getId());
+                                if (h != null){
+                                    h.setStatus(CANCELED);
+                                    h.setClosed(new Date());
 
-                                    traderBean.save(orderHistory);
+                                    traderBean.save(h);
+                                    broadcast(exchangeType, h);
                                 }
                             }
                         }
