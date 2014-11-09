@@ -17,7 +17,7 @@ import java.util.List;
  */
 @Stateless
 @Path("/")
-public class SyncService {
+public class ApiService {
     @EJB
     private TraderBean traderBean;
 
