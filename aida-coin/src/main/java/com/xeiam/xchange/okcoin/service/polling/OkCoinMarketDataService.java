@@ -6,7 +6,6 @@ import com.xeiam.xchange.dto.marketdata.OrderBook;
 import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.dto.marketdata.Trades;
 import com.xeiam.xchange.okcoin.OkCoinAdapters;
-import com.xeiam.xchange.okcoin.dto.marketdata.OkCoinTrade;
 import com.xeiam.xchange.service.polling.PollingMarketDataService;
 
 import java.io.IOException;
@@ -36,17 +35,6 @@ public class OkCoinMarketDataService extends OkCoinMarketDataServiceRaw implemen
 
 	@Override
 	public Trades getTrades(CurrencyPair currencyPair, Object... args) throws IOException {
-		final OkCoinTrade[] trades;
-
-		if (args.length == 0) {
-			trades = getTrades(currencyPair);
-
-		} else if (args[0] instanceof String) {
-
-			trades = getTrades(currencyPair, (String) args[0]);
-		} else {
-			trades = getTrades(currencyPair, (Long) args[0]);
-		}
-		return OkCoinAdapters.adaptTrades(trades, currencyPair);
+		return OkCoinAdapters.adaptTrades(getTrades(currencyPair, "this_week"), currencyPair);
 	}
 }

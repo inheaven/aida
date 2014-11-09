@@ -3,17 +3,19 @@ package ru.inheaven.aida.coin.service;
 import com.google.common.base.Throwables;
 import com.xeiam.xchange.cryptsy.CryptsyExchange;
 import com.xeiam.xchange.currency.CurrencyPair;
-import com.xeiam.xchange.dto.Order;
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.marketdata.OrderBook;
 import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.OpenOrders;
+import com.xeiam.xchange.dto.trade.UserTrade;
+import com.xeiam.xchange.dto.trade.UserTrades;
 import com.xeiam.xchange.service.polling.PollingTradeService;
 import org.apache.wicket.Application;
 import org.apache.wicket.protocol.ws.IWebSocketSettings;
 import org.apache.wicket.protocol.ws.WebSocketSettings;
 import org.apache.wicket.protocol.ws.api.WebSocketPushBroadcaster;
+import org.apache.wicket.util.collections.ConcurrentHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.coin.entity.*;
@@ -29,6 +31,8 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.xeiam.xchange.dto.Order.OrderType.ASK;
+import static com.xeiam.xchange.dto.Order.OrderType.BID;
 import static java.math.BigDecimal.*;
 import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.coin.entity.ExchangeType.*;
@@ -65,6 +69,8 @@ public class TraderService {
     private Map<ExchangePair,Integer> errorMap = new ConcurrentHashMap<>();
     private Map<ExchangePair,  Long> errorTimeMap = new ConcurrentHashMap<>();
 
+    private Set<String> tradesHash = new ConcurrentHashSet<>(10000);
+
     @PreDestroy
     public void cancelTimers(){
         for (Timer timer : timerService.getAllTimers()){
@@ -87,6 +93,12 @@ public class TraderService {
     @Schedule(second = "*/30", minute="*", hour="*", persistent=false)
     public void scheduleCexIOUpdate() throws Exception{
         scheduleUpdate(CEXIO);
+    }
+
+    public void scheduleTrades(){
+        for(ExchangeType exchangeType : ExchangeType.values()){
+            updateTrades(exchangeType);
+        }
     }
 
     @Asynchronous
@@ -117,7 +129,7 @@ public class TraderService {
                     boolean zero = true;
 
                     for (LimitOrder limitOrder : openOrders.getOpenOrders()){
-                        if (limitOrder.getType().equals(Order.OrderType.ASK)
+                        if (limitOrder.getType().equals(ASK)
                                 && limitOrder.getLimitPrice().compareTo(BigDecimal.ZERO) != 0){
                             zero = false;
                             break;
@@ -141,7 +153,7 @@ public class TraderService {
 
                             for (LimitOrder limitOrder : openOrders.getOpenOrders()){
                                 if (currencyPair.equals(limitOrder.getCurrencyPair())){
-                                    if (limitOrder.getType().equals(Order.OrderType.ASK)){
+                                    if (limitOrder.getType().equals(ASK)){
                                         askAmount = askAmount.add(limitOrder.getTradableAmount());
                                     }else{
                                         bidAmount = bidAmount.add(limitOrder.getTradableAmount());
@@ -153,6 +165,7 @@ public class TraderService {
                             BalanceHistory previous = balanceHistoryMap.get(exchangePair);
 
                             BalanceHistory h = new BalanceHistory();
+
                             h.setExchangeType(exchangeType);
                             h.setPair(trader.getPair());
                             h.setBalance(accountInfo.getBalance(trader.getCurrency()));
@@ -285,6 +298,36 @@ public class TraderService {
                     broadcast(exchangeType, exchangeType.name() + ": " + Throwables.getRootCause(e).getMessage());
                 }
             }
+        }
+    }
+
+    public void updateTrades(ExchangeType exchangeType){
+        try {
+            UserTrades userTrades = getExchange(exchangeType).getPollingTradeService().getTradeHistory();
+
+            for (UserTrade t : userTrades.getUserTrades()){
+                String key = exchangeType.name() + t.getCurrencyPair().toString() + t.getId() + t.getOrderId();
+
+                if (!tradesHash.contains(key)){
+                    TradeHistory tradeHistory = new TradeHistory(exchangeType, TraderUtil.getPair(t.getCurrencyPair()),
+                            t.getType(), t.getTradableAmount(), t.getPrice(), t.getTimestamp(), t.getId(), t.getOrderId(),
+                            t.getFeeAmount(), t.getFeeCurrency());
+
+                    try {
+                        traderBean.save(tradeHistory);
+                    } catch (Exception e) {
+                        log.error("updateTrades error save db", e);
+                    }
+
+                    broadcast(exchangeType, tradeHistory);
+                }
+            }
+
+        } catch (Exception e) {
+            log.error("updateTrades error", e);
+
+            //noinspection ThrowableResultOfMethodCallIgnored
+            broadcast(exchangeType, exchangeType.name() + ": " + Throwables.getRootCause(e).getMessage());
         }
     }
 
@@ -539,8 +582,9 @@ public class TraderService {
                         //BID
                         BigDecimal bidPrice =  middlePrice.subtract(randomBidDelta);
 
-                        tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.BID, bidAmount, currencyPair, "",
-                                new Date(), bidPrice));
+                        String id = tradeService.placeLimitOrder(new LimitOrder(BID, bidAmount, currencyPair, "", new Date(), bidPrice));
+
+                        traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), BID, bidAmount, bidPrice, new Date()));
 
                         broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": Buy "
                                 + bidAmount.toString() + " @ " + bidPrice.toString() + " | " + delta.toString());
@@ -548,8 +592,9 @@ public class TraderService {
                         //ASK
                         BigDecimal askPrice = middlePrice.add(randomAskDelta);
 
-                        tradeService.placeLimitOrder(new LimitOrder(Order.OrderType.ASK, askAmount, currencyPair, "",
-                                new Date(), askPrice));
+                        id = tradeService.placeLimitOrder(new LimitOrder(ASK, askAmount, currencyPair, "", new Date(), askPrice));
+
+                        traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), ASK, bidAmount, askPrice, new Date()));
 
                         broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": Sell "
                                 + askAmount.toString() + " @ " + askPrice.toString() + " | " + delta.toString());
