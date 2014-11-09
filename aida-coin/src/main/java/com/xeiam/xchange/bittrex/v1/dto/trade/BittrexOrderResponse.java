@@ -18,7 +18,7 @@ public class BittrexOrderResponse {
   private String message;
 
   @JsonProperty("result")
-  private BittrexOpenOrder result;
+  private BittrexOrder result;
 
   @JsonIgnore
   private Map<String, Object> additionalProperties = new HashMap<String, Object>();
@@ -48,13 +48,13 @@ public class BittrexOrderResponse {
   }
 
   @JsonProperty("result")
-  public BittrexOpenOrder getBittrexOpenOrder() {
+  public BittrexOrder getBittrexOpenOrder() {
 
     return result;
   }
 
   @JsonProperty("result")
-  public void setBittrexOpenOrder(BittrexOpenOrder result) {
+  public void setBittrexOpenOrder(BittrexOrder result) {
 
     this.result = result;
   }

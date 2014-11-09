@@ -1,7 +1,7 @@
 package ru.inheaven.aida.coin.service;
 
 import com.google.common.base.Throwables;
-import com.xeiam.xchange.bittrex.v1.dto.trade.BittrexOpenOrder;
+import com.xeiam.xchange.bittrex.v1.dto.trade.BittrexOrder;
 import com.xeiam.xchange.bittrex.v1.service.polling.BittrexTradeServiceRaw;
 import com.xeiam.xchange.cryptsy.CryptsyExchange;
 import com.xeiam.xchange.currency.CurrencyPair;
@@ -38,9 +38,7 @@ import static com.xeiam.xchange.dto.Order.OrderType.BID;
 import static java.math.BigDecimal.*;
 import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.coin.entity.ExchangeType.*;
-import static ru.inheaven.aida.coin.entity.OrderStatus.CANCELED;
-import static ru.inheaven.aida.coin.entity.OrderStatus.CLOSED;
-import static ru.inheaven.aida.coin.entity.OrderStatus.OPENED;
+import static ru.inheaven.aida.coin.entity.OrderStatus.*;
 import static ru.inheaven.aida.coin.service.ExchangeApi.getExchange;
 import static ru.inheaven.aida.coin.util.TraderUtil.*;
 
@@ -342,9 +340,9 @@ public class TraderService {
             try {
                 switch (exchangeType){
                     case BITTREX:
-                        BittrexOpenOrder order = ((BittrexTradeServiceRaw) getExchange(BITTREX)
+                        BittrexOrder order = ((BittrexTradeServiceRaw) getExchange(BITTREX)
                                 .getPollingTradeService()).getBittrexOrder(h.getOrderId());
-                        if (!order.getQuantityRemaining().equals(ZERO)){
+                        if (!order.getIsOpen()){
                             h.setStatus(!order.getCancelInitiated() ? CLOSED : CANCELED);
                             h.setFilledAmount(order.getQuantity().subtract(order.getQuantityRemaining()));
                             h.setClosed(new Date());

@@ -108,7 +108,7 @@ public class BittrexTradeServiceRaw extends BittrexBasePollingService<BittrexAut
     }
   }
 
-  public BittrexOpenOrder getBittrexOrder(String uuid) throws IOException {
+  public BittrexOrder getBittrexOrder(String uuid) throws IOException {
     BittrexOrderResponse response = bittrex.getorder(apiKey, signatureCreator, String.valueOf(nextNonce()), uuid);
 
     if (response.getSuccess()) {
