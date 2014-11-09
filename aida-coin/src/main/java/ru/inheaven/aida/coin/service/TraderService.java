@@ -337,6 +337,10 @@ public class TraderService {
 
     public void updateOrders(ExchangeType exchangeType){
         for (OrderHistory h : traderBean.getOrderHistories(exchangeType, OPENED)) {
+            if (System.currentTimeMillis() - h.getOpened().getTime() < 60000){
+                continue;
+            }
+
             try {
                 switch (exchangeType){
                     case BITTREX:
