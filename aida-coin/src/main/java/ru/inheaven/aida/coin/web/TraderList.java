@@ -495,7 +495,7 @@ public class TraderList extends AbstractPage{
                         OrderHistory h = (OrderHistory) payload;
 
                         notificationLabel3.setDefaultModelObject(h.getExchangeType().name() + " " +
-                                h.getPair() + " " + h.getTradableAmount().toPlainString() + " * " +
+                                h.getPair() + ": " + h.getTradableAmount().toPlainString() + " * " +
                                 h.getPrice().toPlainString() + " " + h.getType().name() + " " +
                                 h.getStatus().name());
                         handler.add(notificationLabel3);

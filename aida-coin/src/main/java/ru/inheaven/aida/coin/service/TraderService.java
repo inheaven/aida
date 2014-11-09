@@ -615,9 +615,6 @@ public class TraderService {
 
                         traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), BID, bidAmount, bidPrice, new Date()));
 
-                        broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": Buy "
-                                + bidAmount.toString() + " @ " + bidPrice.toString() + " | " + delta.toString());
-
                         //ASK
                         BigDecimal askPrice = middlePrice.add(randomAskDelta);
 
@@ -625,8 +622,8 @@ public class TraderService {
 
                         traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), ASK, bidAmount, askPrice, new Date()));
 
-                        broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": Sell "
-                                + askAmount.toString() + " @ " + askPrice.toString() + " | " + delta.toString());
+                        broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": " +
+                                bidAmount.toString() + " @ " + bidPrice.toString() + " | " + askAmount.toString() + " @ " + askPrice.toString());
                     }
                 }
             } catch (Exception e) {
