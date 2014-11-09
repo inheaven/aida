@@ -3,6 +3,7 @@ package ru.inheaven.aida.coin.entity;
 import com.xeiam.xchange.dto.Order;
 
 import javax.persistence.*;
+import javax.xml.bind.annotation.XmlRootElement;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -12,6 +13,7 @@ import java.util.Date;
  */
 @Entity
 @Table(name = "order_history")
+@XmlRootElement
 public class OrderHistory extends AbstractEntity {
     @Column(nullable = false)
     private String orderId;
