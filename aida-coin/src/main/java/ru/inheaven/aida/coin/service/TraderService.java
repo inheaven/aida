@@ -1,8 +1,6 @@
 package ru.inheaven.aida.coin.service;
 
 import com.google.common.base.Throwables;
-import com.xeiam.xchange.bittrex.v1.dto.trade.BittrexOrder;
-import com.xeiam.xchange.bittrex.v1.service.polling.BittrexTradeServiceRaw;
 import com.xeiam.xchange.cryptsy.CryptsyExchange;
 import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.dto.account.AccountInfo;
@@ -342,40 +340,22 @@ public class TraderService {
             }
 
             try {
-                switch (exchangeType){
-                    case BITTREX:
-                        BittrexOrder order = ((BittrexTradeServiceRaw) getExchange(BITTREX)
-                                .getPollingTradeService()).getBittrexOrder(h.getOrderId());
-                        if (!order.getIsOpen()){
-                            h.setStatus(!order.getCancelInitiated() ? CLOSED : CANCELED);
-                            h.setFilledAmount(order.getQuantity().subtract(order.getQuantityRemaining()));
-                            h.setClosed(new Date());
+                boolean found = false;
 
-                            traderBean.save(h);
-                            broadcast(exchangeType, h);
-                        }
-
+                for (LimitOrder o : getOpenOrders(exchangeType).getOpenOrders()){
+                    if (o.getId().equals(h.getOrderId())){
+                        found = true;
                         break;
-                    case CEXIO:
-                        boolean found = false;
+                    }
+                }
 
-                        for (LimitOrder o : getOpenOrders(CEXIO).getOpenOrders()){
-                            if (o.getId().equals(h.getOrderId())){
-                                found = true;
-                                break;
-                            }
-                        }
+                if (!found){
+                    h.setStatus(CLOSED);
+                    h.setFilledAmount(h.getTradableAmount());
+                    h.setClosed(new Date());
 
-                        if (!found){
-                            h.setStatus(CLOSED);
-                            h.setFilledAmount(h.getTradableAmount());
-                            h.setClosed(new Date());
-
-                            traderBean.save(h);
-                            broadcast(exchangeType, h);
-                        }
-
-                        break;
+                    traderBean.save(h);
+                    broadcast(exchangeType, h);
                 }
             } catch (Exception e) {
                 log.error("updateOrders error", e);
@@ -534,16 +514,15 @@ public class TraderService {
                             tradeService.cancelOrder(order.getId());
 
                             //update order status
-                            if (CEXIO.equals(exchangeType)) {
-                                OrderHistory h = traderBean.getOrderHistory(order.getId());
-                                if (h != null){
-                                    h.setStatus(CANCELED);
-                                    h.setClosed(new Date());
+                            OrderHistory h = traderBean.getOrderHistory(order.getId());
+                            if (h != null){
+                                h.setStatus(CANCELED);
+                                h.setClosed(new Date());
 
-                                    traderBean.save(h);
-                                    broadcast(exchangeType, h);
-                                }
+                                traderBean.save(h);
+                                broadcast(exchangeType, h);
                             }
+
                         }
                     }
 
