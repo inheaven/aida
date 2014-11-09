@@ -117,6 +117,13 @@ public class TraderBean {
                 .getResultList();
     }
 
+    public List<OrderHistory> getOrderHistories(Date startDate){
+        return em.createQuery("select h from OrderHistory h where h.opened > :startDate or (h.closed is not null and " +
+                "h.closed > :startDate)", OrderHistory.class)
+                .setParameter("startDate", startDate)
+                .getResultList();
+    }
+
     public OrderHistory getOrderHistory(String orderId){
         return em.createQuery("select h from OrderHistory h where h.orderId = :orderId", OrderHistory.class)
                 .setParameter("orderId", orderId)
