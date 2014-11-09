@@ -640,7 +640,7 @@ public class TraderService {
 
                         id = tradeService.placeLimitOrder(new LimitOrder(ASK, askAmount, currencyPair, "", new Date(), askPrice));
 
-                        traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), ASK, bidAmount, askPrice, new Date()));
+                        traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), ASK, askAmount, askPrice, new Date()));
 
                         broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": " +
                                 bidAmount.toString() + " @ " + bidPrice.toString() + " | " +

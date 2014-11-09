@@ -30,16 +30,11 @@
         <servlet-name>javax.ws.rs.core.Application</servlet-name>
 
         <init-param>
-            <param-name>jersey.config.server.provider.packages</param-name>
+            <param-name>jersey.config.server.provider.classnames</param-name>
             <param-value>
-                ru.inheaven.aida.coin
+                ru.inheaven.aida.coin.service.ApiService
             </param-value>
         </init-param>
-        <init-param>
-            <param-name>jersey.config.server.provider.scanning.recursive</param-name>
-            <param-value>true</param-value>
-        </init-param>
-
     </servlet>
     <servlet-mapping>
         <servlet-name>javax.ws.rs.core.Application</servlet-name>
