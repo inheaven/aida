@@ -75,7 +75,7 @@ public class TraderList extends AbstractPage{
     private Map<ExchangePair, Component> predictionMap = new HashMap<>();
     private Map<ExchangePair, Component> predictionTestMap = new HashMap<>();
 
-    private Component notificationLabel, notificationLabel2;
+    private Component notificationLabel, notificationLabel2, notificationLabel3;
     private long notificationTime = System.currentTimeMillis();
 
     private Component bittrexBTC, bittrexCoins;
@@ -120,6 +120,7 @@ public class TraderList extends AbstractPage{
 
         add(notificationLabel = new Label("notification", Model.of("")).setOutputMarkupId(true));
         add(notificationLabel2 = new Label("notification2", Model.of("")).setOutputMarkupId(true));
+        add(notificationLabel3 = new Label("notification3", Model.of("")).setOutputMarkupId(true));
 
         add(new Label("header", of(getTitle())));
 
@@ -490,7 +491,16 @@ public class TraderList extends AbstractPage{
                                 }
                             }
                         });
-                    }else if (payload instanceof String){
+                    }else if (payload instanceof OrderHistory){
+                        OrderHistory h = (OrderHistory) payload;
+
+                        notificationLabel3.setDefaultModelObject(h.getExchangeType().name() + " " +
+                                h.getPair() + " " + h.getPrice().toPlainString() + " " +
+                                h.getTradableAmount().toPlainString() + " " + h.getType().name() + " " +
+                                h.getStatus().name());
+                        handler.add(notificationLabel3);
+
+                    } else if (payload instanceof String){
                         if ("Cryptsy returned an error: Unable to Authorize Request - Check Your Post Data".equals(payload)){
                             return;
                         }

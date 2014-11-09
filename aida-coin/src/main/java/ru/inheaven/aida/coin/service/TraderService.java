@@ -348,8 +348,9 @@ public class TraderService {
                             h.setClosed(new Date());
 
                             traderBean.save(h);
-                        }
 
+                            broadcast(exchangeType, h);
+                        }
 
                         break;
                 }
