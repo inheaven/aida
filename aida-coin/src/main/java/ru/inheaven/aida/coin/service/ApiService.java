@@ -24,7 +24,7 @@ public class ApiService {
     @GET
     @Path("getOrders/{startDate}")
     @Produces("application/json")
-    private List<OrderHistory> getOrderHistory(@PathParam("startDate") long startDate){
+    public List<OrderHistory> getOrderHistory(@PathParam("startDate") long startDate){
         return traderBean.getOrderHistories(new Date(startDate));
     }
 
