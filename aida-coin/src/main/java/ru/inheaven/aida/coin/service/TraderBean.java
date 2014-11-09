@@ -133,4 +133,11 @@ public class TraderBean {
             return null;
         }
     }
+
+    public Long getOrderHistoryCount(Date startDate, OrderStatus status){
+        return em.createQuery("select count(h) from OrderHistory h where h.opened > :startDate and h.status = :status", Long.class)
+                .setParameter("startDate", startDate)
+                .setParameter("status", status)
+                .getSingleResult();
+    }
 }

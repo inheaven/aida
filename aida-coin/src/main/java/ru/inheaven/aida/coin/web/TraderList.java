@@ -367,7 +367,7 @@ public class TraderList extends AbstractPage{
                         update(handler, profitMap.get(ep), orderVolumePair.getVolume(), false, true);
 
                         //update trades count
-                        update(handler, tradesCount, traderBean.getBalanceHistoryCount(startDate).toString());
+                        update(handler, tradesCount, traderBean.getOrderHistoryCount(startDate, OrderStatus.CLOSED).toString());
 
                         //update total
                         if (System.currentTimeMillis() - lastChart4Time > 1000*60){
