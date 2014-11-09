@@ -116,4 +116,10 @@ public class TraderBean {
                 .setParameter("status", status)
                 .getResultList();
     }
+
+    public OrderHistory getOrderHistory(String orderId){
+        return em.createQuery("select h from OrderHistory h where h.orderId = :orderId", OrderHistory.class)
+                .setParameter("orderId", orderId)
+                .getSingleResult();
+    }
 }

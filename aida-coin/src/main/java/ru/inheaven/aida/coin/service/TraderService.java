@@ -336,6 +336,14 @@ public class TraderService {
     }
 
     public void updateOrders(ExchangeType exchangeType){
+        if (exchangeType.equals(CEXIO)){
+            try {
+                updateOpenOrders(exchangeType);
+            } catch (IOException e) {
+                log.error("updateOpenOrders error", e);
+            }
+        }
+
         for (OrderHistory h : traderBean.getOrderHistories(exchangeType, OPENED)) {
             try {
                 switch (exchangeType){
@@ -348,7 +356,26 @@ public class TraderService {
                             h.setClosed(new Date());
 
                             traderBean.save(h);
+                            broadcast(exchangeType, h);
+                        }
 
+                        break;
+                    case CEXIO:
+                        boolean found = false;
+
+                        for (LimitOrder o : getOpenOrders(CEXIO).getOpenOrders()){
+                            if (o.getId().equals(h.getOrderId())){
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if (!found){
+                            h.setStatus(CLOSED);
+                            h.setFilledAmount(h.getTradableAmount());
+                            h.setClosed(new Date());
+
+                            traderBean.save(h);
                             broadcast(exchangeType, h);
                         }
 
@@ -509,6 +536,17 @@ public class TraderService {
                         if (currencyPair.equals(order.getCurrencyPair()) && order.getLimitPrice().subtract(middlePrice)
                                 .abs().compareTo(minSpread.multiply(BigDecimal.valueOf(4))) > 0) {
                             tradeService.cancelOrder(order.getId());
+
+                            //update order status
+                            if (CEXIO.equals(exchangeType)) {
+                                OrderHistory orderHistory = traderBean.getOrderHistory(order.getId());
+                                if (orderHistory != null){
+                                    orderHistory.setStatus(CANCELED);
+                                    orderHistory.setClosed(new Date());
+
+                                    traderBean.save(orderHistory);
+                                }
+                            }
                         }
                     }
 
@@ -623,7 +661,8 @@ public class TraderService {
                         traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), ASK, bidAmount, askPrice, new Date()));
 
                         broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": " +
-                                bidAmount.toString() + " @ " + bidPrice.toString() + " | " + askAmount.toString() + " @ " + askPrice.toString());
+                                bidAmount.toString() + " @ " + bidPrice.toString() + " | " +
+                                askAmount.toString() + " @ " + askPrice.toString());
                     }
                 }
             } catch (Exception e) {
