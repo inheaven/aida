@@ -497,7 +497,7 @@ public class TraderList extends AbstractPage{
                         notificationLabel3.setDefaultModelObject(h.getExchangeType().name() + " " +
                                 h.getPair() + ": " + h.getTradableAmount().toPlainString() + " * " +
                                 h.getPrice().toPlainString() + " " + h.getType().name() + " " +
-                                h.getStatus().name());
+                                (!h.getStatus().equals(OrderStatus.CLOSED) ? h.getStatus().name() : ""));
                         handler.add(notificationLabel3);
 
                     } else if (payload instanceof String){
