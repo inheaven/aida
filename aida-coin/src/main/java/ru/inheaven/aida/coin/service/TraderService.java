@@ -344,7 +344,7 @@ public class TraderService {
                     case BITTREX:
                         BittrexOpenOrder order = ((BittrexTradeServiceRaw) getExchange(BITTREX)
                                 .getPollingTradeService()).getBittrexOrder(h.getOrderId());
-                        if (!order.isOpen()){
+                        if (!order.getIsOpen()){
                             h.setStatus(!order.getCancelInitiated() ? CLOSED : CANCELED);
                             h.setFilledAmount(order.getQuantity().subtract(order.getQuantityRemaining()));
                             h.setClosed(new Date());

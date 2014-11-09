@@ -37,7 +37,7 @@ public class BittrexOpenOrder {
   @JsonProperty("Opened")
   private String opened;
   @JsonProperty("IsOpen")
-  private Boolean open;
+  private Boolean isOpen;
   @JsonProperty("Closed")
   private Object closed;
   @JsonProperty("CancelInitiated")
@@ -198,13 +198,13 @@ public class BittrexOpenOrder {
   }
 
   @JsonProperty("isOpen")
-  public Boolean isOpen() {
-    return open;
+  public Boolean getIsOpen() {
+    return isOpen;
   }
 
   @JsonProperty("isOpen")
-  public void setOpen(Boolean open) {
-    this.open = open;
+  public void setIsOpen(Boolean open) {
+    this.isOpen = isOpen;
   }
 
   @JsonProperty("CancelInitiated")
