@@ -108,4 +108,12 @@ public class TraderBean {
 
         return list;
     }
+
+    public List<OrderHistory> getOrderHistories(ExchangeType exchangeType, OrderStatus status){
+        return em.createQuery("select h from OrderHistory h where h.exchangeType = :exchangeType and " +
+                "h.status = :status", OrderHistory.class)
+                .setParameter("exchangeType", exchangeType)
+                .setParameter("status", status)
+                .getResultList();
+    }
 }

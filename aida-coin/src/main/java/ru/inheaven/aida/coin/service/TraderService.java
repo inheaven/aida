@@ -1,6 +1,8 @@
 package ru.inheaven.aida.coin.service;
 
 import com.google.common.base.Throwables;
+import com.xeiam.xchange.bittrex.v1.dto.trade.BittrexOpenOrder;
+import com.xeiam.xchange.bittrex.v1.service.polling.BittrexTradeServiceRaw;
 import com.xeiam.xchange.cryptsy.CryptsyExchange;
 import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.dto.account.AccountInfo;
@@ -36,6 +38,9 @@ import static com.xeiam.xchange.dto.Order.OrderType.BID;
 import static java.math.BigDecimal.*;
 import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.coin.entity.ExchangeType.*;
+import static ru.inheaven.aida.coin.entity.OrderStatus.CANCELED;
+import static ru.inheaven.aida.coin.entity.OrderStatus.CLOSED;
+import static ru.inheaven.aida.coin.entity.OrderStatus.OPENED;
 import static ru.inheaven.aida.coin.service.ExchangeApi.getExchange;
 import static ru.inheaven.aida.coin.util.TraderUtil.*;
 
@@ -95,9 +100,10 @@ public class TraderService {
         scheduleUpdate(CEXIO);
     }
 
-    public void scheduleTrades(){
+    @Schedule(second = "*", minute="1", hour="*", persistent=false)
+    public void scheduleOrders(){
         for(ExchangeType exchangeType : ExchangeType.values()){
-            updateTrades(exchangeType);
+            updateOrders(exchangeType);
         }
     }
 
@@ -328,6 +334,33 @@ public class TraderService {
 
             //noinspection ThrowableResultOfMethodCallIgnored
             broadcast(exchangeType, exchangeType.name() + ": " + Throwables.getRootCause(e).getMessage());
+        }
+    }
+
+    public void updateOrders(ExchangeType exchangeType){
+        for (OrderHistory h : traderBean.getOrderHistories(exchangeType, OPENED)) {
+            try {
+                switch (exchangeType){
+                    case BITTREX:
+                        BittrexOpenOrder order = ((BittrexTradeServiceRaw) getExchange(BITTREX)
+                                .getPollingTradeService()).getBittrexOrder(h.getOrderId());
+                        if (!order.isOpen()){
+                            h.setStatus(!order.getCancelInitiated() ? CLOSED : CANCELED);
+                            h.setFilledAmount(order.getQuantity().subtract(order.getQuantityRemaining()));
+                            h.setClosed(new Date());
+
+                            traderBean.save(h);
+                        }
+
+
+                        break;
+                }
+            } catch (Exception e) {
+                log.error("updateOrders error", e);
+
+                //noinspection ThrowableResultOfMethodCallIgnored
+                broadcast(exchangeType, exchangeType.name() + ": " + Throwables.getRootCause(e).getMessage());
+            }
         }
     }
 

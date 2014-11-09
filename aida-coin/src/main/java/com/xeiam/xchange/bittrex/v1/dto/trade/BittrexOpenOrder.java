@@ -35,6 +35,8 @@ public class BittrexOpenOrder {
   private Object pricePerUnit;
   @JsonProperty("Opened")
   private String opened;
+  @JsonProperty("IsOpen")
+  private Boolean open;
   @JsonProperty("Closed")
   private Object closed;
   @JsonProperty("CancelInitiated")
@@ -192,6 +194,16 @@ public class BittrexOpenOrder {
   public void setClosed(Object closed) {
 
     this.closed = closed;
+  }
+
+  @JsonProperty("isOpen")
+  public Boolean isOpen() {
+    return open;
+  }
+
+  @JsonProperty("isOpen")
+  public void setOpen(Boolean open) {
+    this.open = open;
   }
 
   @JsonProperty("CancelInitiated")

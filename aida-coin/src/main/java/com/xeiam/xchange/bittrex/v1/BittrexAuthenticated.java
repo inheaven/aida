@@ -1,23 +1,13 @@
 package com.xeiam.xchange.bittrex.v1;
 
-import java.io.IOException;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-
-import si.mazi.rescu.ParamsDigest;
-
 import com.xeiam.xchange.bittrex.v1.dto.account.BittrexBalancesResponse;
 import com.xeiam.xchange.bittrex.v1.dto.account.BittrexDepositAddressResponse;
-import com.xeiam.xchange.bittrex.v1.dto.trade.BittrexCancelOrderResponse;
-import com.xeiam.xchange.bittrex.v1.dto.trade.BittrexOpenOrdersResponse;
-import com.xeiam.xchange.bittrex.v1.dto.trade.BittrexTradeHistoryResponse;
-import com.xeiam.xchange.bittrex.v1.dto.trade.BittrexTradeResponse;
+import com.xeiam.xchange.bittrex.v1.dto.trade.*;
+import si.mazi.rescu.ParamsDigest;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import java.io.IOException;
 
 @Path("v1.1")
 @Produces(MediaType.APPLICATION_JSON)
@@ -61,6 +51,11 @@ public interface BittrexAuthenticated extends Bittrex {
   @GET
   @Path("market/getopenorders")
   BittrexOpenOrdersResponse openorders(@QueryParam("apikey") String apiKey, @HeaderParam("apisign") ParamsDigest signature, @QueryParam("nonce") String nonce) throws IOException;
+
+  @GET
+  @Path("account/getorder")
+  BittrexOrderResponse getorder(@QueryParam("apikey") String apiKey, @HeaderParam("apisign") ParamsDigest signature, @QueryParam("nonce") String nonce, @QueryParam("uuid") String uuid) throws IOException;
+
 
   @GET
   @Path("account/getorderhistory")

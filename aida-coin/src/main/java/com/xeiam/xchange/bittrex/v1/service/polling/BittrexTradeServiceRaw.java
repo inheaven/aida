@@ -1,21 +1,16 @@
 package com.xeiam.xchange.bittrex.v1.service.polling;
 
-import java.io.IOException;
-import java.util.List;
-
 import com.xeiam.xchange.ExchangeException;
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.bittrex.v1.BittrexAuthenticated;
 import com.xeiam.xchange.bittrex.v1.BittrexUtils;
-import com.xeiam.xchange.bittrex.v1.dto.trade.BittrexCancelOrderResponse;
-import com.xeiam.xchange.bittrex.v1.dto.trade.BittrexOpenOrder;
-import com.xeiam.xchange.bittrex.v1.dto.trade.BittrexOpenOrdersResponse;
-import com.xeiam.xchange.bittrex.v1.dto.trade.BittrexTradeHistoryResponse;
-import com.xeiam.xchange.bittrex.v1.dto.trade.BittrexTradeResponse;
-import com.xeiam.xchange.bittrex.v1.dto.trade.BittrexUserTrade;
+import com.xeiam.xchange.bittrex.v1.dto.trade.*;
 import com.xeiam.xchange.dto.Order.OrderType;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.MarketOrder;
+
+import java.io.IOException;
+import java.util.List;
 
 public class BittrexTradeServiceRaw extends BittrexBasePollingService<BittrexAuthenticated> {
 
@@ -111,7 +106,17 @@ public class BittrexTradeServiceRaw extends BittrexBasePollingService<BittrexAut
     else {
       throw new ExchangeException("Bittrex returned an error: " + response.getMessage());
     }
+  }
 
+  public BittrexOpenOrder getBittrexOrder(String uuid) throws IOException {
+    BittrexOrderResponse response = bittrex.getorder(apiKey, signatureCreator, String.valueOf(nextNonce()), uuid);
+
+    if (response.getSuccess()) {
+      return response.getBittrexOpenOrder();
+    }
+    else {
+      throw new ExchangeException("Bittrex returned an error: " + response.getMessage());
+    }
   }
 
   public List<BittrexUserTrade> getBittrexTradeHistory() throws IOException {
