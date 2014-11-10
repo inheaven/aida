@@ -101,7 +101,7 @@ public class TraderList extends AbstractPage{
     private int chart3Index1 = 1;
     private int chart3Index2 = 1;
 
-    Date startDate = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24);
+    Date startDate = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 7);
     long startWeekDate = System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 7;
 
     BigDecimalConverter bigDecimalConverter2 = new BigDecimalConverter() {
@@ -579,7 +579,7 @@ public class TraderList extends AbstractPage{
         long time = 0L;
 
         for (OrderVolume orderVolume : orderVolumes){
-            if (orderVolume.getDate().getTime() - time > 1000*60){
+            if (orderVolume.getDate().getTime() - time > 5000*60){
                 filteredOrderVolumes.add(orderVolume);
                 time = orderVolume.getDate().getTime();
             }
@@ -648,7 +648,7 @@ public class TraderList extends AbstractPage{
                 for (Volume volume : volumes){
                     volumeSum = volumeSum.add(volume.getVolume());
 
-                    if (volume.getDate().getTime() - time > 1000*60) {
+                    if (volume.getDate().getTime() - time > 5000*60) {
                         time = volume.getDate().getTime();
                         data.add(new Point(time, volumeSum));
                     }
