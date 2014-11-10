@@ -144,8 +144,8 @@ public class TraderBean {
     }
 
     public List<OrderHistory> getOrderHistories(OrderStatus status, Date startDate){
-        return em.createQuery("select h from OrderHistory h where h.opened > :startDate or (h.closed is not null and " +
-                "h.closed > :startDate) and h.status = :status", OrderHistory.class)
+        return em.createQuery("select h from OrderHistory h where (h.opened > :startDate or (h.closed is not null and " +
+                "h.closed > :startDate)) and h.status = :status", OrderHistory.class)
                 .setParameter("startDate", startDate)
                 .setParameter("status", status)
                 .getResultList();
