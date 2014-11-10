@@ -623,6 +623,8 @@ public class TraderList extends AbstractPage{
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
             options.setTitle(new Title(""));
 
+            options.setxAxis(new Axis().setType(AxisType.DATETIME));
+
             options.setyAxis(new Axis().setTitle(new Title("")));
 
             options.setPlotOptions(new PlotOptionsChoice().setSpline(
