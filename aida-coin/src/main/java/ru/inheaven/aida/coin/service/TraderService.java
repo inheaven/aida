@@ -72,6 +72,8 @@ public class TraderService {
 
     private Set<String> tradesHash = new ConcurrentHashSet<>(10000);
 
+    private WebSocketPushBroadcaster broadcaster;
+
     @PreDestroy
     public void cancelTimers(){
         for (Timer timer : timerService.getAllTimers()){
@@ -662,9 +664,12 @@ public class TraderService {
     private void broadcast(ExchangeType exchange, Object payload){
         try {
             Application application = Application.get("aida-coin");
-            IWebSocketSettings webSocketSettings = WebSocketSettings.Holder.get(application);
 
-            WebSocketPushBroadcaster broadcaster = new WebSocketPushBroadcaster(webSocketSettings.getConnectionRegistry());
+            if (broadcaster == null){
+                IWebSocketSettings webSocketSettings = WebSocketSettings.Holder.get(application);
+                broadcaster = new WebSocketPushBroadcaster(webSocketSettings.getConnectionRegistry());
+            }
+
             broadcaster.broadcastAll(application, new ExchangeMessage<>(exchange, payload));
         } catch (Exception e) {
             log.error("broadcast error", e);
