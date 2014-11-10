@@ -109,6 +109,17 @@ public class TraderBean {
         return list;
     }
 
+    public List<OrderHistory> getOrderHistories(ExchangePair exchangePair, OrderStatus status, Date startDate){
+        return em.createQuery("select h from OrderHistory h where h.exchangeType = :exchangeType and " +
+                "h.pair = :pair and  h.status = :status and " +
+                "(h.opened > :startDate or (h.closed is not null and h.closed > :startDate))", OrderHistory.class)
+                .setParameter("exchangeType", exchangePair.getExchangeType())
+                .setParameter("pair", exchangePair.getPair())
+                .setParameter("status", status)
+                .setParameter("startDate", startDate)
+                .getResultList();
+    }
+
     public List<OrderHistory> getOrderHistories(ExchangeType exchangeType, OrderStatus status){
         return em.createQuery("select h from OrderHistory h where h.exchangeType = :exchangeType and " +
                 "h.status = :status", OrderHistory.class)
@@ -117,10 +128,26 @@ public class TraderBean {
                 .getResultList();
     }
 
+    public Long getOrderHistoryCount(Date startDate, OrderStatus status){
+        return em.createQuery("select count(h) from OrderHistory h where (h.opened > :startDate or (h.closed is not null and " +
+                "h.closed > :startDate)) and h.status = :status", Long.class)
+                .setParameter("startDate", startDate)
+                .setParameter("status", status)
+                .getSingleResult();
+    }
+
     public List<OrderHistory> getOrderHistories(Date startDate){
         return em.createQuery("select h from OrderHistory h where h.opened > :startDate or (h.closed is not null and " +
                 "h.closed > :startDate)", OrderHistory.class)
                 .setParameter("startDate", startDate)
+                .getResultList();
+    }
+
+    public List<OrderHistory> getOrderHistories(OrderStatus status, Date startDate){
+        return em.createQuery("select h from OrderHistory h where h.opened > :startDate or (h.closed is not null and " +
+                "h.closed > :startDate) and h.status = :status", OrderHistory.class)
+                .setParameter("startDate", startDate)
+                .setParameter("status", status)
                 .getResultList();
     }
 
@@ -132,12 +159,5 @@ public class TraderBean {
         } catch (Exception e) {
             return null;
         }
-    }
-
-    public Long getOrderHistoryCount(Date startDate, OrderStatus status){
-        return em.createQuery("select count(h) from OrderHistory h where h.opened > :startDate and h.status = :status", Long.class)
-                .setParameter("startDate", startDate)
-                .setParameter("status", status)
-                .getSingleResult();
     }
 }

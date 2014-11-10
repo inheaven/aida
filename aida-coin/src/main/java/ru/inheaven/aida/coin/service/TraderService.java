@@ -761,27 +761,15 @@ public class TraderService {
     public List<Volume> getVolumes(ExchangePair exchangePair, Date startDate){
         List<Volume> volumes = new ArrayList<>();
 
-        Map<ExchangePair, BalanceHistory> previousMap = new HashMap<>();
+        List<OrderHistory> orders = exchangePair != null
+                ? traderBean.getOrderHistories(exchangePair, CLOSED, startDate)
+                : traderBean.getOrderHistories(CLOSED, startDate);
 
-        List<BalanceHistory> balanceHistories = traderBean.getBalanceHistories(exchangePair, startDate);
+        for (OrderHistory order : orders){
+            ExchangePair ep = ExchangePair.of(order.getExchangeType(), order.getPair());
 
-        for (BalanceHistory history : balanceHistories){
-            ExchangePair ep = ExchangePair.of(history.getExchangeType(), history.getPair());
-
-            BalanceHistory previous = previousMap.get(ep);
-
-            if (previous != null && (previous.getAskAmount().compareTo(history.getAskAmount()) != 0
-                    || previous.getBidAmount().compareTo(history.getBidAmount()) != 0)) {
-                float pr =  previous.getBalance().floatValue() + previous.getAskAmount().floatValue();
-                float h = history.getBalance().floatValue() + history.getAskAmount().floatValue();
-
-                if (Math.abs((pr - h) / (pr + h)) > 0.00000001) {
-                    history.setPrevious(previous);
-                    volumes.add(getVolume(history));
-                }
-            }
-
-            previousMap.put(ep, history);
+            volumes.add(new Volume(getBTCVolume(ep, order.getTradableAmount(), order.getPrice())
+                    .multiply(BigDecimal.valueOf(BID.equals(order.getType()) ? 1 : -1))));
         }
 
         return volumes;
