@@ -549,7 +549,7 @@ public class TraderList extends AbstractPage{
             long time = 0L;
             for (Volume volume : sumVolumes){
                 if (volume.getDate().getTime() - time > 5000*60){
-                    data.add(new Point(System.currentTimeMillis(), volume.getVolume()));
+                    data.add(new Point(volume.getDate().getTime(), volume.getVolume()));
                     time = volume.getDate().getTime();
                 }
             }
@@ -622,8 +622,6 @@ public class TraderList extends AbstractPage{
 
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
             options.setTitle(new Title(""));
-
-            options.setxAxis(new Axis().setType(AxisType.DATETIME));
 
             options.setyAxis(new Axis().setTitle(new Title("")));
 
