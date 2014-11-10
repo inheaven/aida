@@ -766,10 +766,9 @@ public class TraderService {
                 : traderBean.getOrderHistories(CLOSED, startDate);
 
         for (OrderHistory order : orders){
-            ExchangePair ep = ExchangePair.of(order.getExchangeType(), order.getPair());
-
-            volumes.add(new Volume(getBTCVolume(ep, order.getTradableAmount(), order.getPrice())
-                    .multiply(BigDecimal.valueOf(BID.equals(order.getType()) ? 1 : -1))));
+            volumes.add(new Volume(getBTCVolume(ExchangePair.of(order.getExchangeType(), order.getPair()),
+                    order.getTradableAmount(), order.getPrice()).multiply(BigDecimal.valueOf(BID.equals(order.getType()) ? 1 : -1)),
+                    order.getClosed()));
         }
 
         return volumes;
