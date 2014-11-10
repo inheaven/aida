@@ -653,7 +653,7 @@ public class TraderList extends AbstractPage{
                         data.add(new Point(time, volumeSum));
                     }
                 }
-                options.addSeries(new PointSeries().setData(data).setName("Profit"));
+                options.addSeries(new PointSeries().setData(data).setName("Load"));
 
                 lastChart4Value = !data.isEmpty() ? (BigDecimal) (data.get(data.size() - 1)).getY() : BigDecimal.ZERO;
             }
