@@ -771,6 +771,13 @@ public class TraderService {
                     order.getClosed()));
         }
 
+        volumes.sort(new Comparator<Volume>() {
+            @Override
+            public int compare(Volume o1, Volume o2) {
+                return o1.getDate().compareTo(o2.getDate());
+            }
+        });
+
         return volumes;
     }
 
