@@ -46,6 +46,7 @@ import javax.ejb.EJB;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
@@ -103,6 +104,8 @@ public class TraderList extends AbstractPage{
 
     Date startDate = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 7);
     long startWeekDate = System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 7;
+
+    private static List<Volume> sumVolumes = new CopyOnWriteArrayList<>();
 
     BigDecimalConverter bigDecimalConverter2 = new BigDecimalConverter() {
         @Override
@@ -358,6 +361,8 @@ public class TraderList extends AbstractPage{
                             handler.appendJavaScript(javaScript);
 
                             lastChartValue = sum;
+
+                            sumVolumes.add(new Volume(sum));
                         }
                     }else if (payload instanceof BalanceHistory){
                         //update profit column
@@ -539,35 +544,26 @@ public class TraderList extends AbstractPage{
 
             //go
 
-            BigDecimal sum = BigDecimal.ZERO;
+            List<Point> data = new ArrayList<>();
 
-            for (ExchangeType exchangeType : ExchangeType.values()){
-                AccountInfo accountInfo = traderService.getAccountInfo(exchangeType);
-
-                if (accountInfo != null) {
-                    for (Wallet wallet :accountInfo.getWallets()){
-                        sum = sum.add(traderService.getEstimateBalance(exchangeType, wallet.getCurrency(), wallet.getBalance()));
-                    }
-                }
-
-                if (ExchangeType.BTCE.equals(exchangeType)){
-                    OpenOrders openOrders = traderService.getOpenOrders(ExchangeType.BTCE);
-                    if (openOrders != null) {
-                        for (LimitOrder limitOrder : openOrders.getOpenOrders()){
-                            sum = sum.add(traderService.getBTCVolume(
-                                    ExchangePair.of(ExchangeType.BTCE, TraderUtil.getPair(limitOrder.getCurrencyPair())),
-                                    limitOrder.getTradableAmount(), limitOrder.getLimitPrice()));
-                        }
-                    }
+            long time = 0L;
+            for (Volume volume : sumVolumes){
+                if (volume.getDate().getTime() - time > 5000*60){
+                    data.add(new Point(System.currentTimeMillis(), volume.getVolume()));
+                    time = volume.getDate().getTime();
                 }
             }
 
-            List<Point> data = new ArrayList<>();
-                for (int i = 0; i < 1000; ++i) {
-                    data.add(new Point(System.currentTimeMillis(), sum));
-                }
+            if (!data.isEmpty() && data.size() < 1000) {
+                long x = data.get(0).getX().longValue();
+                BigDecimal v = (BigDecimal) data.get(0).getY();
 
-                options.addSeries(new PointSeries().setData(data).setName("Equity").setColor(new HighchartsColor(1)));
+                for (int i = 0; i < 1000 - data.size(); ++i) {
+                    data.add(0, new Point(x, v));
+                }
+            }
+
+            options.addSeries(new PointSeries().setData(data).setName("Equity").setColor(new HighchartsColor(1)));
 
             add(chart = new Chart("chart", options));
         }
