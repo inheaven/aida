@@ -552,6 +552,10 @@ public class TraderList extends AbstractPage{
 
             List<Point> data = new ArrayList<>();
 
+            if (!sumVolumes.isEmpty()){
+                sumVolumes.remove(0);
+            }
+
             long time = 0L;
             for (Volume volume : sumVolumes){
                 if (volume.getDate().getTime() - time > 1000*60){
