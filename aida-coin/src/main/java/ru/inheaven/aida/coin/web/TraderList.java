@@ -344,8 +344,7 @@ public class TraderList extends AbstractPage{
                         update(handler, sumEstimate, sum);
 
                         //update chart balance
-                        if ((System.currentTimeMillis() - lastChartTime) > 60000
-                                && lastChartValue.compareTo(sum) != 0
+                        if (lastChartValue.compareTo(sum) != 0
                                 && !cexioCoins.getDefaultModelObjectAsString().equals("0")
                                 && !cryptsyCoins.getDefaultModelObjectAsString().equals("0")
                                 && !bittrexCoins.getDefaultModelObjectAsString().equals("0")
@@ -353,17 +352,23 @@ public class TraderList extends AbstractPage{
                                 && !bterCoins.getDefaultModelObjectAsString().equals("0")
                                 && !bitfinexCoins.getDefaultModelObjectAsString().equals("0")
                                 && !okcoinCoins.getDefaultModelObjectAsString().equals("0")) {
+                            lastChartValue = sum;
+
                             JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
 
-                            String javaScript = "eval("+chart.getJavaScriptVarName()+").series[" + 0 +"].addPoint("
-                                    + renderer.toJson(new Point(System.currentTimeMillis(), sum)) + ", true, true);";
+                            if (System.currentTimeMillis() - lastChartTime > 60000){
+                                lastChartTime = System.currentTimeMillis();
 
-                            handler.appendJavaScript(javaScript);
+                                String javaScript = "eval("+chart.getJavaScriptVarName()+").series[" + 0 +"].addPoint("
+                                        + renderer.toJson(new Point(System.currentTimeMillis(), sum)) + ", true, true);";
+                                handler.appendJavaScript(javaScript);
 
-                            lastChartValue = sum;
-                            lastChartTime = System.currentTimeMillis();
-
-                            sumVolumes.add(new Volume(sum));
+                                sumVolumes.add(new Volume(sum));
+                            }else {
+                                String javaScript = "var s = eval("+chart.getJavaScriptVarName()+").series[0];" +
+                                        "s.data[s.data.length - 1].update("+sum.toPlainString()+")";
+                                handler.appendJavaScript(javaScript);
+                            }
                         }
                     }else if (payload instanceof BalanceHistory){
                         //update profit column
