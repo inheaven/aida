@@ -89,10 +89,9 @@ public class TraderList extends AbstractPage{
 
     private Component sumEstimate, tradesCount;
 
-    private Map<ExchangeType, BigDecimal> lastChartValueMap = new HashMap<>();
-
     private BigDecimal lastChartValue = BigDecimal.ZERO;
-    private BigDecimal lastChart4Value = BigDecimal.ZERO;
+
+    private long lastChartTime = System.currentTimeMillis();
     private long lastChart4Time = System.currentTimeMillis();
 
     private Chart chart, chart2, chart3, chart4;
@@ -345,7 +344,8 @@ public class TraderList extends AbstractPage{
                         update(handler, sumEstimate, sum);
 
                         //update chart balance
-                        if (lastChartValue == null || lastChartValue.compareTo(sum) != 0
+                        if ((System.currentTimeMillis() - lastChartTime) > 60000
+                                && lastChartValue.compareTo(sum) != 0
                                 && !cexioCoins.getDefaultModelObjectAsString().equals("0")
                                 && !cryptsyCoins.getDefaultModelObjectAsString().equals("0")
                                 && !bittrexCoins.getDefaultModelObjectAsString().equals("0")
@@ -361,6 +361,7 @@ public class TraderList extends AbstractPage{
                             handler.appendJavaScript(javaScript);
 
                             lastChartValue = sum;
+                            lastChartTime = System.currentTimeMillis();
 
                             sumVolumes.add(new Volume(sum));
                         }
@@ -375,7 +376,7 @@ public class TraderList extends AbstractPage{
                         update(handler, tradesCount, traderBean.getOrderHistoryCount(startDate, OrderStatus.CLOSED).toString());
 
                         //update total
-                        if (System.currentTimeMillis() - lastChart4Time > 1000*60){
+                        if (System.currentTimeMillis() - lastChart4Time > 60000){
                             lastChart4Time = System.currentTimeMillis();
 
                             OrderVolume orderVolume = traderService.getOrderVolumeRate(startDate);
@@ -644,14 +645,12 @@ public class TraderList extends AbstractPage{
                 for (Volume volume : volumes){
                     volumeSum = volumeSum.add(volume.getVolume());
 
-                    if (volume.getDate().getTime() - time > 1000*60) {
+                    if (volume.getDate().getTime() - time > 60000) {
                         time = volume.getDate().getTime();
                         data.add(new Point(time, volumeSum));
                     }
                 }
                 options.addSeries(new PointSeries().setData(data).setName("Load"));
-
-                lastChart4Value = !data.isEmpty() ? (BigDecimal) (data.get(data.size() - 1)).getY() : BigDecimal.ZERO;
             }
 
             add(chart4 = new Chart("chart4", options));
