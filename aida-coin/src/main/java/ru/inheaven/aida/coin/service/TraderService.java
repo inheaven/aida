@@ -912,6 +912,10 @@ public class TraderService {
     public BigDecimal getOrderStatProfit(ExchangePair exchangePair, Date startDate){
         List<OrderStat> orderStats = traderBean.getOrderStats(exchangePair, startDate);
 
+        if (orderStats.size() < 2){
+            return ZERO;
+        }
+
         BigDecimal priceDiff = ZERO;
         BigDecimal minAmount = ZERO;
 
@@ -925,7 +929,7 @@ public class TraderService {
             }
         }
 
-        return minAmount.compareTo(ZERO) > 0 ? getBTCVolume(exchangePair, minAmount, priceDiff) : ZERO;
+        return getBTCVolume(exchangePair, minAmount, priceDiff);
     }
 
 }
