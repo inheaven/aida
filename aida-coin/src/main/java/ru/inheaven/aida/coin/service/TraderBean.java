@@ -165,16 +165,16 @@ public class TraderBean {
     public List<OrderStat> getOrderStats(Date startDate) {
         return em.createNativeQuery("SELECT sum(PRICE * FILLEDAMOUNT)/sum(FILLEDAMOUNT) AS avgPrice, " +
                 "sum(FILLEDAMOUNT) AS sumAmount, type, exchangeType, pair FROM order_history " +
-                "WHERE status='CLOSED' AND CLOSED > ? GROUP BY pair, exchangetype, type", OrderStat.class)
+                "WHERE status='CLOSED' and CLOSED > ? GROUP BY pair, exchangetype, type", OrderStat.class)
                 .setParameter(1, startDate)
                 .getResultList();
     }
 
     public List<OrderStat> getOrderStats(ExchangePair exchangePair, Date startDate) {
-        return em.createNativeQuery("SELECT sum(PRICE * FILLEDAMOUNT)/sum(FILLEDAMOUNT) AS avgPrice, " +
+        return em.createNativeQuery("SELECT id, sum(PRICE * FILLEDAMOUNT)/sum(FILLEDAMOUNT) AS avgPrice, " +
                 "sum(FILLEDAMOUNT) AS sumAmount, type, exchangeType, pair FROM order_history " +
-                "WHERE exchangetype = ? and pair = ? and status='CLOSED' AND CLOSED > ? GROUP BY type", OrderStat.class)
-                .setParameter(1, exchangePair.getExchangeType())
+                "WHERE exchangetype = ? and pair = ? and status='CLOSED' and CLOSED > ? GROUP BY type", OrderStat.class)
+                .setParameter(1, exchangePair.getExchangeType().name())
                 .setParameter(2, exchangePair.getPair())
                 .setParameter(3, startDate)
                 .getResultList();
