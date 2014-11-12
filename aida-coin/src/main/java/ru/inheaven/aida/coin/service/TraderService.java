@@ -925,7 +925,7 @@ public class TraderService {
             }
         }
 
-        return getBTCVolume(exchangePair, minAmount, priceDiff);
+        return minAmount.compareTo(ZERO) > 0 ? getBTCVolume(exchangePair, minAmount, priceDiff) : ZERO;
     }
 
 }
