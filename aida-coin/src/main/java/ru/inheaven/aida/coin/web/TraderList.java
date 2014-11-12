@@ -101,6 +101,7 @@ public class TraderList extends AbstractPage{
     private int chart3Index1 = 1;
     private int chart3Index2 = 1;
 
+    Date startDay = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24);
     Date startDate = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 7);
     long startWeekDate = System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 7;
 
@@ -210,7 +211,7 @@ public class TraderList extends AbstractPage{
         list.add(new TraderColumn(of("Day"), profitMap){
             @Override
             protected String getInitValue(Trader trader) {
-                return traderService.getOrderStatProfit(trader.getExchangePair(), startDate).toPlainString();
+                return traderService.getOrderStatProfit(trader.getExchangePair(), startDay).toPlainString();
             }
         });
         list.add(new PropertyColumn<>(of("Week"), "weekProfit"));
@@ -374,7 +375,7 @@ public class TraderList extends AbstractPage{
                         //update profit column
                         BalanceHistory bh = (BalanceHistory) payload;
                         ExchangePair ep = ExchangePair.of(bh.getExchangeType(), bh.getPair());
-                        update(handler, profitMap.get(ep), traderService.getOrderStatProfit(ep, startDate), false, true);
+                        update(handler, profitMap.get(ep), traderService.getOrderStatProfit(ep, startDay), false, true);
 
                         //update trades count
                         update(handler, tradesCount, traderBean.getOrderHistoryCount(startDate, OrderStatus.CLOSED).toString());
