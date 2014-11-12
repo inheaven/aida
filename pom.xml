@@ -403,7 +403,26 @@
                 <artifactId>javax.ws.rs-api</artifactId>
                 <version>2.0</version>
             </dependency>
+
+            <!--Graph-->
+            <dependency>
+                <artifactId>gs-core</artifactId>
+                <groupId>org.graphstream</groupId>
+                <version>1.2</version>
+            </dependency>
+            <dependency>
+                <artifactId>gs-ui</artifactId>
+                <groupId>org.graphstream</groupId>
+                <version>1.2</version>
+            </dependency>
+            <dependency>
+                <artifactId>gs-algo</artifactId>
+                <groupId>org.graphstream</groupId>
+                <version>1.2</version>
+            </dependency>
+
         </dependencies>
+
     </dependencyManagement>
 
     <build>

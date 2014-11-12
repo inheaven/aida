@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -159,5 +160,11 @@ public class TraderBean {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    public List<OrderStat> getOrderStats(Date startDate) {
+        return em.createNativeQuery("SELECT sum(PRICE * FILLEDAMOUNT)/sum(FILLEDAMOUNT) AS avgPrice, " +
+                "sum(FILLEDAMOUNT) AS sumAmount, type, exchangeType, pair FROM order_history " +
+                "WHERE status='CLOSED' AND CLOSED > :closed GROUP BY pair, exchangetype, type", OrderStat.class).getResultList();
     }
 }

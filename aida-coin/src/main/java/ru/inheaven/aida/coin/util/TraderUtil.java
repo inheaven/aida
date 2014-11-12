@@ -52,7 +52,15 @@ public class TraderUtil {
         return decimal.multiply(new BigDecimal(1 + random.nextDouble()/3)).setScale(8, ROUND_HALF_UP);
     }
 
+    public static BigDecimal randomMinus30(BigDecimal decimal){
+        return decimal.multiply(new BigDecimal(1 - random.nextDouble()/3)).setScale(8, ROUND_HALF_UP);
+    }
+
     public static BigDecimal random50(BigDecimal decimal){
         return decimal.multiply(BigDecimal.valueOf(1 + random.nextDouble()/2)).setScale(8, ROUND_HALF_UP);
+    }
+
+    public static BigDecimal randomMinus50(BigDecimal decimal){
+        return decimal.multiply(BigDecimal.valueOf(1 - random.nextDouble()/2)).setScale(8, ROUND_HALF_UP);
     }
 }

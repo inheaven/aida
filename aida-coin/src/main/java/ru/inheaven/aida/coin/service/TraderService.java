@@ -603,7 +603,7 @@ public class TraderService {
 
                         //random ask delta
                         BigDecimal randomAskDelta = predictionIndex.compareTo(ZERO) > 0
-                                ? random20(delta) : randomMinus20(delta);
+                                ? random50(delta) : randomMinus50(delta);
 
                         if (randomAskDelta.compareTo(ZERO) == 0){
                             randomAskDelta = "USD".equals(currencyPair.counterSymbol)
@@ -617,7 +617,7 @@ public class TraderService {
 
                         //random bid delta
                         BigDecimal randomBidDelta = predictionIndex.compareTo(ZERO) > 0
-                                ? randomMinus20(delta) : random20(delta);
+                                ? randomMinus50(delta) : random50(delta);
 
                         if (randomBidDelta.compareTo(ZERO) == 0){
                             randomBidDelta = "USD".equals(currencyPair.counterSymbol)
