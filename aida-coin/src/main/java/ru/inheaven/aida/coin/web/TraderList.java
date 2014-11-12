@@ -210,7 +210,7 @@ public class TraderList extends AbstractPage{
         list.add(new TraderColumn(of("Day"), profitMap){
             @Override
             protected String getInitValue(Trader trader) {
-                return traderService.getOrderVolumeRate(trader.getExchangePair(), startDate).getVolume().toPlainString();
+                return traderService.getOrderStatProfit(trader.getExchangePair(), startDate).toPlainString();
             }
         });
         list.add(new PropertyColumn<>(of("Week"), "weekProfit"));
