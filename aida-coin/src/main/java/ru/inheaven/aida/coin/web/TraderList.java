@@ -244,7 +244,7 @@ public class TraderList extends AbstractPage{
                 List<Trader> traders = traderBean.getTraders();
 
                 for (Trader trader : traders){
-                    trader.setWeekProfit(traderService.getOrderVolumeRate(trader.getExchangePair(), new Date(startWeekDate)).getVolume());
+                    trader.setWeekProfit(traderService.getOrderStatProfit(trader.getExchangePair(), new Date(startWeekDate)));
                 }
 
                 Collections.sort(traders, new Comparator<Trader>() {
@@ -374,8 +374,7 @@ public class TraderList extends AbstractPage{
                         //update profit column
                         BalanceHistory bh = (BalanceHistory) payload;
                         ExchangePair ep = ExchangePair.of(bh.getExchangeType(), bh.getPair());
-                        OrderVolume orderVolumePair = traderService.getOrderVolumeRate(ep, startDate);
-                        update(handler, profitMap.get(ep), orderVolumePair.getVolume(), false, true);
+                        update(handler, profitMap.get(ep), traderService.getOrderStatProfit(ep, startDate), false, true);
 
                         //update trades count
                         update(handler, tradesCount, traderBean.getOrderHistoryCount(startDate, OrderStatus.CLOSED).toString());

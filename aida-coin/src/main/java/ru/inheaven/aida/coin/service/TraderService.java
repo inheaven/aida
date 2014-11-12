@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.coin.entity.*;
 import ru.inheaven.aida.coin.util.TraderUtil;
 import ru.inheaven.aida.predictor.service.PredictorService;
+import sun.misc.OSEnvironment;
 
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
@@ -30,6 +31,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static com.xeiam.xchange.dto.Order.OrderType.ASK;
 import static com.xeiam.xchange.dto.Order.OrderType.BID;
@@ -66,6 +68,8 @@ public class TraderService {
     private Map<ExchangeType, AccountInfo> accountInfoMap = new ConcurrentHashMap<>();
 
     private Map<ExchangePair, BalanceHistory> balanceHistoryMap = new ConcurrentHashMap<>();
+
+    private List<OrderStat> orderStatMap = new CopyOnWriteArrayList<>();
 
     private Map<ExchangePair,Integer> errorMap = new ConcurrentHashMap<>();
     private Map<ExchangePair,  Long> errorTimeMap = new ConcurrentHashMap<>();
@@ -903,6 +907,25 @@ public class TraderService {
         } catch (Exception e) {
             return ZERO;
         }
+    }
+
+    public BigDecimal getOrderStatProfit(ExchangePair exchangePair, Date startDate){
+        List<OrderStat> orderStats = traderBean.getOrderStats(exchangePair, startDate);
+
+        BigDecimal priceDiff = ZERO;
+        BigDecimal minAmount = ZERO;
+
+        for (OrderStat orderStat : orderStats){
+            priceDiff = orderStat.getType().equals(ASK)
+                    ? priceDiff.add(orderStat.getAvgPrice())
+                    : priceDiff.subtract(orderStat.getAvgPrice());
+
+            if (minAmount.equals(ZERO) || minAmount.compareTo(orderStat.getSumAmount()) > 0){
+                minAmount = orderStat.getSumAmount();
+            }
+        }
+
+        return getBTCVolume(exchangePair, minAmount, priceDiff);
     }
 
 }
