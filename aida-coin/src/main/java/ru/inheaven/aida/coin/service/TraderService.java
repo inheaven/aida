@@ -804,9 +804,9 @@ public class TraderService {
     public BigDecimal getBTCVolume(ExchangePair ep, BigDecimal amount, BigDecimal price){
         if (OKCOIN.equals(ep.getExchangeType())){
             if ("BTC".equals(ep.getCurrency())) {
-                return amount.multiply(BigDecimal.valueOf(100)).divide(price, 8 , ROUND_UP);
+                amount =  amount.multiply(BigDecimal.valueOf(100)).divide(getTicker(ExchangePair.of(OKCOIN, "BTC/USD")).getLast(), 8 , ROUND_UP);
             }else if ("LTC".equals(ep.getCurrency())){
-                return amount.multiply(BigDecimal.valueOf(10)).divide(price, 8 , ROUND_UP);
+                amount = amount.multiply(BigDecimal.valueOf(10)).divide(getTicker(ExchangePair.of(OKCOIN, "LTC/USD")).getLast(), 8, ROUND_UP);
             }
         }
 

@@ -163,7 +163,7 @@ public class TraderBean {
     }
 
     public List<OrderStat> getOrderStats(Date startDate) {
-        return em.createNativeQuery("SELECT sum(PRICE * FILLEDAMOUNT)/sum(FILLEDAMOUNT) AS avgPrice, " +
+        return em.createNativeQuery("SELECT id, sum(PRICE * FILLEDAMOUNT)/sum(FILLEDAMOUNT) AS avgPrice, " +
                 "sum(FILLEDAMOUNT) AS sumAmount, type, exchangeType, pair FROM order_history " +
                 "WHERE status='CLOSED' and CLOSED > ? GROUP BY pair, exchangetype, type", OrderStat.class)
                 .setParameter(1, startDate)
