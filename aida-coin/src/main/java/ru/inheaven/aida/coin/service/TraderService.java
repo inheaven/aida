@@ -542,7 +542,8 @@ public class TraderService {
 
                     //create order
                     for (double index : new double[]{1, 2, 3}) {
-                        BigDecimal delta = minSpread.multiply(BigDecimal.valueOf(index/2)).setScale(8, HALF_UP);
+                        BigDecimal delta = minSpread.multiply(BigDecimal.valueOf(index))
+                                .divide(BigDecimal.valueOf(2), 8, ROUND_UP);
 
                         //btc-e delta
                         if (BTCE.equals(trader.getExchange())){
@@ -556,11 +557,11 @@ public class TraderService {
                         for (LimitOrder order : getOpenOrders(exchangeType).getOpenOrders()) {
                             if (currencyPair.equals(order.getCurrencyPair())
                                     && order.getLimitPrice().subtract(middlePrice).abs()
-                                    .compareTo(delta.multiply(BigDecimal.valueOf(3))) <= 0) {
+                                    .compareTo(delta.multiply(BigDecimal.valueOf(2.5))) <= 0) {
                                 spreadSumAmount = spreadSumAmount.add(order.getTradableAmount());
                             }
                         }
-                        if (spreadSumAmount.compareTo(minOrderAmount.multiply(BigDecimal.valueOf(2*index))) > 0) {
+                        if (spreadSumAmount.compareTo(minOrderAmount.multiply(BigDecimal.valueOf(index))) > 0) {
                             break;
                         }
 
