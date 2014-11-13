@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.coin.entity.*;
 import ru.inheaven.aida.coin.util.TraderUtil;
 import ru.inheaven.aida.predictor.service.PredictorService;
-import sun.misc.OSEnvironment;
 
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
@@ -572,12 +571,12 @@ public class TraderService {
                         //random prediction
                         if (!trader.isFuture()) {
                             askAmount = predictionIndex.compareTo(ZERO) > 0
-                                    ? randomMinus20(minOrderAmount.multiply(BigDecimal.valueOf(index)))
-                                    : random20(minOrderAmount.multiply(BigDecimal.valueOf(index)));
-
-                            bidAmount = predictionIndex.compareTo(ZERO) > 0
                                     ? random20(minOrderAmount.multiply(BigDecimal.valueOf(index)))
                                     : randomMinus20(minOrderAmount.multiply(BigDecimal.valueOf(index)));
+
+                            bidAmount = predictionIndex.compareTo(ZERO) > 0
+                                    ? randomMinus20(minOrderAmount.multiply(BigDecimal.valueOf(index)))
+                                    : random20(minOrderAmount.multiply(BigDecimal.valueOf(index)));
 
                             //check ask
                             if (accountInfo.getBalance(currencyPair.counterSymbol).compareTo(askAmount.multiply(middlePrice)) < 0) {

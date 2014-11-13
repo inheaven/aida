@@ -1,16 +1,13 @@
 package ru.inheaven.aida.coin.service;
 
 import org.graphstream.graph.Graph;
-import org.graphstream.graph.implementations.SingleGraph;
+import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.stream.file.FileSinkImages;
 import ru.inheaven.aida.coin.entity.Trader;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
@@ -31,9 +28,12 @@ public class GraphService {
         List<Trader> traders = traderBean.getTraders();
 
         Set<String> wallets = new HashSet<>();
-        traders.forEach(trader -> wallets.add(trader.getCurrency()));
+        traders.forEach(trader -> {
+            wallets.add(trader.getCurrency());
+            wallets.add(trader.getCounterSymbol());
+        });
 
-        Graph graph = new SingleGraph("graph");
+        Graph graph = new MultiGraph("graph");
 
         wallets.forEach(graph::addNode);
 
@@ -44,12 +44,8 @@ public class GraphService {
         }
 
         FileSinkImages pic = new FileSinkImages(FileSinkImages.OutputType.PNG, FileSinkImages.Resolutions.VGA);
+        pic.writeAll(graph, "graph");
 
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        pic.writeAll(graph, output);
-
-        byte[] data = output.toByteArray();
-        ByteArrayInputStream input = new ByteArrayInputStream(data);
-        return ImageIO.read(input);
+        return null;
     }
 }
