@@ -588,7 +588,7 @@ public class TraderList extends AbstractPage{
         long time = 0L;
 
         for (OrderVolume orderVolume : orderVolumes){
-            if (orderVolume.getDate().getTime() - time > 300000){
+            if (orderVolume.getDate().getTime() - time > 60000){
                 filteredOrderVolumes.add(orderVolume);
                 time = orderVolume.getDate().getTime();
             }
@@ -658,7 +658,7 @@ public class TraderList extends AbstractPage{
                 for (Volume volume : volumes){
                     volumeSum = volumeSum.add(volume.getVolume());
 
-                    if (volume.getDate().getTime() - time > 300000) {
+                    if (volume.getDate().getTime() - time > 60000) {
                         time = volume.getDate().getTime();
                         data.add(new Point(time, volumeSum));
                     }
