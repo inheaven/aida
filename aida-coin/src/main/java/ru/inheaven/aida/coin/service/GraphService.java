@@ -12,11 +12,9 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 
 /**
  * inheaven on 13.11.2014 21:14.
@@ -40,8 +38,9 @@ public class GraphService {
         wallets.forEach(graph::addNode);
 
         for (Trader trader : traders){
-            graph.addEdge(trader.getPair(), trader.getCurrency(), trader.getCounterSymbol());
-            graph.addEdge(trader.getPair(), trader.getCounterSymbol(), trader.getCurrency());
+            String id = trader.getExchange().name() + "/" + trader.getPair();
+            graph.addEdge(id + "/ASK", trader.getCurrency(), trader.getCounterSymbol());
+            graph.addEdge(id + "/BID", trader.getCounterSymbol(), trader.getCurrency());
         }
 
         FileSinkImages pic = new FileSinkImages(FileSinkImages.OutputType.PNG, FileSinkImages.Resolutions.VGA);
