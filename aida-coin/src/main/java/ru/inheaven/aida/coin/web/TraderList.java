@@ -547,9 +547,7 @@ public class TraderList extends AbstractPage{
 
             options.setyAxis(new Axis().setTitle(new Title("")));
 
-            options.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions()
-                    .setMarker(new Marker(false))
-                    .setLineWidth(1)));
+            options.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions().setMarker(new Marker(false))));
 
             //go
 
@@ -610,7 +608,6 @@ public class TraderList extends AbstractPage{
 
             options.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions()
                     .setMarker(new Marker(false))
-                    .setLineWidth(1)
                     .setTurboThreshold(20000)));
 
             List<Point> dataAsk = new ArrayList<>();
@@ -645,7 +642,6 @@ public class TraderList extends AbstractPage{
             options.setPlotOptions(new PlotOptionsChoice().setSpline(
                     new PlotOptions()
                             .setMarker(new Marker(false))
-                            .setLineWidth(1)
                             .setTurboThreshold(20000)));
 
             {
