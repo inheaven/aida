@@ -576,7 +576,7 @@ public class TraderList extends AbstractPage{
                 }
             }
 
-            options.addSeries(new PointSeries().setData(data).setName("Equity").setColor(new HighchartsColor(1)));
+            options.addSeries(new PointSeries().setData(data).setName("Equity").setColor(new HexColor("#7798BF")));
 
             add(chart = new Chart("chart", options));
         }
@@ -621,8 +621,8 @@ public class TraderList extends AbstractPage{
                 dataBid.add(new Point(orderVolume.getDate().getTime(), orderVolume.getBidVolume()));
             }
 
-            options.addSeries(new PointSeries().setData(dataBid).setName("Buy").setColor(new HighchartsColor(3)));
-            options.addSeries(new PointSeries().setData(dataAsk).setName("Sell").setColor(new HighchartsColor(2)));
+            options.addSeries(new PointSeries().setData(dataBid).setName("Bid").setColor(new HexColor("#ee5f5b")));
+            options.addSeries(new PointSeries().setData(dataAsk).setName("Ask").setColor(new HexColor("#62c462")));
 
             add(chart3 = new Chart("chart3", options));
         }
@@ -663,7 +663,7 @@ public class TraderList extends AbstractPage{
                         data.add(new Point(time, volumeSum));
                     }
                 }
-                options.addSeries(new PointSeries().setData(data).setName("Load"));
+                options.addSeries(new PointSeries().setData(data).setName("Load").setColor(new HexColor("#2b908f")));
             }
 
             add(chart4 = new Chart("chart4", options));
