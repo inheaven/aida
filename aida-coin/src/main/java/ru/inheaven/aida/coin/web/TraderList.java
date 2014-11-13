@@ -609,6 +609,7 @@ public class TraderList extends AbstractPage{
             options.setyAxis(new Axis().setTitle(new Title("")));
 
             options.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions()
+                    .setPointInterval(300000)
                     .setMarker(new Marker(false))
                     .setLineWidth(1)
                     .setTurboThreshold(20000)));
@@ -644,6 +645,7 @@ public class TraderList extends AbstractPage{
 
             options.setPlotOptions(new PlotOptionsChoice().setSpline(
                     new PlotOptions()
+                            .setPointInterval(300000)
                             .setMarker(new Marker(false))
                             .setLineWidth(1)
                             .setTurboThreshold(20000)));
