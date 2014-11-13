@@ -37,9 +37,7 @@ public class GraphService {
 
         Graph graph = new SingleGraph("graph");
 
-        for (String wallet : wallets){
-            graph.addNode("wallet");
-        }
+        wallets.forEach(graph::addNode);
 
         for (Trader trader : traders){
             graph.addEdge(trader.getPair(), trader.getCurrency(), trader.getCounterSymbol());
