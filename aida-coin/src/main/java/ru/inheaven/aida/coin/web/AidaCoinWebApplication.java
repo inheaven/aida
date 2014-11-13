@@ -1,5 +1,6 @@
 package ru.inheaven.aida.coin.web;
 
+import com.googlecode.wickedcharts.wicket6.JavaScriptResourceRegistry;
 import de.agilecoders.wicket.core.Bootstrap;
 import de.agilecoders.wicket.core.settings.BootstrapSettings;
 import de.agilecoders.wicket.core.settings.ITheme;
@@ -42,6 +43,11 @@ public class AidaCoinWebApplication extends WebApplication {
 
         getComponentInstantiationListeners().add(new JavaEEComponentInjector(this, (ejbName, ejbType)
                 -> "java:module/" + (ejbName == null ? ejbType.getSimpleName() : ejbName)));
+
+
+        JavaScriptResourceRegistry.getInstance().setHighchartsReference("http://code.highcharts.com/highcharts.js");
+        JavaScriptResourceRegistry.getInstance().setHighchartsMoreReference( "http://code.highcharts.com/highcharts-more.js");
+        JavaScriptResourceRegistry.getInstance().setHighchartsExportingReference("http://code.highcharts.com/modules/exporting.js");
     }
 
     @Override
