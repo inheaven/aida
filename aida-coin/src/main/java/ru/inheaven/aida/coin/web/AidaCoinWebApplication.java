@@ -2,10 +2,15 @@ package ru.inheaven.aida.coin.web;
 
 import de.agilecoders.wicket.core.Bootstrap;
 import de.agilecoders.wicket.core.settings.BootstrapSettings;
+import de.agilecoders.wicket.core.settings.ITheme;
+import de.agilecoders.wicket.core.settings.Theme;
+import de.agilecoders.wicket.themes.markup.html.bootswatch.BootswatchTheme;
+import de.agilecoders.wicket.themes.markup.html.bootswatch.BootswatchThemeProvider;
 import org.apache.wicket.Application;
 import org.apache.wicket.ConverterLocator;
 import org.apache.wicket.IConverterLocator;
 import org.apache.wicket.Page;
+import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.util.convert.converter.BigDecimalConverter;
 import org.wicketstuff.javaee.injection.JavaEEComponentInjector;
@@ -28,7 +33,7 @@ public class AidaCoinWebApplication extends WebApplication {
     protected void init() {
         super.init();
 
-        Bootstrap.install(Application.get(), new BootstrapSettings());
+        Bootstrap.install(Application.get(), new BootstrapSettings().setThemeProvider(new BootswatchThemeProvider(BootswatchTheme.Slate)));
 
         getMarkupSettings().setCompressWhitespace(true);
         getMarkupSettings().setDefaultMarkupEncoding("UTF-8");

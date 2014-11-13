@@ -2,6 +2,7 @@ package ru.inheaven.aida.coin.web;
 
 import com.googlecode.wickedcharts.highcharts.jackson.JsonRenderer;
 import com.googlecode.wickedcharts.highcharts.options.*;
+import com.googlecode.wickedcharts.highcharts.options.color.HexColor;
 import com.googlecode.wickedcharts.highcharts.options.color.HighchartsColor;
 import com.googlecode.wickedcharts.highcharts.options.color.LinearGradient;
 import com.googlecode.wickedcharts.highcharts.options.series.Point;
@@ -533,7 +534,8 @@ public class TraderList extends AbstractPage{
         //Chart
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(366));
+            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(366)
+                    .setBackgroundColor(HexColor.fromString("#272b30")));
             options.setGlobal(new Global().setUseUTC(false));
             options.setCredits(new CreditOptions().setEnabled(false));
 
@@ -593,7 +595,8 @@ public class TraderList extends AbstractPage{
 
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(366).setZoomType(ZoomType.X));
+            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(366).setZoomType(ZoomType.X)
+                    .setBackgroundColor(HexColor.fromString("#272b30")));
             options.setGlobal(new Global().setUseUTC(false));
             options.setCredits(new CreditOptions().setEnabled(false));
 
@@ -626,7 +629,8 @@ public class TraderList extends AbstractPage{
         //Chart 4
         {
             Options options = new Options();
-            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(366).setZoomType(ZoomType.X));
+            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(366).setZoomType(ZoomType.X)
+                    .setBackgroundColor(HexColor.fromString("#272b30")));
             options.setGlobal(new Global().setUseUTC(false));
             options.setCredits(new CreditOptions().setEnabled(false));
 
@@ -639,7 +643,6 @@ public class TraderList extends AbstractPage{
 
             options.setPlotOptions(new PlotOptionsChoice().setSpline(
                     new PlotOptions()
-                            .setFillColor(new LinearGradient(LinearGradient.GradientDirection.VERTICAL))
                             .setMarker(new Marker(false))
                             .setLineWidth(1)
                             .setTurboThreshold(20000)));
@@ -713,12 +716,12 @@ public class TraderList extends AbstractPage{
 
             handler.appendJavaScript(new JsStatement().$(component)
                     .chain("parent")
-                    .chain("animate", "{backgroundColor: '#FAFAFA'}")
+                    .chain("animate", "{color: '#FAFAFA'}")
                     .render());
 
             handler.appendJavaScript(new JsStatement().$(component)
                     .chain("parent")
-                    .chain("animate", "{backgroundColor:" + color + "}")
+                    .chain("animate", "{color:" + color + "}")
                     .render());
 
             component.setDefaultModelObject(newValue);
