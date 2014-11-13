@@ -48,6 +48,8 @@ public class AidaCoinWebApplication extends WebApplication {
         JavaScriptResourceRegistry.getInstance().setHighchartsReference("http://code.highcharts.com/highcharts.js");
         JavaScriptResourceRegistry.getInstance().setHighchartsMoreReference( "http://code.highcharts.com/highcharts-more.js");
         JavaScriptResourceRegistry.getInstance().setHighchartsExportingReference("http://code.highcharts.com/modules/exporting.js");
+
+        mountPage("/graph", GraphPage.class);
     }
 
     @Override
