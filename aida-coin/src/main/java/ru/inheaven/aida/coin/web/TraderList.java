@@ -7,6 +7,7 @@ import com.googlecode.wickedcharts.highcharts.options.color.HighchartsColor;
 import com.googlecode.wickedcharts.highcharts.options.color.LinearGradient;
 import com.googlecode.wickedcharts.highcharts.options.series.Point;
 import com.googlecode.wickedcharts.highcharts.options.series.PointSeries;
+import com.googlecode.wickedcharts.highcharts.theme.GrayTheme;
 import com.googlecode.wickedcharts.wicket6.highcharts.Chart;
 import com.googlecode.wickedcharts.wicket6.highcharts.JsonRendererFactory;
 import com.xeiam.xchange.dto.account.AccountInfo;
@@ -533,7 +534,7 @@ public class TraderList extends AbstractPage{
 
         //Chart
         {
-            Options options = new Options();
+            Options options = new GrayTheme();
             options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(366)
                     .setBackgroundColor(HexColor.fromString("#272b30")));
             options.setGlobal(new Global().setUseUTC(false));
@@ -594,7 +595,7 @@ public class TraderList extends AbstractPage{
         }
 
         {
-            Options options = new Options();
+            Options options = new GrayTheme();
             options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(366).setZoomType(ZoomType.X)
                     .setBackgroundColor(HexColor.fromString("#272b30")));
             options.setGlobal(new Global().setUseUTC(false));
@@ -628,7 +629,7 @@ public class TraderList extends AbstractPage{
 
         //Chart 4
         {
-            Options options = new Options();
+            Options options = new GrayTheme();
             options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(366).setZoomType(ZoomType.X)
                     .setBackgroundColor(HexColor.fromString("#272b30")));
             options.setGlobal(new Global().setUseUTC(false));
