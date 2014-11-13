@@ -557,7 +557,7 @@ public class TraderService {
                         for (LimitOrder order : getOpenOrders(exchangeType).getOpenOrders()) {
                             if (currencyPair.equals(order.getCurrencyPair())
                                     && order.getLimitPrice().subtract(middlePrice).abs()
-                                    .compareTo(delta.multiply(BigDecimal.valueOf(1.3))) <= 0) {
+                                    .compareTo(delta.multiply(BigDecimal.valueOf(1.61803398875))) <= 0) {
                                 spreadSumAmount = spreadSumAmount.add(order.getTradableAmount());
                             }
                         }
