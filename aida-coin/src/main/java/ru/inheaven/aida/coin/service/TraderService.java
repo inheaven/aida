@@ -906,8 +906,9 @@ public class TraderService {
 
             for (int i = 0; i < size-step; ++i){
                 for (int j = step/2; j < step; ++j){
-                    if (list.get(i).getPrediction().floatValue() *
-                            (list.get(i + j).getPrice().floatValue() - list.get(i).getPrice().floatValue()) >= 0){
+                    if (list.get(i).getPrediction() != null
+                            && (list.get(i + j).getPrice().floatValue() - list.get(i).getPrice().floatValue() *
+                            list.get(i).getPrediction().floatValue()) >= 0){
                         p++;
                         break;
                     }
