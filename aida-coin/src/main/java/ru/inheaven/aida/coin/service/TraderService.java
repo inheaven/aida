@@ -86,19 +86,19 @@ public class TraderService {
 
     @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
     public void scheduleBittrexUpdate(){
-        scheduleUpdate(BITTREX);
-        scheduleUpdate(CRYPTSY);
-        scheduleUpdate(BTCE);
-        scheduleUpdate(BTER);
-        scheduleUpdate(BITFINEX);
-        scheduleUpdate(OKCOIN);
+        trade(BITTREX);
+        trade(CRYPTSY);
+        trade(BTCE);
+        trade(BTER);
+        trade(BITFINEX);
+        trade(OKCOIN);
 
         scheduleBalanceHistory();
     }
 
     @Schedule(second = "*/30", minute="*", hour="*", persistent=false)
     public void scheduleCexIOUpdate() throws Exception{
-        scheduleUpdate(CEXIO);
+        trade(CEXIO);
     }
 
     @Schedule(second = "*", minute="*/1", hour="*", persistent=false)
@@ -108,7 +108,7 @@ public class TraderService {
         }
     }
 
-    @Schedule(second = "*/1", minute="*/", hour="*", persistent=false)
+    @Schedule(second = "*/1", minute="*", hour="*", persistent=false)
     public void scheduleTickers(){
         for(ExchangeType exchangeType : ExchangeType.values()){
             try {
@@ -123,7 +123,7 @@ public class TraderService {
     }
 
     @Asynchronous
-    public void scheduleUpdate(ExchangeType exchangeType){
+    public void trade(ExchangeType exchangeType){
         try {
             updateBalance(exchangeType);
             updateOpenOrders(exchangeType);
