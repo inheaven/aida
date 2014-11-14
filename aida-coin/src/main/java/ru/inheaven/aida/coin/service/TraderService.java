@@ -47,6 +47,7 @@ import static ru.inheaven.aida.coin.util.TraderUtil.*;
  */
 @Startup
 @Singleton
+@Lock(LockType.READ)
 @ConcurrencyManagement(ConcurrencyManagementType.BEAN)
 @TransactionManagement(TransactionManagementType.BEAN)
 public class TraderService {
@@ -67,7 +68,6 @@ public class TraderService {
     private Map<ExchangeType, AccountInfo> accountInfoMap = new ConcurrentHashMap<>();
 
     private Map<ExchangePair, BalanceHistory> balanceHistoryMap = new ConcurrentHashMap<>();
-
     private List<OrderStat> orderStatMap = new CopyOnWriteArrayList<>();
 
     private Map<ExchangePair,Integer> errorMap = new ConcurrentHashMap<>();
@@ -84,7 +84,6 @@ public class TraderService {
         }
     }
 
-    @Lock(LockType.READ)
     @Schedule(second = "*", minute="*", hour="*", persistent=false)
     public void scheduleTrade(){
         trade(BITTREX);
@@ -97,13 +96,12 @@ public class TraderService {
         scheduleBalanceHistory();
     }
 
-    @Lock(LockType.READ)
     @Schedule(second = "*/30", minute="*", hour="*", persistent=false)
     public void scheduleCexIOUpdate() throws Exception{
         trade(CEXIO);
     }
 
-    @Lock(LockType.READ)
+
     @Schedule(second = "*/10", minute="*", hour="*", persistent=false)
     public void scheduleOrders(){
         for(ExchangeType exchangeType : ExchangeType.values()){
@@ -111,7 +109,6 @@ public class TraderService {
         }
     }
 
-    @Lock(LockType.READ)
     @Asynchronous
     public void trade(ExchangeType exchangeType){
         try {
@@ -128,7 +125,6 @@ public class TraderService {
         }
     }
 
-    @Lock(LockType.READ)
     @Asynchronous
     public void scheduleBalanceHistory(){
         try {
