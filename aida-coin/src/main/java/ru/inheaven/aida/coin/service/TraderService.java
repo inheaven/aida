@@ -85,7 +85,7 @@ public class TraderService {
     }
 
     @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
-    public void scheduleBittrexUpdate(){
+    public void scheduleUpdate(){
         trade(BITTREX);
         trade(CRYPTSY);
         trade(BTCE);
@@ -241,6 +241,7 @@ public class TraderService {
         broadcast(exchangeType, openOrders);
     }
 
+    @Asynchronous
     private void updateTicker(ExchangeType exchangeType) throws IOException {
         List<String> pairs = traderBean.getTraderPairs(exchangeType);
 
