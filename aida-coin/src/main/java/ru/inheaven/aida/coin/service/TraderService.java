@@ -519,8 +519,8 @@ public class TraderService {
 
                     //cancel orders
                     for (LimitOrder order : getOpenOrders(exchangeType).getOpenOrders()) {
-                        if (currencyPair.equals(order.getCurrencyPair()) && order.getLimitPrice().subtract(middlePrice)
-                                .abs().compareTo(minSpread.multiply(BigDecimal.valueOf(6))) > 0) {
+                        if (currencyPair.equals(order.getCurrencyPair()) && order.getLimitPrice().subtract(middlePrice).abs()
+                                .compareTo(minSpread.multiply(BigDecimal.valueOf(6))) > 0) {
                             tradeService.cancelOrder(order.getId());
 
                             //update order status
