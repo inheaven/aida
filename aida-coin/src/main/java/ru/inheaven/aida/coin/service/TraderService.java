@@ -87,7 +87,7 @@ public class TraderService {
         }
     }
 
-    @Schedule(second = "*", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/5", minute="*", hour="*", persistent=false)
     public void scheduleTrade(){
         trade(BITTREX);
         trade(CRYPTSY);
