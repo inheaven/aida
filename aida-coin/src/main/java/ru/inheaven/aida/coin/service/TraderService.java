@@ -93,14 +93,17 @@ public class TraderService {
         trade(CRYPTSY);
         trade(BTCE);
         trade(BTER);
-        trade(BITFINEX);
-        trade(OKCOIN);
-
-        scheduleBalanceHistory();
     }
 
+    @Schedule(second = "*", minute="*", hour="*", persistent=false)
+    public void scheduleTradeFuture(){
+        trade(BITFINEX);
+        trade(OKCOIN);
+    }
+
+
     @Schedule(second = "*/30", minute="*", hour="*", persistent=false)
-    public void scheduleCexIOUpdate() throws Exception{
+    public void scheduleCexIOUpdate(){
         trade(CEXIO);
     }
 
@@ -113,9 +116,10 @@ public class TraderService {
         for (Trader trader : traderBean.getTraders()){
             updatePredictionIndex(trader.getExchangePair());
         }
+
+        scheduleBalanceHistory();
     }
 
-    @Asynchronous
     public void trade(ExchangeType exchangeType){
         try {
             updateTicker(exchangeType);
@@ -131,7 +135,6 @@ public class TraderService {
         }
     }
 
-    @Asynchronous
     public void scheduleBalanceHistory(){
         try {
             for (ExchangeType exchangeType : ExchangeType.values()){
