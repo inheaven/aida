@@ -85,7 +85,7 @@ public class TraderService {
     }
 
     @Lock(LockType.READ)
-    @Schedule(second = "0/2", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/1", minute="*", hour="*", persistent=false)
     public void scheduleUpdate(){
         trade(BITTREX);
         trade(CRYPTSY);
@@ -101,11 +101,7 @@ public class TraderService {
     @Schedule(second = "*/30", minute="*", hour="*", persistent=false)
     public void scheduleCexIOUpdate() throws Exception{
         trade(CEXIO);
-    }
 
-    @Lock(LockType.READ)
-    @Schedule(second = "*/10", minute="*", hour="*", persistent=false)
-    public void scheduleOrders(){
         for(ExchangeType exchangeType : ExchangeType.values()){
             updateOrders(exchangeType);
         }
