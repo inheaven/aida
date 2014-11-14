@@ -3,8 +3,6 @@ package ru.inheaven.aida.coin.web;
 import com.googlecode.wickedcharts.highcharts.jackson.JsonRenderer;
 import com.googlecode.wickedcharts.highcharts.options.*;
 import com.googlecode.wickedcharts.highcharts.options.color.HexColor;
-import com.googlecode.wickedcharts.highcharts.options.color.HighchartsColor;
-import com.googlecode.wickedcharts.highcharts.options.color.LinearGradient;
 import com.googlecode.wickedcharts.highcharts.options.series.Point;
 import com.googlecode.wickedcharts.highcharts.options.series.PointSeries;
 import com.googlecode.wickedcharts.highcharts.theme.GrayTheme;
@@ -106,6 +104,7 @@ public class TraderList extends AbstractPage{
     Date startDay = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24);
     Date startDate = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 7);
     long startWeekDate = System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 7;
+    long pageInitTime = System.currentTimeMillis();
 
     private static List<Volume> sumVolumes = new CopyOnWriteArrayList<>();
 
@@ -689,15 +688,17 @@ public class TraderList extends AbstractPage{
             if (compare != 0){
                 String color = compare > 0 ? "'#62c462'" : "'#ee5f5b'";
 
-                handler.appendJavaScript(new JsStatement().$(component)
-                        .chain("parent")
-                        .chain("animate", "{color: '#FAFAFA'}")
-                        .render());
+                if (System.currentTimeMillis() - pageInitTime > 5000) {
+                    handler.appendJavaScript(new JsStatement().$(component)
+                            .chain("parent")
+                            .chain("animate", "{color: '#FAFAFA'}")
+                            .render());
 
-                handler.appendJavaScript(new JsStatement().$(component)
-                        .chain("parent")
-                        .chain("animate", "{color:" + color + "}")
-                        .render());
+                    handler.appendJavaScript(new JsStatement().$(component)
+                            .chain("parent")
+                            .chain("animate", "{color:" + color + "}")
+                            .render());
+                }
 
                 component.setDefaultModelObject(s + (percent ? "%" : ""));
                 handler.add(component);
@@ -711,15 +712,17 @@ public class TraderList extends AbstractPage{
         if (compare != 0){
             String color = compare > 0 ? "'#62c462'" : "'#ee5f5b'";
 
-            handler.appendJavaScript(new JsStatement().$(component)
-                    .chain("parent")
-                    .chain("animate", "{color: '#FAFAFA'}")
-                    .render());
+            if (System.currentTimeMillis() - pageInitTime > 5000) {
+                handler.appendJavaScript(new JsStatement().$(component)
+                        .chain("parent")
+                        .chain("animate", "{color: '#FAFAFA'}")
+                        .render());
 
-            handler.appendJavaScript(new JsStatement().$(component)
-                    .chain("parent")
-                    .chain("animate", "{color:" + color + "}")
-                    .render());
+                handler.appendJavaScript(new JsStatement().$(component)
+                        .chain("parent")
+                        .chain("animate", "{color:" + color + "}")
+                        .render());
+            }
 
             component.setDefaultModelObject(newValue);
 
