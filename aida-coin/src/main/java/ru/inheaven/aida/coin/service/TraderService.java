@@ -261,12 +261,12 @@ public class TraderService {
                     if (ticker.getLast() != null && ticker.getLast().compareTo(ZERO) != 0 && ticker.getBid() != null && ticker.getAsk() != null) {
                         ExchangePair ep = new ExchangePair(exchangeType, pair);
 
+                        Ticker previous = tickerMap.put(ep, ticker);
+
+                        //ticker history
                         TickerHistory tickerHistory = new TickerHistory(exchangeType, pair, ticker.getLast(),
                                 ticker.getBid(), ticker.getAsk(), ticker.getVolume(),
                                 getVolatilityIndex(ep), getPredictionIndex(ep));
-
-                        //ticker history
-                        Ticker previous = tickerMap.put(ep, ticker);
 
                         if (previous != null && previous.getLast().compareTo(ticker.getLast()) != 0){
                             traderBean.save(tickerHistory);
@@ -819,19 +819,20 @@ public class TraderService {
     }
 
     public BigDecimal getBTCVolume(ExchangePair ep, BigDecimal amount, BigDecimal price){
-        if (OKCOIN.equals(ep.getExchangeType())){
-            if ("BTC".equals(ep.getCurrency())) {
-                amount =  amount.multiply(BigDecimal.valueOf(100)).divide(getTicker(ExchangePair.of(OKCOIN, "BTC/USD")).getLast(), 8 , ROUND_UP);
-            }else if ("LTC".equals(ep.getCurrency())){
-                amount = amount.multiply(BigDecimal.valueOf(10)).divide(getTicker(ExchangePair.of(OKCOIN, "LTC/USD")).getLast(), 8, ROUND_UP);
-            }
-        }
-
-        BigDecimal volume = amount.multiply(price);
-
-        String pair = ep.getPair();
-
         try {
+
+            if (OKCOIN.equals(ep.getExchangeType())){
+                if ("BTC".equals(ep.getCurrency())) {
+                    amount =  amount.multiply(BigDecimal.valueOf(100)).divide(getTicker(ExchangePair.of(OKCOIN, "BTC/USD")).getLast(), 8 , ROUND_UP);
+                }else if ("LTC".equals(ep.getCurrency())){
+                    amount = amount.multiply(BigDecimal.valueOf(10)).divide(getTicker(ExchangePair.of(OKCOIN, "LTC/USD")).getLast(), 8, ROUND_UP);
+                }
+            }
+
+            BigDecimal volume = amount.multiply(price);
+
+            String pair = ep.getPair();
+
             if (pair.contains("/BTC")) {
                 return volume.setScale(8, HALF_UP);
             } else if (pair.contains("/LTC")) {
