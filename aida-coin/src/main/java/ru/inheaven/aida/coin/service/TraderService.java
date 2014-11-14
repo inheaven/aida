@@ -121,7 +121,7 @@ public class TraderService {
 
             tradeAlpha(exchangeType);
         } catch (Exception e) {
-            log.error("Schedule update error", e);
+            log.error("Schedule trade error", e);
 
             //noinspection ThrowableResultOfMethodCallIgnored
             broadcast(exchangeType, exchangeType.name() + ": " + Throwables.getRootCause(e).getMessage());

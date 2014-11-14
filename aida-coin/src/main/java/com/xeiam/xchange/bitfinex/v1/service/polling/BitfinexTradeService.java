@@ -1,20 +1,23 @@
 package com.xeiam.xchange.bitfinex.v1.service.polling;
 
-import java.io.IOException;
-import java.util.ArrayList;
-
+import com.xeiam.xchange.ExchangeException;
 import com.xeiam.xchange.ExchangeSpecification;
+import com.xeiam.xchange.NotAvailableFromExchangeException;
+import com.xeiam.xchange.NotYetImplementedForExchangeException;
 import com.xeiam.xchange.bitfinex.v1.BitfinexAdapters;
 import com.xeiam.xchange.bitfinex.v1.BitfinexOrderType;
 import com.xeiam.xchange.bitfinex.v1.dto.trade.BitfinexOrderStatusResponse;
 import com.xeiam.xchange.bitfinex.v1.dto.trade.BitfinexTradeResponse;
 import com.xeiam.xchange.currency.CurrencyPair;
-import com.xeiam.xchange.dto.marketdata.Trades;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.MarketOrder;
 import com.xeiam.xchange.dto.trade.OpenOrders;
 import com.xeiam.xchange.dto.trade.UserTrades;
 import com.xeiam.xchange.service.polling.PollingTradeService;
+import com.xeiam.xchange.service.polling.trade.TradeHistoryParams;
+
+import java.io.IOException;
+import java.util.ArrayList;
 
 public class BitfinexTradeService extends BitfinexTradeServiceRaw implements PollingTradeService {
 
@@ -91,5 +94,15 @@ public class BitfinexTradeService extends BitfinexTradeServiceRaw implements Pol
     final BitfinexTradeResponse[] trades = getBitfinexTradeHistory(symbol, timestamp, limit);
 
     return BitfinexAdapters.adaptTradeHistory(trades, symbol);
+  }
+
+  @Override
+  public UserTrades getTradeHistory(TradeHistoryParams tradeHistoryParams) throws ExchangeException, NotAvailableFromExchangeException, NotYetImplementedForExchangeException, IOException {
+    return null;
+  }
+
+  @Override
+  public TradeHistoryParams createTradeHistoryParams() {
+    return null;
   }
 }

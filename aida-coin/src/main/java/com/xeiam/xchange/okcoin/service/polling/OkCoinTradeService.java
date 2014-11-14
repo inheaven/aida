@@ -15,6 +15,7 @@ import com.xeiam.xchange.okcoin.OkCoinException;
 import com.xeiam.xchange.okcoin.dto.trade.OkCoinOrderResult;
 import com.xeiam.xchange.okcoin.dto.trade.OkCoinTradeResult;
 import com.xeiam.xchange.service.polling.PollingTradeService;
+import com.xeiam.xchange.service.polling.trade.TradeHistoryParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,5 +119,15 @@ public class OkCoinTradeService extends OkCoinTradeServiceRaw implements Polling
 
         OkCoinOrderResult orderHistory = getOrderHistory(OkCoinAdapters.adaptSymbol(currencyPair), "1", page.toString(), "1000");
         return OkCoinAdapters.adaptTrades(orderHistory);
+    }
+
+    @Override
+    public UserTrades getTradeHistory(TradeHistoryParams tradeHistoryParams) throws ExchangeException, NotAvailableFromExchangeException, NotYetImplementedForExchangeException, IOException {
+        return null;
+    }
+
+    @Override
+    public TradeHistoryParams createTradeHistoryParams() {
+        return null;
     }
 }
