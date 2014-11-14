@@ -561,7 +561,7 @@ public class TraderService {
                                 spreadSumAmount = spreadSumAmount.add(order.getTradableAmount());
                             }
                         }
-                        if (spreadSumAmount.compareTo(minOrderAmount.multiply(BigDecimal.valueOf(index))) >= 0) {
+                        if (spreadSumAmount.compareTo(minOrderAmount.multiply(BigDecimal.valueOf(index * index + index))) >= 0) {
                             break;
                         }
 
