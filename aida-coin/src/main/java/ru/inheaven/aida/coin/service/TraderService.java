@@ -113,7 +113,7 @@ public class TraderService {
         for(ExchangeType exchangeType : ExchangeType.values()){
             try {
                 updateTicker(exchangeType);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 log.error("Schedule update tickers error", e);
 
                 //noinspection ThrowableResultOfMethodCallIgnored
