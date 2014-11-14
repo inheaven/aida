@@ -64,11 +64,14 @@ public class TraderService {
 
     private Map<ExchangePair, Ticker> tickerMap = new ConcurrentHashMap<>();
     private Map<ExchangePair, OrderBook> orderBookMap = new ConcurrentHashMap<>();
+    private Map<ExchangePair, BalanceHistory> balanceHistoryMap = new ConcurrentHashMap<>();
+    private Map<ExchangePair, BigDecimal> predictionIndexMap = new ConcurrentHashMap<>();
+
     private Map<ExchangeType, OpenOrders> openOrdersMap = new ConcurrentHashMap<>();
     private Map<ExchangeType, AccountInfo> accountInfoMap = new ConcurrentHashMap<>();
 
-    private Map<ExchangePair, BalanceHistory> balanceHistoryMap = new ConcurrentHashMap<>();
     private List<OrderStat> orderStatMap = new CopyOnWriteArrayList<>();
+
 
     private Map<ExchangePair,Integer> errorMap = new ConcurrentHashMap<>();
     private Map<ExchangePair,  Long> errorTimeMap = new ConcurrentHashMap<>();
@@ -101,11 +104,14 @@ public class TraderService {
         trade(CEXIO);
     }
 
-
-    @Schedule(second = "*/10", minute="*", hour="*", persistent=false)
+    @Schedule(second = "0", minute="*", hour="*", persistent=false)
     public void scheduleOrders(){
         for(ExchangeType exchangeType : ExchangeType.values()){
             updateOrders(exchangeType);
+        }
+
+        for (Trader trader : traderBean.getTraders()){
+            updatePredictionIndex(trader.getExchangePair());
         }
     }
 
@@ -857,6 +863,12 @@ public class TraderService {
     }
 
     public BigDecimal getPredictionIndex(ExchangePair exchangePair){
+        return predictionIndexMap.get(exchangePair);
+    }
+
+
+    public void updatePredictionIndex(ExchangePair exchangePair){
+        BigDecimal predictionIndex = ZERO;
         int size = 256;
 
         List<TickerHistory> tickerHistories = traderBean.getTickerHistories(exchangePair, size);
@@ -871,13 +883,13 @@ public class TraderService {
             float index = 100 * (predictorService.getPrediction(timeSeries) - timeSeries[99]) / timeSeries[99];
 
             try {
-                return BigDecimal.valueOf(Math.abs(index) < 1000 ? index : 1000*Math.signum(index)).setScale(2, ROUND_UP);
+                predictionIndex =  BigDecimal.valueOf(Math.abs(index) < 1000 ? index : 1000*Math.signum(index)).setScale(2, ROUND_UP);
             } catch (Exception e) {
-                return ZERO;
+                //
             }
         }
 
-        return ZERO;
+        predictionIndexMap.put(exchangePair, predictionIndex);
     }
 
     public BigDecimal getPredictionTestIndex(ExchangePair exchangePair){
