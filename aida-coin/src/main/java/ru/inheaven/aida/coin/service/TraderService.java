@@ -85,7 +85,7 @@ public class TraderService {
     }
 
     @Lock(LockType.READ)
-    @Schedule(second = "0/1", minute="*", hour="*", persistent=false)
+    @Schedule(second = "0/2", minute="*", hour="*", persistent=false)
     public void scheduleUpdate(){
         trade(BITTREX);
         trade(CRYPTSY);
