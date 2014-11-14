@@ -268,12 +268,12 @@ public class TraderService {
                                 ticker.getBid(), ticker.getAsk(), ticker.getVolume(),
                                 getVolatilityIndex(ep), getPredictionIndex(ep));
 
-                        if (previous != null && previous.getLast().compareTo(ticker.getLast()) != 0){
+                        if (previous == null || previous.getLast().compareTo(ticker.getLast()) != 0){
                             traderBean.save(tickerHistory);
                         }
 
-                        if (previous != null && (previous.getAsk().compareTo(ticker.getAsk()) != 0
-                                || previous.getBid().compareTo(ticker.getBid()) != 0)){
+                        if (previous == null || previous.getAsk().compareTo(ticker.getAsk()) != 0
+                                || previous.getBid().compareTo(ticker.getBid()) != 0){
                             broadcast(exchangeType, tickerHistory);
                         }
                     }
