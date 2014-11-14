@@ -562,7 +562,7 @@ public class TraderService {
                             }
                         }
                         if (spreadSumAmount.compareTo(minOrderAmount.multiply(BigDecimal.valueOf(index))) >= 0) {
-                            break;
+                            continue;
                         }
 
                         //random ask
