@@ -101,7 +101,6 @@ public class TraderService {
         trade(OKCOIN);
     }
 
-
     @Schedule(second = "*/30", minute="*", hour="*", persistent=false)
     public void scheduleCexIOUpdate(){
         trade(CEXIO);
@@ -678,6 +677,7 @@ public class TraderService {
         }
     }
 
+    @Asynchronous
     private void broadcast(ExchangeType exchange, Object payload){
         try {
             Application application = Application.get("aida-coin");
