@@ -84,7 +84,7 @@ public class TraderService {
         }
     }
 
-    @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/1", minute="*", hour="*", persistent=false)
     public void scheduleUpdate(){
         trade(BITTREX);
         trade(CRYPTSY);
@@ -108,23 +108,10 @@ public class TraderService {
         }
     }
 
-    @Schedule(second = "*/1", minute="*", hour="*", persistent=false)
-    public void scheduleTickers(){
-        for(ExchangeType exchangeType : ExchangeType.values()){
-            try {
-                updateTicker(exchangeType);
-            } catch (Exception e) {
-                log.error("Schedule update tickers error", e);
-
-                //noinspection ThrowableResultOfMethodCallIgnored
-                broadcast(exchangeType, exchangeType.name() + ": " + Throwables.getRootCause(e).getMessage());
-            }
-        }
-    }
-
     @Asynchronous
     public void trade(ExchangeType exchangeType){
         try {
+            updateTicker(exchangeType);
             updateBalance(exchangeType);
             updateOpenOrders(exchangeType);
 
@@ -241,7 +228,6 @@ public class TraderService {
         broadcast(exchangeType, openOrders);
     }
 
-    @Asynchronous
     private void updateTicker(ExchangeType exchangeType) throws IOException {
         List<String> pairs = traderBean.getTraderPairs(exchangeType);
 
