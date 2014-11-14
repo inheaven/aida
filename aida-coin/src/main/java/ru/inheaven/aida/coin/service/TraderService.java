@@ -108,12 +108,25 @@ public class TraderService {
         }
     }
 
+    @Schedule(second = "*/1", minute="*/", hour="*", persistent=false)
+    public void scheduleTickers(){
+        for(ExchangeType exchangeType : ExchangeType.values()){
+            try {
+                updateTicker(exchangeType);
+            } catch (IOException e) {
+                log.error("Schedule update tickers error", e);
+
+                //noinspection ThrowableResultOfMethodCallIgnored
+                broadcast(exchangeType, exchangeType.name() + ": " + Throwables.getRootCause(e).getMessage());
+            }
+        }
+    }
+
     @Asynchronous
     public void scheduleUpdate(ExchangeType exchangeType){
         try {
             updateBalance(exchangeType);
             updateOpenOrders(exchangeType);
-            updateTicker(exchangeType);
 
             tradeAlpha(exchangeType);
         } catch (Exception e) {
@@ -247,16 +260,19 @@ public class TraderService {
                     if (ticker.getLast() != null && ticker.getLast().compareTo(ZERO) != 0 && ticker.getBid() != null && ticker.getAsk() != null) {
                         ExchangePair ep = new ExchangePair(exchangeType, pair);
 
+                        TickerHistory tickerHistory = new TickerHistory(exchangeType, pair, ticker.getLast(),
+                                ticker.getBid(), ticker.getAsk(), ticker.getVolume(),
+                                getVolatilityIndex(ep), getPredictionIndex(ep));
+
                         //ticker history
                         Ticker previous = tickerMap.put(ep, ticker);
 
                         if (previous != null && previous.getLast().compareTo(ticker.getLast()) != 0){
-                            TickerHistory tickerHistory = new TickerHistory(exchangeType, pair,
-                                    ticker.getLast(), ticker.getBid(), ticker.getAsk(),
-                                    ticker.getVolume(), getVolatilityIndex(ep), getPredictionIndex(ep));
-
                             traderBean.save(tickerHistory);
+                        }
 
+                        if (previous != null && (previous.getAsk().compareTo(ticker.getAsk()) != 0
+                                || previous.getBid().compareTo(ticker.getBid()) != 0)){
                             broadcast(exchangeType, tickerHistory);
                         }
                     }
