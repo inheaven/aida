@@ -693,7 +693,7 @@ public class TraderList extends AbstractPage{
     }
 
     private void update(WebSocketRequestHandler handler, Component component, BigDecimal newValue, boolean percent, boolean negative){
-        if (component != null){
+        if (component != null && newValue != null){
             IConverter<BigDecimal> converter = percent ? bigDecimalConverter2 : getConverter(BigDecimal.class);
 
             String s =  converter.convertToString(newValue, getLocale());
