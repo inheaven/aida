@@ -161,7 +161,15 @@ public class TraderList extends AbstractPage{
         List<IColumn<Trader, String>> list = new ArrayList<>();
 
         list.add(new PropertyColumn<>(of("Exchange"), "exchange"));
-        list.add(new PropertyColumn<>(of("Coin"), "pair"));
+        list.add(new AbstractColumn<Trader, String>(of("Coin")) {
+            @Override
+            public void populateItem(Item<ICellPopulator<Trader>> cellItem, String componentId, IModel<Trader> rowModel) {
+                Trader trader = rowModel.getObject();
+
+                cellItem.add(new Label(componentId, Model.of(trader.getPair()) +
+                        (trader.getType().equals(TraderType.SHORT) ? "☯" : "")));
+            }
+        });
         list.add(new TraderColumn(of("Balance"), balanceMap));
         list.add(new TraderColumn(of("Estimate"), estimateMap));
         list.add(new AbstractColumn<Trader, String>(of("Lot")) {
