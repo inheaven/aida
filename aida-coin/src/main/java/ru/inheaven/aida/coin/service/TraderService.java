@@ -38,6 +38,8 @@ import static java.math.BigDecimal.*;
 import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.coin.entity.ExchangeType.*;
 import static ru.inheaven.aida.coin.entity.OrderStatus.*;
+import static ru.inheaven.aida.coin.entity.TraderType.LONG;
+import static ru.inheaven.aida.coin.entity.TraderType.SHORT;
 import static ru.inheaven.aida.coin.service.ExchangeApi.getExchange;
 import static ru.inheaven.aida.coin.util.TraderUtil.*;
 
@@ -527,15 +529,24 @@ public class TraderService {
                     //min order amount
                     BigDecimal minOrderAmount = getMinOrderAmount(trader, ticker);
 
+                    //open orders
+                    List<LimitOrder> openOrders = getOpenOrders(exchangeType).getOpenOrders();
+
                     //cancel orders
-                    for (LimitOrder order : getOpenOrders(exchangeType).getOpenOrders()) {
-                        if (currencyPair.equals(order.getCurrencyPair()) && order.getLimitPrice().subtract(middlePrice).abs()
+                    for (LimitOrder order : openOrders) {
+                        if ((trader.getType().equals(LONG) && (order.getId().contains("&2") || order.getId().contains("&4")))
+                                || ((trader.getType().equals(SHORT) && (order.getId().contains("&1") || order.getId().contains("&3"))))){
+                            continue;
+                        }
+
+                        if (currencyPair.equals(order.getCurrencyPair())
+                                && order.getLimitPrice().subtract(middlePrice).abs()
                                 .compareTo(minSpread.multiply(BigDecimal.valueOf(9))) > 0) {
                             tradeService.cancelOrder(order.getId());
 
                             //update order status
                             try {
-                                OrderHistory h = traderBean.getOrderHistory(order.getId());
+                                OrderHistory h = traderBean.getOrderHistory(order.getId().split("&")[0]);
                                 if (h != null){
                                     h.setStatus(CANCELED);
                                     h.setClosed(new Date());
@@ -546,7 +557,6 @@ public class TraderService {
                             } catch (Exception e) {
                                 broadcast(exchangeType, "Order not found " + order.getId());
                             }
-
                         }
                     }
 
@@ -567,7 +577,12 @@ public class TraderService {
 
                         //magic
                         BigDecimal spreadSumAmount = ZERO;
-                        for (LimitOrder order : getOpenOrders(exchangeType).getOpenOrders()) {
+                        for (LimitOrder order : openOrders) {
+                            if ((trader.getType().equals(LONG) && (order.getId().contains("&2") || order.getId().contains("&4")))
+                                    || ((trader.getType().equals(SHORT) && (order.getId().contains("&1") || order.getId().contains("&3"))))){
+                                continue;
+                            }
+
                             if (currencyPair.equals(order.getCurrencyPair())
                                     && order.getLimitPrice().subtract(middlePrice).abs()
                                     .compareTo(delta.multiply(BigDecimal.valueOf(1.61803398875))) <= 0) {
@@ -650,14 +665,14 @@ public class TraderService {
                         //BID
                         BigDecimal bidPrice =  middlePrice.subtract(randomBidDelta);
 
-                        String id = tradeService.placeLimitOrder(new LimitOrder(BID, bidAmount, currencyPair, "", new Date(), bidPrice));
+                        String id = tradeService.placeLimitOrder(new LimitOrder(BID, bidAmount, currencyPair, trader.getType().name(), new Date(), bidPrice));
 
                         traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), BID, bidAmount, bidPrice, new Date()));
 
                         //ASK
                         BigDecimal askPrice = middlePrice.add(randomAskDelta);
 
-                        id = tradeService.placeLimitOrder(new LimitOrder(ASK, askAmount, currencyPair, "", new Date(), askPrice));
+                        id = tradeService.placeLimitOrder(new LimitOrder(ASK, askAmount, currencyPair, trader.getType().name(), new Date(), askPrice));
 
                         traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), ASK, askAmount, askPrice, new Date()));
 

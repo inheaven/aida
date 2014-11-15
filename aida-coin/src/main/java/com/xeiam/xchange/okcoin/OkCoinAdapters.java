@@ -170,13 +170,23 @@ public final class OkCoinAdapters {
     private static LimitOrder adaptOpenOrder(OkCoinOrder order) {
 
         return new LimitOrder(adaptOrderType(order.getType()), order.getAmount().subtract(order.getDealAmount()),
-                adaptSymbol(order.getSymbol()), String.valueOf(order.getOrderId()),
+                adaptSymbol(order.getSymbol()), String.valueOf(order.getOrderId()) + "&" + order.getType(),
                 order.getCreateDate(), order.getRate());
     }
 
     public static OrderType adaptOrderType(String type) {
         //order type 1: open long, 2: open short, 3: close long, 4: close short
-        return type.equals("1") || type.equals("4") ? OrderType.BID : OrderType.ASK;
+        switch (type){
+            case "1":
+            case "4":
+                return OrderType.BID;
+
+            case "2":
+            case "3":
+                return OrderType.ASK;
+
+            default: throw new RuntimeException("type error");
+        }
     }
 
     private static UserTrade adaptTrade(OkCoinOrder order) {

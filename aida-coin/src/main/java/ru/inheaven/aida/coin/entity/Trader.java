@@ -41,6 +41,10 @@ public class Trader extends AbstractEntity{
     @Column
     private boolean running = false;
 
+    @Column(nullable = true)
+    @Enumerated(EnumType.STRING)
+    private TraderType type = TraderType.LONG;
+
     @Transient
     private BigDecimal weekProfit;
 
@@ -136,6 +140,14 @@ public class Trader extends AbstractEntity{
 
     public void setRunning(boolean running) {
         this.running = running;
+    }
+
+    public TraderType getType() {
+        return type;
+    }
+
+    public void setType(TraderType traderType) {
+        this.type = traderType;
     }
 
     public BigDecimal getWeekProfit() {

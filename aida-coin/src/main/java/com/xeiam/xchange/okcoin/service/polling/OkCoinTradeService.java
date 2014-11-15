@@ -83,9 +83,16 @@ public class OkCoinTradeService extends OkCoinTradeServiceRaw implements Polling
     @Override
     public String placeLimitOrder(LimitOrder limitOrder) throws ExchangeException, NotAvailableFromExchangeException, NotYetImplementedForExchangeException, IOException {
         // type 1: open long position    2: open short position    3:liquidate long position    4: liquidate short position
-        long orderId = trade(OkCoinAdapters.adaptSymbol(limitOrder.getCurrencyPair()), "this_week",
-                limitOrder.getType() == OrderType.BID ? "1" : "3", limitOrder.getLimitPrice().toPlainString(),
-                limitOrder.getTradableAmount().toPlainString()).getOrderId();
+        long orderId;
+        if ("SHORT".equals(limitOrder.getId())){
+            orderId = trade(OkCoinAdapters.adaptSymbol(limitOrder.getCurrencyPair()), "this_week",
+                    limitOrder.getType() == OrderType.BID ? "4" : "2", limitOrder.getLimitPrice().toPlainString(),
+                    limitOrder.getTradableAmount().toPlainString()).getOrderId();
+        }else{
+             orderId = trade(OkCoinAdapters.adaptSymbol(limitOrder.getCurrencyPair()), "this_week",
+                    limitOrder.getType() == OrderType.BID ? "1" : "3", limitOrder.getLimitPrice().toPlainString(),
+                    limitOrder.getTradableAmount().toPlainString()).getOrderId();
+        }
 
         return String.valueOf(orderId);
     }
