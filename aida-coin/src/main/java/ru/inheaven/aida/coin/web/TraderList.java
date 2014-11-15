@@ -387,12 +387,8 @@ public class TraderList extends AbstractPage{
 
                         update(handler, profitMap.get(ep), traderService.getOrderStatProfit(ep, startDay), false, true);
 
-                        if (bh.getExchangeType().equals(ExchangeType.OKCOIN)) {
-                            ep = new ExchangePair(bh.getExchangeType(), bh.getPair(), TraderType.SHORT);
-                            if (profitMap.containsKey(ep)){
-                                update(handler, profitMap.get(ep), traderService.getOrderStatProfit(ep, startDay), false, true);
-                            }
-                        }
+                        ep = new ExchangePair(bh.getExchangeType(), bh.getPair(), TraderType.SHORT);
+                        update(handler, profitMap.get(ep), traderService.getOrderStatProfit(ep, startDay), false, true);
 
                         //update trades count
                         update(handler, tradesCount, traderBean.getOrderHistoryCount(startDate, OrderStatus.CLOSED).toString());
@@ -436,21 +432,30 @@ public class TraderList extends AbstractPage{
                         TickerHistory tickerHistory = (TickerHistory) exchangeMessage.getPayload();
 
                         ExchangePair ep = ExchangePair.of(exchangeMessage.getExchangeType(), tickerHistory.getPair());
+                        ExchangePair ep2 = new ExchangePair(exchangeMessage.getExchangeType(), tickerHistory.getPair(), TraderType.SHORT);
 
                         //ask
                         update(handler, askMap.get(ep), tickerHistory.getAsk());
+                        update(handler, askMap.get(ep2), tickerHistory.getAsk());
 
                         //bid
                         update(handler, bidMap.get(ep), tickerHistory.getBid());
+                        update(handler, bidMap.get(ep2), tickerHistory.getBid());
 
                         //volatility
-                        update(handler, volatilityMap.get(ep), tickerHistory.getVolatility(), true, false);
+                        BigDecimal volatility = tickerHistory.getVolatility();
+                        update(handler, volatilityMap.get(ep), volatility, true, false);
+                        update(handler, volatilityMap.get(ep2), volatility, true, false);
 
                         //prediction
-                        update(handler, predictionMap.get(ep), tickerHistory.getPrediction(), true, true);
+                        BigDecimal prediction = tickerHistory.getPrediction();
+                        update(handler, predictionMap.get(ep), prediction, true, true);
+                        update(handler, predictionMap.get(ep2), prediction, true, true);
 
                         //prediction test
-                        update(handler, predictionTestMap.get(ep), traderService.getPredictionTestIndex(ep), true, false);
+                        BigDecimal predictionTest = traderService.getPredictionTestIndex(ep);
+                        update(handler, predictionTestMap.get(ep), predictionTest, true, false);
+                        update(handler, predictionTestMap.get(ep2), predictionTest, true, false);
                     }else if (payload instanceof OpenOrders){
                         OpenOrders openOrders = (OpenOrders) exchangeMessage.getPayload();
 
