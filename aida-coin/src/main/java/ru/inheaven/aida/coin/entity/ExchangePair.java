@@ -12,10 +12,17 @@ import java.io.Serializable;
 public class ExchangePair implements Serializable{
     private ExchangeType exchangeType;
     private String pair;
+    private TraderType traderType = TraderType.LONG;
 
     public ExchangePair(ExchangeType exchangeType, String pair) {
         this.exchangeType = exchangeType;
         this.pair = pair;
+    }
+
+    public ExchangePair(ExchangeType exchangeType, String pair, TraderType traderType) {
+        this.exchangeType = exchangeType;
+        this.pair = pair;
+        this.traderType = traderType;
     }
 
     public static ExchangePair of(ExchangeType exchange, CurrencyPair currencyPair) {
@@ -50,6 +57,14 @@ public class ExchangePair implements Serializable{
         this.pair = pair;
     }
 
+    public TraderType getTraderType() {
+        return traderType;
+    }
+
+    public void setTraderType(TraderType traderType) {
+        this.traderType = traderType;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -57,11 +72,18 @@ public class ExchangePair implements Serializable{
 
         ExchangePair that = (ExchangePair) o;
 
-        return exchangeType == that.exchangeType && !(pair != null ? !pair.equals(that.pair) : that.pair != null);
+        if (exchangeType != that.exchangeType) return false;
+        if (pair != null ? !pair.equals(that.pair) : that.pair != null) return false;
+        if (traderType != that.traderType) return false;
+
+        return true;
     }
 
     @Override
     public int hashCode() {
-        return 31 * (exchangeType != null ? exchangeType.hashCode() : 0) + (pair != null ? pair.hashCode() : 0);
+        int result = exchangeType != null ? exchangeType.hashCode() : 0;
+        result = 31 * result + (pair != null ? pair.hashCode() : 0);
+        result = 31 * result + (traderType != null ? traderType.hashCode() : 0);
+        return result;
     }
 }

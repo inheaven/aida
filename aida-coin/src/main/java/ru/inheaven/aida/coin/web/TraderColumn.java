@@ -34,7 +34,7 @@ public class TraderColumn extends AbstractColumn<Trader, String> {
 
         cellItem.add(label);
 
-        map.put(new ExchangePair(trader.getExchange(), trader.getPair()), label);
+        map.put(new ExchangePair(trader.getExchange(), trader.getPair(), trader.getType()), label);
     }
 
     protected String getInitValue(Trader trader){

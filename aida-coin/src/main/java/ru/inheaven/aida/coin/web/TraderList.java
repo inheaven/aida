@@ -384,7 +384,15 @@ public class TraderList extends AbstractPage{
                         //update profit column
                         BalanceHistory bh = (BalanceHistory) payload;
                         ExchangePair ep = ExchangePair.of(bh.getExchangeType(), bh.getPair());
+
                         update(handler, profitMap.get(ep), traderService.getOrderStatProfit(ep, startDay), false, true);
+
+                        if (bh.getExchangeType().equals(ExchangeType.OKCOIN)) {
+                            ep = new ExchangePair(bh.getExchangeType(), bh.getPair(), TraderType.SHORT);
+                            if (profitMap.containsKey(ep)){
+                                update(handler, profitMap.get(ep), traderService.getOrderStatProfit(ep, startDay), false, true);
+                            }
+                        }
 
                         //update trades count
                         update(handler, tradesCount, traderBean.getOrderHistoryCount(startDate, OrderStatus.CLOSED).toString());
