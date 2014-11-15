@@ -166,8 +166,8 @@ public class TraderList extends AbstractPage{
             public void populateItem(Item<ICellPopulator<Trader>> cellItem, String componentId, IModel<Trader> rowModel) {
                 Trader trader = rowModel.getObject();
 
-                cellItem.add(new Label(componentId, Model.of(trader.getPair()) +
-                        (trader.getType().equals(TraderType.SHORT) ? "☯" : "")));
+                cellItem.add(new Label(componentId, Model.of(trader.getPair()
+                        + (trader.getType().equals(TraderType.SHORT) ? "☯" : ""))));
             }
         });
         list.add(new TraderColumn(of("Balance"), balanceMap));
