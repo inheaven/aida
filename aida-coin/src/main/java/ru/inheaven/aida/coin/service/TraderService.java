@@ -87,18 +87,19 @@ public class TraderService {
         }
     }
 
+
+    @Schedule(second = "*", minute="*", hour="*", persistent=false)
+    public void scheduleTradeFuture(){
+        trade(BITFINEX);
+        trade(OKCOIN);
+    }
+
     @Schedule(second = "*/5", minute="*", hour="*", persistent=false)
     public void scheduleTrade(){
         trade(BITTREX);
         trade(CRYPTSY);
         trade(BTCE);
         trade(BTER);
-    }
-
-    @Schedule(second = "*", minute="*", hour="*", persistent=false)
-    public void scheduleTradeFuture(){
-        trade(BITFINEX);
-        trade(OKCOIN);
     }
 
     @Schedule(second = "*/30", minute="*", hour="*", persistent=false)
@@ -529,7 +530,7 @@ public class TraderService {
                     //cancel orders
                     for (LimitOrder order : getOpenOrders(exchangeType).getOpenOrders()) {
                         if (currencyPair.equals(order.getCurrencyPair()) && order.getLimitPrice().subtract(middlePrice).abs()
-                                .compareTo(minSpread.multiply(BigDecimal.valueOf(6))) > 0) {
+                                .compareTo(minSpread.multiply(BigDecimal.valueOf(9))) > 0) {
                             tradeService.cancelOrder(order.getId());
 
                             //update order status
