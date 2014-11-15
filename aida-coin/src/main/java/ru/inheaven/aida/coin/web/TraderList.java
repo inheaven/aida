@@ -154,7 +154,7 @@ public class TraderList extends AbstractPage{
         add(okcoinCoins = new Label("okcoinCoins", Model.of("0")).setOutputMarkupId(true));
 
 
-        String quote = ".·´`·.¸¸.·´´`·.¸.·´´``·.¸.·´``·.´``·.¸¸.·´´``·  ><º>";
+        String quote = ".·´`·.¸¸.·´´`·.¸.·´´``·.¸.·´``·.´``·.¸¸.·´´``· <º>< ><º>";
 
         add(new Label("quote", Model.of(quote)));
 
@@ -167,7 +167,7 @@ public class TraderList extends AbstractPage{
                 Trader trader = rowModel.getObject();
 
                 cellItem.add(new Label(componentId, Model.of(trader.getPair()
-                        + (trader.getType().equals(TraderType.SHORT) ? "☯" : ""))));
+                        + (trader.getType().equals(TraderType.SHORT) ? " ☯" : ""))));
             }
         });
         list.add(new TraderColumn(of("Balance"), balanceMap));
