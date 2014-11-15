@@ -241,11 +241,11 @@ public class TraderService {
     }
 
     private void updateTicker(ExchangeType exchangeType) throws IOException {
-        List<String> pairs = traderBean.getTraderPairs(exchangeType);
+        List<Trader> traders = traderBean.getTraders(exchangeType);
 
-        for (String pair : pairs) {
+        for (Trader trader : traders) {
             try {
-                CurrencyPair currencyPair = getCurrencyPair(pair);
+                CurrencyPair currencyPair = getCurrencyPair(trader.getPair());
 
                 if (currencyPair != null) {
                     Ticker ticker;
@@ -257,12 +257,12 @@ public class TraderService {
                     }
 
                     if (ticker.getLast() != null && ticker.getLast().compareTo(ZERO) != 0 && ticker.getBid() != null && ticker.getAsk() != null) {
-                        ExchangePair ep = new ExchangePair(exchangeType, pair);
+                        ExchangePair ep = new ExchangePair(exchangeType, trader.getPair(), trader.getType());
 
                         Ticker previous = tickerMap.put(ep, ticker);
 
                         //ticker history
-                        TickerHistory tickerHistory = new TickerHistory(exchangeType, pair, ticker.getLast(),
+                        TickerHistory tickerHistory = new TickerHistory(exchangeType, trader.getPair(), ticker.getLast(),
                                 ticker.getBid(), ticker.getAsk(), ticker.getVolume(),
                                 getVolatilityIndex(ep), getPredictionIndex(ep));
 
@@ -277,7 +277,7 @@ public class TraderService {
                     }
                 }
             } catch (Exception e) {
-                log.error("Error update ticker {} {}", exchangeType, pair);
+                log.error("Error update ticker {} {}", exchangeType, trader.getPair());
 
                 throw e;
             }
