@@ -394,10 +394,15 @@ public class TraderService {
         BigDecimal middlePrice = ticker.getAsk().add(ticker.getBid()).divide(BigDecimal.valueOf(2), 8, HALF_UP);
 
         //bitfinex spread
-        if (BITFINEX.equals(trader.getExchange()) || OKCOIN.equals(trader.getExchange())){
-            minSpread = middlePrice.multiply(new BigDecimal("0.008")).setScale(8, HALF_UP);
-        }else{
-            minSpread = middlePrice.multiply(new BigDecimal("0.013")).setScale(8, HALF_UP);
+        switch (trader.getExchange()){
+            case BITFINEX:
+                minSpread = middlePrice.multiply(new BigDecimal("0.008")).setScale(8, HALF_UP);
+                break;
+            case OKCOIN:
+                minSpread = middlePrice.multiply(new BigDecimal("0.005")).setScale(8, HALF_UP);
+                break;
+            default:
+                minSpread = middlePrice.multiply(new BigDecimal("0.013")).setScale(8, HALF_UP);
         }
 
         //ticker spread
@@ -569,7 +574,7 @@ public class TraderService {
                     BigDecimal predictionIndex = getPredictionIndex(exchangePair);
 
                     //create order
-                    for (double index : new double[]{1, 2, 3}) {
+                    for (double index : new double[]{1, 2, 3, 4, 5, 6}) {
                         BigDecimal delta = minSpread.multiply(BigDecimal.valueOf(index))
                                 .divide(BigDecimal.valueOf(2), 8, ROUND_UP);
 
@@ -594,23 +599,18 @@ public class TraderService {
                                 spreadSumAmount = spreadSumAmount.add(order.getTradableAmount());
                             }
                         }
-                        if (spreadSumAmount.compareTo(minOrderAmount.multiply(BigDecimal.valueOf(index))) >= 0) {
+                        if (spreadSumAmount.compareTo(minOrderAmount) >= 0) {
                             continue;
                         }
 
                         //random ask
-                        BigDecimal askAmount = minOrderAmount.multiply(BigDecimal.valueOf(index));
-                        BigDecimal bidAmount = minOrderAmount.multiply(BigDecimal.valueOf(index));
+                        BigDecimal askAmount = minOrderAmount;
+                        BigDecimal bidAmount = minOrderAmount;
 
                         //random prediction
                         if (!trader.isFuture()) {
-                            askAmount = predictionIndex.compareTo(ZERO) > 0
-                                    ? random50(minOrderAmount.multiply(BigDecimal.valueOf(index)))
-                                    : random20(minOrderAmount.multiply(BigDecimal.valueOf(index)));
-
-                            bidAmount = predictionIndex.compareTo(ZERO) > 0
-                                    ? random20(minOrderAmount.multiply(BigDecimal.valueOf(index)))
-                                    : random50(minOrderAmount.multiply(BigDecimal.valueOf(index)));
+                            askAmount = predictionIndex.compareTo(ZERO) > 0 ? random50(askAmount) : random10(askAmount);
+                            bidAmount = predictionIndex.compareTo(ZERO) > 0 ? random10(bidAmount) : random50(bidAmount);
 
                             //check ask
                             if (accountInfo.getBalance(currencyPair.counterSymbol).compareTo(askAmount.multiply(middlePrice)) < 0) {
