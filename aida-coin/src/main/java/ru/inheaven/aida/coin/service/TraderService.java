@@ -365,7 +365,7 @@ public class TraderService {
                 boolean found = false;
 
                 for (LimitOrder o : openOrders.getOpenOrders()){
-                    if (o.getId().equals(h.getOrderId())){
+                    if (o.getId().split("&")[0].equals(h.getOrderId())){
                         found = true;
                         break;
                     }
@@ -394,8 +394,8 @@ public class TraderService {
         BigDecimal middlePrice = ticker.getAsk().add(ticker.getBid()).divide(BigDecimal.valueOf(2), 8, HALF_UP);
 
         //bitfinex spread
-        if (BITFINEX.equals(trader.getExchange())){
-            minSpread = middlePrice.multiply(new BigDecimal("0.013")).setScale(8, HALF_UP);
+        if (BITFINEX.equals(trader.getExchange()) || OKCOIN.equals(trader.getExchange())){
+            minSpread = middlePrice.multiply(new BigDecimal("0.008")).setScale(8, HALF_UP);
         }else{
             minSpread = middlePrice.multiply(new BigDecimal("0.013")).setScale(8, HALF_UP);
         }
@@ -696,14 +696,16 @@ public class TraderService {
     @Asynchronous
     private void broadcast(ExchangeType exchange, Object payload){
         try {
-            Application application = Application.get("aida-coin");
+            if (payload != null) {
+                Application application = Application.get("aida-coin");
 
-            if (broadcaster == null){
-                IWebSocketSettings webSocketSettings = WebSocketSettings.Holder.get(application);
-                broadcaster = new WebSocketPushBroadcaster(webSocketSettings.getConnectionRegistry());
+                if (broadcaster == null){
+                    IWebSocketSettings webSocketSettings = WebSocketSettings.Holder.get(application);
+                    broadcaster = new WebSocketPushBroadcaster(webSocketSettings.getConnectionRegistry());
+                }
+
+                broadcaster.broadcastAll(application, new ExchangeMessage<>(exchange, payload));
             }
-
-            broadcaster.broadcastAll(application, new ExchangeMessage<>(exchange, payload));
         } catch (Exception e) {
             log.error("broadcast error", e);
         }
