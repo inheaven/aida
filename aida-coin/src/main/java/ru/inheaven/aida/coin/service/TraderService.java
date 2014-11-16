@@ -664,25 +664,39 @@ public class TraderService {
                                     : randomAskDelta.setScale(8, HALF_UP);
                         }
 
+                        if (trader.getType().equals(SHORT)){
+                            //ASK
+                            BigDecimal askPrice = middlePrice.add(randomAskDelta);
+                            String id = tradeService.placeLimitOrder(new LimitOrder(ASK, askAmount, currencyPair, trader.getType().name(), new Date(), askPrice));
+                            traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), ASK, askAmount, askPrice, new Date()));
 
-                        //BID
-                        BigDecimal bidPrice =  middlePrice.subtract(randomBidDelta);
+                            //BID
+                            BigDecimal bidPrice =  middlePrice.subtract(randomBidDelta);
+                            id = tradeService.placeLimitOrder(new LimitOrder(BID, bidAmount, currencyPair, trader.getType().name(), new Date(), bidPrice));
+                            traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), BID, bidAmount, bidPrice, new Date()));
 
-                        String id = tradeService.placeLimitOrder(new LimitOrder(BID, bidAmount, currencyPair, trader.getType().name(), new Date(), bidPrice));
+                            //notification
+                            broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": " +
+                                    bidAmount.toString() + " @ " + bidPrice.toString() + " | " +
+                                    askAmount.toString() + " @ " + askPrice.toString());
 
-                        traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), BID, bidAmount, bidPrice, new Date()));
+                        }else{
+                            //BID
+                            BigDecimal bidPrice =  middlePrice.subtract(randomBidDelta);
+                            String id = tradeService.placeLimitOrder(new LimitOrder(BID, bidAmount, currencyPair, trader.getType().name(), new Date(), bidPrice));
+                            traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), BID, bidAmount, bidPrice, new Date()));
 
-                        //ASK
-                        BigDecimal askPrice = middlePrice.add(randomAskDelta);
+                            //ASK
+                            BigDecimal askPrice = middlePrice.add(randomAskDelta);
+                            id = tradeService.placeLimitOrder(new LimitOrder(ASK, askAmount, currencyPair, trader.getType().name(), new Date(), askPrice));
+                            traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), ASK, askAmount, askPrice, new Date()));
 
-                        id = tradeService.placeLimitOrder(new LimitOrder(ASK, askAmount, currencyPair, trader.getType().name(), new Date(), askPrice));
+                            //notification
+                            broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": " +
+                                    bidAmount.toString() + " @ " + bidPrice.toString() + " | " +
+                                    askAmount.toString() + " @ " + askPrice.toString());
 
-                        traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), ASK, askAmount, askPrice, new Date()));
-
-                        //notification
-                        broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": " +
-                                bidAmount.toString() + " @ " + bidPrice.toString() + " | " +
-                                askAmount.toString() + " @ " + askPrice.toString());
+                        }
                     }
                 }
             } catch (Exception e) {
