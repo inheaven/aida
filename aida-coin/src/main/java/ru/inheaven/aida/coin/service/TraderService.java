@@ -409,11 +409,15 @@ public class TraderService {
         //min spread scale
         if (trader.getPair().contains("/USD")){
             if (minSpread.compareTo(new BigDecimal("0.03")) < 0){
-                minSpread = new BigDecimal("0.02").setScale(2, ROUND_UP);
+                minSpread = new BigDecimal("0.02").setScale(2, HALF_UP);
             }
         }else if (minSpread.compareTo(new BigDecimal("0.00000003")) < 0){
             minSpread = new BigDecimal("0.00000002");
         }
+
+        //volatility
+        BigDecimal volatility = traderBean.getSigma(trader.getExchangePair()).divide(ticker.getLast(), 8, HALF_UP);
+        minSpread = minSpread.multiply(ONE.add(volatility.multiply(BigDecimal.valueOf(2*Math.PI)))).setScale(8, HALF_UP);
 
         return minSpread;
     }
@@ -460,9 +464,8 @@ public class TraderService {
                 : getMinOrderVolume(trader.getExchangePair()).divide(middlePrice, 8, HALF_UP);
 
         //volatility
-        BigDecimal volatility = traderBean.getSigma(trader.getExchangePair()).divide(ticker.getLast(), 8, ROUND_UP);
-        minOrderAmount = minOrderAmount.multiply(ONE.add(volatility.multiply(BigDecimal.valueOf(2*Math.PI))))
-                .setScale(8, HALF_UP);
+        BigDecimal volatility = traderBean.getSigma(trader.getExchangePair()).divide(ticker.getLast(), 8, HALF_UP);
+        minOrderAmount = minOrderAmount.multiply(ONE.add(volatility.multiply(BigDecimal.valueOf(2*Math.PI)))).setScale(8, HALF_UP);
 
         return minOrderAmount;
     }
@@ -627,8 +630,8 @@ public class TraderService {
                                 continue;
                             }
                         }else {
-                            askAmount = askAmount.setScale(0, ROUND_UP);
-                            bidAmount = bidAmount.setScale(0, ROUND_UP);
+                            askAmount = askAmount.setScale(0, HALF_UP);
+                            bidAmount = bidAmount.setScale(0, HALF_UP);
 
                             //[check future create order balance here]
                         }
@@ -837,9 +840,9 @@ public class TraderService {
 
             if (OKCOIN.equals(ep.getExchangeType())){
                 if ("BTC".equals(ep.getCurrency())) {
-                    amount =  amount.multiply(BigDecimal.valueOf(100)).divide(getTicker(ExchangePair.of(OKCOIN, "BTC/USD")).getLast(), 8 , ROUND_UP);
+                    amount =  amount.multiply(BigDecimal.valueOf(100)).divide(getTicker(ExchangePair.of(OKCOIN, "BTC/USD")).getLast(), 8 , HALF_UP);
                 }else if ("LTC".equals(ep.getCurrency())){
-                    amount = amount.multiply(BigDecimal.valueOf(10)).divide(getTicker(ExchangePair.of(OKCOIN, "LTC/USD")).getLast(), 8, ROUND_UP);
+                    amount = amount.multiply(BigDecimal.valueOf(10)).divide(getTicker(ExchangePair.of(OKCOIN, "LTC/USD")).getLast(), 8, HALF_UP);
                 }
             }
 
@@ -904,7 +907,7 @@ public class TraderService {
             float index = 100 * (predictorService.getPrediction(timeSeries) - timeSeries[99]) / timeSeries[99];
 
             try {
-                predictionIndex =  BigDecimal.valueOf(Math.abs(index) < 1000 ? index : 1000*Math.signum(index)).setScale(2, ROUND_UP);
+                predictionIndex =  BigDecimal.valueOf(Math.abs(index) < 1000 ? index : 1000*Math.signum(index)).setScale(2, HALF_UP);
             } catch (Exception e) {
                 //
             }
@@ -933,7 +936,7 @@ public class TraderService {
                 }
             }
 
-            return BigDecimal.valueOf(100* p / (size-step)).setScale(2, ROUND_UP);
+            return BigDecimal.valueOf(100* p / (size-step)).setScale(2, HALF_UP);
         }
 
         return ZERO;
@@ -942,7 +945,7 @@ public class TraderService {
     public BigDecimal getVolatilityIndex(ExchangePair exchangePair){
         try {
             return traderBean.getSigma(exchangePair).multiply(BigDecimal.valueOf(100))
-                    .divide(tickerMap.get(exchangePair).getLast(), 2, ROUND_UP);
+                    .divide(tickerMap.get(exchangePair).getLast(), 2, HALF_UP);
         } catch (Exception e) {
             return ZERO;
         }

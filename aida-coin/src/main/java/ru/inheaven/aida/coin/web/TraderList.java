@@ -44,12 +44,12 @@ import ru.inheaven.aida.coin.util.TraderUtil;
 
 import javax.ejb.EJB;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 
-import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.math.BigDecimal.ZERO;
 import static org.apache.wicket.model.Model.of;
 
@@ -349,7 +349,7 @@ public class TraderList extends AbstractPage{
                                 .add(new BigDecimal(bterCoins.getDefaultModelObjectAsString()))
                                 .add(new BigDecimal(bitfinexCoins.getDefaultModelObjectAsString()))
                                 .add(new BigDecimal(okcoinCoins.getDefaultModelObjectAsString()))
-                                .setScale(8, ROUND_HALF_UP);
+                                .setScale(8, RoundingMode.HALF_UP);
 
                         update(handler, sumEstimate, sum);
 
