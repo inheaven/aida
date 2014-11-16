@@ -545,11 +545,13 @@ public class TraderService {
                         if (currencyPair.equals(order.getCurrencyPair())
                                 && order.getLimitPrice().subtract(middlePrice).abs()
                                 .compareTo(minSpread.multiply(BigDecimal.valueOf(9))) > 0) {
-                            tradeService.cancelOrder(order.getId());
+                            String orderId = order.getId().split("&")[0];
+
+                            tradeService.cancelOrder(orderId);
 
                             //update order status
                             try {
-                                OrderHistory h = traderBean.getOrderHistory(order.getId().split("&")[0]);
+                                OrderHistory h = traderBean.getOrderHistory(orderId);
                                 if (h != null){
                                     h.setStatus(CANCELED);
                                     h.setClosed(new Date());
@@ -663,7 +665,6 @@ public class TraderService {
                                     ? randomAskDelta.setScale(2, HALF_UP)
                                     : randomAskDelta.setScale(8, HALF_UP);
                         }
-
 
                         //update middle price
                         ticker = getTicker(exchangePair);
