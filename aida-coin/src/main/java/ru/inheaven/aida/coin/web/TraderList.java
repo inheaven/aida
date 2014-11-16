@@ -470,7 +470,9 @@ public class TraderList extends AbstractPage{
                         }
 
                         for (LimitOrder order : openOrders.getOpenOrders()){
-                            ExchangePair ep = ExchangePair.of(exchangeMessage.getExchangeType(), order.getCurrencyPair());
+                            ExchangePair ep = order.getId().contains("&2") || order.getId().contains("&4")
+                                    ? ExchangePair.of(exchangeMessage.getExchangeType(), order.getCurrencyPair(), TraderType.SHORT)
+                                    : ExchangePair.of(exchangeMessage.getExchangeType(), order.getCurrencyPair());
 
                             if (buyMap.get(ep) != null) {
                                 switch (order.getType()){
