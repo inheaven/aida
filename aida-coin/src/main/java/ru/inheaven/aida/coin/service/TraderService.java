@@ -596,7 +596,7 @@ public class TraderService {
                             if (currencyPair.equals(order.getCurrencyPair())
                                     && order.getLimitPrice().subtract(middlePrice).abs()
                                     .compareTo(delta.multiply(BigDecimal.valueOf(1.61803398875))) <= 0) {
-                                spreadSumAmount = spreadSumAmount.add(order.getTradableAmount().multiply(BigDecimal.valueOf(index)).setScale(ROUND_UP, 8));
+                                spreadSumAmount = spreadSumAmount.add(order.getTradableAmount().multiply(BigDecimal.valueOf(index)));
                             }
                         }
                         if (spreadSumAmount.compareTo(minOrderAmount) >= 0) {
