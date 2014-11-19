@@ -399,7 +399,7 @@ public class TraderService {
                 minSpread = middlePrice.multiply(new BigDecimal("0.008")).setScale(8, HALF_UP);
                 break;
             case OKCOIN:
-                minSpread = middlePrice.multiply(new BigDecimal("0.005")).setScale(8, HALF_UP);
+                minSpread = middlePrice.multiply(new BigDecimal("0.008")).setScale(8, HALF_UP);
                 break;
             default:
                 minSpread = middlePrice.multiply(new BigDecimal("0.013")).setScale(8, HALF_UP);
@@ -549,7 +549,7 @@ public class TraderService {
 
                         if (currencyPair.equals(order.getCurrencyPair())
                                 && order.getLimitPrice().subtract(middlePrice).abs()
-                                .compareTo(minSpread.multiply(BigDecimal.valueOf(9))) > 0) {
+                                .compareTo(minSpread.multiply(BigDecimal.valueOf(12))) > 0) {
                             String orderId = order.getId().split("&")[0];
 
                             tradeService.cancelOrder(orderId);
