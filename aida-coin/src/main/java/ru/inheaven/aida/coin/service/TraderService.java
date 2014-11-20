@@ -561,12 +561,16 @@ public class TraderService {
 
                                     traderBean.save(h);
 
-                                    tradeService.cancelOrder(orderId);
+                                    try {
+                                        tradeService.cancelOrder(orderId);
+                                    } catch (Exception e) {
+                                        broadcast(exchangeType, "Order not found " + orderId);
+                                    }
 
                                     broadcast(exchangeType, h);
                                 }
                             } catch (Exception e) {
-                                broadcast(exchangeType, "Order not found " + order.getId());
+                                broadcast(exchangeType, "Order not found " + orderId);
                             }
                         }
                     }

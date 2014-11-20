@@ -55,6 +55,16 @@ public class OkCoinTradeServiceRaw extends OKCoinBaseTradePollingService {
         return returnOrThrow(orderResult);
     }
 
+    public OkCoinOrderResult getOrder(long orderId, String symbol, String prompt, Integer page) throws IOException {
+        OkCoinOrderResult orderResult = okCoin.getOrder(partner, orderId, symbol, prompt, "1", page, 50, signatureCreator);
+
+        if (!orderResult.isResult() && orderResult.getErrorCode() == 20015){
+            return new OkCoinOrderResult(true, 20015, new OkCoinOrder[]{});
+        }
+
+        return returnOrThrow(orderResult);
+    }
+
     public OkCoinOrderResult getOrderHistory(String symbol, String status, String currentPage, String pageLength) throws IOException {
 
         OkCoinOrderResult orderResult = okCoin.getOrderHistory(partner, symbol, status, currentPage, pageLength, signatureCreator);
