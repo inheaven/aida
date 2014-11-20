@@ -11,7 +11,6 @@ import com.xeiam.xchange.dto.trade.MarketOrder;
 import com.xeiam.xchange.dto.trade.OpenOrders;
 import com.xeiam.xchange.dto.trade.UserTrades;
 import com.xeiam.xchange.okcoin.OkCoinAdapters;
-import com.xeiam.xchange.okcoin.OkCoinException;
 import com.xeiam.xchange.okcoin.dto.trade.OkCoinOrderResult;
 import com.xeiam.xchange.okcoin.dto.trade.OkCoinTradeResult;
 import com.xeiam.xchange.service.polling.PollingTradeService;
@@ -111,7 +110,7 @@ public class OkCoinTradeService extends OkCoinTradeServiceRaw implements Polling
                     ret = true;
                 }
                 break;
-            } catch (OkCoinException e) {
+            } catch (ExchangeException e) {
                 // order not found.
             }
         }

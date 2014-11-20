@@ -553,24 +553,17 @@ public class TraderService {
                             String orderId = order.getId().split("&")[0];
 
                             //update order status
-                            try {
-                                OrderHistory h = traderBean.getOrderHistory(orderId);
-                                if (h != null){
-                                    h.setStatus(CANCELED);
-                                    h.setClosed(new Date());
+                            OrderHistory h = traderBean.getOrderHistory(orderId);
 
-                                    traderBean.save(h);
+                            if (h != null){
+                                h.setStatus(CANCELED);
+                                h.setClosed(new Date());
 
-                                    try {
-                                        tradeService.cancelOrder(orderId);
-                                    } catch (Exception e) {
-                                        broadcast(exchangeType, "Order not found " + orderId);
-                                    }
+                                traderBean.save(h);
 
-                                    broadcast(exchangeType, h);
-                                }
-                            } catch (Exception e) {
-                                broadcast(exchangeType, "Order not found " + orderId);
+                                tradeService.cancelOrder(orderId);
+
+                                broadcast(exchangeType, h);
                             }
                         }
                     }
