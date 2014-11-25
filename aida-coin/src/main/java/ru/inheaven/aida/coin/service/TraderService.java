@@ -67,7 +67,9 @@ public class TraderService {
     private Map<ExchangePair, Ticker> tickerMap = new ConcurrentHashMap<>();
     private Map<ExchangePair, OrderBook> orderBookMap = new ConcurrentHashMap<>();
     private Map<ExchangePair, BalanceHistory> balanceHistoryMap = new ConcurrentHashMap<>();
+
     private Map<ExchangePair, BigDecimal> predictionIndexMap = new ConcurrentHashMap<>();
+    private Map<ExchangePair, BigDecimal> volatilityMap = new ConcurrentHashMap<>();
 
     private Map<ExchangeType, OpenOrders> openOrdersMap = new ConcurrentHashMap<>();
     private Map<ExchangeType, AccountInfo> accountInfoMap = new ConcurrentHashMap<>();
@@ -117,6 +119,7 @@ public class TraderService {
 
         for (Trader trader : traderBean.getTraders()){
             updatePredictionIndex(trader.getExchangePair());
+            updateVolatility(trader.getExchangePair());
         }
 
         scheduleBalanceHistory();
@@ -399,7 +402,7 @@ public class TraderService {
                 minSpread = middlePrice.multiply(new BigDecimal("0.008")).setScale(8, HALF_UP);
                 break;
             case OKCOIN:
-                minSpread = middlePrice.multiply(new BigDecimal("0.005")).setScale(8, HALF_UP);
+                minSpread = middlePrice.multiply(new BigDecimal("0.004")).setScale(8, HALF_UP);
                 break;
             default:
                 minSpread = middlePrice.multiply(new BigDecimal("0.013")).setScale(8, HALF_UP);
@@ -421,7 +424,7 @@ public class TraderService {
         }
 
         //volatility
-        BigDecimal volatility = traderBean.getSigma(trader.getExchangePair()).divide(ticker.getLast(), 8, HALF_UP);
+        BigDecimal volatility = volatilityMap.get(trader.getExchangePair()).divide(ticker.getLast(), 8, HALF_UP);
         minSpread = minSpread.multiply(ONE.add(volatility.multiply(BigDecimal.valueOf(2*Math.PI)))).setScale(8, HALF_UP);
 
         return minSpread;
@@ -469,7 +472,7 @@ public class TraderService {
                 : getMinOrderVolume(trader.getExchangePair()).divide(middlePrice, 8, HALF_UP);
 
         //volatility
-        BigDecimal volatility = traderBean.getSigma(trader.getExchangePair()).divide(ticker.getLast(), 8, HALF_UP);
+        BigDecimal volatility = volatilityMap.get(trader.getExchangePair()).divide(ticker.getLast(), 8, HALF_UP);
         minOrderAmount = minOrderAmount.multiply(ONE.add(volatility.multiply(BigDecimal.valueOf(2*Math.PI)))).setScale(8, HALF_UP);
 
         return minOrderAmount;
@@ -549,7 +552,7 @@ public class TraderService {
 
                         if (currencyPair.equals(order.getCurrencyPair())
                                 && order.getLimitPrice().subtract(middlePrice).abs()
-                                .compareTo(minSpread.multiply(BigDecimal.valueOf(12))) > 0) {
+                                .compareTo(minSpread.multiply(BigDecimal.valueOf(7))) > 0) {
                             String orderId = order.getId().split("&")[0];
 
                             //update order status
@@ -960,9 +963,13 @@ public class TraderService {
         return ZERO;
     }
 
+    public void updateVolatility(ExchangePair exchangePair){
+        volatilityMap.put(exchangePair, traderBean.getSigma(exchangePair));
+    }
+
     public BigDecimal getVolatilityIndex(ExchangePair exchangePair){
         try {
-            return traderBean.getSigma(exchangePair).multiply(BigDecimal.valueOf(100))
+            return volatilityMap.get(exchangePair).multiply(BigDecimal.valueOf(100))
                     .divide(tickerMap.get(exchangePair).getLast(), 2, HALF_UP);
         } catch (Exception e) {
             return ZERO;
