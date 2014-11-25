@@ -69,7 +69,7 @@ public class TraderService {
     private Map<ExchangePair, BalanceHistory> balanceHistoryMap = new ConcurrentHashMap<>();
 
     private Map<ExchangePair, BigDecimal> predictionIndexMap = new ConcurrentHashMap<>();
-    private Map<ExchangePair, BigDecimal> volatilityMap = new ConcurrentHashMap<>();
+    private Map<ExchangePair, BigDecimal> volatilitySigmaMap = new ConcurrentHashMap<>();
 
     private Map<ExchangeType, OpenOrders> openOrdersMap = new ConcurrentHashMap<>();
     private Map<ExchangeType, AccountInfo> accountInfoMap = new ConcurrentHashMap<>();
@@ -424,7 +424,7 @@ public class TraderService {
         }
 
         //volatility
-        BigDecimal volatility = volatilityMap.get(trader.getExchangePair()).divide(ticker.getLast(), 8, HALF_UP);
+        BigDecimal volatility = volatilitySigmaMap.get(trader.getExchangePair()).divide(ticker.getLast(), 8, HALF_UP);
         minSpread = minSpread.multiply(ONE.add(volatility.multiply(BigDecimal.valueOf(2*Math.PI)))).setScale(8, HALF_UP);
 
         return minSpread;
@@ -472,7 +472,7 @@ public class TraderService {
                 : getMinOrderVolume(trader.getExchangePair()).divide(middlePrice, 8, HALF_UP);
 
         //volatility
-        BigDecimal volatility = volatilityMap.get(trader.getExchangePair()).divide(ticker.getLast(), 8, HALF_UP);
+        BigDecimal volatility = volatilitySigmaMap.get(trader.getExchangePair()).divide(ticker.getLast(), 8, HALF_UP);
         minOrderAmount = minOrderAmount.multiply(ONE.add(volatility.multiply(BigDecimal.valueOf(2*Math.PI)))).setScale(8, HALF_UP);
 
         return minOrderAmount;
@@ -964,12 +964,12 @@ public class TraderService {
     }
 
     public void updateVolatility(ExchangePair exchangePair){
-        volatilityMap.put(exchangePair, traderBean.getSigma(exchangePair));
+        volatilitySigmaMap.put(exchangePair, traderBean.getSigma(exchangePair));
     }
 
     public BigDecimal getVolatilityIndex(ExchangePair exchangePair){
         try {
-            return volatilityMap.get(exchangePair).multiply(BigDecimal.valueOf(100))
+            return volatilitySigmaMap.get(exchangePair).multiply(BigDecimal.valueOf(100))
                     .divide(tickerMap.get(exchangePair).getLast(), 2, HALF_UP);
         } catch (Exception e) {
             return ZERO;

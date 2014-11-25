@@ -59,7 +59,7 @@ public class Trader extends AbstractEntity{
     }
 
     public ExchangePair getExchangePair(){
-        return new ExchangePair(exchange, pair);
+        return new ExchangePair(exchange, pair, type);
     }
 
     public String getCurrency(){
