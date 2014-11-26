@@ -144,6 +144,8 @@ public class TraderService {
                 float bidProfit = 10 * p.getBuyAmount().floatValue() / p.getBuyPriceAvg().floatValue();
                 float askProfit = 10 * p.getSellAmount().floatValue() / p.getSellPriceAvg().floatValue();
 
+                futures.setMargin(BigDecimal.valueOf(bidProfit + askProfit));
+
                 for (int i = 1; i < levels; ++i){
                     float bidPrice0 = p.getBuyPriceAvg().floatValue() * (1f + 0.005f * (i-1));
                     float bidPrice = p.getBuyPriceAvg().floatValue() * (1f + 0.005f * i);

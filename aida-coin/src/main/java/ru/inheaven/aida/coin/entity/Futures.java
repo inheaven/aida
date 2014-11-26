@@ -1,5 +1,6 @@
 package ru.inheaven.aida.coin.entity;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +12,8 @@ public class Futures {
     private List<Position> bids = new ArrayList<>();
     private List<Position> asks = new ArrayList<>();
     private List<Position> equity = new ArrayList<>();
+
+    private BigDecimal margin = BigDecimal.ZERO;
 
     public List<Position> getMargins() {
         return margins;
@@ -42,5 +45,13 @@ public class Futures {
 
     public void setEquity(List<Position> equity) {
         this.equity = equity;
+    }
+
+    public BigDecimal getMargin() {
+        return margin;
+    }
+
+    public void setMargin(BigDecimal margin) {
+        this.margin = margin;
     }
 }
