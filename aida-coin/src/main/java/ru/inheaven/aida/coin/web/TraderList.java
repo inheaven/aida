@@ -533,11 +533,19 @@ public class TraderList extends AbstractPage{
                         chart4.getOptions().getSeries().get(3).getData().clear();
 
                         //volume
-                        List<OrderStat> orderStats = traderBean.getOrderStatVolume(ExchangePair.of(ExchangeType.OKCOIN, "BTC/USD"), startDate);
+                        ExchangePair btcUsd = ExchangePair.of(ExchangeType.OKCOIN, "BTC/USD");
+                        List<OrderStat> orderStats = traderBean.getOrderStatVolume(btcUsd, startDate);
+                        Ticker ticker = traderService.getTicker(btcUsd);
 
                         for (OrderStat s : orderStats){
+                            Point point = new Point(s.getAvgPrice(), s.getSumAmount());
+
+                            if (ticker.getLast().setScale(0, ROUND_UP).compareTo(s.getAvgPrice()) == 0){
+                                point.setSelected(true);
+                            }
+
                             //noinspection unchecked
-                            chart4.getOptions().getSeries().get(0).getData().add(new Point(s.getAvgPrice(), s.getSumAmount()));
+                            chart4.getOptions().getSeries().get(0).getData().add(point);
                         }
 
                         for (int i =0; i < 98; ++i){
