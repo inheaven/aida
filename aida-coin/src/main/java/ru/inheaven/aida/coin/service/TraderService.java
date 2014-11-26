@@ -10,6 +10,9 @@ import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.OpenOrders;
 import com.xeiam.xchange.dto.trade.UserTrade;
 import com.xeiam.xchange.dto.trade.UserTrades;
+import com.xeiam.xchange.okcoin.dto.trade.OkCoinCrossPosition;
+import com.xeiam.xchange.okcoin.dto.trade.OkCoinCrossPositionResult;
+import com.xeiam.xchange.okcoin.service.polling.OkCoinTradeServiceRaw;
 import com.xeiam.xchange.service.polling.PollingTradeService;
 import org.apache.wicket.Application;
 import org.apache.wicket.protocol.ws.IWebSocketSettings;
@@ -91,14 +94,13 @@ public class TraderService {
         }
     }
 
-
     @Schedule(second = "*", minute="*", hour="*", persistent=false)
     public void scheduleTradeFuture(){
         trade(BITFINEX);
         trade(OKCOIN);
     }
 
-    @Schedule(second = "*/5", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/30", minute="*", hour="*", persistent=false)
     public void scheduleTrade(){
         trade(BITTREX);
         trade(CRYPTSY);
@@ -123,6 +125,73 @@ public class TraderService {
         }
 
         scheduleBalanceHistory();
+    }
+
+    @Schedule(second = "*/30", minute="*", hour="*", persistent=false)
+    public void scheduleFuturePosition(){
+        try {
+            int levels = 50;
+
+            OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("btc_usd", "this_week");
+
+            Futures futures = new Futures();
+
+            if (positions.getPositions().length > 0){
+                OkCoinCrossPosition p = positions.getPositions()[0];
+
+                //long
+
+                float bidProfit = 10 * p.getBuyAmount().floatValue() / p.getBuyPriceAvg().floatValue();
+                float askProfit = 10 * p.getSellAmount().floatValue() / p.getSellPriceAvg().floatValue();
+
+                for (int i = 1; i < levels; ++i){
+                    float bidPrice0 = p.getBuyPriceAvg().floatValue() * (1f + 0.005f * (i-1));
+                    float bidPrice = p.getBuyPriceAvg().floatValue() * (1f + 0.005f * i);
+
+                    bidProfit += (p.getBuyAmount().intValue() - i) * (100/bidPrice0 - 100/bidPrice);
+                    futures.getBids().add(new Position(bidProfit, bidPrice));
+
+                    float askPrice0 = (p.getSellPriceAvg().floatValue() * (1f + 0.005f * (i-1)));
+                    float askPrice = (p.getSellPriceAvg().floatValue() * (1f + 0.005f * i));
+                    askProfit -= (p.getSellAmount().intValue() + i) * (100/askPrice0 - 100/askPrice);
+                    futures.getAsks().add(new Position(askProfit, askPrice));
+                }
+
+                //short
+
+                bidProfit = 10 * p.getBuyAmount().floatValue() / p.getBuyPriceAvg().floatValue();
+                askProfit = 10 * p.getSellAmount().floatValue() / p.getSellPriceAvg().floatValue();
+
+                for (int i = -1; i > -levels; --i){
+                    float bidPrice0 = p.getBuyPriceAvg().floatValue() * (1f + 0.005f * (i-1));
+                    float bidPrice = p.getBuyPriceAvg().floatValue() * (1f + 0.005f * i);
+                    bidProfit -= (p.getBuyAmount().intValue() - i) * (100/bidPrice0 - 100/bidPrice);
+                    futures.getBids().add(new Position(bidProfit, bidPrice));
+
+                    float askPrice0 = (p.getSellPriceAvg().floatValue() * (1f + 0.005f * (i-1)));
+                    float askPrice = (p.getSellPriceAvg().floatValue() * (1f + 0.005f * i));
+                    askProfit += (p.getSellAmount().intValue() + i) * (100/askPrice0 - 100/askPrice);
+                    futures.getAsks().add(new Position(askProfit, askPrice));
+                }
+
+                //sort
+                futures.getAsks().sort((o1, o2) -> o1.getPrice().compareTo(o2.getPrice()));
+                futures.getBids().sort((o1, o2) -> o1.getPrice().compareTo(o2.getPrice()));
+
+                for (int i = 0; i < 2*levels - 2; ++i){
+                    Position bid = futures.getBids().get(i);
+                    Position ask = futures.getAsks().get(i);
+
+                    futures.getEquity().add(new Position(ask.getAmount().add(bid.getAmount()).setScale(2, ROUND_UP),
+                            ask.getPrice().add(bid.getPrice()).divide(BigDecimal.valueOf(2), 2, ROUND_UP)));
+                }
+
+                //broadcast
+                broadcast(OKCOIN, futures);
+            }
+        } catch (IOException e) {
+            log.error("scheduleFuturePosition error", e);
+        }
     }
 
     public void trade(ExchangeType exchangeType){

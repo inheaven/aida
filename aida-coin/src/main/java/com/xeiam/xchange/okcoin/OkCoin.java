@@ -5,9 +5,7 @@ import com.xeiam.xchange.okcoin.dto.account.OkCoinUserInfo;
 import com.xeiam.xchange.okcoin.dto.marketdata.OkCoinDepth;
 import com.xeiam.xchange.okcoin.dto.marketdata.OkCoinTickerResponse;
 import com.xeiam.xchange.okcoin.dto.marketdata.OkCoinTrade;
-import com.xeiam.xchange.okcoin.dto.trade.OkCoinOrderResult;
-import com.xeiam.xchange.okcoin.dto.trade.OkCoinPositionResult;
-import com.xeiam.xchange.okcoin.dto.trade.OkCoinTradeResult;
+import com.xeiam.xchange.okcoin.dto.trade.*;
 import si.mazi.rescu.ParamsDigest;
 
 import javax.ws.rs.*;
@@ -99,6 +97,12 @@ public interface OkCoin {
 	OkCoinPositionResult getFuturesPositions(@FormParam("partner") long partner, @FormParam("symbol") String symbol, @FormParam("contract_type") String prompt,
 			@FormParam("sign") ParamsDigest sign) throws IOException;
 
+	@POST
+	@Path("future_position.do")
+	OkCoinCrossPositionResult getFuturesCrossPositions(@FormParam("partner") long partner,
+												  @FormParam("symbol") String symbol,
+												  @FormParam("contract_type") String prompt,
+												  @FormParam("sign") ParamsDigest sign) throws IOException;
 	@POST
 	@Path("getOrderHistory.do")
 	OkCoinOrderResult getOrderHistory(@FormParam("partner") long partner, @FormParam("symbol") String symbol, @FormParam("status") String status,

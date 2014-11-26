@@ -50,6 +50,7 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 
+import static java.math.BigDecimal.ROUND_UP;
 import static java.math.BigDecimal.ZERO;
 import static org.apache.wicket.model.Model.of;
 
@@ -413,13 +414,6 @@ public class TraderList extends AbstractPage{
 
                                     handler.appendJavaScript(javaScript);
                                 }
-
-                                //chart4
-                                String javaScript = "eval("+chart4.getJavaScriptVarName()+").series[" + 0 + "].addPoint("
-                                        + renderer.toJson(new Point(System.currentTimeMillis(), orderVolume.getVolume()))
-                                        + ", true, true);";
-
-                                handler.appendJavaScript(javaScript);
                             }
                         }
 
@@ -530,6 +524,27 @@ public class TraderList extends AbstractPage{
                                 (!h.getStatus().equals(OrderStatus.CLOSED) ? h.getStatus().name() : ""));
                         handler.add(notificationLabel3);
 
+                    } else if (payload instanceof Futures){
+                        Futures futures = (Futures) payload;
+                        chart4.getOptions().getSeries().get(0).getData().clear();
+                        chart4.getOptions().getSeries().get(1).getData().clear();
+                        chart4.getOptions().getSeries().get(2).getData().clear();
+
+                        for (int i =0; i < 98; ++i){
+                            //noinspection unchecked
+                            chart4.getOptions().getSeries().get(0).getData().add(new Point(futures.getAsks().get(i).getPrice().setScale(2, ROUND_UP),
+                                    futures.getAsks().get(i).getAmount().setScale(4, ROUND_UP)));
+
+                            //noinspection unchecked
+                            chart4.getOptions().getSeries().get(1).getData().add(new Point(futures.getBids().get(i).getPrice().setScale(2, ROUND_UP),
+                                    futures.getBids().get(i).getAmount().setScale(4, ROUND_UP)));
+
+                            //noinspection unchecked
+                            chart4.getOptions().getSeries().get(2).getData().add(new Point(futures.getEquity().get(i).getPrice().setScale(2, ROUND_UP),
+                                    futures.getEquity().get(i).getAmount().setScale(2, ROUND_UP)));
+                        }
+
+                        handler.add(chart4);
                     } else if (payload instanceof String){
                         if ("Cryptsy returned an error: Unable to Authorize Request - Check Your Post Data".equals(payload)){
                             return;
@@ -652,37 +667,22 @@ public class TraderList extends AbstractPage{
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
             options.setTitle(new Title(""));
 
-            options.setxAxis(new Axis().setType(AxisType.DATETIME));
+            options.setxAxis(new Axis().setType(AxisType.LINEAR));
 
             options.setyAxis(new Axis().setTitle(new Title("")));
 
             options.setPlotOptions(new PlotOptionsChoice().setSpline(
                     new PlotOptions()
+                            .setAnimation(false)
                             .setMarker(new Marker(false))
                             .setTurboThreshold(20000)));
 
-            {
-                List<Point> data = new ArrayList<>();
-                List<Volume> volumes = traderService.getVolumes(startDate);
-
-                BigDecimal volumeSum = BigDecimal.ZERO;
-
-                time = 0;
-                for (Volume volume : volumes){
-                    volumeSum = volumeSum.add(volume.getVolume());
-
-                    if (volume.getDate().getTime() - time > 60000) {
-                        time = volume.getDate().getTime();
-                        data.add(new Point(time, volumeSum));
-                    }
-                }
-                options.addSeries(new PointSeries().setData(data).setName("Load").setColor(new HexColor("#2b908f")));
-            }
+            options.addSeries(new PointSeries().setData(new ArrayList<>()).setName("Short").setColor(new HexColor("#ee5f5b")));
+            options.addSeries(new PointSeries().setData(new ArrayList<>()).setName("Long").setColor(new HexColor("#62c462")));
+            options.addSeries(new PointSeries().setData(new ArrayList<>()).setName("Risk").setColor(new HexColor("#DDDF0D")));
 
             add(chart4 = new Chart("chart4", options));
         }
-
-
     }
 
     private void update(WebSocketRequestHandler handler, Component component, BigDecimal newValue){

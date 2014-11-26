@@ -1,6 +1,7 @@
 package com.xeiam.xchange.okcoin.service.polling;
 
 import com.xeiam.xchange.ExchangeSpecification;
+import com.xeiam.xchange.okcoin.dto.trade.OkCoinCrossPositionResult;
 import com.xeiam.xchange.okcoin.dto.trade.OkCoinOrder;
 import com.xeiam.xchange.okcoin.dto.trade.OkCoinOrderResult;
 import com.xeiam.xchange.okcoin.dto.trade.OkCoinTradeResult;
@@ -69,5 +70,9 @@ public class OkCoinTradeServiceRaw extends OKCoinBaseTradePollingService {
 
         OkCoinOrderResult orderResult = okCoin.getOrderHistory(partner, symbol, status, currentPage, pageLength, signatureCreator);
         return returnOrThrow(orderResult);
+    }
+
+    public OkCoinCrossPositionResult getCrossPosition(String symbol, String prompt) throws IOException{
+        return returnOrThrow(okCoin.getFuturesCrossPositions(partner, symbol, prompt, signatureCreator));
     }
 }
