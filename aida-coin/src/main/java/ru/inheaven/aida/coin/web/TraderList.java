@@ -3,6 +3,7 @@ package ru.inheaven.aida.coin.web;
 import com.googlecode.wickedcharts.highcharts.jackson.JsonRenderer;
 import com.googlecode.wickedcharts.highcharts.options.*;
 import com.googlecode.wickedcharts.highcharts.options.color.HexColor;
+import com.googlecode.wickedcharts.highcharts.options.color.HighchartsColor;
 import com.googlecode.wickedcharts.highcharts.options.series.Point;
 import com.googlecode.wickedcharts.highcharts.options.series.PointSeries;
 import com.googlecode.wickedcharts.highcharts.theme.GrayTheme;
@@ -531,26 +532,26 @@ public class TraderList extends AbstractPage{
                         chart4.getOptions().getSeries().get(2).getData().clear();
                         chart4.getOptions().getSeries().get(3).getData().clear();
 
-                        for (int i =0; i < 98; ++i){
-                            //noinspection unchecked
-                            chart4.getOptions().getSeries().get(0).getData().add(new Point(futures.getAsks().get(i).getPrice().setScale(2, ROUND_UP),
-                                    futures.getAsks().get(i).getAmount().setScale(4, ROUND_UP)));
-
-                            //noinspection unchecked
-                            chart4.getOptions().getSeries().get(1).getData().add(new Point(futures.getBids().get(i).getPrice().setScale(2, ROUND_UP),
-                                    futures.getBids().get(i).getAmount().setScale(4, ROUND_UP)));
-
-                            //noinspection unchecked
-                            chart4.getOptions().getSeries().get(2).getData().add(new Point(futures.getEquity().get(i).getPrice().setScale(2, ROUND_UP),
-                                    futures.getMargin().subtract(futures.getRealProfit()).subtract(futures.getEquity().get(i).getAmount()).setScale(4, ROUND_UP)));
-                        }
-
                         //volume
                         List<OrderStat> orderStats = traderBean.getOrderStatVolume(ExchangePair.of(ExchangeType.OKCOIN, "BTC/USD"), startDate);
 
                         for (OrderStat s : orderStats){
                             //noinspection unchecked
-                            chart4.getOptions().getSeries().get(3).getData().add(new Point(s.getAvgPrice(), s.getSumAmount()));
+                            chart4.getOptions().getSeries().get(0).getData().add(new Point(s.getAvgPrice(), s.getSumAmount()));
+                        }
+
+                        for (int i =0; i < 98; ++i){
+                            //noinspection unchecked
+                            chart4.getOptions().getSeries().get(1).getData().add(new Point(futures.getAsks().get(i).getPrice().setScale(2, ROUND_UP),
+                                    futures.getAsks().get(i).getAmount().setScale(4, ROUND_UP)));
+
+                            //noinspection unchecked
+                            chart4.getOptions().getSeries().get(2).getData().add(new Point(futures.getBids().get(i).getPrice().setScale(2, ROUND_UP),
+                                    futures.getBids().get(i).getAmount().setScale(4, ROUND_UP)));
+
+                            //noinspection unchecked
+                            chart4.getOptions().getSeries().get(3).getData().add(new Point(futures.getEquity().get(i).getPrice().setScale(2, ROUND_UP),
+                                    futures.getMargin().subtract(futures.getRealProfit()).subtract(futures.getEquity().get(i).getAmount()).setScale(4, ROUND_UP)));
                         }
 
                         handler.add(chart4);
@@ -678,7 +679,7 @@ public class TraderList extends AbstractPage{
 
             options.setxAxis(new Axis().setType(AxisType.LINEAR));
 
-            options.setyAxis(Arrays.asList(new Axis().setTitle(new Title("")), new Axis().setTitle(new Title(""))));
+            options.setyAxis(Arrays.asList(new Axis().setTitle(new Title("")), new Axis().setOpposite(true).setTitle(new Title(""))));
 
             options.setPlotOptions(new PlotOptionsChoice().setSpline(
                     new PlotOptions()
@@ -686,10 +687,12 @@ public class TraderList extends AbstractPage{
                             .setMarker(new Marker(false))
                             .setTurboThreshold(20000)));
 
+
+            options.addSeries(new PointSeries().setData(new ArrayList<>()).setName("Volume").setColor(new HighchartsColor(1))
+                    .setyAxis(1).setType(SeriesType.COLUMN));
             options.addSeries(new PointSeries().setData(new ArrayList<>()).setName("Short").setColor(new HexColor("#ee5f5b")));
             options.addSeries(new PointSeries().setData(new ArrayList<>()).setName("Long").setColor(new HexColor("#62c462")));
             options.addSeries(new PointSeries().setData(new ArrayList<>()).setName("Risk").setColor(new HexColor("#DDDF0D")));
-            options.addSeries(new PointSeries().setData(new ArrayList<>()).setName("Volume").setyAxis(1));
 
             add(chart4 = new Chart("chart4", options));
         }
