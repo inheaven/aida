@@ -131,6 +131,7 @@ public class TraderService {
     public void scheduleFuturePosition(){
         try {
             int levels = 50;
+            float spread = 0.004f;
 
             OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("btc_usd", "this_week");
 
@@ -148,14 +149,14 @@ public class TraderService {
                 futures.setRealProfit(p.getBuyProfitReal().add(p.getSellProfitReal()));
 
                 for (int i = 1; i < levels; ++i){
-                    float bidPrice0 = p.getBuyPriceAvg().floatValue() * (1f + 0.005f * (i-1));
-                    float bidPrice = p.getBuyPriceAvg().floatValue() * (1f + 0.005f * i);
+                    float bidPrice0 = p.getBuyPriceAvg().floatValue() * (1f + spread * (i-1));
+                    float bidPrice = p.getBuyPriceAvg().floatValue() * (1f + spread * i);
 
                     bidProfit += (p.getBuyAmount().intValue() - i) * (100/bidPrice0 - 100/bidPrice);
                     futures.getBids().add(new Position(bidProfit, bidPrice));
 
-                    float askPrice0 = (p.getSellPriceAvg().floatValue() * (1f + 0.005f * (i-1)));
-                    float askPrice = (p.getSellPriceAvg().floatValue() * (1f + 0.005f * i));
+                    float askPrice0 = (p.getSellPriceAvg().floatValue() * (1f + spread * (i-1)));
+                    float askPrice = (p.getSellPriceAvg().floatValue() * (1f + spread * i));
                     askProfit -= (p.getSellAmount().intValue() + i) * (100/askPrice0 - 100/askPrice);
                     futures.getAsks().add(new Position(askProfit, askPrice));
                 }
@@ -166,13 +167,13 @@ public class TraderService {
                 askProfit = 10 * p.getSellAmount().floatValue() / p.getSellPriceAvg().floatValue();
 
                 for (int i = -1; i > -levels; --i){
-                    float bidPrice0 = p.getBuyPriceAvg().floatValue() * (1f + 0.005f * (i-1));
-                    float bidPrice = p.getBuyPriceAvg().floatValue() * (1f + 0.005f * i);
+                    float bidPrice0 = p.getBuyPriceAvg().floatValue() * (1f + spread * (i-1));
+                    float bidPrice = p.getBuyPriceAvg().floatValue() * (1f + spread * i);
                     bidProfit -= (p.getBuyAmount().intValue() - i) * (100/bidPrice0 - 100/bidPrice);
                     futures.getBids().add(new Position(bidProfit, bidPrice));
 
-                    float askPrice0 = (p.getSellPriceAvg().floatValue() * (1f + 0.005f * (i-1)));
-                    float askPrice = (p.getSellPriceAvg().floatValue() * (1f + 0.005f * i));
+                    float askPrice0 = (p.getSellPriceAvg().floatValue() * (1f + spread * (i-1)));
+                    float askPrice = (p.getSellPriceAvg().floatValue() * (1f + spread * i));
                     askProfit += (p.getSellAmount().intValue() + i) * (100/askPrice0 - 100/askPrice);
                     futures.getAsks().add(new Position(askProfit, askPrice));
                 }
