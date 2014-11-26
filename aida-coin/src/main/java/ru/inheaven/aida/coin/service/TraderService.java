@@ -127,7 +127,7 @@ public class TraderService {
         scheduleBalanceHistory();
     }
 
-    @Schedule(second = "*/30", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/10", minute="*", hour="*", persistent=false)
     public void scheduleFuturePosition(){
         try {
             int levels = 50;
