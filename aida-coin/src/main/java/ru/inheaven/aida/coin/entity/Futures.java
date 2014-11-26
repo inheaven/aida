@@ -14,6 +14,7 @@ public class Futures {
     private List<Position> equity = new ArrayList<>();
 
     private BigDecimal margin = BigDecimal.ZERO;
+    private BigDecimal realProfit = BigDecimal.ZERO;
 
     public List<Position> getMargins() {
         return margins;
@@ -53,5 +54,13 @@ public class Futures {
 
     public void setMargin(BigDecimal margin) {
         this.margin = margin;
+    }
+
+    public BigDecimal getRealProfit() {
+        return realProfit;
+    }
+
+    public void setRealProfit(BigDecimal realProfit) {
+        this.realProfit = realProfit;
     }
 }

@@ -541,7 +541,7 @@ public class TraderList extends AbstractPage{
 
                             //noinspection unchecked
                             chart4.getOptions().getSeries().get(2).getData().add(new Point(futures.getEquity().get(i).getPrice().setScale(2, ROUND_UP),
-                                    futures.getMargin().subtract(futures.getEquity().get(i).getAmount()).setScale(4, ROUND_UP)));
+                                    futures.getMargin().subtract(futures.getRealProfit()).subtract(futures.getEquity().get(i).getAmount()).setScale(4, ROUND_UP)));
                         }
 
                         handler.add(chart4);
