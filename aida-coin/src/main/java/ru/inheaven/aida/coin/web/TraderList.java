@@ -681,12 +681,15 @@ public class TraderList extends AbstractPage{
 
             options.setyAxis(Arrays.asList(new Axis().setTitle(new Title("")), new Axis().setOpposite(true).setTitle(new Title(""))));
 
-            options.setPlotOptions(new PlotOptionsChoice().setSpline(
-                    new PlotOptions()
+            options.setPlotOptions(new PlotOptionsChoice()
+                    .setSpline(new PlotOptions()
                             .setAnimation(false)
                             .setMarker(new Marker(false))
-                            .setTurboThreshold(20000)));
-
+                            .setTurboThreshold(20000))
+                    .setColumn(new PlotOptions()
+                            .setBorderWidth(0)
+                            .setPointPadding(0f)
+                            .setAnimation(false)));
 
             options.addSeries(new PointSeries().setData(new ArrayList<>()).setName("Volume").setColor(new HighchartsColor(1))
                     .setyAxis(1).setType(SeriesType.COLUMN));
