@@ -9,7 +9,6 @@ import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -162,6 +161,7 @@ public class TraderBean {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public List<OrderStat> getOrderStats(Date startDate) {
         return em.createNativeQuery("SELECT id, sum(PRICE * FILLEDAMOUNT)/sum(FILLEDAMOUNT) AS avgPrice, " +
                 "sum(FILLEDAMOUNT) AS sumAmount, type, exchangeType, pair FROM order_history " +
@@ -170,10 +170,22 @@ public class TraderBean {
                 .getResultList();
     }
 
+    @SuppressWarnings("unchecked")
     public List<OrderStat> getOrderStats(ExchangePair exchangePair, Date startDate) {
         return em.createNativeQuery("SELECT id, sum(PRICE * FILLEDAMOUNT)/sum(FILLEDAMOUNT) AS avgPrice, " +
                 "sum(FILLEDAMOUNT) AS sumAmount, type, exchangeType, pair FROM order_history " +
                 "WHERE exchangetype = ? and pair = ? and status='CLOSED' and CLOSED > ? GROUP BY type", OrderStat.class)
+                .setParameter(1, exchangePair.getExchangeType().name())
+                .setParameter(2, exchangePair.getPair())
+                .setParameter(3, startDate)
+                .getResultList();
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<OrderStat> getOrderStatVolume(ExchangePair exchangePair, Date startDate){
+        return em.createNativeQuery("select id, ceil(price/5)*5 as avgPrice, " +
+                "sum(FILLEDAMOUNT) as sumAmount, type, exchangeType, pair FROM order_history " +
+                "WHERE exchangetype = ? and pair = ? and status='CLOSED' and CLOSED > ? GROUP BY ceil(price/5)", OrderStat.class)
                 .setParameter(1, exchangePair.getExchangeType().name())
                 .setParameter(2, exchangePair.getPair())
                 .setParameter(3, startDate)

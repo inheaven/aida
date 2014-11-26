@@ -529,6 +529,7 @@ public class TraderList extends AbstractPage{
                         chart4.getOptions().getSeries().get(0).getData().clear();
                         chart4.getOptions().getSeries().get(1).getData().clear();
                         chart4.getOptions().getSeries().get(2).getData().clear();
+                        chart4.getOptions().getSeries().get(3).getData().clear();
 
                         for (int i =0; i < 98; ++i){
                             //noinspection unchecked
@@ -542,6 +543,14 @@ public class TraderList extends AbstractPage{
                             //noinspection unchecked
                             chart4.getOptions().getSeries().get(2).getData().add(new Point(futures.getEquity().get(i).getPrice().setScale(2, ROUND_UP),
                                     futures.getMargin().subtract(futures.getRealProfit()).subtract(futures.getEquity().get(i).getAmount()).setScale(4, ROUND_UP)));
+                        }
+
+                        //volume
+                        List<OrderStat> orderStats = traderBean.getOrderStatVolume(ExchangePair.of(ExchangeType.OKCOIN, "BTC/USD"), startDate);
+
+                        for (OrderStat s : orderStats){
+                            //noinspection unchecked
+                            chart4.getOptions().getSeries().get(3).getData().add(new Point(s.getAvgPrice(), s.getSumAmount()));
                         }
 
                         handler.add(chart4);
@@ -669,7 +678,7 @@ public class TraderList extends AbstractPage{
 
             options.setxAxis(new Axis().setType(AxisType.LINEAR));
 
-            options.setyAxis(new Axis().setTitle(new Title("")));
+            options.setyAxis(Arrays.asList(new Axis().setTitle(new Title("")), new Axis().setTitle(new Title(""))));
 
             options.setPlotOptions(new PlotOptionsChoice().setSpline(
                     new PlotOptions()
@@ -680,6 +689,7 @@ public class TraderList extends AbstractPage{
             options.addSeries(new PointSeries().setData(new ArrayList<>()).setName("Short").setColor(new HexColor("#ee5f5b")));
             options.addSeries(new PointSeries().setData(new ArrayList<>()).setName("Long").setColor(new HexColor("#62c462")));
             options.addSeries(new PointSeries().setData(new ArrayList<>()).setName("Risk").setColor(new HexColor("#DDDF0D")));
+            options.addSeries(new PointSeries().setData(new ArrayList<>()).setName("Volume").setyAxis(1));
 
             add(chart4 = new Chart("chart4", options));
         }
