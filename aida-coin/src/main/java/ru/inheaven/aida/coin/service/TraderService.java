@@ -760,6 +760,7 @@ public class TraderService {
                                     bidAmount.toString() + " @ " + bidPrice.toString() + " | " +
                                     askAmount.toString() + " @ " + askPrice.toString());
 
+                            return;
                         }else{
                             //BID
                             BigDecimal bidPrice =  middlePrice.subtract(randomBidDelta);
@@ -776,6 +777,7 @@ public class TraderService {
                                     bidAmount.toString() + " @ " + bidPrice.toString() + " | " +
                                     askAmount.toString() + " @ " + askPrice.toString());
 
+                            return;
                         }
                     }
                 }
