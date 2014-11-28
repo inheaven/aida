@@ -548,7 +548,7 @@ public class TraderList extends AbstractPage{
                             chart4.getOptions().getSeries().get(0).getData().add(point);
                         }
 
-                        for (int i =0; i < 98; ++i){
+                        for (int i =0; i < futures.getAsks().size(); ++i){
                             //noinspection unchecked
                             chart4.getOptions().getSeries().get(1).getData().add(new Point(futures.getAsks().get(i).getPrice().setScale(2, ROUND_UP),
                                     futures.getAsks().get(i).getAmount().setScale(4, ROUND_UP)));

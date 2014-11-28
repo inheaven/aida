@@ -130,7 +130,7 @@ public class TraderService {
     @Schedule(second = "*/10", minute="*", hour="*", persistent=false)
     public void scheduleFuturePosition(){
         try {
-            int levels = 80;
+            int levels = 60;
             float spread = 0.0034f;
 
             OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("btc_usd", "this_week");
