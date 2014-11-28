@@ -130,8 +130,8 @@ public class TraderService {
     @Schedule(second = "*/10", minute="*", hour="*", persistent=false)
     public void scheduleFuturePosition(){
         try {
-            int levels = 50;
-            float spread = 0.004f;
+            int levels = 80;
+            float spread = 0.0034f;
 
             OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("btc_usd", "this_week");
 
@@ -475,7 +475,7 @@ public class TraderService {
                 minSpread = middlePrice.multiply(new BigDecimal("0.008")).setScale(8, HALF_UP);
                 break;
             case OKCOIN:
-                minSpread = middlePrice.multiply(new BigDecimal("0.004")).setScale(8, HALF_UP);
+                minSpread = middlePrice.multiply(new BigDecimal("0.0034")).setScale(8, HALF_UP);
                 break;
             default:
                 minSpread = middlePrice.multiply(new BigDecimal("0.013")).setScale(8, HALF_UP);
