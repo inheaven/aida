@@ -499,7 +499,7 @@ public class TraderList extends AbstractPage{
                         notificationLabel3.setDefaultModelObject(h.toString());
                         handler.add(notificationLabel3);
 
-                        handler.appendJavaScript("$('#" + orders.getMarkupId() + " > tbody').prepend('<tr><td>" + h.toString() + "</td></tr>')");
+                        handler.appendJavaScript("$('#" + orders.getMarkupId() + " > tbody > tr:first').before('<tr><td>" + h.toString() + "</td></tr>')");
                     } else if (payload instanceof Futures){
                         Futures futures = (Futures) payload;
                         chart4.getOptions().getSeries().get(0).getData().clear();
