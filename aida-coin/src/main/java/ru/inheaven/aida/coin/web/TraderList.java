@@ -559,6 +559,7 @@ public class TraderList extends AbstractPage{
 
         //Orders
         List<OrderHistory> orderHistories = traderBean.getOrderHistories(OrderStatus.CLOSED, new Date(System.currentTimeMillis() - 1000*60*60*3));
+        orderHistories.sort((o1, o2) -> o2.getClosed().compareTo(o1.getClosed()));
 
         add(orders = new BootstrapListView<OrderHistory>("orders", orderHistories) {
             @Override
