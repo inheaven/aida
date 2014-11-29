@@ -974,8 +974,13 @@ public class TraderService {
                 case "CNY":
                     return balance.divide(getTicker(ExchangePair.of(BTER, "BTC/CNY")).getLast(), 8, HALF_UP);
                 default:
-                    return balance.multiply(getTicker(new ExchangePair(exchangeType, currency + "/BTC")).getLast())
-                            .setScale(8, HALF_UP);
+                    Ticker ticker = getTicker(ExchangePair.of(exchangeType, currency + "/BTC"));
+
+                    if (ticker == null){
+                        ticker = getTicker(ExchangePair.of(BITFINEX, currency + "/BTC"));
+                    }
+
+                    return balance.multiply(ticker.getLast()).setScale(8, HALF_UP);
             }
         } catch (Exception e) {
             return ZERO;
