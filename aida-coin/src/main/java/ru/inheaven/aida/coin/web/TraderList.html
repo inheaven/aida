@@ -52,13 +52,18 @@
     </table>
 
     <div style="height: 530px; overflow-x: hidden; overflow-y: scroll; clear:both;">
-        <table>
+        <table style="width:100%;">
             <tr>
                 <td>
                     <table wicket:id="traders"></table>
                 </td>
                 <td>
-                    <table>
+                    <table class="bordered condensed">
+                        <thead>
+                        <tr>
+                            <th>Orders</th>
+                        </tr>>
+                        </thead>
                         <tr wicket:id="orders">
                             <td wicket:id="order"></td>
                         </tr>

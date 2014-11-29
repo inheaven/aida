@@ -496,15 +496,10 @@ public class TraderList extends AbstractPage{
                     }else if (payload instanceof OrderHistory){
                         OrderHistory h = (OrderHistory) payload;
 
-                        String s = h.getExchangeType().name() + " " +
-                                h.getPair() + ": " + h.getTradableAmount().toPlainString() + " * " +
-                                h.getPrice().toPlainString() + " " + h.getType().name() + " " +
-                                (!h.getStatus().equals(OrderStatus.CLOSED) ? h.getStatus().name() : "");
-
-                        notificationLabel3.setDefaultModelObject(s);
+                        notificationLabel3.setDefaultModelObject(h.toString());
                         handler.add(notificationLabel3);
 
-                        handler.appendJavaScript("$('#" + orders.getMarkupId() + "').prepend('<tr><td>" + s + "</td></tr>')");
+                        handler.appendJavaScript("$('#" + orders.getMarkupId() + " > tbody').prepend('<tr><td>" + h.toString() + "</td></tr>')");
                     } else if (payload instanceof Futures){
                         Futures futures = (Futures) payload;
                         chart4.getOptions().getSeries().get(0).getData().clear();
@@ -563,18 +558,12 @@ public class TraderList extends AbstractPage{
         });
 
         //Orders
-        List<OrderHistory> orderHistories = traderBean.getOrderHistories(OrderStatus.CLOSED, new Date(System.currentTimeMillis() - 1000*60*60));
+        List<OrderHistory> orderHistories = traderBean.getOrderHistories(OrderStatus.CLOSED, new Date(System.currentTimeMillis() - 1000*60*60*3));
 
         add(orders = new BootstrapListView<OrderHistory>("orders", orderHistories) {
             @Override
             protected void populateItem(ListItem<OrderHistory> item) {
-                OrderHistory orderHistory = item.getModelObject();
-
-                String s = orderHistory.getExchangeType().getShortName() + " " + orderHistory.getPair() + " " +
-                        orderHistory.getFilledAmount().toPlainString() + " @ " + orderHistory.getPrice().toPlainString() + " " +
-                        orderHistory.getType().name();
-
-                item.add(new Label("order", Model.of(s)));
+                item.add(new Label("order", Model.of(item.getModelObject().toString())));
             }
         });
 
