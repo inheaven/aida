@@ -14,7 +14,7 @@ import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.OpenOrders;
 import com.xeiam.xchange.dto.trade.Wallet;
-import de.agilecoders.wicket.core.markup.html.bootstrap.image.GlyphIconType;
+import de.agilecoders.wicket.core.markup.html.bootstrap.list.BootstrapListView;
 import de.agilecoders.wicket.core.markup.html.bootstrap.navbar.NavbarAjaxLink;
 import de.agilecoders.wicket.core.markup.html.bootstrap.table.TableBehavior;
 import org.apache.wicket.Component;
@@ -25,6 +25,7 @@ import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.model.IModel;
@@ -32,7 +33,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.protocol.ws.api.WebSocketBehavior;
 import org.apache.wicket.protocol.ws.api.WebSocketRequestHandler;
 import org.apache.wicket.protocol.ws.api.message.IWebSocketPushMessage;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.convert.IConverter;
 import org.apache.wicket.util.convert.converter.BigDecimalConverter;
@@ -66,10 +66,8 @@ public class TraderList extends AbstractPage{
     @EJB
     private TraderService traderService;
 
-    private Map<ExchangePair, Component> askMap = new HashMap<>();
-    private Map<ExchangePair, Component> bidMap = new HashMap<>();
+    private Map<ExchangePair, Component> lastMap = new HashMap<>();
     private Map<ExchangePair, Component> estimateMap = new HashMap<>();
-    private Map<ExchangePair, Component> balanceMap = new HashMap<>();
     private Map<ExchangePair, Component> buyMap = new HashMap<>();
     private Map<ExchangePair, Component> sellMap = new HashMap<>();
     private Map<ExchangePair, Component> positionMap = new HashMap<>();
@@ -109,6 +107,10 @@ public class TraderList extends AbstractPage{
     long pageInitTime = System.currentTimeMillis();
 
     private static List<Volume> sumVolumes = new CopyOnWriteArrayList<>();
+
+    private TraderEditModal traderEditModal;
+
+    private Component orders;
 
     BigDecimalConverter bigDecimalConverter2 = new BigDecimalConverter() {
         @Override
@@ -155,24 +157,40 @@ public class TraderList extends AbstractPage{
         add(okcoinBTC = new Label("okcoinBTC", Model.of("0")).setOutputMarkupId(true));
         add(okcoinCoins = new Label("okcoinCoins", Model.of("0")).setOutputMarkupId(true));
 
-
         String quote = ".·´`·.¸¸.·´´`·.¸.·´´``·.¸.·´``·.´``·.¸¸.·´´``· <º>< ><º>";
 
         add(new Label("quote", Model.of(quote)));
 
+        add(traderEditModal = new TraderEditModal("traderEditModal"));
+
         List<IColumn<Trader, String>> list = new ArrayList<>();
 
-        list.add(new PropertyColumn<>(of("Exchange"), "exchange"));
-        list.add(new AbstractColumn<Trader, String>(of("Coin")) {
+        list.add(new AbstractColumn<Trader, String>(of("")) {
+            @Override
+            public Component getHeader(String componentId) {
+                return new NavbarAjaxLink<String>(componentId, Model.of("Trader")) {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        traderEditModal.show(target, new Trader());
+                    }
+                };
+            }
+
             @Override
             public void populateItem(Item<ICellPopulator<Trader>> cellItem, String componentId, IModel<Trader> rowModel) {
-                Trader trader = rowModel.getObject();
+                final Trader trader = rowModel.getObject();
 
-                cellItem.add(new Label(componentId, Model.of(trader.getPair()
-                        + (trader.getType().equals(TraderType.SHORT) ? " ☯" : ""))));
+                String name = trader.getExchange().getShortName() + " " + trader.getPair()
+                        + (trader.getType().equals(TraderType.SHORT) ? " ☯" : "");
+
+                cellItem.add(new NavbarAjaxLink<String>(componentId, Model.of(name)) {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        traderEditModal.show(target, trader);
+                    }
+                });
             }
         });
-        list.add(new TraderColumn(of("Balance"), balanceMap));
         list.add(new TraderColumn(of("Estimate"), estimateMap));
         list.add(new AbstractColumn<Trader, String>(of("Lot")) {
             @Override
@@ -188,16 +206,10 @@ public class TraderList extends AbstractPage{
         });
         list.add(new TraderColumn(of("Buy"), buyMap));
         list.add(new TraderColumn(of("Sell"), sellMap));
-        list.add(new TraderColumn(of("Bid"), bidMap){
+        list.add(new TraderColumn(of("Last"), lastMap){
             @Override
             protected String getInitValue(Trader trader) {
                 return traderService.getTickerNotNull(trader.getExchangePair()).getBid().toPlainString();
-            }
-        });
-        list.add(new TraderColumn(of("Ask"), askMap){
-            @Override
-            protected String getInitValue(Trader trader) {
-                return traderService.getTickerNotNull(trader.getExchangePair()).getAsk().toPlainString();
             }
         });
         list.add(new TraderColumn(of("Volatility"), volatilityMap){
@@ -226,29 +238,6 @@ public class TraderList extends AbstractPage{
             }
         });
         list.add(new PropertyColumn<>(of("Week"), "weekProfit"));
-
-        list.add(new AbstractColumn<Trader, String>(of("")) {
-            @Override
-            public Component getHeader(String componentId) {
-                return new NavbarAjaxLink<String>(componentId, Model.of("Add")) {
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        setResponsePage(TraderEdit.class);
-                    }
-                }.setIconType(GlyphIconType.plus);
-            }
-
-            @Override
-            public void populateItem(final Item<ICellPopulator<Trader>> cellItem, String componentId, final IModel<Trader> rowModel) {
-                cellItem.add(new NavbarAjaxLink(componentId, Model.of(rowModel.getObject().isRunning() ? "Edit" : "Run")) {
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        setResponsePage(new TraderEdit(new PageParameters().add("id", rowModel.getObject().getId())));
-                    }
-                }.setIconType(GlyphIconType.edit));
-            }
-
-        });
 
         DataTable<Trader, String> table = new DataTable<>("traders", list, new ListDataProvider<Trader>(){
             @Override
@@ -284,14 +273,6 @@ public class TraderList extends AbstractPage{
 
                     if (payload instanceof AccountInfo){
                         AccountInfo accountInfo = ((AccountInfo) payload);
-
-                        for (ExchangePair exchangePair : balanceMap.keySet()){
-                            if (exchangePair.getExchangeType().equals(exchangeMessage.getExchangeType())){
-                                BigDecimal balance = accountInfo.getBalance(exchangePair.getCurrency());
-
-                                update(handler, balanceMap.get(exchangePair), balance);
-                            }
-                        }
 
                         BigDecimal estimate = ZERO;
 
@@ -424,13 +405,9 @@ public class TraderList extends AbstractPage{
                         ExchangePair ep = ExchangePair.of(exchangeMessage.getExchangeType(), tickerHistory.getPair());
                         ExchangePair ep2 = new ExchangePair(exchangeMessage.getExchangeType(), tickerHistory.getPair(), TraderType.SHORT);
 
-                        //ask
-                        update(handler, askMap.get(ep), tickerHistory.getAsk());
-                        update(handler, askMap.get(ep2), tickerHistory.getAsk());
-
-                        //bid
-                        update(handler, bidMap.get(ep), tickerHistory.getBid());
-                        update(handler, bidMap.get(ep2), tickerHistory.getBid());
+                        //last
+                        update(handler, lastMap.get(ep), tickerHistory.getPrice());
+                        update(handler, lastMap.get(ep2), tickerHistory.getPrice());
 
                         //volatility
                         BigDecimal volatility = tickerHistory.getVolatility();
@@ -519,12 +496,15 @@ public class TraderList extends AbstractPage{
                     }else if (payload instanceof OrderHistory){
                         OrderHistory h = (OrderHistory) payload;
 
-                        notificationLabel3.setDefaultModelObject(h.getExchangeType().name() + " " +
+                        String s = h.getExchangeType().name() + " " +
                                 h.getPair() + ": " + h.getTradableAmount().toPlainString() + " * " +
                                 h.getPrice().toPlainString() + " " + h.getType().name() + " " +
-                                (!h.getStatus().equals(OrderStatus.CLOSED) ? h.getStatus().name() : ""));
+                                (!h.getStatus().equals(OrderStatus.CLOSED) ? h.getStatus().name() : "");
+
+                        notificationLabel3.setDefaultModelObject(s);
                         handler.add(notificationLabel3);
 
+                        handler.appendJavaScript("$(#" + orders.getMarkupId() + ").prepend(<tr><td>" + s + "</td></tr>");
                     } else if (payload instanceof Futures){
                         Futures futures = (Futures) payload;
                         chart4.getOptions().getSeries().get(0).getData().clear();
@@ -579,6 +559,22 @@ public class TraderList extends AbstractPage{
                         }
                     }
                 }
+            }
+        });
+
+        //Orders
+        List<OrderHistory> orderHistories = traderBean.getOrderHistories(OrderStatus.CLOSED, new Date(System.currentTimeMillis() - 1000*60*60));
+
+        add(orders = new BootstrapListView<OrderHistory>("orders", orderHistories) {
+            @Override
+            protected void populateItem(ListItem<OrderHistory> item) {
+                OrderHistory orderHistory = item.getModelObject();
+
+                String s = orderHistory.getExchangeType().getShortName() + " " + orderHistory.getPair() + " " +
+                        orderHistory.getFilledAmount().toPlainString() + " @ " + orderHistory.getPrice().toPlainString() + " " +
+                        orderHistory.getType().name();
+
+                item.add(new Label("order", Model.of(s)));
             }
         });
 

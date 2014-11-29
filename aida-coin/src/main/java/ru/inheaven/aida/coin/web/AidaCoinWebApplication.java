@@ -3,18 +3,17 @@ package ru.inheaven.aida.coin.web;
 import com.googlecode.wickedcharts.wicket6.JavaScriptResourceRegistry;
 import de.agilecoders.wicket.core.Bootstrap;
 import de.agilecoders.wicket.core.settings.BootstrapSettings;
-import de.agilecoders.wicket.core.settings.ITheme;
-import de.agilecoders.wicket.core.settings.Theme;
 import de.agilecoders.wicket.themes.markup.html.bootswatch.BootswatchTheme;
 import de.agilecoders.wicket.themes.markup.html.bootswatch.BootswatchThemeProvider;
 import org.apache.wicket.Application;
 import org.apache.wicket.ConverterLocator;
 import org.apache.wicket.IConverterLocator;
 import org.apache.wicket.Page;
-import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.util.convert.converter.BigDecimalConverter;
+import org.odlabs.wiquery.ui.themes.WiQueryCoreThemeResourceReference;
 import org.wicketstuff.javaee.injection.JavaEEComponentInjector;
+import ru.inhell.aida.common.jquery.JQueryBootstrapThemeResourceReference;
 
 import java.math.BigDecimal;
 import java.text.NumberFormat;
@@ -35,6 +34,7 @@ public class AidaCoinWebApplication extends WebApplication {
         super.init();
 
         Bootstrap.install(Application.get(), new BootstrapSettings().setThemeProvider(new BootswatchThemeProvider(BootswatchTheme.Slate)));
+        addResourceReplacement(WiQueryCoreThemeResourceReference.get(), new JQueryBootstrapThemeResourceReference());
 
         getMarkupSettings().setCompressWhitespace(true);
         getMarkupSettings().setDefaultMarkupEncoding("UTF-8");

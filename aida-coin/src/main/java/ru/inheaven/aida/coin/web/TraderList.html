@@ -52,7 +52,21 @@
     </table>
 
     <div style="height: 530px; overflow-x: hidden; overflow-y: scroll; clear:both;">
-        <table wicket:id="traders"></table>
+        <table>
+            <tr>
+                <td>
+                    <table wicket:id="traders"></table>
+                </td>
+                <td>
+                    <table>
+                        <tr wicket:id="orders">
+                            <td wicket:id="order"></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
     </div>
 
     <table style="width: 100%; table-layout: fixed; ">
@@ -70,6 +84,8 @@
             <td wicket:id="notification3" style="width: 33%; text-align: right"></td>
         </tr>
     </table>
+
+    <div wicket:id="traderEditModal" style="display: none"></div>
 </wicket:extend>
 </body>
 </html>

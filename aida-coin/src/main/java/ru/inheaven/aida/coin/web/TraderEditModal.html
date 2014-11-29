@@ -1,0 +1,24 @@
+<!DOCTYPE html PUBLIC>
+<html xmlns:wicket="http://wicket.apache.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+</head>
+<body>
+<wicket:extend>
+    <form wicket:id="form">
+        <div wicket:id="exchange"><select wicket:id="exchange"></select></div>
+        <div wicket:id="pair"><input wicket:id="pair"/></div>
+        <div wicket:id="high"><input wicket:id="high"/></div>
+        <div wicket:id="low"><input wicket:id="low"/></div>
+        <div wicket:id="lot"><input wicket:id="lot"/></div>
+        <div wicket:id="type"><select wicket:id="type"></select></div>
+        <div wicket:id="running"><select wicket:id="running"></select></div>
+
+        <div class="controls">
+            <button type="submit" wicket:id="save"></button>
+            <button type="submit" wicket:id="cancel"></button>
+        </div>
+    </form>
+</wicket:extend>
+</body>
+</html>
