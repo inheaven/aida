@@ -1,6 +1,7 @@
 package ru.inheaven.aida.coin.entity;
 
 import com.xeiam.xchange.dto.Order;
+import ru.inhell.aida.common.util.DateUtil;
 
 import javax.persistence.*;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -143,7 +144,7 @@ public class OrderHistory extends AbstractEntity {
 
     @Override
     public String toString() {
-        return exchangeType.getShortName() + " " +
+        return DateUtil.getTimeString(closed) + " " + exchangeType.getShortName() + " " +
                 pair + " " + tradableAmount.toPlainString() + " @ " +
                 price.toPlainString() + " " + type.name() + " " +
                 (!status.equals(OrderStatus.CLOSED) ? status.name() : "");

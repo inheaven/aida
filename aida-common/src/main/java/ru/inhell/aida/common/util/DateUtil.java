@@ -4,9 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-import static java.util.Calendar.DAY_OF_YEAR;
-import static java.util.Calendar.HOUR_OF_DAY;
-import static java.util.Calendar.MINUTE;
+import static java.util.Calendar.*;
 
 /**
  * @author Anatoly A. Ivanov java@inheaven.ru
@@ -15,6 +13,7 @@ import static java.util.Calendar.MINUTE;
 public class DateUtil {
     private final static ThreadLocal<SimpleDateFormat> SIMPLE_DATE_FORMAT_THREAD_LOCAL = new ThreadLocal<>();
     private final static ThreadLocal<SimpleDateFormat> SIMPLE_DAY_FORMAT_THREAD_LOCAL = new ThreadLocal<>();
+    private final static ThreadLocal<SimpleDateFormat> SIMPLE_TIME_FORMAT_THREAD_LOCAL = new ThreadLocal<>();
 
     public static SimpleDateFormat simpleDateFormat(){
         SimpleDateFormat simpleDateFormat = SIMPLE_DATE_FORMAT_THREAD_LOCAL.get();
@@ -28,11 +27,22 @@ public class DateUtil {
     }
 
     public static SimpleDateFormat simpleDayFormat(){
-        SimpleDateFormat simpleDateFormat = SIMPLE_DATE_FORMAT_THREAD_LOCAL.get();
+        SimpleDateFormat simpleDateFormat = SIMPLE_DAY_FORMAT_THREAD_LOCAL.get();
 
         if (simpleDateFormat == null){
             simpleDateFormat = new SimpleDateFormat("dd.MM.yy");
-            SIMPLE_DATE_FORMAT_THREAD_LOCAL.set(simpleDateFormat);
+            SIMPLE_DAY_FORMAT_THREAD_LOCAL.set(simpleDateFormat);
+        }
+
+        return simpleDateFormat;
+    }
+
+    public static SimpleDateFormat simpleTimeFormat(){
+        SimpleDateFormat simpleDateFormat = SIMPLE_TIME_FORMAT_THREAD_LOCAL.get();
+
+        if (simpleDateFormat == null){
+            simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
+            SIMPLE_TIME_FORMAT_THREAD_LOCAL.set(simpleDateFormat);
         }
 
         return simpleDateFormat;
@@ -190,5 +200,9 @@ public class DateUtil {
         calendar.set(year, month-1, day);
 
         return calendar.getTime();
+    }
+
+    public static String getTimeString(Date date){
+        return simpleTimeFormat().format(date);
     }
 }
