@@ -30,7 +30,7 @@ public class TraderEditModal extends Modal {
 
     private IModel<Trader> traderModel = new CompoundPropertyModel<>(new Trader());
 
-    private BootstrapForm form;
+    private BootstrapForm<Trader> form;
 
     public TraderEditModal(String markupId) {
         super(markupId);
@@ -89,16 +89,12 @@ public class TraderEditModal extends Modal {
             public void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 close(target);
             }
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                close(target);
-            }
-        });
+        }.setDefaultFormProcessing(false));
     }
 
     public void show(AjaxRequestTarget target, Trader trader){
         traderModel.setObject(trader);
+        form.clearInput();
 
         target.add(form);
 
