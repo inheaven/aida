@@ -9,6 +9,7 @@ import com.googlecode.wickedcharts.highcharts.options.series.PointSeries;
 import com.googlecode.wickedcharts.highcharts.theme.GrayTheme;
 import com.googlecode.wickedcharts.wicket6.highcharts.Chart;
 import com.googlecode.wickedcharts.wicket6.highcharts.JsonRendererFactory;
+import com.xeiam.xchange.dto.Order;
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.dto.trade.LimitOrder;
@@ -17,6 +18,7 @@ import com.xeiam.xchange.dto.trade.Wallet;
 import de.agilecoders.wicket.core.markup.html.bootstrap.list.BootstrapListView;
 import de.agilecoders.wicket.core.markup.html.bootstrap.navbar.NavbarAjaxLink;
 import de.agilecoders.wicket.core.markup.html.bootstrap.table.TableBehavior;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -499,7 +501,9 @@ public class TraderList extends AbstractPage{
                         notificationLabel3.setDefaultModelObject(h.toString());
                         handler.add(notificationLabel3);
 
-                        handler.appendJavaScript("$('#orders').prepend('<tr><td>" + h.toString() + "</td></tr>')");
+                        String style = "style: \"color: " + (h.getType().equals(Order.OrderType.BID) ? "'#62c462'" : "'#ee5f5b'") + "\"";
+
+                        handler.appendJavaScript("$('#orders').prepend('<tr " + style + "><td>" + h.toString() + "</td></tr>')");
                     } else if (payload instanceof Futures){
                         Futures futures = (Futures) payload;
                         chart4.getOptions().getSeries().get(0).getData().clear();
@@ -564,6 +568,7 @@ public class TraderList extends AbstractPage{
         add(orders = new BootstrapListView<OrderHistory>("orders", orderHistories) {
             @Override
             protected void populateItem(ListItem<OrderHistory> item) {
+                item.add(new AttributeModifier("style", "color: " + (item.getModelObject().getType().equals(Order.OrderType.BID) ? "'#62c462'" : "'#ee5f5b'")));
                 item.add(new Label("order", Model.of(item.getModelObject().toString())));
             }
         });
