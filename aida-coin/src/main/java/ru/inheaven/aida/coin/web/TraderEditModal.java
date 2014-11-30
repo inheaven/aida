@@ -37,6 +37,7 @@ public class TraderEditModal extends Modal {
 
         setHeaderVisible(false);
         setFadeIn(false);
+        size(Size.Small);
 
         form  = new BootstrapForm<>("form",  traderModel);
         form.setOutputMarkupId(true);
