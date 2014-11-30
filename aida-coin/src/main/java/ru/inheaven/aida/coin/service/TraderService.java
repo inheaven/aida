@@ -116,7 +116,7 @@ public class TraderService {
     @Schedule(second = "0", minute="*", hour="*", persistent=false)
     public void scheduleOrders(){
         for(ExchangeType exchangeType : ExchangeType.values()){
-            updateOrders(exchangeType);
+            updateClosedOrders(exchangeType);
         }
 
         for (Trader trader : traderBean.getTraders()){
@@ -203,6 +203,7 @@ public class TraderService {
             updateTicker(exchangeType);
             updateBalance(exchangeType);
             updateOpenOrders(exchangeType);
+            updateClosedOrders(exchangeType);
 
             tradeAlpha(exchangeType);
         } catch (Exception e) {
@@ -429,7 +430,7 @@ public class TraderService {
         }
     }
 
-    public void updateOrders(ExchangeType exchangeType){
+    public void updateClosedOrders(ExchangeType exchangeType){
         OpenOrders openOrders = getOpenOrders(exchangeType);
 
         for (OrderHistory h : traderBean.getOrderHistories(exchangeType, OPENED)) {
@@ -456,7 +457,7 @@ public class TraderService {
                     broadcast(exchangeType, h);
                 }
             } catch (Exception e) {
-                log.error("updateOrders error", e);
+                log.error("updateClosedOrders error", e);
 
                 //noinspection ThrowableResultOfMethodCallIgnored
                 broadcast(exchangeType, exchangeType.name() + ": " + Throwables.getRootCause(e).getMessage());
