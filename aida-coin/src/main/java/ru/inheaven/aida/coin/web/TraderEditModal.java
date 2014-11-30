@@ -8,8 +8,8 @@ import de.agilecoders.wicket.core.markup.html.bootstrap.form.FormGroup;
 import de.agilecoders.wicket.core.markup.html.bootstrap.form.FormType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import ru.inheaven.aida.coin.entity.ExchangeType;
 import ru.inheaven.aida.coin.entity.Trader;
@@ -28,7 +28,7 @@ public class TraderEditModal extends Modal {
     @EJB
     private TraderBean traderBean;
 
-    private IModel<Trader> traderModel = Model.of(new Trader());
+    private IModel<Trader> traderModel = new CompoundPropertyModel<>(new Trader());
 
     private BootstrapForm form;
 
@@ -37,7 +37,7 @@ public class TraderEditModal extends Modal {
 
         setHeaderVisible(false);
 
-        form  = new BootstrapForm<>("form");
+        form  = new BootstrapForm<>("form",  traderModel);
         form.setOutputMarkupId(true);
         form.type(FormType.Horizontal);
         add(form);
@@ -70,21 +70,31 @@ public class TraderEditModal extends Modal {
                 new PropertyModel<>(traderModel, "running"),
                 Arrays.asList(new Boolean[]{true, false})).setRequired(true)));
 
-        form.add(new BootstrapAjaxButton("save", of("Save"), Buttons.Type.Primary) {
+        form.add(new BootstrapAjaxButton("save", of("Save"), Buttons.Type.Primary){
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 traderBean.save(traderModel.getObject());
 
                 close(target);
             }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(form);
+            }
         });
 
-        form.add(new BootstrapAjaxButton("cancel", of("Cancel"), Buttons.Type.Default) {
+        form.add(new BootstrapAjaxButton("cancel", of("Cancel"), Buttons.Type.Default){
             @Override
             public void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 close(target);
             }
-        }.setDefaultFormProcessing(false));
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                close(target);
+            }
+        });
     }
 
     public void show(AjaxRequestTarget target, Trader trader){

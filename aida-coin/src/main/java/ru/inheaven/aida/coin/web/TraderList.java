@@ -501,7 +501,7 @@ public class TraderList extends AbstractPage{
                         notificationLabel3.setDefaultModelObject(h.toString());
                         handler.add(notificationLabel3);
 
-                        String style = "style: \"color: " + (h.getType().equals(Order.OrderType.BID) ? "'#62c462'" : "'#ee5f5b'") + "\"";
+                        String style = "style: \"color: " + (h.getType().equals(Order.OrderType.BID) ? "#62c462" : "#ee5f5b") + "\"";
 
                         handler.appendJavaScript("$('#orders').prepend('<tr " + style + "><td>" + h.toString() + "</td></tr>')");
                     } else if (payload instanceof Futures){
@@ -568,7 +568,7 @@ public class TraderList extends AbstractPage{
         add(orders = new BootstrapListView<OrderHistory>("orders", orderHistories) {
             @Override
             protected void populateItem(ListItem<OrderHistory> item) {
-                item.add(new AttributeModifier("style", "color: " + (item.getModelObject().getType().equals(Order.OrderType.BID) ? "'#62c462'" : "'#ee5f5b'")));
+                item.add(new AttributeModifier("style", "color: " + (item.getModelObject().getType().equals(Order.OrderType.BID) ? "#62c462" : "#ee5f5b")));
                 item.add(new Label("order", Model.of(item.getModelObject().toString())));
             }
         });
