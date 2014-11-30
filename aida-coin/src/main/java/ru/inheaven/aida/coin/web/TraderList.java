@@ -501,9 +501,10 @@ public class TraderList extends AbstractPage{
                         notificationLabel3.setDefaultModelObject(h.toString());
                         handler.add(notificationLabel3);
 
-                        String style = "style= \"color: " + (h.getType().equals(Order.OrderType.ASK) ? "#62c462" : "#ee5f5b") + "\"";
-
-                        handler.appendJavaScript("$('#orders').prepend('<tr " + style + "><td>" + h.toString() + "</td></tr>')");
+                        if (h.getStatus().equals(OrderStatus.CLOSED)) {
+                            String style = "style= \"color: " + (h.getType().equals(Order.OrderType.ASK) ? "#62c462" : "#ee5f5b") + "\"";
+                            handler.appendJavaScript("$('#orders').prepend('<tr " + style + "><td>" + h.toString() + "</td></tr>')");
+                        }
                     } else if (payload instanceof Futures){
                         Futures futures = (Futures) payload;
                         chart4.getOptions().getSeries().get(0).getData().clear();
