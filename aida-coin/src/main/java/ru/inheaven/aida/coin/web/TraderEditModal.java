@@ -8,8 +8,9 @@ import de.agilecoders.wicket.core.markup.html.bootstrap.form.FormGroup;
 import de.agilecoders.wicket.core.markup.html.bootstrap.form.FormType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import ru.inheaven.aida.coin.entity.ExchangeType;
 import ru.inheaven.aida.coin.entity.Trader;
 import ru.inheaven.aida.coin.entity.TraderType;
@@ -27,7 +28,7 @@ public class TraderEditModal extends Modal {
     @EJB
     private TraderBean traderBean;
 
-    private IModel<Trader> traderModel = new CompoundPropertyModel<>(new Trader());
+    private IModel<Trader> traderModel = Model.of(new Trader());
 
     private BootstrapForm form;
 
@@ -36,19 +37,23 @@ public class TraderEditModal extends Modal {
 
         setHeaderVisible(false);
 
-        form  = new BootstrapForm<>("form",  traderModel);
+        form  = new BootstrapForm<>("form");
         form.setOutputMarkupId(true);
         form.type(FormType.Horizontal);
         add(form);
 
         form.add(new FormGroup("exchange", of("Exchange")).add(new DropDownChoice<>("exchange",
+                new PropertyModel<>(traderModel, "exchange"),
                 Arrays.asList(ExchangeType.values())).setRequired(true)));
-        form.add(new FormGroup("pair", of("Pair")).add(new RequiredTextField("pair")));
-        form.add(new FormGroup("high", of("High")).add(new RequiredTextField<>("high")));
-        form.add(new FormGroup("low", of("Low")).add(new RequiredTextField<>("low")));
-        form.add(new FormGroup("lot", of("Lot")).add(new TextField<>("lot").setConvertEmptyInputStringToNull(true)));
+
+        form.add(new FormGroup("pair", of("Pair")).add(new RequiredTextField<>("pair", new PropertyModel<>(traderModel, "pair"))));
+        form.add(new FormGroup("high", of("High")).add(new RequiredTextField<>("high",  new PropertyModel<>(traderModel, "high"))));
+        form.add(new FormGroup("low", of("Low")).add(new RequiredTextField<>("low",  new PropertyModel<>(traderModel, "low"))));
+        form.add(new FormGroup("lot", of("Lot")).add(new TextField<>("lot",  new PropertyModel<>(traderModel, "lot"))
+                .setConvertEmptyInputStringToNull(true)));
 
         form.add(new FormGroup("type", of("Type")).add(new DropDownChoice<>("type",
+                new PropertyModel<>(traderModel, "type"),
                 Arrays.asList(TraderType.values()), new IChoiceRenderer<TraderType>(){
             @Override
             public Object getDisplayValue(TraderType object) {
@@ -62,9 +67,10 @@ public class TraderEditModal extends Modal {
         }).setRequired(true)));
 
         form.add(new FormGroup("running", of("Active")).add(new DropDownChoice<>("running",
+                new PropertyModel<>(traderModel, "running"),
                 Arrays.asList(new Boolean[]{true, false})).setRequired(true)));
 
-        form.add(new BootstrapAjaxButton("save", of("Save"), Buttons.Type.Primary){
+        form.add(new BootstrapAjaxButton("save", of("Save"), Buttons.Type.Primary) {
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 traderBean.save(traderModel.getObject());
@@ -73,9 +79,9 @@ public class TraderEditModal extends Modal {
             }
         });
 
-        form.add(new BootstrapAjaxButton("cancel", of("Cancel"), Buttons.Type.Default){
+        form.add(new BootstrapAjaxButton("cancel", of("Cancel"), Buttons.Type.Default) {
             @Override
-            public void onSubmit(AjaxRequestTarget target, Form<?> form)  {
+            public void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 close(target);
             }
         }.setDefaultFormProcessing(false));
