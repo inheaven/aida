@@ -476,7 +476,12 @@ public class TraderService {
                 minSpread = middlePrice.multiply(new BigDecimal("0.008")).setScale(8, HALF_UP);
                 break;
             case OKCOIN:
-                minSpread = middlePrice.multiply(new BigDecimal("0.0034")).setScale(8, HALF_UP);
+                if (trader.getPair().contains("LTC/")){
+                    minSpread = middlePrice.multiply(new BigDecimal("0.0021")).setScale(8, HALF_UP);
+                }else{
+                    minSpread = middlePrice.multiply(new BigDecimal("0.0034")).setScale(8, HALF_UP);
+                }
+
                 break;
             default:
                 minSpread = middlePrice.multiply(new BigDecimal("0.013")).setScale(8, HALF_UP);
@@ -489,7 +494,7 @@ public class TraderService {
         }
 
         //min spread scale
-        if (trader.getPair().contains("/USD")){
+        if (!trader.getExchange().equals(OKCOIN) && trader.getPair().contains("/USD")){
             if (minSpread.compareTo(new BigDecimal("0.03")) < 0){
                 minSpread = new BigDecimal("0.02").setScale(2, HALF_UP);
             }
