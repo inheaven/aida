@@ -145,8 +145,8 @@ public class OrderHistory extends AbstractEntity {
     @Override
     public String toString() {
         return DateUtil.getTimeString(closed) + " " + exchangeType.getShortName() + " " +
-                pair + " " + tradableAmount.toPlainString() + " @ " +
-                price.toPlainString() + " " + type.name() + " " +
+                pair + " " + tradableAmount.toString() + " @ " +
+                price.toString() + " " + type.name() + " " +
                 (!status.equals(OrderStatus.CLOSED) ? status.name() : "");
     }
 }
