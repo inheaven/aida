@@ -481,10 +481,14 @@ public class TraderList extends AbstractPage{
                                             ep, amount, ticker.getLast()));
 
                                     //estimate
-                                    BigDecimal balance = traderService.getAccountInfo(exchangeMessage.getExchangeType())
-                                            .getBalance(ep.getCurrency());
-                                    update(handler, estimateMap.get(ep), traderService.getBTCVolume(
-                                            ep, amount.add(balance), ticker.getLast()));
+                                    BigDecimal balance = traderService.getAccountInfo(exchangeMessage.getExchangeType()).getBalance(ep.getCurrency());
+
+                                    if (!ep.getExchangeType().equals(ExchangeType.OKCOIN)){
+                                        balance = balance.add(amount);
+                                    }
+
+                                    update(handler, estimateMap.get(ep), traderService.getEstimateBalance(
+                                            ep.getExchangeType(), ep.getCurrency(), balance));
 
                                     //position
                                     BigDecimal position;
