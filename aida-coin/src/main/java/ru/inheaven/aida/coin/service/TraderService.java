@@ -758,6 +758,12 @@ public class TraderService {
                         ticker = getTicker(exchangePair);
                         middlePrice = ticker.getAsk().add(ticker.getBid()).divide(BigDecimal.valueOf(2), 8, HALF_UP);
 
+                        if (trader.getExchange().equals(OKCOIN) && trader.getPair().contains("LTC/")){
+                            middlePrice = randomAskDelta.setScale(3, HALF_UP);
+                        }else if (trader.getPair().contains("/USD")){
+                            middlePrice = randomAskDelta.setScale(2, HALF_UP);
+                        }
+
                         if (trader.getType().equals(SHORT)){
                             //ASK
                             BigDecimal askPrice = middlePrice.add(randomAskDelta);
