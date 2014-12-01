@@ -958,7 +958,7 @@ public class TraderService {
                 if ("BTC".equals(ep.getCurrency())) {
                     amount =  amount.multiply(BigDecimal.valueOf(100)).divide(getTicker(ExchangePair.of(OKCOIN, "BTC/USD")).getLast(), 8 , HALF_UP);
                 }else if ("LTC".equals(ep.getCurrency())){
-                    amount = amount.multiply(BigDecimal.valueOf(10)).divide(getTicker(ExchangePair.of(OKCOIN, "LTC/USD")).getLast(), 8, HALF_UP);
+                    amount = amount.multiply(BigDecimal.valueOf(10)).divide(getTicker(ExchangePair.of(OKCOIN, "BTC/USD")).getLast(), 8, HALF_UP);
                 }
             }
 
