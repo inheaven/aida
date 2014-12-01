@@ -163,8 +163,6 @@ public class TraderList extends AbstractPage{
 
         add(new Label("quote", Model.of(quote)));
 
-        add(traderEditModal = new TraderEditModal("traderEditModal"));
-
         List<IColumn<Trader, String>> list = new ArrayList<>();
 
         list.add(new AbstractColumn<Trader, String>(of("")) {
@@ -241,7 +239,7 @@ public class TraderList extends AbstractPage{
         });
         list.add(new PropertyColumn<>(of("Week"), "weekProfit"));
 
-        DataTable<Trader, String> table = new DataTable<>("traders", list, new ListDataProvider<Trader>(){
+        final DataTable<Trader, String> table = new DataTable<>("traders", list, new ListDataProvider<Trader>(){
             @Override
             protected List<Trader> getData() {
                 List<Trader> traders = traderBean.getTraders();
@@ -265,6 +263,13 @@ public class TraderList extends AbstractPage{
         table.add(new TableBehavior().bordered().condensed());
 
         add(table);
+
+        add(traderEditModal = new TraderEditModal("traderEditModal"){
+            @Override
+            protected void onSave(AjaxRequestTarget target) {
+                target.add(table);
+            }
+        });
 
         table.add(new WebSocketBehavior() {
             @Override

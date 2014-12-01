@@ -77,6 +77,8 @@ public class TraderEditModal extends Modal {
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 traderBean.save(traderModel.getObject());
 
+                onSave(target);
+
                 close(target);
             }
 
@@ -101,5 +103,8 @@ public class TraderEditModal extends Modal {
         target.add(form);
 
         show(target);
+    }
+
+    protected void onSave(AjaxRequestTarget target){
     }
 }
