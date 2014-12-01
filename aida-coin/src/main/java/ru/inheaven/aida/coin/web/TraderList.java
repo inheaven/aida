@@ -498,20 +498,20 @@ public class TraderList extends AbstractPage{
                     }else if (payload instanceof OrderHistory){
                         OrderHistory orderHistory = (OrderHistory) payload;
 
+                        if (orderHistory.getExchangeType().equals(ExchangeType.OKCOIN)){
+                            orderHistory.setFilledAmountScale(0);
+
+                            if (orderHistory.getPair().contains("LTC/")){
+                                orderHistory.setPriceScale(3);
+                            }else if (orderHistory.getPair().contains("BTC/")){
+                                orderHistory.setPriceScale(2);
+                            }
+                        }
+
                         notificationLabel3.setDefaultModelObject(orderHistory.toString());
                         handler.add(notificationLabel3);
 
                         if (orderHistory.getStatus().equals(OrderStatus.CLOSED)) {
-                            if (orderHistory.getExchangeType().equals(ExchangeType.OKCOIN)){
-                                orderHistory.setFilledAmountScale(0);
-
-                                if (orderHistory.getPair().contains("LTC/")){
-                                    orderHistory.setPriceScale(3);
-                                }else if (orderHistory.getPair().contains("BTC/")){
-                                    orderHistory.setPriceScale(2);
-                                }
-                            }
-
                             String style = "style= \"color: " + (orderHistory.getType().equals(Order.OrderType.ASK) ? "#62c462" : "#ee5f5b") + "\"";
                             handler.appendJavaScript("$('#orders').prepend('<tr " + style + "><td>" + orderHistory.toString() + "</td></tr>')");
                         }
