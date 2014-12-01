@@ -784,6 +784,11 @@ public class TraderService {
                         }else{
                             //BID
                             BigDecimal bidPrice =  middlePrice.subtract(randomBidDelta);
+
+                            if (bidPrice.compareTo(ZERO) < 0){
+                                return;
+                            }
+
                             String id = tradeService.placeLimitOrder(new LimitOrder(BID, bidAmount, currencyPair, trader.getType().name(), new Date(), bidPrice));
                             traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), BID, bidAmount, bidPrice, new Date()));
 
