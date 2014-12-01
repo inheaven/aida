@@ -496,14 +496,24 @@ public class TraderList extends AbstractPage{
                             }
                         });
                     }else if (payload instanceof OrderHistory){
-                        OrderHistory h = (OrderHistory) payload;
+                        OrderHistory orderHistory = (OrderHistory) payload;
 
-                        notificationLabel3.setDefaultModelObject(h.toString());
+                        notificationLabel3.setDefaultModelObject(orderHistory.toString());
                         handler.add(notificationLabel3);
 
-                        if (h.getStatus().equals(OrderStatus.CLOSED)) {
-                            String style = "style= \"color: " + (h.getType().equals(Order.OrderType.ASK) ? "#62c462" : "#ee5f5b") + "\"";
-                            handler.appendJavaScript("$('#orders').prepend('<tr " + style + "><td>" + h.toString() + "</td></tr>')");
+                        if (orderHistory.getStatus().equals(OrderStatus.CLOSED)) {
+                            if (orderHistory.getExchangeType().equals(ExchangeType.OKCOIN)){
+                                orderHistory.setFilledAmountScale(0);
+
+                                if (orderHistory.getPair().contains("LTC/")){
+                                    orderHistory.setPriceScale(3);
+                                }else if (orderHistory.getPair().contains("BTC/")){
+                                    orderHistory.setPriceScale(2);
+                                }
+                            }
+
+                            String style = "style= \"color: " + (orderHistory.getType().equals(Order.OrderType.ASK) ? "#62c462" : "#ee5f5b") + "\"";
+                            handler.appendJavaScript("$('#orders').prepend('<tr " + style + "><td>" + orderHistory.toString() + "</td></tr>')");
                         }
                     } else if (payload instanceof Futures){
                         Futures futures = (Futures) payload;
@@ -569,8 +579,20 @@ public class TraderList extends AbstractPage{
         add(orders = new BootstrapListView<OrderHistory>("orders", orderHistories) {
             @Override
             protected void populateItem(ListItem<OrderHistory> item) {
-                item.add(new AttributeModifier("style", "color: " + (item.getModelObject().getType().equals(Order.OrderType.ASK) ? "#62c462" : "#ee5f5b")));
-                item.add(new Label("order", Model.of(item.getModelObject().toString())));
+                OrderHistory orderHistory = item.getModelObject();
+
+                if (orderHistory.getExchangeType().equals(ExchangeType.OKCOIN)){
+                    orderHistory.setFilledAmountScale(0);
+
+                    if (orderHistory.getPair().contains("LTC/")){
+                        orderHistory.setPriceScale(3);
+                    }else if (orderHistory.getPair().contains("BTC/")){
+                        orderHistory.setPriceScale(2);
+                    }
+                }
+
+                item.add(new AttributeModifier("style", "color: " + (orderHistory.getType().equals(Order.OrderType.ASK) ? "#62c462" : "#ee5f5b")));
+                item.add(new Label("order", Model.of(orderHistory.toString())));
             }
         });
 

@@ -6,6 +6,7 @@ import ru.inhell.aida.common.util.DateUtil;
 import javax.persistence.*;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 
 /**
@@ -60,6 +61,14 @@ public class OrderHistory extends AbstractEntity {
         this.opened = opened;
 
         this.status = OrderStatus.OPENED;
+    }
+
+    public void setPriceScale(int scale){
+        price = price.setScale(scale, RoundingMode.HALF_UP);
+    }
+
+    public void setFilledAmountScale(int scale){
+        filledAmount = filledAmount.setScale(scale, RoundingMode.HALF_UP);
     }
 
     public String getOrderId() {
@@ -145,7 +154,7 @@ public class OrderHistory extends AbstractEntity {
     @Override
     public String toString() {
         return DateUtil.getTimeString(closed) + " " + exchangeType.getShortName() + " " +
-                pair + " " + tradableAmount.toString() + " @ " +
+                pair + " " + filledAmount.toString() + " @ " +
                 price.toString() + " " + type.name() + " " +
                 (!status.equals(OrderStatus.CLOSED) ? status.name() : "");
     }
