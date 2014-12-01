@@ -746,11 +746,11 @@ public class TraderService {
                                     : new BigDecimal("0.00000001");
                         }else {
                             if (trader.getExchange().equals(OKCOIN) && trader.getPair().contains("LTC/")){
-                                randomAskDelta = randomAskDelta.setScale(3, HALF_UP);
+                                randomBidDelta = randomBidDelta.setScale(3, HALF_UP);
                             }else {
-                                randomAskDelta = "USD".equals(currencyPair.counterSymbol)
-                                        ? randomAskDelta.setScale(2, HALF_UP)
-                                        : randomAskDelta.setScale(8, HALF_UP);
+                                randomBidDelta = "USD".equals(currencyPair.counterSymbol)
+                                        ? randomBidDelta.setScale(2, HALF_UP)
+                                        : randomBidDelta.setScale(8, HALF_UP);
                             }
                         }
 
