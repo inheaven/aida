@@ -559,7 +559,7 @@ public class TraderList extends AbstractPage{
 
                         handler.add(chart4);
                     } else if (payload instanceof String){
-                        if ("Cryptsy returned an error: Unable to Authorize Request - Check Your Post Data".equals(payload)){
+                        if (((String)payload).contains("Unable to Authorize Request")){
                             return;
                         }
 
