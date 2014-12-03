@@ -130,8 +130,8 @@ public class TraderService {
     @Schedule(second = "*/10", minute="*", hour="*", persistent=false)
     public void scheduleFuturePosition(){
         try {
-            int levels = 60;
-            float spread = 0.0034f;
+            int levels = 80;
+            float spread = 0.0021f;
 
             OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("btc_usd", "this_week");
 
@@ -479,7 +479,7 @@ public class TraderService {
                 if (trader.getPair().contains("LTC/")){
                     minSpread = middlePrice.multiply(new BigDecimal("0.0021")).setScale(8, HALF_UP);
                 }else{
-                    minSpread = middlePrice.multiply(new BigDecimal("0.0034")).setScale(8, HALF_UP);
+                    minSpread = middlePrice.multiply(new BigDecimal("0.0021")).setScale(8, HALF_UP);
                 }
 
                 break;
@@ -1099,6 +1099,10 @@ public class TraderService {
             if (minAmount.equals(ZERO) || minAmount.compareTo(orderStat.getSumAmount()) > 0){
                 minAmount = orderStat.getSumAmount();
             }
+        }
+
+        if (exchangePair.getExchangeType().equals(OKCOIN)){
+            minAmount = minAmount.multiply(BigDecimal.valueOf(10));
         }
 
         return getBTCVolume(exchangePair, minAmount, priceDiff);
