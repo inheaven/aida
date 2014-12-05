@@ -219,7 +219,7 @@ public class TraderService {
                 PollingTradeService tradeService = getExchange(OKCOIN).getPollingTradeService();
                 Ticker ticker = getTicker(ExchangePair.of(OKCOIN, pair));
 
-                BigDecimal amount = p.getSellAmount().subtract(p.getBuyAmount()).divide(BigDecimal.valueOf(2), 0, HALF_UP).abs();
+                BigDecimal amount = (p.getSellAmount().subtract(p.getBuyAmount())).divide(BigDecimal.valueOf(2), 0, HALF_UP).abs();
 
                 if (p.getBuyAmount().intValue() < minAmount && p.getSellAmount().intValue() > 2*minAmount
                         || p.getSellAmount().intValue() < minAmount && p.getBuyAmount().intValue() > 2*minAmount ){
@@ -238,7 +238,7 @@ public class TraderService {
                     traderBean.save(new OrderHistory(id, OKCOIN, pair, orderType, amount, price, new Date()));
                 }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("balanceOKCoinWeekPosition error", e);
 
             broadcast(OKCOIN, e);
