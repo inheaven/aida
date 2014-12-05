@@ -3,6 +3,7 @@ package ru.inheaven.aida.coin.service;
 import com.google.common.base.Throwables;
 import com.xeiam.xchange.cryptsy.CryptsyExchange;
 import com.xeiam.xchange.currency.CurrencyPair;
+import com.xeiam.xchange.dto.Order;
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.marketdata.OrderBook;
 import com.xeiam.xchange.dto.marketdata.Ticker;
@@ -130,6 +131,10 @@ public class TraderService {
     @Schedule(second = "*/10", minute="*", hour="*", persistent=false)
     public void scheduleFuturePosition(){
         try {
+            //balance
+            balanceOKCoinWeekPosition("BTC/USD");
+            balanceOKCoinWeekPosition("LTC/USD");
+
             int levels = 80;
             float spread = 0.0021f;
 
@@ -195,6 +200,48 @@ public class TraderService {
             }
         } catch (IOException e) {
             log.error("scheduleFuturePosition error", e);
+
+            broadcast(OKCOIN, e);
+        }
+    }
+
+
+    private void balanceOKCoinWeekPosition(String pair) {
+        int minAmount = 12;
+
+        try {
+            OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService())
+                    .getCrossPosition(pair.toLowerCase().replace("/", "_"), "this_week");
+
+            if (positions.getPositions().length > 0){
+                OkCoinCrossPosition p = positions.getPositions()[0];
+
+                PollingTradeService tradeService = getExchange(OKCOIN).getPollingTradeService();
+                Ticker ticker = getTicker(ExchangePair.of(OKCOIN, pair));
+
+                BigDecimal amount = p.getSellAmount().subtract(p.getBuyAmount()).divide(BigDecimal.valueOf(2), 0, HALF_UP).abs();
+
+                if (p.getBuyAmount().intValue() < minAmount && p.getSellAmount().intValue() > 2*minAmount
+                        || p.getSellAmount().intValue() < minAmount && p.getBuyAmount().intValue() > 2*minAmount ){
+                    boolean _short = p.getBuyAmount().intValue() < minAmount;
+                    Order.OrderType orderType = _short ? ASK : BID;
+                    BigDecimal price = _short
+                            ? ticker.getBid().multiply(BigDecimal.valueOf(0.99))
+                            : ticker.getAsk().multiply(BigDecimal.valueOf(1.01));
+
+                    String id = tradeService.placeLimitOrder(new LimitOrder(orderType, amount, getCurrencyPair(pair),
+                            _short ? "LONG" : "SHORT", new Date(), price));
+                    traderBean.save(new OrderHistory(id, OKCOIN, pair, orderType, amount, price, new Date()));
+
+                    id = tradeService.placeLimitOrder(new LimitOrder(orderType, amount, getCurrencyPair(pair),
+                            _short ? "SHORT" : "LONG", new Date(), price));
+                    traderBean.save(new OrderHistory(id, OKCOIN, pair, orderType, amount, price, new Date()));
+                }
+            }
+        } catch (IOException e) {
+            log.error("balanceOKCoinWeekPosition error", e);
+
+            broadcast(OKCOIN, e);
         }
     }
 
