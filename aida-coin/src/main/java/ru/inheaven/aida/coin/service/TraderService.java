@@ -722,8 +722,7 @@ public class TraderService {
                             }
 
                             if (currencyPair.equals(order.getCurrencyPair())
-                                    && order.getLimitPrice().subtract(middlePrice).abs()
-                                    .compareTo(delta.multiply(BigDecimal.valueOf(1.61803398875))) <= 0) {
+                                    && order.getLimitPrice().subtract(middlePrice).abs().compareTo(delta) <= 0) {
                                 spreadSumAmount = spreadSumAmount.add(order.getTradableAmount());
                             }
                         }
