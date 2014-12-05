@@ -97,7 +97,6 @@ public class TraderService {
 
     @Schedule(second = "*", minute="*", hour="*", persistent=false)
     public void scheduleTradeFuture(){
-        trade(BITFINEX);
         trade(OKCOIN);
     }
 
@@ -107,11 +106,8 @@ public class TraderService {
         trade(CRYPTSY);
         trade(BTCE);
         trade(BTER);
-    }
-
-    @Schedule(second = "*/30", minute="*", hour="*", persistent=false)
-    public void scheduleCexIOUpdate(){
         trade(CEXIO);
+        trade(BITFINEX);
     }
 
     @Schedule(second = "0", minute="*", hour="*", persistent=false)
