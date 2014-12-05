@@ -40,6 +40,10 @@ public class TraderUtil {
         return decimal.multiply(new BigDecimal(1 + random.nextDouble()/10)).setScale(8, ROUND_HALF_UP);
     }
 
+    public static BigDecimal randomMinus10(BigDecimal decimal){
+        return decimal.multiply(new BigDecimal(1 - random.nextDouble()/10)).setScale(8, ROUND_HALF_UP);
+    }
+
     public static BigDecimal random20(BigDecimal decimal){
         return decimal.multiply(new BigDecimal(1 + random.nextDouble()/5)).setScale(8, ROUND_HALF_UP);
     }
