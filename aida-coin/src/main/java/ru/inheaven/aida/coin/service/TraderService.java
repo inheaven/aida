@@ -219,11 +219,11 @@ public class TraderService {
                 PollingTradeService tradeService = getExchange(OKCOIN).getPollingTradeService();
                 Ticker ticker = getTicker(ExchangePair.of(OKCOIN, pair));
 
-                BigDecimal amount = (p.getSellAmount().subtract(p.getBuyAmount())).divide(BigDecimal.valueOf(2), 0, HALF_UP).abs();
+                BigDecimal amount = p.getSellAmount().subtract(p.getBuyAmount()).divide(BigDecimal.valueOf(2), 0, HALF_UP).abs();
 
                 if (p.getBuyAmount().intValue() < minAmount && p.getSellAmount().intValue() > 2*minAmount
                         || p.getSellAmount().intValue() < minAmount && p.getBuyAmount().intValue() > 2*minAmount ){
-                    boolean _short = p.getBuyAmount().intValue() < minAmount;
+                    boolean _short = p.getSellAmount().intValue() < minAmount;
                     Order.OrderType orderType = _short ? ASK : BID;
                     BigDecimal price = _short
                             ? ticker.getBid().multiply(BigDecimal.valueOf(0.99))
