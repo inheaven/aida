@@ -135,8 +135,8 @@ public class TraderService {
             balanceOKCoinWeekPosition("BTC/USD");
             balanceOKCoinWeekPosition("LTC/USD");
 
-            int levels = 80;
-            float spread = 0.0021f;
+            int levels = 50;
+            float spread = 0.0013f;
 
             OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("btc_usd", "this_week");
 
@@ -225,6 +225,7 @@ public class TraderService {
                         || p.getSellAmount().intValue() < minAmount && p.getBuyAmount().intValue() > 2*minAmount ){
                     boolean _short = p.getSellAmount().intValue() < minAmount;
                     Order.OrderType orderType = _short ? ASK : BID;
+
                     BigDecimal price = _short
                             ? ticker.getBid().multiply(BigDecimal.valueOf(0.99))
                             : ticker.getAsk().multiply(BigDecimal.valueOf(1.01));
@@ -524,9 +525,9 @@ public class TraderService {
                 break;
             case OKCOIN:
                 if (trader.getPair().contains("LTC/")){
-                    minSpread = middlePrice.multiply(new BigDecimal("0.0021")).setScale(8, HALF_UP);
+                    minSpread = middlePrice.multiply(new BigDecimal("0.0013")).setScale(8, HALF_UP);
                 }else{
-                    minSpread = middlePrice.multiply(new BigDecimal("0.0021")).setScale(8, HALF_UP);
+                    minSpread = middlePrice.multiply(new BigDecimal("0.0013")).setScale(8, HALF_UP);
                 }
 
                 break;
