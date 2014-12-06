@@ -251,7 +251,7 @@ public class TraderList extends AbstractPage{
                 Collections.sort(traders, new Comparator<Trader>() {
                     @Override
                     public int compare(Trader t1, Trader t2) {
-                        if (t1.getType().equals(ExchangeType.OKCOIN)){
+                        if (t2.getType().equals(ExchangeType.OKCOIN)){
                             return 1;
                         }
 
