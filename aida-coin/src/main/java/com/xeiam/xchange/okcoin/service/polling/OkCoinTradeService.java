@@ -53,7 +53,6 @@ public class OkCoinTradeService extends OkCoinTradeServiceRaw implements Polling
             if (orderResult.getOrders().length > 0) {
                 orderResults.add(orderResult);
             }
-
         }
 
         if(orderResults.size() <= 0) {

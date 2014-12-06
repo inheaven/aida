@@ -675,7 +675,7 @@ public class TraderService {
 
                         if (currencyPair.equals(order.getCurrencyPair())
                                 && order.getLimitPrice().subtract(middlePrice).abs()
-                                .compareTo(minSpread.multiply(BigDecimal.valueOf(5))) > 0) {
+                                .compareTo(minSpread.multiply(BigDecimal.valueOf(11))) > 0) {
                             String orderId = order.getId().split("&")[0];
 
                             //update order status
@@ -698,8 +698,9 @@ public class TraderService {
                     BigDecimal predictionIndex = getPredictionIndex(exchangePair);
 
                     //create order
-                    for (double index : new double[]{1, 2, 3, 4, 5}) {
-                        BigDecimal delta = minSpread.multiply(BigDecimal.valueOf(index)).divide(BigDecimal.valueOf(2), 8, ROUND_UP);
+                    for (double index : new double[]{1, 2, 3, 4, 5, 6, 7, 8}) {
+                        BigDecimal halfMinSpread = minSpread.divide(BigDecimal.valueOf(2), 8, ROUND_UP);
+                        BigDecimal delta = halfMinSpread.multiply(BigDecimal.valueOf(index));
 
                         //btc-e delta
                         if (BTCE.equals(trader.getExchange())){
@@ -717,7 +718,7 @@ public class TraderService {
                             }
 
                             if (currencyPair.equals(order.getCurrencyPair())
-                                    && order.getLimitPrice().subtract(middlePrice).abs().compareTo(delta) <= 0) {
+                                    && order.getLimitPrice().subtract(middlePrice).abs().compareTo(delta.add(halfMinSpread)) <= 0) {
                                 spreadSumAmount = spreadSumAmount.add(order.getTradableAmount());
                             }
                         }
