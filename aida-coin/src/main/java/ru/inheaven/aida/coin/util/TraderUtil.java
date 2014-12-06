@@ -67,4 +67,12 @@ public class TraderUtil {
     public static BigDecimal randomMinus50(BigDecimal decimal){
         return decimal.multiply(BigDecimal.valueOf(1 - random.nextDouble()/2)).setScale(8, ROUND_HALF_UP);
     }
+
+    public static BigDecimal random80(BigDecimal decimal){
+        return decimal.multiply(BigDecimal.valueOf(1 + random.nextDouble()/1.25)).setScale(8, ROUND_HALF_UP);
+    }
+
+    public static BigDecimal randomMinus80(BigDecimal decimal){
+        return decimal.multiply(BigDecimal.valueOf(1 - random.nextDouble()/1.25)).setScale(8, ROUND_HALF_UP);
+    }
 }
