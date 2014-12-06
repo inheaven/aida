@@ -1081,7 +1081,7 @@ public class TraderService {
                 timeSeries[i] = tickerHistories.get(i).getPrice().floatValue();
             }
 
-            float index = 100 * (predictorService.getPrediction(timeSeries) - timeSeries[99]) / timeSeries[99];
+            float index = 100 * (predictorService.getPrediction(timeSeries) - timeSeries[size-1]) / timeSeries[size-1];
 
             try {
                 predictionIndex =  BigDecimal.valueOf(Math.abs(index) < 1000 ? index : 1000*Math.signum(index)).setScale(2, HALF_UP);
