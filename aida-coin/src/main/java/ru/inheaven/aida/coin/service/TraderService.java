@@ -697,6 +697,9 @@ public class TraderService {
                     //prediction
                     BigDecimal predictionIndex = getPredictionIndex(exchangePair);
 
+                    //internal amount
+                    BigDecimal internalAmount = ZERO;
+
                     //create order
                     for (double index : new double[]{1, 2, 3, 4, 5, 6, 7, 8}) {
                         BigDecimal halfMinSpread = minSpread.divide(BigDecimal.valueOf(2), 8, ROUND_UP);
@@ -710,7 +713,7 @@ public class TraderService {
                         }
 
                         //magic
-                        BigDecimal spreadSumAmount = ZERO;
+                        BigDecimal spreadSumAmount = internalAmount;
                         for (LimitOrder order : openOrders) {
                             if ((trader.getType().equals(LONG) && (order.getId().contains("&2") || order.getId().contains("&4")))
                                     || ((trader.getType().equals(SHORT) && (order.getId().contains("&1") || order.getId().contains("&3"))))){
@@ -823,7 +826,8 @@ public class TraderService {
                                     bidAmount.toString() + " @ " + bidPrice.toString() + " | " +
                                     askAmount.toString() + " @ " + askPrice.toString());
 
-                            return;
+                            //internal amount
+                            internalAmount = internalAmount.add(askAmount).add(bidAmount);
                         }else{
                             //BID
                             BigDecimal bidPrice =  middlePrice.subtract(randomBidDelta);
@@ -845,7 +849,8 @@ public class TraderService {
                                     bidAmount.toString() + " @ " + bidPrice.toString() + " | " +
                                     askAmount.toString() + " @ " + askPrice.toString());
 
-                            return;
+                            //internal amount
+                            internalAmount = internalAmount.add(askAmount).add(bidAmount);
                         }
                     }
                 }
