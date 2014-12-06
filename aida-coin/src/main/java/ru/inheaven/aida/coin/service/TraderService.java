@@ -1,6 +1,8 @@
 package ru.inheaven.aida.coin.service;
 
+import com.google.common.base.Function;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Maps;
 import com.xeiam.xchange.cryptsy.CryptsyExchange;
 import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.dto.Order;
@@ -26,6 +28,7 @@ import ru.inheaven.aida.coin.entity.*;
 import ru.inheaven.aida.coin.util.TraderUtil;
 import ru.inheaven.aida.predictor.service.PredictorService;
 
+import javax.annotation.Nullable;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.ejb.*;
@@ -1136,6 +1139,20 @@ public class TraderService {
             return ZERO;
         }
 
+
+        Map<Order.OrderType, OrderStat> map = Maps.uniqueIndex(orderStats, new Function<OrderStat, Order.OrderType>() {
+            @Nullable
+            @Override
+            public Order.OrderType apply(@Nullable OrderStat input) {
+                return input != null ? input.getType() : null;
+            }
+        });
+
+        if (exchangePair.getExchangeType().equals(OKCOIN)){
+            return BigDecimal.valueOf((100/map.get(ASK).getAvgPrice().doubleValue() + 100/map.get(BID).getAvgPrice().doubleValue())
+                    * (map.get(ASK).getSumAmount().intValue() + map.get(BID).getSumAmount().intValue()));
+        }
+
         BigDecimal priceDiff = ZERO;
         BigDecimal minAmount = ZERO;
 
@@ -1147,10 +1164,6 @@ public class TraderService {
             if (minAmount.equals(ZERO) || minAmount.compareTo(orderStat.getSumAmount()) > 0){
                 minAmount = orderStat.getSumAmount();
             }
-        }
-
-        if (exchangePair.getExchangeType().equals(OKCOIN)){
-            minAmount = minAmount.multiply(BigDecimal.valueOf(10));
         }
 
         return getBTCVolume(exchangePair, minAmount, priceDiff);
