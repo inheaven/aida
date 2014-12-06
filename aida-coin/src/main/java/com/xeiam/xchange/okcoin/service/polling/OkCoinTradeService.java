@@ -44,10 +44,16 @@ public class OkCoinTradeService extends OkCoinTradeServiceRaw implements Polling
         for (CurrencyPair symbol : exchangeSymbols) {
             log.debug("Getting order: {}", symbol);
 
-            OkCoinOrderResult orderResult = getOrder(-1, OkCoinAdapters.adaptSymbol(symbol), "this_week");
+            OkCoinOrderResult orderResult = getOrder(-1, OkCoinAdapters.adaptSymbol(symbol), "this_week", 1);
             if (orderResult.getOrders().length > 0) {
                 orderResults.add(orderResult);
             }
+
+            orderResult = getOrder(-1, OkCoinAdapters.adaptSymbol(symbol), "this_week", 2);
+            if (orderResult.getOrders().length > 0) {
+                orderResults.add(orderResult);
+            }
+
         }
 
         if(orderResults.size() <= 0) {

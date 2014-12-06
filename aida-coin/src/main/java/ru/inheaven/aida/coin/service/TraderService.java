@@ -675,7 +675,7 @@ public class TraderService {
 
                         if (currencyPair.equals(order.getCurrencyPair())
                                 && order.getLimitPrice().subtract(middlePrice).abs()
-                                .compareTo(minSpread.multiply(BigDecimal.valueOf(7))) > 0) {
+                                .compareTo(minSpread.multiply(BigDecimal.valueOf(5))) > 0) {
                             String orderId = order.getId().split("&")[0];
 
                             //update order status
@@ -698,7 +698,7 @@ public class TraderService {
                     BigDecimal predictionIndex = getPredictionIndex(exchangePair);
 
                     //create order
-                    for (double index : new double[]{1, 2, 3, 4, 5, 6, 7}) {
+                    for (double index : new double[]{1, 2, 3, 4, 5}) {
                         BigDecimal delta = minSpread.multiply(BigDecimal.valueOf(index)).divide(BigDecimal.valueOf(2), 8, ROUND_UP);
 
                         //btc-e delta
