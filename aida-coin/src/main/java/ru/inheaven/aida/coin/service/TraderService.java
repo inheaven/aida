@@ -675,7 +675,7 @@ public class TraderService {
 
                         if (currencyPair.equals(order.getCurrencyPair())
                                 && order.getLimitPrice().subtract(middlePrice).abs()
-                                .compareTo(minSpread.multiply(BigDecimal.valueOf(11))) > 0) {
+                                .compareTo(minSpread.multiply(BigDecimal.valueOf(7))) > 0) {
                             String orderId = order.getId().split("&")[0];
 
                             //update order status
@@ -698,9 +698,8 @@ public class TraderService {
                     BigDecimal predictionIndex = getPredictionIndex(exchangePair);
 
                     //create order
-                    for (double index : new double[]{1, 2, 3, 4, 5, 6, 7, 8}) {
-                        BigDecimal delta = minSpread.multiply(BigDecimal.valueOf(index))
-                                .divide(BigDecimal.valueOf(2), 8, ROUND_UP);
+                    for (double index : new double[]{1, 2, 3, 4, 5, 6, 7}) {
+                        BigDecimal delta = minSpread.multiply(BigDecimal.valueOf(index)).divide(BigDecimal.valueOf(2), 8, ROUND_UP);
 
                         //btc-e delta
                         if (BTCE.equals(trader.getExchange())){
@@ -763,7 +762,7 @@ public class TraderService {
 
                         //random ask delta
                         BigDecimal randomAskDelta = predictionIndex.compareTo(ZERO) > 0
-                                ? randomMinus10(delta) : randomMinus50(delta);
+                                ? randomMinus10(delta) : randomMinus20(delta);
 
                         if (randomAskDelta.compareTo(ZERO) == 0){
                             randomAskDelta = "USD".equals(currencyPair.counterSymbol)
@@ -781,7 +780,7 @@ public class TraderService {
 
                         //random bid delta
                         BigDecimal randomBidDelta = predictionIndex.compareTo(ZERO) > 0
-                                ? randomMinus50(delta) : randomMinus10(delta);
+                                ? randomMinus20(delta) : randomMinus10(delta);
 
                         if (randomBidDelta.compareTo(ZERO) == 0){
                             randomBidDelta = "USD".equals(currencyPair.counterSymbol)
