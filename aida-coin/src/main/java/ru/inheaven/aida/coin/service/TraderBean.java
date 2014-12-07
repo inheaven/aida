@@ -183,9 +183,9 @@ public class TraderBean {
 
     @SuppressWarnings("unchecked")
     public List<OrderStat> getOrderStatVolume(ExchangePair exchangePair, Date startDate){
-        return em.createNativeQuery("select id, ceil(price) as avgPrice, " +
+        return em.createNativeQuery("select id, round(price,1) as avgPrice, " +
                 "sum(FILLEDAMOUNT) as sumAmount, type, exchangeType, pair FROM order_history " +
-                "WHERE exchangetype = ? and pair = ? and status='CLOSED' and CLOSED > ? GROUP BY ceil(price)", OrderStat.class)
+                "WHERE exchangetype = ? and pair = ? and status='CLOSED' and CLOSED > ? GROUP BY round(price, 1)", OrderStat.class)
                 .setParameter(1, exchangePair.getExchangeType().name())
                 .setParameter(2, exchangePair.getPair())
                 .setParameter(3, startDate)
