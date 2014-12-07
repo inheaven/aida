@@ -135,7 +135,7 @@ public class TraderService {
             balanceOKCoinWeekPosition("LTC/USD");
 
             int levels = 50;
-            float spread = 0.0013f;
+            double spread = 0.0013f;
 
             OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("btc_usd", "this_week");
 
@@ -146,38 +146,38 @@ public class TraderService {
 
                 //long
 
-                float bidProfit = 10 * p.getBuyAmount().floatValue() / p.getBuyPriceAvg().floatValue();
-                float askProfit = 10 * p.getSellAmount().floatValue() / p.getSellPriceAvg().floatValue();
+                double bidProfit = 10 * p.getBuyAmount().doubleValue() / p.getBuyPriceAvg().doubleValue();
+                double askProfit = 10 * p.getSellAmount().doubleValue() / p.getSellPriceAvg().doubleValue();
 
                 futures.setMargin(BigDecimal.valueOf(bidProfit + askProfit));
                 futures.setRealProfit(p.getBuyProfitReal().add(p.getSellProfitReal()));
 
                 for (int i = 1; i < levels; ++i){
-                    float bidPrice0 = p.getBuyPriceAvg().floatValue() * (1f + spread * (i-1));
-                    float bidPrice = p.getBuyPriceAvg().floatValue() * (1f + spread * i);
+                    double bidPrice0 = p.getBuyPriceAvg().doubleValue() * (1f + spread * (i-1));
+                    double bidPrice = p.getBuyPriceAvg().doubleValue() * (1f + spread * i);
 
                     bidProfit += (p.getBuyAmount().intValue() - i) * (100/bidPrice0 - 100/bidPrice);
                     futures.getBids().add(new Position(bidProfit, bidPrice));
 
-                    float askPrice0 = (p.getSellPriceAvg().floatValue() * (1f + spread * (i-1)));
-                    float askPrice = (p.getSellPriceAvg().floatValue() * (1f + spread * i));
+                    double askPrice0 = (p.getSellPriceAvg().doubleValue() * (1f + spread * (i-1)));
+                    double askPrice = (p.getSellPriceAvg().doubleValue() * (1f + spread * i));
                     askProfit -= (p.getSellAmount().intValue() + i) * (100/askPrice0 - 100/askPrice);
                     futures.getAsks().add(new Position(askProfit, askPrice));
                 }
 
                 //short
 
-                bidProfit = 10 * p.getBuyAmount().floatValue() / p.getBuyPriceAvg().floatValue();
-                askProfit = 10 * p.getSellAmount().floatValue() / p.getSellPriceAvg().floatValue();
+                bidProfit = 10 * p.getBuyAmount().doubleValue() / p.getBuyPriceAvg().doubleValue();
+                askProfit = 10 * p.getSellAmount().doubleValue() / p.getSellPriceAvg().doubleValue();
 
                 for (int i = -1; i > -levels; --i){
-                    float bidPrice0 = p.getBuyPriceAvg().floatValue() * (1f + spread * (i+1));
-                    float bidPrice = p.getBuyPriceAvg().floatValue() * (1f + spread * i);
+                    double bidPrice0 = p.getBuyPriceAvg().doubleValue() * (1f + spread * (i+1));
+                    double bidPrice = p.getBuyPriceAvg().doubleValue() * (1f + spread * i);
                     bidProfit += (p.getBuyAmount().intValue() - i) * (100/bidPrice0 - 100/bidPrice);
                     futures.getBids().add(new Position(bidProfit, bidPrice));
 
-                    float askPrice0 = (p.getSellPriceAvg().floatValue() * (1f + spread * (i+1)));
-                    float askPrice = (p.getSellPriceAvg().floatValue() * (1f + spread * i));
+                    double askPrice0 = (p.getSellPriceAvg().doubleValue() * (1f + spread * (i+1)));
+                    double askPrice = (p.getSellPriceAvg().doubleValue() * (1f + spread * i));
                     askProfit -= (p.getSellAmount().intValue() + i) * (100/askPrice0 - 100/askPrice);
                     futures.getAsks().add(new Position(askProfit, askPrice));
                 }
@@ -321,8 +321,8 @@ public class TraderService {
                                 boolean changed;
 
                                 if (OKCOIN.equals(trader.getExchange())){
-                                    float p1 = previous.getBalance().floatValue();
-                                    float p2 = h.getBalance().floatValue();
+                                    double p1 = previous.getBalance().doubleValue();
+                                    double p2 = h.getBalance().doubleValue();
 
                                     changed = Math.abs(p1 - p2) / p1 > 0.005;
                                 }else{
@@ -1080,13 +1080,13 @@ public class TraderService {
         List<TickerHistory> tickerHistories = traderBean.getTickerHistories(exchangePair, size);
 
         if (tickerHistories.size() == size){
-            float[] timeSeries = new float[size];
+            double[] timeSeries = new double[size];
 
             for (int i=0; i < size; ++i){
-                timeSeries[i] = tickerHistories.get(i).getPrice().floatValue();
+                timeSeries[i] = tickerHistories.get(i).getPrice().doubleValue();
             }
 
-            float index = 100 * (predictorService.getPrediction(timeSeries) - timeSeries[size-1]) / timeSeries[size-1];
+            double index = 100 * (predictorService.getPrediction(timeSeries) - timeSeries[size-1]) / timeSeries[size-1];
 
             try {
                 predictionIndex =  BigDecimal.valueOf(Math.abs(index) < 1000 ? index : 1000*Math.signum(index)).setScale(2, HALF_UP);
@@ -1110,8 +1110,8 @@ public class TraderService {
             for (int i = 0; i < size-step; ++i){
                 for (int j = step/2; j < step; ++j){
                     if (list.get(i).getPrediction() != null
-                            && (list.get(i + j).getPrice().floatValue() - list.get(i).getPrice().floatValue() *
-                            list.get(i).getPrediction().floatValue()) >= 0){
+                            && (list.get(i + j).getPrice().doubleValue() - list.get(i).getPrice().doubleValue() *
+                            list.get(i).getPrediction().doubleValue()) >= 0){
                         p++;
                         break;
                     }

@@ -22,20 +22,20 @@ public class VectorForecastSSA {
     private final int M;
     private final int K;
 
-    private final float[] Z;
-    private final float[] R;
+    private final double[] Z;
+    private final double[] R;
 
-    private final float[] VD;
-    private final float[] pi;
+    private final double[] VD;
+    private final double[] pi;
 
-    private final float[] VDxVDt;
-    private final float[] RxRt;
-    private final float[] Pr;
+    private final double[] VDxVDt;
+    private final double[] RxRt;
+    private final double[] Pr;
 
-    private final float[] Yd;
-    private final float[] Zi;
+    private final double[] Yd;
+    private final double[] Zi;
 
-    private final float[] forecast;
+    private final double[] forecast;
 
     private BasicAnalysisSSA basicAnalysis;
 
@@ -77,20 +77,20 @@ public class VectorForecastSSA {
 
         basicAnalysis = new BasicAnalysisSSA(N, L, P, PP, type);
 
-        Z = new float[L * (N + M)];
-        R = new float[Ld];
+        Z = new double[L * (N + M)];
+        R = new double[Ld];
 
-        VD = new float[Ld * M];
-        pi = new float[M];
+        VD = new double[Ld * M];
+        pi = new double[M];
 
-        VDxVDt = new float[Ld * Ld];
-        RxRt = new float[Ld * Ld];
-        Pr = new float[Ld * Ld];
+        VDxVDt = new double[Ld * Ld];
+        RxRt = new double[Ld * Ld];
+        Pr = new double[Ld * Ld];
 
-        Yd = new float[L-1];
-        Zi = new float[L];
+        Yd = new double[L-1];
+        Zi = new double[L];
 
-        forecast = new float[forecastSize()];
+        forecast = new double[forecastSize()];
     }
 
     public int getN() {
@@ -113,7 +113,7 @@ public class VectorForecastSSA {
         return N + M + L - 1;
     }
 
-    public float[] execute(float[] timeSeries){
+    public double[] execute(double[] timeSeries){
         execute(timeSeries, forecast);
 
         return forecast;
@@ -121,10 +121,10 @@ public class VectorForecastSSA {
 
     /**
      *
-     * @param timeSeries float[N]
-     * @param forecast float[N + M + L - 1]
+     * @param timeSeries double[N]
+     * @param forecast double[N + M + L - 1]
      */
-    public void execute(float[] timeSeries, float forecast[]) {
+    public void execute(double[] timeSeries, double forecast[]) {
         long time = System.currentTimeMillis();
 
         if (timing){
@@ -139,7 +139,7 @@ public class VectorForecastSSA {
             time = System.currentTimeMillis();
         }
 
-        float v2 = 0;
+        double v2 = 0;
 
         for (int i = 0; i < M; ++i){
             int index = i;
@@ -170,8 +170,8 @@ public class VectorForecastSSA {
             time = System.currentTimeMillis();
         }
 
-        ACML.jna().sgemm('N', 'T', Ld, Ld, M, 1, VD, Ld, VD, Ld, 0, VDxVDt, Ld);
-        ACML.jna().sgemm('N', 'T', Ld, Ld, 1, 1-v2, R, Ld, R, Ld, 0, RxRt, Ld);
+        ACML.jna().dgemm('N', 'T', Ld, Ld, M, 1, VD, Ld, VD, Ld, 0, VDxVDt, Ld);
+        ACML.jna().dgemm('N', 'T', Ld, Ld, 1, 1-v2, R, Ld, R, Ld, 0, RxRt, Ld);
 
         if (timing){
             System.out.println("VectorForecastSSA.4 " + (System.currentTimeMillis() - time));
@@ -187,7 +187,7 @@ public class VectorForecastSSA {
         for (int i = K; i < N + M; ++i){
             System.arraycopy(Z, 1 + (i-1)*L, Yd, 0, Ld);
 
-            ACML.jna().sgemm('N', 'N', Ld, 1, Ld, 1, Pr, Ld, Yd, Ld, 0, Zi, Ld);
+            ACML.jna().dgemm('N', 'N', Ld, 1, Ld, 1, Pr, Ld, Yd, Ld, 0, Zi, Ld);
 
             Zi[L-1] = 0;
             for (int j = 0; j < Ld; ++j){
@@ -209,7 +209,7 @@ public class VectorForecastSSA {
         }
     }
 
-    private void diagonalAveraging(float[] Y, int rows, int cols, float[] g){
+    private void diagonalAveraging(double[] Y, int rows, int cols, double[] g){
         int L1 = Math.min(rows, cols);
         int K1 = Math.max(rows, cols);
 
@@ -228,8 +228,8 @@ public class VectorForecastSSA {
         }
     }
 
-    private float getSum(float Y[], int rows, int cols, int first, int last, int k){
-        float sum = 0;
+    private double getSum(double Y[], int rows, int cols, int first, int last, int k){
+        double sum = 0;
 
         for (int m = first; m <= last; ++m){
             sum += rows < cols ? Y[m - 1 + (k - m + 1)*rows] : Y[k - m + 1 + (m - 1)*rows];

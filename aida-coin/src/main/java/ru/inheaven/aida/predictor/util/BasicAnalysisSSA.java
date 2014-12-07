@@ -17,12 +17,12 @@ public class BasicAnalysisSSA {
     private final static boolean timing = false;
 
     public static class Result{
-        public float[] U;
-        public float[] S;
-        public float[] VT;
-        public float[] X;
-        public float[] XI;
-        public float[] G;
+        public double[] U;
+        public double[] S;
+        public double[] VT;
+        public double[] X;
+        public double[] XI;
+        public double[] G;
     }
 
     private int N;
@@ -34,10 +34,10 @@ public class BasicAnalysisSSA {
 
     private Result r;
 
-    float[] Ui;
-    float[] Vi;
-    float[] Xi;
-    float[] XiXit;
+    double[] Ui;
+    double[] Vi;
+    double[] Xi;
+    double[] XiXit;
 
     private TYPE type;
 
@@ -70,19 +70,19 @@ public class BasicAnalysisSSA {
 
         r = new Result();
 
-        r.X = new float[L * K];
-        r.XI = new float[L * K];
-        r.G = new float[N * this.PP.length];
-        r.S = new float[Math.min(L, K)];
-        r.U = new float[L * L];
-        r.VT = new float[K * K];
+        r.X = new double[L * K];
+        r.XI = new double[L * K];
+        r.G = new double[N * this.PP.length];
+        r.S = new double[Math.min(L, K)];
+        r.U = new double[L * L];
+        r.VT = new double[K * K];
 
-        Ui = new float[L];
-        Vi = new float[K];
-        Xi = new float[L * K];
-        XiXit = new float[L*L];
+        Ui = new double[L];
+        Vi = new double[K];
+        Xi = new double[L * K];
+        XiXit = new double[L*L];
     }
-    public Result execute(float[] timeSeries, boolean diagonalAverage){
+    public Result execute(double[] timeSeries, boolean diagonalAverage){
         long time = System.currentTimeMillis();
 
         for (int j = 0; j < K; j++){
@@ -96,10 +96,10 @@ public class BasicAnalysisSSA {
 
         switch (type){
             case SGESDD:
-                ACML.jna().sgesdd('S', L, K, r.X, L, r.S, r.U, L, r.VT, K, new int[1]);
+                ACML.jna().dgesdd('S', L, K, r.X, L, r.S, r.U, L, r.VT, K, new int[1]);
                 break;
             case SGESVD:
-                ACML.jna().sgesvd('S', 'S', L, K, r.X, L, r.S, r.U, L, r.VT, K, new int[1]);
+                ACML.jna().dgesvd('S', 'S', L, K, r.X, L, r.S, r.U, L, r.VT, K, new int[1]);
                 break;
         }
 
@@ -119,14 +119,14 @@ public class BasicAnalysisSSA {
                     continue;
                 }
 
-                ACML.jna().sgemm('T', 'N', L, 1, L, 1/r.S[i], r.X, L, Ui, L, 0, Vi, L);
+                ACML.jna().dgemm('T', 'N', L, 1, L, 1/r.S[i], r.X, L, Ui, L, 0, Vi, L);
             } else {
                 for (int j = 0; j < K; ++j){
                     Vi[j] = r.VT[i + j*K];
                 }
             }
 
-            ACML.jna().sgemm('N', 'T', L, K, 1, r.S[i], Ui, L, Vi, K, 0, Xi, L);
+            ACML.jna().dgemm('N', 'T', L, K, 1, r.S[i], Ui, L, Vi, K, 0, Xi, L);
 
             for (int j = 0; j < L * K; ++j){
                 r.XI[j] += Xi[j];
@@ -157,8 +157,8 @@ public class BasicAnalysisSSA {
         return r;
     }
 
-    private float getSum(float[] Y, int rows, int cols, int first, int last, int k){
-        float sum = 0;
+    private double getSum(double[] Y, int rows, int cols, int first, int last, int k){
+        double sum = 0;
 
         for (int m = first; m <= last; ++m){
             sum += rows < cols ? Y[m - 1 + rows*(k - m + 1)] : Y[k - m + 1 + rows*(m - 1)];

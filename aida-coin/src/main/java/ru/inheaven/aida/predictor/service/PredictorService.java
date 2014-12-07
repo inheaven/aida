@@ -13,7 +13,7 @@ import javax.ejb.TransactionManagementType;
 @Singleton
 @TransactionManagement(TransactionManagementType.BEAN)
 public class PredictorService {
-    public float getPrediction(float[] timeSeries){
+    public double getPrediction(double[] timeSeries){
         if (timeSeries.length < 1024){
             return 0;
         }

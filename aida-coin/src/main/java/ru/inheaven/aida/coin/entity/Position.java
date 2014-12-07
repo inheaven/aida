@@ -14,7 +14,7 @@ public class Position {
         this.price = price;
     }
 
-    public Position(float amount, float price) {
+    public Position(double amount, double price) {
         this(BigDecimal.valueOf(amount), BigDecimal.valueOf(price));
     }
 
