@@ -50,7 +50,7 @@ public class VectorForecastSSA {
      * @param M - длина прогноза
      */
     public VectorForecastSSA(int N, int L, int P, int M) {
-        this(N, L, P, new int[0], M, BasicAnalysisSSA.TYPE.SGESVD);
+        this(N, L, P, new int[0], M, BasicAnalysisSSA.TYPE.SGESDD);
     }
 
     public VectorForecastSSA(int N, int L, int P, int[] PP, int M){
