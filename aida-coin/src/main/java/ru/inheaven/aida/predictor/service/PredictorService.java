@@ -19,7 +19,7 @@ public class PredictorService {
         }
 
         try {
-            return new VectorForecastSSA(1024, 512, 21, 34).execute(timeSeries)[545];
+            return new VectorForecastSSA(2048, 1024, 32, 64).execute(timeSeries)[2111];
         } catch (Exception e) {
             return 0;
         }

@@ -1071,7 +1071,7 @@ public class TraderService {
     @Asynchronous
     public void updatePredictionIndex(ExchangePair exchangePair){
         BigDecimal predictionIndex = ZERO;
-        int size = 1024;
+        int size = 2048;
 
         List<TickerHistory> tickerHistories = traderBean.getTickerHistories(exchangePair, size);
 
