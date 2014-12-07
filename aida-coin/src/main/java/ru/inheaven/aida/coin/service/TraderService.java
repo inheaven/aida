@@ -678,7 +678,7 @@ public class TraderService {
 
                         if (currencyPair.equals(order.getCurrencyPair())
                                 && order.getLimitPrice().subtract(middlePrice).abs()
-                                .compareTo(minSpread.multiply(BigDecimal.valueOf(11))) > 0) {
+                                .compareTo(minSpread.multiply(BigDecimal.valueOf(15))) > 0) {
                             String orderId = order.getId().split("&")[0];
 
                             //update order status
