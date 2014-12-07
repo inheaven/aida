@@ -1068,6 +1068,7 @@ public class TraderService {
     }
 
 
+    @Asynchronous
     public void updatePredictionIndex(ExchangePair exchangePair){
         BigDecimal predictionIndex = ZERO;
         int size = 1024;
