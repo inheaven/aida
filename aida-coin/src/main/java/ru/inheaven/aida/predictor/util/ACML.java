@@ -17,8 +17,10 @@ public class ACML {
         if (instance.get() == null){
             instance.set(new ACML());
 
-            instance.get().ACMLPUTENV("ACML_TRACE_TYPE", "1", "ACML_TRACE_TYPE".length(), 1);
-            instance.get().ACMLPUTENV("ACML_TRACE_FLUSH", "1", "ACML_TRACE_FLUSH".length(), 1);
+            instance.get().ACMLPUTENV("ACML_TRACE_TYPE", "1");
+            instance.get().ACMLPUTENV("ACML_TRACE_FLUSH", "1");
+            instance.get().ACMLPUTENV("OPENCL_LIB_FILE", "c:\\dll");
+            instance.get().ACMLPUTENV("ACML_RESOURCES_PATH", "c:\\dll");
         }
 
         return instance.get();
@@ -43,4 +45,8 @@ public class ACML {
                              double[] b, int ldb, double beta, double[] c, int ldc);
 
     public native void ACMLPUTENV(String name, String value, int nameLen, int valueLen);
+
+    public void ACMLPUTENV(String name, String value){
+        instance.get().ACMLPUTENV(name, value, name.length(), value.length());
+    }
 }
