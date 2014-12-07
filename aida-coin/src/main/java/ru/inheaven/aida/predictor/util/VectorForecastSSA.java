@@ -170,8 +170,8 @@ public class VectorForecastSSA {
             time = System.currentTimeMillis();
         }
 
-        ACML.jna().dgemm('N', 'T', Ld, Ld, M, 1, VD, Ld, VD, Ld, 0, VDxVDt, Ld);
-        ACML.jna().dgemm('N', 'T', Ld, Ld, 1, 1-v2, R, Ld, R, Ld, 0, RxRt, Ld);
+        ACML.jna().DGEMM('N', 'T', Ld, Ld, M, 1, VD, Ld, VD, Ld, 0, VDxVDt, Ld);
+        ACML.jna().DGEMM('N', 'T', Ld, Ld, 1, 1-v2, R, Ld, R, Ld, 0, RxRt, Ld);
 
         if (timing){
             System.out.println("VectorForecastSSA.4 " + (System.currentTimeMillis() - time));
@@ -187,7 +187,7 @@ public class VectorForecastSSA {
         for (int i = K; i < N + M; ++i){
             System.arraycopy(Z, 1 + (i-1)*L, Yd, 0, Ld);
 
-            ACML.jna().dgemm('N', 'N', Ld, 1, Ld, 1, Pr, Ld, Yd, Ld, 0, Zi, Ld);
+            ACML.jna().DGEMM('N', 'N', Ld, 1, Ld, 1, Pr, Ld, Yd, Ld, 0, Zi, Ld);
 
             Zi[L-1] = 0;
             for (int j = 0; j < Ld; ++j){
