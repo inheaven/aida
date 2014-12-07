@@ -643,6 +643,10 @@ public class TraderService {
                     //middle price
                     BigDecimal middlePrice = ticker.getAsk().add(ticker.getBid()).divide(BigDecimal.valueOf(2), 8, HALF_UP);
 
+                    if (trader.getExchange().equals(OKCOIN)){
+                        middlePrice = ticker.getLast();
+                    }
+
                     if (middlePrice.compareTo(trader.getHigh()) > 0) {
                         errorMap.put(exchangePair, ++errorCount);
 
