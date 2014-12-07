@@ -119,10 +119,10 @@ public class TraderService {
             updateClosedOrders(exchangeType);
         }
 
-        for (Trader trader : traderBean.getTraders()){
+        traderBean.getTraders().stream().filter(Trader::isRunning).forEach(trader -> {
             updatePredictionIndex(trader.getExchangePair());
             updateVolatility(trader.getExchangePair());
-        }
+        });
 
         scheduleBalanceHistory();
     }
