@@ -50,11 +50,11 @@ public class VectorForecastSSA {
      * @param M - длина прогноза
      */
     public VectorForecastSSA(int N, int L, int P, int M) {
-        this(N, L, P, new int[0], M, BasicAnalysisSSA.TYPE.SGESVD);
+        this(N, L, P, new int[0], M, BasicAnalysisSSA.TYPE.DGESVD);
     }
 
     public VectorForecastSSA(int N, int L, int P, int[] PP, int M){
-        this(N, L, P, PP, M, BasicAnalysisSSA.TYPE.SGESVD);
+        this(N, L, P, PP, M, BasicAnalysisSSA.TYPE.DGESVD);
     }
 
     public VectorForecastSSA(int N, int L, int P, int[] PP, int M, BasicAnalysisSSA.TYPE type) {
@@ -170,8 +170,8 @@ public class VectorForecastSSA {
             time = System.currentTimeMillis();
         }
 
-        ACML.jna().DGEMM('N', 'T', Ld, Ld, M, 1, VD, Ld, VD, Ld, 0, VDxVDt, Ld);
-        ACML.jna().DGEMM('N', 'T', Ld, Ld, 1, 1-v2, R, Ld, R, Ld, 0, RxRt, Ld);
+        ACML.jna().dgemm('N', 'T', Ld, Ld, M, 1, VD, Ld, VD, Ld, 0, VDxVDt, Ld);
+        ACML.jna().dgemm('N', 'T', Ld, Ld, 1, 1 - v2, R, Ld, R, Ld, 0, RxRt, Ld);
 
         if (timing){
             System.out.println("VectorForecastSSA.4 " + (System.currentTimeMillis() - time));
@@ -187,7 +187,7 @@ public class VectorForecastSSA {
         for (int i = K; i < N + M; ++i){
             System.arraycopy(Z, 1 + (i-1)*L, Yd, 0, Ld);
 
-            ACML.jna().DGEMM('N', 'N', Ld, 1, Ld, 1, Pr, Ld, Yd, Ld, 0, Zi, Ld);
+            ACML.jna().dgemm('N', 'N', Ld, 1, Ld, 1, Pr, Ld, Yd, Ld, 0, Zi, Ld);
 
             Zi[L-1] = 0;
             for (int j = 0; j < Ld; ++j){

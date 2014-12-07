@@ -19,7 +19,6 @@ public class ACML {
 
             instance.get().ACMLPUTENV("ACML_TRACE_TYPE", "1");
             instance.get().ACMLPUTENV("ACML_TRACE_FLUSH", "1");
-            instance.get().ACMLPUTENV("OPENCL_LIB_FILE", "c:\\dll");
         }
 
         return instance.get();
@@ -34,13 +33,13 @@ public class ACML {
     public native void sgemm(char transa, char transb, int m, int n, int k, float alpha, float[] a, int lda,
                              float[] b, int ldb, float beta, float[] c, int ldc);
 
-    public native void DGESVD(char jobu, char jobvt, int m, int n, double[] a, int lda, double[] s, double[] u,
+    public native void dgesvd(char jobu, char jobvt, int m, int n, double[] a, int lda, double[] s, double[] u,
                               int ldu, double[] vt, int ldvt, int[] info);
     
-    public native void DGESDD(char jobz, int m, int n, double[] a, int lda, double[] s, double[] u, int ldu, double[] vt,
+    public native void dgesdd(char jobz, int m, int n, double[] a, int lda, double[] s, double[] u, int ldu, double[] vt,
                               int ldvt, int[] info);
 
-    public native void DGEMM(char transa, char transb, int m, int n, int k, double alpha, double[] a, int lda,
+    public native void dgemm(char transa, char transb, int m, int n, int k, double alpha, double[] a, int lda,
                              double[] b, int ldb, double beta, double[] c, int ldc);
 
     public native void ACMLPUTENV(String name, String value, int nameLen, int valueLen);

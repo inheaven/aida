@@ -12,7 +12,7 @@ import java.util.Arrays;
 public class BasicAnalysisSSA {
     private static final Logger log = LoggerFactory.getLogger(BasicAnalysisSSA.class);
 
-    public static enum TYPE{SSYEV, SGESDD, SGESVD}
+    public static enum TYPE{SSYEV, DGESDD, DGESVD}
 
     private final static boolean timing = false;
 
@@ -95,11 +95,11 @@ public class BasicAnalysisSSA {
         }
 
         switch (type){
-            case SGESDD:
-                ACML.jna().DGESDD('S', L, K, r.X, L, r.S, r.U, L, r.VT, K, new int[1]);
+            case DGESDD:
+                ACML.jna().dgesdd('S', L, K, r.X, L, r.S, r.U, L, r.VT, K, new int[1]);
                 break;
-            case SGESVD:
-                ACML.jna().DGESVD('S', 'S', L, K, r.X, L, r.S, r.U, L, r.VT, K, new int[1]);
+            case DGESVD:
+                ACML.jna().dgesvd('S', 'S', L, K, r.X, L, r.S, r.U, L, r.VT, K, new int[1]);
                 break;
         }
 
@@ -119,14 +119,14 @@ public class BasicAnalysisSSA {
                     continue;
                 }
 
-                ACML.jna().DGEMM('T', 'N', L, 1, L, 1/r.S[i], r.X, L, Ui, L, 0, Vi, L);
+                ACML.jna().dgemm('T', 'N', L, 1, L, 1 / r.S[i], r.X, L, Ui, L, 0, Vi, L);
             } else {
                 for (int j = 0; j < K; ++j){
                     Vi[j] = r.VT[i + j*K];
                 }
             }
 
-            ACML.jna().DGEMM('N', 'T', L, K, 1, r.S[i], Ui, L, Vi, K, 0, Xi, L);
+            ACML.jna().dgemm('N', 'T', L, K, 1, r.S[i], Ui, L, Vi, K, 0, Xi, L);
 
             for (int j = 0; j < L * K; ++j){
                 r.XI[j] += Xi[j];
