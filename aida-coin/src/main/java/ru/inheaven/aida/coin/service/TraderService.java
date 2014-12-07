@@ -1071,8 +1071,6 @@ public class TraderService {
         return predictionIndexMap.get(exchangePair) != null ? predictionIndexMap.get(exchangePair) : ZERO;
     }
 
-
-    @Asynchronous
     public void updatePredictionIndex(ExchangePair exchangePair){
         BigDecimal predictionIndex = ZERO;
         int size = 2048;
