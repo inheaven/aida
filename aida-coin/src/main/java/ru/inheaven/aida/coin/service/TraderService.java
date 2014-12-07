@@ -1064,7 +1064,7 @@ public class TraderService {
     }
 
     public BigDecimal getPredictionIndex(ExchangePair exchangePair){
-        return predictionIndexMap.get(exchangePair);
+        return predictionIndexMap.get(exchangePair) != null ? predictionIndexMap.get(exchangePair) : ZERO;
     }
 
 
