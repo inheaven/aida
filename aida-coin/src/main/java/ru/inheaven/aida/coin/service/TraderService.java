@@ -247,10 +247,10 @@ public class TraderService {
 
     public void trade(ExchangeType exchangeType){
         try {
-            updateTicker(exchangeType);
             updateBalance(exchangeType);
             updateOpenOrders(exchangeType);
             updateClosedOrders(exchangeType);
+            updateTicker(exchangeType);
 
             tradeAlpha(exchangeType);
         } catch (Exception e) {
