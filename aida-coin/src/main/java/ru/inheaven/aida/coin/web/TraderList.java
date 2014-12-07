@@ -750,11 +750,9 @@ public class TraderList extends AbstractPage{
 
             String s =  converter.convertToString(newValue, getLocale());
 
-            int compare;
+            int compare = s.compareTo(component.getDefaultModelObjectAsString().replace("%", ""));
 
-            if (!negative) {
-                compare = s.compareTo(component.getDefaultModelObjectAsString().replace("%", ""));
-            }else {
+            if (negative && compare != 0) {
                 compare = s.contains("-") ? -1 : 1;
             }
 
