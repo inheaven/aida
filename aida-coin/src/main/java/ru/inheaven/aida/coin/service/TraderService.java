@@ -1073,7 +1073,7 @@ public class TraderService {
 
     public void updatePredictionIndex(ExchangePair exchangePair){
         BigDecimal predictionIndex = ZERO;
-        int size = 2048;
+        int size = 512;
 
         List<TickerHistory> tickerHistories = traderBean.getTickerHistories(exchangePair, size);
 

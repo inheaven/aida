@@ -20,7 +20,6 @@ public class ACML {
             instance.get().ACMLPUTENV("ACML_TRACE_TYPE", "1");
             instance.get().ACMLPUTENV("ACML_TRACE_FLUSH", "1");
             instance.get().ACMLPUTENV("OPENCL_LIB_FILE", "c:\\dll");
-            instance.get().ACMLPUTENV("ACML_RESOURCES_PATH", "c:\\dll");
         }
 
         return instance.get();
