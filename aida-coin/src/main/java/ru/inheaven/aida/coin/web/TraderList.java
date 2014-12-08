@@ -563,15 +563,15 @@ public class TraderList extends AbstractPage{
 
                         for (int i =0; i < futures.getAsks().size(); ++i){
                             //noinspection unchecked
-                            chart4.getOptions().getSeries().get(1).getData().add(new Point(futures.getAsks().get(i).getPrice().setScale(2, ROUND_UP),
+                            chart4.getOptions().getSeries().get(1).getData().add(new Point(futures.getAsks().get(i).getPrice().setScale(1, ROUND_UP),
                                     futures.getAsks().get(i).getAmount().setScale(4, ROUND_UP)));
 
                             //noinspection unchecked
-                            chart4.getOptions().getSeries().get(2).getData().add(new Point(futures.getBids().get(i).getPrice().setScale(2, ROUND_UP),
+                            chart4.getOptions().getSeries().get(2).getData().add(new Point(futures.getBids().get(i).getPrice().setScale(1, ROUND_UP),
                                     futures.getBids().get(i).getAmount().setScale(4, ROUND_UP)));
 
                             //noinspection unchecked
-                            chart4.getOptions().getSeries().get(3).getData().add(new Point(futures.getEquity().get(i).getPrice().setScale(2, ROUND_UP),
+                            chart4.getOptions().getSeries().get(3).getData().add(new Point(futures.getEquity().get(i).getPrice().setScale(1, ROUND_UP),
                                     futures.getMargin().subtract(futures.getRealProfit()).subtract(futures.getEquity().get(i).getAmount()).setScale(4, ROUND_UP)));
                         }
 
