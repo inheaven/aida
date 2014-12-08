@@ -41,6 +41,9 @@ public class Trader extends AbstractEntity{
     @Column
     private boolean running = false;
 
+    @Column
+    private boolean predicting = false;
+
     @Column(nullable = true)
     @Enumerated(EnumType.STRING)
     private TraderType type = TraderType.LONG;
@@ -156,5 +159,13 @@ public class Trader extends AbstractEntity{
 
     public void setWeekProfit(BigDecimal weekProfit) {
         this.weekProfit = weekProfit;
+    }
+
+    public boolean isPredicting() {
+        return predicting;
+    }
+
+    public void setPredicting(boolean prediction) {
+        this.predicting = prediction;
     }
 }

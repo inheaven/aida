@@ -16,9 +16,6 @@ public class ACML {
     public static ACML jna(){
         if (instance.get() == null){
             instance.set(new ACML());
-
-            instance.get().ACMLPUTENV("ACML_TRACE_TYPE", "1");
-            instance.get().ACMLPUTENV("ACML_TRACE_FLUSH", "1");
         }
 
         return instance.get();

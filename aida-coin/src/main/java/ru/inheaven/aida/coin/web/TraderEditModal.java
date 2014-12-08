@@ -68,8 +68,12 @@ public class TraderEditModal extends Modal {
             }
         }).setRequired(true)));
 
-        form.add(new FormGroup("running", of("Active")).add(new DropDownChoice<>("running",
+        form.add(new FormGroup("running", of("Running")).add(new DropDownChoice<>("running",
                 new PropertyModel<>(traderModel, "running"),
+                Arrays.asList(new Boolean[]{true, false})).setRequired(true)));
+
+        form.add(new FormGroup("predicting", of("Predicting")).add(new DropDownChoice<>("predicting",
+                new PropertyModel<>(traderModel, "predicting"),
                 Arrays.asList(new Boolean[]{true, false})).setRequired(true)));
 
         form.add(new BootstrapAjaxButton("save", of("Save"), Buttons.Type.Primary){

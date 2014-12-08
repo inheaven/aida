@@ -64,6 +64,9 @@ public class TraderEdit extends AbstractPage{
         form.add(new FormGroup("running", of("Active")).add(new DropDownChoice<>("running",
                 Arrays.asList(new Boolean[]{true, false})).setRequired(true)));
 
+        form.add(new FormGroup("predicting", of("Predicting")).add(new DropDownChoice<>("predicting",
+                Arrays.asList(new Boolean[]{true, false})).setRequired(true)));
+
         form.add(new BootstrapButton("save", of("Save"), Buttons.Type.Primary){
             @Override
             public void onSubmit() {

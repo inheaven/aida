@@ -119,7 +119,7 @@ public class TraderService {
             updateClosedOrders(exchangeType);
         }
 
-        traderBean.getTraders().stream().filter(Trader::isRunning).forEach(trader -> {
+        traderBean.getTraders().stream().filter(Trader::isPredicting).forEach(trader -> {
             updatePredictionIndex(trader.getExchangePair());
             updateVolatility(trader.getExchangePair());
         });
@@ -371,7 +371,7 @@ public class TraderService {
             try {
                 CurrencyPair currencyPair = getCurrencyPair(trader.getPair());
 
-                if (currencyPair != null) {
+                if (currencyPair != null && trader.getType().equals(LONG)) {
                     Ticker ticker;
 
                     if (CRYPTSY.equals(exchangeType)) {
