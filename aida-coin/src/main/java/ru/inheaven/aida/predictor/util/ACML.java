@@ -8,7 +8,7 @@ import com.sun.jna.Native;
  */
 public class ACML {
     private static ACML instance = new ACML();
-    private static CLBLAS CLBLAS = new CLBLAS();
+    private CLBLAS clblas = new CLBLAS();
 
     static {
         Native.register("c:\\dll\\libacml_dll");
