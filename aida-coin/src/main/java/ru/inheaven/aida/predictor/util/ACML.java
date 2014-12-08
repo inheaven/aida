@@ -7,18 +7,14 @@ import com.sun.jna.Native;
  *         Date: 02.11.2014 5:29
  */
 public class ACML {
-    private static ThreadLocal<ACML> instance = new ThreadLocal<>();
+    private static ACML instance = new ACML();
 
     static {
         Native.register("c:\\dll\\libacml_dll");
     }
 
     public static ACML jna(){
-        if (instance.get() == null){
-            instance.set(new ACML());
-        }
-
-        return instance.get();
+        return instance;
     }
 
     public native void sgesvd(char jobu, char jobvt, int m, int n, float[] a, int lda, float[] s, float[] u,
@@ -41,10 +37,4 @@ public class ACML {
 
     public native void dgemv(char transa, int m, int n, double alpha, double[] a, int lda,
                              double[] b, int ldb, double beta, double[] c, int ldc);
-
-    public native void ACMLPUTENV(String name, String value, int nameLen, int valueLen);
-
-    public void ACMLPUTENV(String name, String value){
-        instance.get().ACMLPUTENV(name, value, name.length(), value.length());
-    }
 }
