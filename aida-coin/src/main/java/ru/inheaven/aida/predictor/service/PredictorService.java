@@ -10,15 +10,17 @@ import javax.ejb.Singleton;
  */
 @Singleton
 public class PredictorService {
-    private final static VectorForecastSSA VECTOR_FORECAST_SSA =  new VectorForecastSSA(512, 256, 8, 32);
+    public static final int SIZE = 4096;
+
+    private final static VectorForecastSSA VECTOR_FORECAST_SSA =  new VectorForecastSSA(SIZE, 2048, 16, 32);
 
     public double getPrediction(double[] timeSeries){
-        if (timeSeries.length < 512){
+        if (timeSeries.length < SIZE){
             return 0;
         }
 
         try {
-            return VECTOR_FORECAST_SSA.execute(timeSeries)[512 + 31];
+            return VECTOR_FORECAST_SSA.execute(timeSeries)[SIZE + 31];
         } catch (Exception e) {
             return 0;
         }
