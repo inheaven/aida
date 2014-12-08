@@ -42,6 +42,9 @@ public class ACML {
     public native void dgemm(char transa, char transb, int m, int n, int k, double alpha, double[] a, int lda,
                              double[] b, int ldb, double beta, double[] c, int ldc);
 
+    public native void dgemv(char transa, int m, int n, double alpha, double[] a, int lda,
+                             double[] b, int ldb, double beta, double[] c, int ldc);
+
     public native void ACMLPUTENV(String name, String value, int nameLen, int valueLen);
 
     public void ACMLPUTENV(String name, String value){

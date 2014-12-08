@@ -190,7 +190,7 @@ public class VectorForecastSSA {
         for (int i = K; i < N + M; ++i){
             System.arraycopy(Z, 1 + (i-1)*L, Yd, 0, Ld);
 
-            ACML.jna().dgemm('N', 'N', Ld, 1, Ld, 1, Pr, Ld, Yd, Ld, 0, Zi, Ld);
+            ACML.jna().dgemv('N', Ld, Ld, 1, Pr, Ld, Yd, 1, 0, Zi, 1);
 
             Zi[L-1] = 0;
             for (int j = 0; j < Ld; ++j){
