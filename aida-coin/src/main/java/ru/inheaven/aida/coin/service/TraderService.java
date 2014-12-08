@@ -1097,8 +1097,8 @@ public class TraderService {
     }
 
     public BigDecimal getPredictionTestIndex(ExchangePair exchangePair){
-        int size = 32;
-        int step = 16;
+        int size = 64;
+        int step = 32;
 
         List<TickerHistory> list = traderBean.getTickerHistories(exchangePair, size);
 
