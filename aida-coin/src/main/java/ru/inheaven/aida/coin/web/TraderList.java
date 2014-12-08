@@ -534,6 +534,7 @@ public class TraderList extends AbstractPage{
                         }
                     } else if (payload instanceof Futures){
                         Futures futures = (Futures) payload;
+
                         chart4.getOptions().getSeries().get(0).getData().clear();
                         chart4.getOptions().getSeries().get(1).getData().clear();
                         chart4.getOptions().getSeries().get(2).getData().clear();
@@ -545,6 +546,11 @@ public class TraderList extends AbstractPage{
                         Ticker ticker = traderService.getTicker(btcUsd);
 
                         for (OrderStat s : orderStats){
+                            if (s.getAvgPrice().compareTo(futures.getEquity().get(0).getPrice()) < 0
+                                    && s.getAvgPrice().compareTo(futures.getEquity().get(futures.getEquity().size()-1).getPrice()) > 0){
+                                continue;
+                            }
+
                             Point point = new Point(s.getAvgPrice(), s.getSumAmount());
 
                             if (ticker.getLast().setScale(0, ROUND_UP).compareTo(s.getAvgPrice()) == 0){
