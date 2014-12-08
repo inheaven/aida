@@ -11,7 +11,6 @@ public class ACML {
 
     static {
         Native.register("c:\\dll\\libacml_dll");
-        new CLBLAS();
     }
 
     public static ACML jna(){
