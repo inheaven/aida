@@ -544,7 +544,9 @@ public class TraderList extends AbstractPage{
                         List<OrderStat> orderStats = traderBean.getOrderStatVolume(btcUsd, startDate);
                         BigDecimal last = traderService.getTicker(btcUsd).getLast().setScale(1, ROUND_UP);
 
-                        BigDecimal predictionPrice = ONE.add(traderService.getPredictionIndex(btcUsd)).multiply(last).setScale(1, ROUND_UP);
+                        BigDecimal predictionPrice = ONE.add(traderService.getPredictionIndex(btcUsd)
+                                .multiply(BigDecimal.valueOf(0.01)))
+                                .multiply(last).setScale(1, ROUND_UP);
 
                         for (OrderStat s : orderStats){
                             if (s.getAvgPrice().compareTo(futures.getEquity().get(0).getPrice()) < 0
