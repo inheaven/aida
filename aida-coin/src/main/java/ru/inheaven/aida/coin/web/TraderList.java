@@ -553,7 +553,7 @@ public class TraderList extends AbstractPage{
 
                             Point point = new Point(s.getAvgPrice(), s.getSumAmount());
 
-                            if (ticker.getLast().setScale(0, ROUND_UP).compareTo(s.getAvgPrice()) == 0){
+                            if (ticker.getLast().setScale(1, ROUND_UP).compareTo(s.getAvgPrice()) == 0){
                                 point.setColor(new HexColor("#C8C8C8"));
                             }
 
