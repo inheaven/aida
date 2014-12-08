@@ -550,7 +550,10 @@ public class TraderService {
         }
 
         //volatility
-        BigDecimal volatility = volatilitySigmaMap.get(trader.getExchangePair()).divide(ticker.getLast(), 8, HALF_UP);
+        BigDecimal volatility = volatilitySigmaMap.get(trader.getExchangePair()) != null
+                ? volatilitySigmaMap.get(trader.getExchangePair()).divide(ticker.getLast(), 8, HALF_UP)
+                : ZERO;
+
         minSpread = minSpread.multiply(ONE.add(volatility.multiply(BigDecimal.valueOf(2*Math.PI)))).setScale(8, HALF_UP);
 
         return minSpread;
@@ -633,7 +636,7 @@ public class TraderService {
                 if (trader.isRunning()) {
                     Ticker ticker = getTicker(exchangePair);
 
-                    if (ticker == null) {
+                    if (ticker == null || ticker.getLast() == null) {
                         continue;
                     }
 
