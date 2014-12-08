@@ -542,10 +542,10 @@ public class TraderList extends AbstractPage{
                         //volume
                         ExchangePair btcUsd = ExchangePair.of(ExchangeType.OKCOIN, "BTC/USD");
                         List<OrderStat> orderStats = traderBean.getOrderStatVolume(btcUsd, startDate);
-                        Ticker ticker = traderService.getTicker(btcUsd);
+                        BigDecimal last = traderService.getTicker(btcUsd).getLast().setScale(1, ROUND_UP);
 
                         BigDecimal predictionIndex = traderService.getPredictionIndex(btcUsd);
-                        BigDecimal predictionPrice = ONE.add(predictionIndex).multiply(ticker.getLast());
+                        BigDecimal predictionPrice = ONE.add(predictionIndex).multiply(last).setScale(1, ROUND_UP);
 
                         for (OrderStat s : orderStats){
                             if (s.getAvgPrice().compareTo(futures.getEquity().get(0).getPrice()) < 0
@@ -555,9 +555,9 @@ public class TraderList extends AbstractPage{
 
                             Point point = new Point(s.getAvgPrice(), s.getSumAmount());
 
-                            if (ticker.getLast().setScale(1, ROUND_UP).compareTo(s.getAvgPrice()) == 0){
+                            if (last.compareTo(s.getAvgPrice()) == 0) {
                                 point.setColor(new HexColor("#C8C8C8"));
-                            }else if (ticker.getLast().setScale(1, ROUND_UP).compareTo(predictionPrice) == 0){
+                            }else if (predictionPrice.compareTo(s.getAvgPrice()) == 0){
                                 point.setColor(new HexColor(predictionIndex.doubleValue() > 0 ? "#62c462" : "#ee5f5b"));
                             }
 
