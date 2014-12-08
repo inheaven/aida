@@ -9,4 +9,10 @@ public class CLBLAS {
     static {
         Native.register("c:\\dll\\clBLAS");
     }
+
+    public CLBLAS() {
+        clblasSetup();
+    }
+
+    public native void clblasSetup();
 }
