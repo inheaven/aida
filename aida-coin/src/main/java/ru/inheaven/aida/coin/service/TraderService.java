@@ -119,8 +119,11 @@ public class TraderService {
             updateClosedOrders(exchangeType);
         }
 
-        traderBean.getTraders().stream().filter(Trader::isPredicting).forEach(trader -> {
-            updatePredictionIndex(trader.getExchangePair());
+        traderBean.getTraders().stream().filter(Trader::isRunning).forEach(trader -> {
+            if (trader.isPredicting()) {
+                updatePredictionIndex(trader.getExchangePair());
+            }
+
             updateVolatility(trader.getExchangePair());
         });
 
@@ -601,7 +604,10 @@ public class TraderService {
                 : getMinOrderVolume(trader.getExchangePair()).divide(middlePrice, 8, HALF_UP);
 
         //volatility
-        BigDecimal volatility = volatilitySigmaMap.get(trader.getExchangePair()).divide(ticker.getLast(), 8, HALF_UP);
+        BigDecimal volatility = volatilitySigmaMap.get(trader.getExchangePair()) != null
+                ? volatilitySigmaMap.get(trader.getExchangePair()).divide(ticker.getLast(), 8, HALF_UP)
+                : ZERO;
+
         minOrderAmount = minOrderAmount.multiply(ONE.add(volatility.multiply(BigDecimal.valueOf(2*Math.PI)))).setScale(8, HALF_UP);
 
         return minOrderAmount;
