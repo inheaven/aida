@@ -127,14 +127,14 @@ public class TraderService {
         scheduleBalanceHistory();
     }
 
-    @Schedule(second = "*/10", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/5", minute="*", hour="*", persistent=false)
     public void scheduleFuturePosition(){
         try {
             //balance
             balanceOKCoinWeekPosition("BTC/USD");
             balanceOKCoinWeekPosition("LTC/USD");
 
-            int levels = 50;
+            int levels = 24;
             double spread = 0.0013f;
 
             OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("btc_usd", "this_week");
