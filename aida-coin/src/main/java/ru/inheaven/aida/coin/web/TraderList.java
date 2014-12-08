@@ -547,7 +547,7 @@ public class TraderList extends AbstractPage{
 
                         for (OrderStat s : orderStats){
                             if (s.getAvgPrice().compareTo(futures.getEquity().get(0).getPrice()) < 0
-                                    && s.getAvgPrice().compareTo(futures.getEquity().get(futures.getEquity().size()-1).getPrice()) > 0){
+                                    || s.getAvgPrice().compareTo(futures.getEquity().get(futures.getEquity().size()-1).getPrice()) > 0){
                                 continue;
                             }
 
