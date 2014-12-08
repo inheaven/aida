@@ -544,8 +544,7 @@ public class TraderList extends AbstractPage{
                         List<OrderStat> orderStats = traderBean.getOrderStatVolume(btcUsd, startDate);
                         BigDecimal last = traderService.getTicker(btcUsd).getLast().setScale(1, ROUND_UP);
 
-                        BigDecimal predictionIndex = traderService.getPredictionIndex(btcUsd);
-                        BigDecimal predictionPrice = ONE.add(predictionIndex).multiply(last).setScale(1, ROUND_UP);
+                        BigDecimal predictionPrice = ONE.add(traderService.getPredictionIndex(btcUsd)).multiply(last).setScale(1, ROUND_UP);
 
                         for (OrderStat s : orderStats){
                             if (s.getAvgPrice().compareTo(futures.getEquity().get(0).getPrice()) < 0
@@ -558,7 +557,7 @@ public class TraderList extends AbstractPage{
                             if (last.compareTo(s.getAvgPrice()) == 0) {
                                 point.setColor(new HexColor("#C8C8C8"));
                             }else if (predictionPrice.compareTo(s.getAvgPrice()) == 0){
-                                point.setColor(new HexColor(predictionIndex.doubleValue() > 0 ? "#62c462" : "#ee5f5b"));
+                                point.setColor(new HexColor(predictionPrice.compareTo(last) > 0 ? "#62c462" : "#ee5f5b"));
                             }
 
                             //noinspection unchecked
