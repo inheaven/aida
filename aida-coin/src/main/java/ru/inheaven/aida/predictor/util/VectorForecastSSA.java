@@ -5,6 +5,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 
+import static ru.inheaven.aida.predictor.util.BasicAnalysisSSA.Result;
+import static ru.inheaven.aida.predictor.util.BasicAnalysisSSA.TYPE;
+
 /**
  * @author Anatoly A. Ivanov java@inhell.ru
  *         Date: 30.11.10 16:57
@@ -12,7 +15,7 @@ import java.util.Arrays;
 public class VectorForecastSSA {
     private static final Logger log = LoggerFactory.getLogger(VectorForecastSSA.class);
 
-    private final static boolean timing = false;
+    private final static boolean timing = true;
 
     private final int N;
     private final int L;
@@ -39,7 +42,7 @@ public class VectorForecastSSA {
 
     private BasicAnalysisSSA basicAnalysis;
 
-    private BasicAnalysisSSA.TYPE type;
+    private TYPE type;
 
 
     /**
@@ -50,14 +53,14 @@ public class VectorForecastSSA {
      * @param M - длина прогноза
      */
     public VectorForecastSSA(int N, int L, int P, int M) {
-        this(N, L, P, new int[0], M, BasicAnalysisSSA.TYPE.DGESVD);
+        this(N, L, P, new int[0], M, TYPE.DGESVD);
     }
 
     public VectorForecastSSA(int N, int L, int P, int[] PP, int M){
-        this(N, L, P, PP, M, BasicAnalysisSSA.TYPE.DGESVD);
+        this(N, L, P, PP, M, TYPE.DGESVD);
     }
 
-    public VectorForecastSSA(int N, int L, int P, int[] PP, int M, BasicAnalysisSSA.TYPE type) {
+    public VectorForecastSSA(int N, int L, int P, int[] PP, int M, TYPE type) {
         this.N = N;
         this.L = L;
         this.M = M;
@@ -69,7 +72,7 @@ public class VectorForecastSSA {
         Ld = L - 1;
         K = N - L + 1;
 
-        if (PP.length > 0 && type.equals(BasicAnalysisSSA.TYPE.SSYEV)){
+        if (PP.length > 0 && type.equals(TYPE.SSYEV)){
             for (int i = 0; i < P; ++i){
                 PP[i] = L - PP[i] - 1;
             }
@@ -132,7 +135,7 @@ public class VectorForecastSSA {
             time = System.currentTimeMillis();
         }
 
-        BasicAnalysisSSA.Result ssa = basicAnalysis.execute(timeSeries, false);
+        Result ssa = basicAnalysis.execute(timeSeries, false);
 
         if (timing){
             System.out.println("VectorForecastSSA.2 " + (System.currentTimeMillis() - time));
@@ -144,7 +147,7 @@ public class VectorForecastSSA {
         for (int i = 0; i < M; ++i){
             int index = i;
 
-            if (type.equals(BasicAnalysisSSA.TYPE.SSYEV)){
+            if (type.equals(TYPE.SSYEV)){
                 index = L - i - 1;
             }
 
