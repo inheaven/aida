@@ -53,8 +53,7 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 
-import static java.math.BigDecimal.ROUND_UP;
-import static java.math.BigDecimal.ZERO;
+import static java.math.BigDecimal.*;
 import static org.apache.wicket.model.Model.of;
 
 /**
@@ -545,6 +544,9 @@ public class TraderList extends AbstractPage{
                         List<OrderStat> orderStats = traderBean.getOrderStatVolume(btcUsd, startDate);
                         Ticker ticker = traderService.getTicker(btcUsd);
 
+                        BigDecimal predictionIndex = traderService.getPredictionIndex(btcUsd);
+                        BigDecimal predictionPrice = ONE.add(predictionIndex).multiply(ticker.getLast());
+
                         for (OrderStat s : orderStats){
                             if (s.getAvgPrice().compareTo(futures.getEquity().get(0).getPrice()) < 0
                                     || s.getAvgPrice().compareTo(futures.getEquity().get(futures.getEquity().size()-1).getPrice()) > 0){
@@ -555,6 +557,8 @@ public class TraderList extends AbstractPage{
 
                             if (ticker.getLast().setScale(1, ROUND_UP).compareTo(s.getAvgPrice()) == 0){
                                 point.setColor(new HexColor("#C8C8C8"));
+                            }else if (ticker.getLast().setScale(1, ROUND_UP).compareTo(predictionPrice) == 0){
+                                point.setColor(new HexColor(predictionIndex.doubleValue() > 0 ? "#62c462" : "#ee5f5b"));
                             }
 
                             //noinspection unchecked
