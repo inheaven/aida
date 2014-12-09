@@ -729,15 +729,17 @@ public class TraderList extends AbstractPage{
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
             options.setTitle(new Title(""));
 
-            options.setxAxis(new Axis().setType(AxisType.LINEAR));
+            options.setxAxis(new Axis().setType(AxisType.LOGARITHMIC));
 
             options.setyAxis(Arrays.asList(new Axis().setTitle(new Title("")), new Axis().setOpposite(true).setTitle(new Title(""))));
 
             options.setPlotOptions(new PlotOptionsChoice()
                     .setSpline(new PlotOptions()
                             .setAnimation(false)
-                            .setMarker(new Marker(false))
-                            .setTurboThreshold(20000))
+                            .setMarker(new Marker(false)))
+                    .setLine(new PlotOptions()
+                            .setAnimation(false)
+                            .setMarker(new Marker(false)))
                     .setColumn(new PlotOptions()
                             .setBorderWidth(0)
                             .setPointPadding(0f)
@@ -747,7 +749,8 @@ public class TraderList extends AbstractPage{
                     .setyAxis(1).setType(SeriesType.COLUMN));
             options.addSeries(new PointSeries().setData(new ArrayList<>()).setName("Short").setColor(new HexColor("#ee5f5b")));
             options.addSeries(new PointSeries().setData(new ArrayList<>()).setName("Long").setColor(new HexColor("#62c462")));
-            options.addSeries(new PointSeries().setData(new ArrayList<>()).setName("Risk").setColor(new HexColor("#DDDF0D")));
+            options.addSeries(new PointSeries().setData(new ArrayList<>()).setName("Risk").setColor(new HexColor("#DDDF0D"))
+                    .setType(SeriesType.LINE));
 
             add(chart4 = new Chart("chart4", options));
         }
