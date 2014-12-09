@@ -691,7 +691,7 @@ public class TraderService {
 
                         if (currencyPair.equals(order.getCurrencyPair())
                                 && order.getLimitPrice().subtract(middlePrice).abs()
-                                .compareTo(minSpread.multiply(BigDecimal.valueOf(13))) > 0) {
+                                .compareTo(minSpread.multiply(BigDecimal.valueOf(6))) > 0) {
                             String orderId = order.getId().split("&")[0];
 
                             //update order status
@@ -717,7 +717,7 @@ public class TraderService {
                     BigDecimal internalAmount = ZERO;
 
                     //create order
-                    for (double index : new double[]{1, 2, 3, 4, 5, 6, 7, 8}) {
+                    for (double index : new double[]{1, 2, 3}) {
                         BigDecimal halfMinSpread = minSpread.divide(BigDecimal.valueOf(2), 8, ROUND_UP);
                         BigDecimal delta = halfMinSpread.multiply(BigDecimal.valueOf(index));
 
