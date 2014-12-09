@@ -194,7 +194,7 @@ public class TraderService {
                     Position ask = futures.getAsks().get(i);
 
                     futures.getEquity().add(new Position(ask.getAmount().add(bid.getAmount()).setScale(4, ROUND_UP),
-                            ask.getPrice()));
+                            ask.getPrice().add(bid.getPrice()).divide(BigDecimal.valueOf(2), 2, ROUND_UP)));
                 }
 
                 //broadcast
