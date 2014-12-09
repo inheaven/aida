@@ -729,7 +729,7 @@ public class TraderList extends AbstractPage{
             options.setExporting(new ExportingOptions().setEnabled(Boolean.FALSE));
             options.setTitle(new Title(""));
 
-            options.setxAxis(new Axis().setType(AxisType.LOGARITHMIC));
+            options.setxAxis(new Axis().setType(AxisType.LINEAR));
 
             options.setyAxis(Arrays.asList(new Axis().setTitle(new Title("")), new Axis().setOpposite(true).setTitle(new Title(""))));
 
