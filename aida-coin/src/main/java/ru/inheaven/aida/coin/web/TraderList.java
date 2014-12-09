@@ -629,7 +629,7 @@ public class TraderList extends AbstractPage{
         //Chart
         {
             Options options = new GrayTheme();
-            options.setChartOptions(new ChartOptions(SeriesType.LINE).setHeight(366)
+            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(366)
                     .setBackgroundColor(HexColor.fromString("#272b30")));
             options.setGlobal(new Global().setUseUTC(false));
             options.setCredits(new CreditOptions().setEnabled(false));
@@ -641,7 +641,7 @@ public class TraderList extends AbstractPage{
 
             options.setyAxis(new Axis().setTitle(new Title("")));
 
-            options.setPlotOptions(new PlotOptionsChoice().setLine(new PlotOptions().setMarker(new Marker(false))));
+            options.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions().setMarker(new Marker(false))));
 
             //go
 
@@ -688,7 +688,7 @@ public class TraderList extends AbstractPage{
 
         {
             Options options = new GrayTheme();
-            options.setChartOptions(new ChartOptions(SeriesType.LINE).setHeight(366).setZoomType(ZoomType.X)
+            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(366).setZoomType(ZoomType.X)
                     .setBackgroundColor(HexColor.fromString("#272b30")));
             options.setGlobal(new Global().setUseUTC(false));
             options.setCredits(new CreditOptions().setEnabled(false));
@@ -700,7 +700,7 @@ public class TraderList extends AbstractPage{
 
             options.setyAxis(new Axis().setTitle(new Title("")));
 
-            options.setPlotOptions(new PlotOptionsChoice().setLine(new PlotOptions()
+            options.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions()
                     .setMarker(new Marker(false))
                     .setTurboThreshold(20000)));
 
@@ -721,7 +721,7 @@ public class TraderList extends AbstractPage{
         //Chart 4
         {
             Options options = new GrayTheme();
-            options.setChartOptions(new ChartOptions(SeriesType.LINE).setHeight(366).setZoomType(ZoomType.X)
+            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(366).setZoomType(ZoomType.X)
                     .setBackgroundColor(HexColor.fromString("#272b30")));
             options.setGlobal(new Global().setUseUTC(false));
             options.setCredits(new CreditOptions().setEnabled(false));
@@ -734,9 +734,10 @@ public class TraderList extends AbstractPage{
             options.setyAxis(Arrays.asList(new Axis().setTitle(new Title("")), new Axis().setOpposite(true).setTitle(new Title(""))));
 
             options.setPlotOptions(new PlotOptionsChoice()
-                    .setLine(new PlotOptions()
+                    .setSpline(new PlotOptions()
                             .setAnimation(false)
-                            .setMarker(new Marker(false)))
+                            .setMarker(new Marker(false))
+                            .setTurboThreshold(20000))
                     .setColumn(new PlotOptions()
                             .setBorderWidth(0)
                             .setPointPadding(0f)
@@ -744,7 +745,6 @@ public class TraderList extends AbstractPage{
 
             options.addSeries(new PointSeries().setData(new ArrayList<>()).setName("Volume").setColor(new HighchartsColor(1))
                     .setyAxis(1).setType(SeriesType.COLUMN));
-            //line
             options.addSeries(new PointSeries().setData(new ArrayList<>()).setName("Short").setColor(new HexColor("#ee5f5b")));
             options.addSeries(new PointSeries().setData(new ArrayList<>()).setName("Long").setColor(new HexColor("#62c462")));
             options.addSeries(new PointSeries().setData(new ArrayList<>()).setName("Risk").setColor(new HexColor("#DDDF0D")));
