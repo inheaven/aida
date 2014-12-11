@@ -209,7 +209,7 @@ public class TraderService {
 
 
     private void balanceOKCoinWeekPosition(String pair) {
-        int minAmount = 6;
+        int minAmount = 3;
 
         try {
             OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService())
