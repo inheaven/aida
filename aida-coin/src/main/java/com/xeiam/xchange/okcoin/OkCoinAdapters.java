@@ -1,7 +1,5 @@
 package com.xeiam.xchange.okcoin;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Maps;
 import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.dto.Order.OrderType;
 import com.xeiam.xchange.dto.account.AccountInfo;
@@ -20,7 +18,6 @@ import com.xeiam.xchange.okcoin.dto.marketdata.OkCoinTrade;
 import com.xeiam.xchange.okcoin.dto.trade.OkCoinOrder;
 import com.xeiam.xchange.okcoin.dto.trade.OkCoinOrderResult;
 
-import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -119,23 +116,15 @@ public final class OkCoinAdapters {
     }
 
     public static OpenOrders adaptOpenOrders(List<OkCoinOrderResult> orderResults) {
-        List<LimitOrder> openOrders = new ArrayList<>();
+        Map<Long, LimitOrder> orderMap = new HashMap<>();
 
         for (OkCoinOrderResult orderResult : orderResults) {
             OkCoinOrder[] orders = orderResult.getOrders();
 
             for (OkCoinOrder singleOrder : orders) {
-                openOrders.add(adaptOpenOrder(singleOrder));
+                orderMap.put(singleOrder.getOrderId(), adaptOpenOrder(singleOrder));
             }
         }
-
-        Map<String, LimitOrder> orderMap = Maps.uniqueIndex(openOrders, new Function<LimitOrder, String>() {
-            @Nullable
-            @Override
-            public String apply(LimitOrder input) {
-                return input.getId();
-            }
-        });
 
         return new OpenOrders(new ArrayList<>(orderMap.values()));
     }
