@@ -370,7 +370,6 @@
                 <version>7.0</version>
             </dependency>
 
-
             <!--OSGi-->
             <dependency>
                 <groupId>org.osgi</groupId>
