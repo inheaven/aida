@@ -137,8 +137,9 @@ public class TraderService {
             balanceOKCoinWeekPosition("BTC/USD");
             balanceOKCoinWeekPosition("LTC/USD");
 
-            int levels = 24;
-            double spread = 0.0013f;
+            int levels = 50;
+            double spread = 0.0018f;
+            int balancing = 3;
 
             OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("btc_usd", "this_week");
 
@@ -156,11 +157,13 @@ public class TraderService {
                 futures.setRealProfit(p.getBuyProfitReal().add(p.getSellProfitReal()));
 
                 for (int i = 1; i < levels; ++i){
-                    double bidPrice0 = p.getBuyPriceAvg().doubleValue() * (1f + spread * (i-1));
-                    double bidPrice = p.getBuyPriceAvg().doubleValue() * (1f + spread * i);
+                    if (p.getBuyAmount().intValue() - i > balancing) {
+                        double bidPrice0 = p.getBuyPriceAvg().doubleValue() * (1f + spread * (i-1));
+                        double bidPrice = p.getBuyPriceAvg().doubleValue() * (1f + spread * i);
 
-                    bidProfit += (p.getBuyAmount().intValue() - i) * (100/bidPrice0 - 100/bidPrice);
-                    futures.getBids().add(new Position(bidProfit, bidPrice));
+                        bidProfit += (p.getBuyAmount().intValue() - i) * (100/bidPrice0 - 100/bidPrice);
+                        futures.getBids().add(new Position(bidProfit, bidPrice));
+                    }
 
                     double askPrice0 = (p.getSellPriceAvg().doubleValue() * (1f + spread * (i-1)));
                     double askPrice = (p.getSellPriceAvg().doubleValue() * (1f + spread * i));
@@ -179,10 +182,13 @@ public class TraderService {
                     bidProfit += (p.getBuyAmount().intValue() - i) * (100/bidPrice0 - 100/bidPrice);
                     futures.getBids().add(new Position(bidProfit, bidPrice));
 
-                    double askPrice0 = (p.getSellPriceAvg().doubleValue() * (1f + spread * (i+1)));
-                    double askPrice = (p.getSellPriceAvg().doubleValue() * (1f + spread * i));
-                    askProfit -= (p.getSellAmount().intValue() + i) * (100/askPrice0 - 100/askPrice);
-                    futures.getAsks().add(new Position(askProfit, askPrice));
+                    if (p.getSellAmount().intValue() + i > balancing) {
+                        double askPrice0 = (p.getSellPriceAvg().doubleValue() * (1f + spread * (i+1)));
+                        double askPrice = (p.getSellPriceAvg().doubleValue() * (1f + spread * i));
+
+                        askProfit -= (p.getSellAmount().intValue() + i) * (100/askPrice0 - 100/askPrice);
+                        futures.getAsks().add(new Position(askProfit, askPrice));
+                    }
                 }
 
                 //sort
