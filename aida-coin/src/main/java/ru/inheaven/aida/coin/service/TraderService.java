@@ -668,10 +668,6 @@ public class TraderService {
                     //middle price
                     BigDecimal middlePrice = ticker.getAsk().add(ticker.getBid()).divide(BigDecimal.valueOf(2), 8, HALF_UP);
 
-                    if (trader.getExchange().equals(OKCOIN)){
-                        middlePrice = ticker.getLast();
-                    }
-
                     if (middlePrice.compareTo(trader.getHigh()) > 0) {
                         errorMap.put(exchangePair, ++errorCount);
 
@@ -732,9 +728,12 @@ public class TraderService {
                     //internal amount
                     BigDecimal internalAmount = ZERO;
 
+                    //half min spread
+                    BigDecimal halfMinSpread = minSpread.divide(BigDecimal.valueOf(2), 8, ROUND_UP);
+
                     //create order
                     for (double index : new double[]{1, 2, 3, 4, 5, 6, 7}) {
-                        BigDecimal halfMinSpread = minSpread.divide(BigDecimal.valueOf(2), 8, ROUND_UP);
+
                         BigDecimal delta = halfMinSpread.multiply(BigDecimal.valueOf(index));
 
                         //btc-e delta
@@ -746,6 +745,8 @@ public class TraderService {
 
                         //magic
                         BigDecimal spreadSumAmount = internalAmount;
+                        BigDecimal magic = delta.multiply(BigDecimal.valueOf(1.1)).add(halfMinSpread);
+
                         for (LimitOrder order : openOrders) {
                             if ((trader.getType().equals(LONG) && (order.getId().contains("&2") || order.getId().contains("&4")))
                                     || ((trader.getType().equals(SHORT) && (order.getId().contains("&1") || order.getId().contains("&3"))))){
@@ -753,7 +754,7 @@ public class TraderService {
                             }
 
                             if (currencyPair.equals(order.getCurrencyPair())
-                                    && order.getLimitPrice().subtract(middlePrice).abs().compareTo(delta.add(halfMinSpread)) <= 0) {
+                                    && order.getLimitPrice().subtract(middlePrice).abs().compareTo(magic) <= 0) {
                                 spreadSumAmount = spreadSumAmount.add(order.getTradableAmount());
                             }
                         }
