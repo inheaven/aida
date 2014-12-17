@@ -533,9 +533,9 @@ public class TraderService {
                 break;
             case OKCOIN:
                 if (trader.getPair().contains("LTC/")){
-                    minSpread = middlePrice.multiply(new BigDecimal("0.0021")).setScale(8, HALF_UP);
+                    minSpread = middlePrice.multiply(new BigDecimal("0.0018")).setScale(8, HALF_UP);
                 }else{
-                    minSpread = middlePrice.multiply(new BigDecimal("0.0021")).setScale(8, HALF_UP);
+                    minSpread = middlePrice.multiply(new BigDecimal("0.0018")).setScale(8, HALF_UP);
                 }
 
                 break;
@@ -559,11 +559,11 @@ public class TraderService {
         }
 
         //volatility
-        BigDecimal volatility = volatilitySigmaMap.get(trader.getExchangePair()) != null
-                ? volatilitySigmaMap.get(trader.getExchangePair()).divide(ticker.getLast(), 8, HALF_UP)
-                : ZERO;
+        //BigDecimal volatility = volatilitySigmaMap.get(trader.getExchangePair()) != null
+        //        ? volatilitySigmaMap.get(trader.getExchangePair()).divide(ticker.getLast(), 8, HALF_UP)
+        //        : ZERO;
 
-        minSpread = minSpread.multiply(ONE.add(volatility.multiply(BigDecimal.valueOf(2*Math.PI)))).setScale(8, HALF_UP);
+        //minSpread = minSpread.multiply(ONE.add(volatility.multiply(BigDecimal.valueOf(2*Math.PI)))).setScale(8, HALF_UP);
 
         return minSpread;
     }
@@ -697,7 +697,7 @@ public class TraderService {
 
                         if (currencyPair.equals(order.getCurrencyPair())
                                 && order.getLimitPrice().subtract(middlePrice).abs()
-                                .compareTo(minSpread.multiply(BigDecimal.valueOf(11))) > 0) {
+                                .compareTo(minSpread.multiply(BigDecimal.valueOf(8))) > 0) {
                             String orderId = order.getId().split("&")[0];
 
                             //update order status
