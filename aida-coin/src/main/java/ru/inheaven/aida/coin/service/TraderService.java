@@ -170,9 +170,9 @@ public class TraderService {
                     askProfit -= (sellAmount + i) * (100/askPrice0 - 100/askPrice);
                     futures.getAsks().add(new Position(askProfit, askPrice));
 
-                    if (buyAmount - i < 3){
-                        buyAmount = (buyAmount + sellAmount) /2;
-                        sellAmount = buyAmount;
+                    if (buyAmount - i < balancing){
+                        buyAmount = (buyAmount + sellAmount)/2 + i;
+                        sellAmount = buyAmount - 2*i;
                     }
                 }
 
@@ -192,12 +192,12 @@ public class TraderService {
 
                     double askPrice0 = (p.getSellPriceAvg().doubleValue() * (1f + spread * (i+1)));
                     double askPrice = (p.getSellPriceAvg().doubleValue() * (1f + spread * i));
-                    askProfit -= (sellAmount+ i) * (100/askPrice0 - 100/askPrice);
+                    askProfit -= (sellAmount + i) * (100/askPrice0 - 100/askPrice);
                     futures.getAsks().add(new Position(askProfit, askPrice));
 
-                    if (sellAmount + i < 3){
-                        buyAmount = (buyAmount + sellAmount) / 2;
-                        sellAmount = buyAmount;
+                    if (sellAmount + i < balancing){
+                        buyAmount = (buyAmount + sellAmount)/2 + i;
+                        sellAmount = buyAmount - 2*i;
                     }
                 }
 
