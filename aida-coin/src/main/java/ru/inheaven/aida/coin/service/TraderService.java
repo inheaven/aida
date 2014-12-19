@@ -138,7 +138,7 @@ public class TraderService {
             balanceOKCoinWeekPosition("LTC/USD");
 
             int levels = 50;
-            double spread = 0.0018f;
+            double spread = 0.0009;
             int balancing = 3;
 
             OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("btc_usd", "this_week");
