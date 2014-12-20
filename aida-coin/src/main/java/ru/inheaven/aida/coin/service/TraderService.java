@@ -553,7 +553,7 @@ public class TraderService {
 
             Equity equity = equityMap.get(exchangeType);
 
-            if (equity == null || equity.getVolume().compareTo(volume) != 0){
+            if (equity == null || (volume.compareTo(ZERO) > 0 && equity.getVolume().compareTo(volume) != 0)){
                 equityMap.put(exchangeType, new Equity(exchangeType, volume));
 
                 traderBean.save(equity);
