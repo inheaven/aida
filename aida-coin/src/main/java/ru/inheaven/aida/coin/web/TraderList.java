@@ -100,7 +100,7 @@ public class TraderList extends AbstractPage{
     private int chart3Index2 = 1;
 
     Date startDay = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24);
-    Date startDate = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 7);
+    Date startDate = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 3);
     long startWeekDate = System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 7;
     long pageInitTime = System.currentTimeMillis();
 
