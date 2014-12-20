@@ -685,7 +685,7 @@ public class TraderList extends AbstractPage{
 
             options.addSeries(new PointSeries().setData(data).setName("Equity").setColor(new HexColor("#7798BF")).setyAxis(0));
             options.addSeries(new PointSeries().setData(data2).setName("BTC/USD").setColor(new HexColor("#DDDF0D")).setyAxis(1));
-            options.addSeries(new PointSeries().setData(data3).setName("Prediction").setColor(new HexColor("#62c462")).setyAxis(1));
+            options.addSeries(new PointSeries().setData(data3).setName("Prediction").setColor(new HighchartsColor(1)).setyAxis(1));
 
             add(chart = new Chart("chart", options));
         }
