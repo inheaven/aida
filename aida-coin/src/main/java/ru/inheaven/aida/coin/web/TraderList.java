@@ -358,7 +358,7 @@ public class TraderList extends AbstractPage{
                                     handler.appendJavaScript(javaScript);
 
                                     javaScript = "eval(" + chart.getJavaScriptVarName() + ").series[" + 2 + "].addPoint("
-                                            + renderer.toJson(new Point(System.currentTimeMillis() + 1000*60*10, prediction)) + ", true, true);";
+                                            + renderer.toJson(new Point(System.currentTimeMillis() + 1000*60*15, prediction)) + ", true, true);";
                                     handler.appendJavaScript(javaScript);
                                 } else {
                                     String javaScript = "var s = eval(" + chart.getJavaScriptVarName() + ").series[0];" +
@@ -676,7 +676,7 @@ public class TraderList extends AbstractPage{
                     data2.add(new Point(tickerHistory.getDate().getTime(), tickerHistory.getPrice()));
 
                     if (tickerHistory.getPrediction().abs().doubleValue() < 0.01) {
-                        data3.add(new Point(tickerHistory.getDate().getTime() + 1000*60*10, ONE.add(tickerHistory.getPrediction()).multiply(tickerHistory.getPrice())));
+                        data3.add(new Point(tickerHistory.getDate().getTime() + 1000*60*15, ONE.add(tickerHistory.getPrediction()).multiply(tickerHistory.getPrice())));
                     }
 
                     time = tickerHistory.getDate().getTime();
