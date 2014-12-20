@@ -215,7 +215,7 @@ public class TraderList extends AbstractPage{
         list.add(new TraderColumn(of("Prediction"), predictionMap){
             @Override
             protected String getInitValue(Trader trader) {
-                return traderService.getPredictionIndex(trader.getExchangePair()).toPlainString() + "%";
+                return traderService.getPredictionIndex(trader.getExchangePair()).multiply(BigDecimal.valueOf(100)).toPlainString() + "%";
             }
         });
         list.add(new TraderColumn(of("Test"), predictionTestMap){
@@ -546,8 +546,7 @@ public class TraderList extends AbstractPage{
                         List<OrderStat> orderStats = traderBean.getOrderStatVolume(btcUsd, startDate);
                         BigDecimal last = traderService.getTicker(btcUsd).getLast().setScale(1, ROUND_UP);
 
-                        BigDecimal predictionPrice = ONE.add(traderService.getPredictionIndex(btcUsd)
-                                .multiply(BigDecimal.valueOf(0.01)))
+                        BigDecimal predictionPrice = ONE.add(traderService.getPredictionIndex(btcUsd))
                                 .multiply(last).setScale(1, ROUND_UP);
 
                         for (OrderStat s : orderStats) {
@@ -675,7 +674,11 @@ public class TraderList extends AbstractPage{
             for (TickerHistory tickerHistory : tickerHistories){
                 if (tickerHistory.getDate().getTime() - time > 1000*60){
                     data2.add(new Point(tickerHistory.getDate().getTime(), tickerHistory.getPrice()));
-                    data3.add(new Point(tickerHistory.getDate().getTime() + 1000*60*10, ONE.add(tickerHistory.getPrediction()).multiply(tickerHistory.getPrice())));
+
+                    if (tickerHistory.getPrediction().abs().doubleValue() < 0.01) {
+                        data3.add(new Point(tickerHistory.getDate().getTime() + 1000*60*10, ONE.add(tickerHistory.getPrediction()).multiply(tickerHistory.getPrice())));
+                    }
+
                     time = tickerHistory.getDate().getTime();
                 }
             }
