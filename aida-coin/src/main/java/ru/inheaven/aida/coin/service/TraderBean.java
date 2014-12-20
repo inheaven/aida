@@ -109,6 +109,15 @@ public class TraderBean {
         return list;
     }
 
+    public List<TickerHistory> getTickerHistories(ExchangePair exchangePair, Date startDate){
+        return em.createQuery("select th from TickerHistory th where th.pair = :pair " +
+                "and th.exchangeType = :exchangeType and th.date > :startDate", TickerHistory.class)
+                .setParameter("pair", exchangePair.getPair())
+                .setParameter("exchangeType", exchangePair.getExchangeType())
+                .setParameter("startDate", startDate)
+                .getResultList();
+    }
+
     public List<OrderHistory> getOrderHistories(ExchangePair exchangePair, OrderStatus status, Date startDate){
         return em.createQuery("select h from OrderHistory h where h.exchangeType = :exchangeType and " +
                 "h.pair = :pair and  h.status = :status and " +

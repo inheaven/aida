@@ -51,6 +51,7 @@ import java.util.function.BiConsumer;
 
 import static java.math.BigDecimal.*;
 import static org.apache.wicket.model.Model.of;
+import static ru.inheaven.aida.coin.entity.ExchangeType.OKCOIN;
 
 /**
  * @author Anatoly Ivanov java@inheaven.ru
@@ -244,11 +245,11 @@ public class TraderList extends AbstractPage{
                 Collections.sort(traders, new Comparator<Trader>() {
                     @Override
                     public int compare(Trader t1, Trader t2) {
-                        if (t2.getExchange().equals(ExchangeType.OKCOIN) && !t1.getExchange().equals(ExchangeType.OKCOIN)){
+                        if (t2.getExchange().equals(OKCOIN) && !t1.getExchange().equals(OKCOIN)){
                             return 1;
                         }
 
-                        if (!t2.getExchange().equals(ExchangeType.OKCOIN) && t1.getExchange().equals(ExchangeType.OKCOIN)){
+                        if (!t2.getExchange().equals(OKCOIN) && t1.getExchange().equals(OKCOIN)){
                             return -1;
                         }
 
@@ -337,6 +338,8 @@ public class TraderList extends AbstractPage{
 
                             //update chart balance
                             if (lastChartValue.compareTo(equity.getVolume()) != 0) {
+                                Ticker ticker = traderService.getTicker(ExchangePair.of(OKCOIN, "BTC/USD"));
+
                                 lastChartValue = equity.getVolume();
 
                                 JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
@@ -347,9 +350,17 @@ public class TraderList extends AbstractPage{
                                     String javaScript = "eval(" + chart.getJavaScriptVarName() + ").series[" + 0 + "].addPoint("
                                             + renderer.toJson(new Point(System.currentTimeMillis(), equity.getVolume())) + ", true, true);";
                                     handler.appendJavaScript(javaScript);
+
+                                    javaScript = "eval(" + chart.getJavaScriptVarName() + ").series[" + 1 + "].addPoint("
+                                            + renderer.toJson(new Point(System.currentTimeMillis(), ticker.getLast())) + ", true, true);";
+                                    handler.appendJavaScript(javaScript);
                                 } else {
                                     String javaScript = "var s = eval(" + chart.getJavaScriptVarName() + ").series[0];" +
                                             "s.data[s.data.length - 1].update(" + equity.getVolume().toPlainString() + ")";
+                                    handler.appendJavaScript(javaScript);
+
+                                    javaScript = "var s = eval(" + chart.getJavaScriptVarName() + ").series[1];" +
+                                            "s.data[s.data.length - 1].update(" + ticker.getLast().toPlainString() + ")";
                                     handler.appendJavaScript(javaScript);
                                 }
                             }
@@ -471,7 +482,7 @@ public class TraderList extends AbstractPage{
                                     //estimate
                                     BigDecimal balance = traderService.getAccountInfo(exchangeMessage.getExchangeType()).getBalance(ep.getCurrency());
 
-                                    if (!ep.getExchangeType().equals(ExchangeType.OKCOIN)) {
+                                    if (!ep.getExchangeType().equals(OKCOIN)) {
                                         balance = balance.add(amount);
                                     }
 
@@ -495,7 +506,7 @@ public class TraderList extends AbstractPage{
                     } else if (payload instanceof OrderHistory) {
                         OrderHistory orderHistory = (OrderHistory) payload;
 
-                        if (orderHistory.getExchangeType().equals(ExchangeType.OKCOIN)) {
+                        if (orderHistory.getExchangeType().equals(OKCOIN)) {
                             orderHistory.setFilledAmountScale(0);
 
                             if (orderHistory.getPair().contains("LTC/")) {
@@ -521,7 +532,7 @@ public class TraderList extends AbstractPage{
                         chart4.getOptions().getSeries().get(3).getData().clear();
 
                         //volume
-                        ExchangePair btcUsd = ExchangePair.of(ExchangeType.OKCOIN, "BTC/USD");
+                        ExchangePair btcUsd = ExchangePair.of(OKCOIN, "BTC/USD");
                         List<OrderStat> orderStats = traderBean.getOrderStatVolume(btcUsd, startDate);
                         BigDecimal last = traderService.getTicker(btcUsd).getLast().setScale(1, ROUND_UP);
 
@@ -592,7 +603,7 @@ public class TraderList extends AbstractPage{
             protected void populateItem(ListItem<OrderHistory> item) {
                 OrderHistory orderHistory = item.getModelObject();
 
-                if (orderHistory.getExchangeType().equals(ExchangeType.OKCOIN)){
+                if (orderHistory.getExchangeType().equals(OKCOIN)){
                     orderHistory.setFilledAmountScale(0);
 
                     if (orderHistory.getPair().contains("LTC/")){
@@ -610,7 +621,7 @@ public class TraderList extends AbstractPage{
         //Chart
         {
             Options options = new GrayTheme();
-            options.setChartOptions(new ChartOptions(SeriesType.SPLINE).setHeight(366)
+            options.setChartOptions(new ChartOptions(SeriesType.LINE).setHeight(366)
                     .setBackgroundColor(HexColor.fromString("#272b30")));
             options.setGlobal(new Global().setUseUTC(false));
             options.setCredits(new CreditOptions().setEnabled(false));
@@ -619,15 +630,11 @@ public class TraderList extends AbstractPage{
             options.setTitle(new Title(""));
 
             options.setxAxis(new Axis().setType(AxisType.DATETIME));
-
-            options.setyAxis(new Axis().setTitle(new Title("")));
+            options.setyAxis(Arrays.asList(new Axis().setTitle(new Title("")), new Axis().setOpposite(true).setTitle(new Title(""))));
 
             options.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions().setMarker(new Marker(false))));
 
-            //go
-
             List<Point> data = new ArrayList<>();
-
             List<Equity> equities = traderBean.getEquities(startDate);
 
             long time = 0L;
@@ -647,7 +654,19 @@ public class TraderList extends AbstractPage{
                 }
             }
 
+            List<Point> data2 = new ArrayList<>();
+            List<TickerHistory> tickerHistories = traderBean.getTickerHistories(ExchangePair.of(OKCOIN, "BTC/USD"), startDate);
+
+            time = 0L;
+            for (TickerHistory tickerHistory : tickerHistories){
+                if (tickerHistory.getDate().getTime() - time > 1000*60){
+                    data2.add(new Point(tickerHistory.getDate().getTime(), tickerHistory.getVolume()));
+                    time = tickerHistory.getDate().getTime();
+                }
+            }
+
             options.addSeries(new PointSeries().setData(data).setName("Equity").setColor(new HexColor("#7798BF")));
+            options.addSeries(new PointSeries().setData(data2).setName("BTC/USD").setyAxis(1).setColor(new HexColor("#7798BF")));
 
             add(chart = new Chart("chart", options));
         }
