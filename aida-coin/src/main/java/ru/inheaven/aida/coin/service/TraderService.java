@@ -1165,7 +1165,7 @@ public class TraderService {
             double index = (predictorService.getPrediction(timeSeries) - timeSeries[size-1]) / timeSeries[size-1];
 
             try {
-                predictionIndex =  BigDecimal.valueOf(Math.abs(index) < 1 ? index : Math.signum(index)).setScale(2, HALF_UP);
+                predictionIndex =  BigDecimal.valueOf(Math.abs(index) < 1 ? index : Math.signum(index));
             } catch (Exception e) {
                 //
             }

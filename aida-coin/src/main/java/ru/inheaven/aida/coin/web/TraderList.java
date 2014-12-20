@@ -212,12 +212,7 @@ public class TraderList extends AbstractPage{
                 return traderService.getVolatilityIndex(trader.getExchangePair()).toPlainString() + "%";
             }
         });
-        list.add(new TraderColumn(of("Prediction"), predictionMap){
-            @Override
-            protected String getInitValue(Trader trader) {
-                return traderService.getPredictionIndex(trader.getExchangePair()).multiply(BigDecimal.valueOf(100)).toPlainString() + "%";
-            }
-        });
+        list.add(new TraderColumn(of("Prediction"), predictionMap));
         list.add(new TraderColumn(of("Test"), predictionTestMap){
             @Override
             protected String getInitValue(Trader trader) {
@@ -431,7 +426,7 @@ public class TraderList extends AbstractPage{
                         update(handler, volatilityMap.get(ep2), volatility, true, false);
 
                         //prediction
-                        BigDecimal prediction = tickerHistory.getPrediction();
+                        BigDecimal prediction = tickerHistory.getPrediction().multiply(BigDecimal.valueOf(100));
                         update(handler, predictionMap.get(ep), prediction, true, true);
                         update(handler, predictionMap.get(ep2), prediction, true, true);
 
