@@ -14,7 +14,6 @@ import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.OpenOrders;
-import com.xeiam.xchange.dto.trade.Wallet;
 import de.agilecoders.wicket.core.markup.html.bootstrap.list.BootstrapListView;
 import de.agilecoders.wicket.core.markup.html.bootstrap.navbar.NavbarAjaxLink;
 import de.agilecoders.wicket.core.markup.html.bootstrap.table.TableBehavior;
@@ -43,14 +42,11 @@ import org.odlabs.wiquery.ui.effects.HighlightEffectJavaScriptResourceReference;
 import ru.inheaven.aida.coin.entity.*;
 import ru.inheaven.aida.coin.service.TraderBean;
 import ru.inheaven.aida.coin.service.TraderService;
-import ru.inheaven.aida.coin.util.TraderUtil;
 
 import javax.ejb.EJB;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 
 import static java.math.BigDecimal.*;
@@ -106,8 +102,6 @@ public class TraderList extends AbstractPage{
     Date startDate = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 7);
     long startWeekDate = System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 7;
     long pageInitTime = System.currentTimeMillis();
-
-    private static List<Volume> sumVolumes = new CopyOnWriteArrayList<>();
 
     private TraderEditModal traderEditModal;
 
@@ -285,94 +279,82 @@ public class TraderList extends AbstractPage{
                     ExchangeMessage exchangeMessage = (ExchangeMessage) message;
                     Object payload = exchangeMessage.getPayload();
 
-                    if (payload instanceof AccountInfo){
+                    if (payload instanceof AccountInfo) {
                         AccountInfo accountInfo = ((AccountInfo) payload);
 
-                        BigDecimal estimate = ZERO;
-
-                        for (Wallet wallet : accountInfo.getWallets()){
-                            estimate = estimate.add(traderService.getEstimateBalance(exchangeMessage.getExchangeType(),
-                                    wallet.getCurrency(), wallet.getBalance()));
-                        }
-
-                        switch (exchangeMessage.getExchangeType()){
+                        switch (exchangeMessage.getExchangeType()) {
                             case CEXIO:
-                                update(handler, cexioCoins, estimate);
-                                update(handler, cexioBTC, ((AccountInfo) payload).getBalance("BTC"));
+                                update(handler, cexioBTC, accountInfo.getBalance("BTC"));
                                 break;
                             case CRYPTSY:
-                                update(handler, cryptsyCoins, estimate);
-                                update(handler, cryptsyBTC, ((AccountInfo) payload).getBalance("BTC"));
+                                update(handler, cryptsyBTC, accountInfo.getBalance("BTC"));
                                 break;
                             case BITTREX:
-                                update(handler, bittrexCoins, estimate);
-                                update(handler, bittrexBTC, ((AccountInfo) payload).getBalance("BTC"));
+                                update(handler, bittrexBTC, accountInfo.getBalance("BTC"));
                                 break;
                             case BTCE:
-                                OpenOrders openOrders = traderService.getOpenOrders(ExchangeType.BTCE);
-                                for (LimitOrder limitOrder : openOrders.getOpenOrders()){
-                                    estimate = estimate.add(traderService.getBTCVolume(
-                                            ExchangePair.of(ExchangeType.BTCE, TraderUtil.getPair(limitOrder.getCurrencyPair())),
-                                            limitOrder.getTradableAmount(), limitOrder.getLimitPrice()));
-                                }
-
-                                update(handler, btceCoins, estimate);
-                                update(handler, btceBTC, ((AccountInfo) payload).getBalance("BTC"));
+                                update(handler, btceBTC, accountInfo.getBalance("BTC"));
                                 break;
                             case BTER:
-                                update(handler, bterCoins, estimate);
-                                update(handler, bterBTC, ((AccountInfo) payload).getBalance("BTC"));
+                                update(handler, bterBTC, accountInfo.getBalance("BTC"));
                                 break;
                             case BITFINEX:
-                                update(handler, bitfinexCoins, estimate);
-                                update(handler, bitfinexBTC, ((AccountInfo) payload).getBalance("BTC"));
+                                update(handler, bitfinexBTC, accountInfo.getBalance("BTC"));
                                 break;
                             case OKCOIN:
-                                update(handler, okcoinCoins, estimate);
-                                update(handler, okcoinBTC, ((AccountInfo) payload).getBalance("BTC"));
+                                update(handler, okcoinBTC, accountInfo.getBalance("BTC"));
                                 break;
                         }
+                    } else if (payload instanceof Equity) {
+                        Equity equity = (Equity) payload;
 
-                        //sumEstimate
-                        BigDecimal sum = new BigDecimal(cexioCoins.getDefaultModelObjectAsString())
-                                .add(new BigDecimal(cryptsyCoins.getDefaultModelObjectAsString()))
-                                .add(new BigDecimal(bittrexCoins.getDefaultModelObjectAsString()))
-                                .add(new BigDecimal(btceCoins.getDefaultModelObjectAsString()))
-                                .add(new BigDecimal(bterCoins.getDefaultModelObjectAsString()))
-                                .add(new BigDecimal(bitfinexCoins.getDefaultModelObjectAsString()))
-                                .add(new BigDecimal(okcoinCoins.getDefaultModelObjectAsString()))
-                                .setScale(8, RoundingMode.HALF_UP);
+                        if (exchangeMessage.getExchangeType() != null) {
+                            switch (exchangeMessage.getExchangeType()) {
+                                case CEXIO:
+                                    update(handler, cexioCoins, equity.getVolume());
+                                    break;
+                                case CRYPTSY:
+                                    update(handler, cryptsyCoins, equity.getVolume());
+                                    break;
+                                case BITTREX:
+                                    update(handler, bittrexCoins, equity.getVolume());
+                                    break;
+                                case BTCE:
+                                    update(handler, btceCoins, equity.getVolume());
+                                    break;
+                                case BTER:
+                                    update(handler, bterCoins, equity.getVolume());
+                                    break;
+                                case BITFINEX:
+                                    update(handler, bitfinexCoins, equity.getVolume());
+                                    break;
+                                case OKCOIN:
+                                    update(handler, okcoinCoins, equity.getVolume());
+                                    break;
+                            }
+                        } else {
+                            update(handler, sumEstimate, equity.getVolume());
 
-                        update(handler, sumEstimate, sum);
+                            //update chart balance
+                            if (lastChartValue.compareTo(equity.getVolume()) != 0) {
+                                lastChartValue = equity.getVolume();
 
-                        //update chart balance
-                        if (lastChartValue.compareTo(sum) != 0
-                                && !cexioCoins.getDefaultModelObjectAsString().equals("0")
-                                && !cryptsyCoins.getDefaultModelObjectAsString().equals("0")
-                                && !bittrexCoins.getDefaultModelObjectAsString().equals("0")
-                                && !btceCoins.getDefaultModelObjectAsString().equals("0")
-                                && !bterCoins.getDefaultModelObjectAsString().equals("0")
-                                && !bitfinexCoins.getDefaultModelObjectAsString().equals("0")
-                                && !okcoinCoins.getDefaultModelObjectAsString().equals("0")) {
-                            lastChartValue = sum;
+                                JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
 
-                            JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
+                                if (System.currentTimeMillis() - lastChartTime > 60000) {
+                                    lastChartTime = System.currentTimeMillis();
 
-                            if (System.currentTimeMillis() - lastChartTime > 60000){
-                                lastChartTime = System.currentTimeMillis();
-
-                                String javaScript = "eval("+chart.getJavaScriptVarName()+").series[" + 0 +"].addPoint("
-                                        + renderer.toJson(new Point(System.currentTimeMillis(), sum)) + ", true, true);";
-                                handler.appendJavaScript(javaScript);
-
-                                sumVolumes.add(new Volume(sum));
-                            }else {
-                                String javaScript = "var s = eval("+chart.getJavaScriptVarName()+").series[0];" +
-                                        "s.data[s.data.length - 1].update("+sum.toPlainString()+")";
-                                handler.appendJavaScript(javaScript);
+                                    String javaScript = "eval(" + chart.getJavaScriptVarName() + ").series[" + 0 + "].addPoint("
+                                            + renderer.toJson(new Point(System.currentTimeMillis(), equity.getVolume())) + ", true, true);";
+                                    handler.appendJavaScript(javaScript);
+                                } else {
+                                    String javaScript = "var s = eval(" + chart.getJavaScriptVarName() + ").series[0];" +
+                                            "s.data[s.data.length - 1].update(" + equity.getVolume().toPlainString() + ")";
+                                    handler.appendJavaScript(javaScript);
+                                }
                             }
                         }
-                    }else if (payload instanceof BalanceHistory){
+                    } else if (payload instanceof BalanceHistory) {
                         //update profit column
                         BalanceHistory bh = (BalanceHistory) payload;
                         ExchangePair ep = ExchangePair.of(bh.getExchangeType(), bh.getPair());
@@ -386,7 +368,7 @@ public class TraderList extends AbstractPage{
                         update(handler, tradesCount, traderBean.getOrderHistoryCount(startDate, OrderStatus.CLOSED).toString());
 
                         //update total
-                        if (System.currentTimeMillis() - lastChart4Time > 60000){
+                        if (System.currentTimeMillis() - lastChart4Time > 60000) {
                             lastChart4Time = System.currentTimeMillis();
 
                             OrderVolume orderVolume = traderService.getOrderVolumeRate(startDate);
@@ -396,7 +378,7 @@ public class TraderList extends AbstractPage{
                             //update chart order rate
                             if (orderVolume.getVolume().compareTo(ZERO) != 0) {
                                 {
-                                    String javaScript = "eval("+chart3.getJavaScriptVarName()+").series[" + 0 + "].addPoint("
+                                    String javaScript = "eval(" + chart3.getJavaScriptVarName() + ").series[" + 0 + "].addPoint("
                                             + renderer.toJson(new Point(orderVolume.getDate().getTime(), orderVolume.getBidVolume()))
                                             + ", true, true);";
 
@@ -404,7 +386,7 @@ public class TraderList extends AbstractPage{
                                 }
 
                                 {
-                                    String javaScript = "eval("+chart3.getJavaScriptVarName()+").series[" + 1 + "].addPoint("
+                                    String javaScript = "eval(" + chart3.getJavaScriptVarName() + ").series[" + 1 + "].addPoint("
                                             + renderer.toJson(new Point(orderVolume.getDate().getTime(), orderVolume.getAskVolume()))
                                             + ", true, true);";
 
@@ -412,8 +394,7 @@ public class TraderList extends AbstractPage{
                                 }
                             }
                         }
-
-                    }else if (payload instanceof TickerHistory) {
+                    } else if (payload instanceof TickerHistory) {
                         TickerHistory tickerHistory = (TickerHistory) exchangeMessage.getPayload();
 
                         ExchangePair ep = ExchangePair.of(exchangeMessage.getExchangeType(), tickerHistory.getPair());
@@ -437,26 +418,26 @@ public class TraderList extends AbstractPage{
                         BigDecimal predictionTest = traderService.getPredictionTestIndex(ep);
                         update(handler, predictionTestMap.get(ep), predictionTest, true, false);
                         update(handler, predictionTestMap.get(ep2), predictionTest, true, false);
-                    }else if (payload instanceof OpenOrders){
+                    } else if (payload instanceof OpenOrders) {
                         OpenOrders openOrders = (OpenOrders) exchangeMessage.getPayload();
 
                         Map<ExchangePair, BigDecimal> countBuyMap = new HashMap<>();
                         Map<ExchangePair, BigDecimal> countSellMap = new HashMap<>();
 
-                        for (ExchangePair ep : buyMap.keySet()){
+                        for (ExchangePair ep : buyMap.keySet()) {
                             if (ep.getExchangeType().equals(exchangeMessage.getExchangeType())) {
                                 countBuyMap.put(ep, ZERO);
                                 countSellMap.put(ep, ZERO);
                             }
                         }
 
-                        for (LimitOrder order : openOrders.getOpenOrders()){
+                        for (LimitOrder order : openOrders.getOpenOrders()) {
                             ExchangePair ep = order.getId().contains("&2") || order.getId().contains("&4")
                                     ? ExchangePair.of(exchangeMessage.getExchangeType(), order.getCurrencyPair(), TraderType.SHORT)
                                     : ExchangePair.of(exchangeMessage.getExchangeType(), order.getCurrencyPair());
 
                             if (buyMap.get(ep) != null) {
-                                switch (order.getType()){
+                                switch (order.getType()) {
                                     case BID:
                                         countBuyMap.put(ep, countBuyMap.get(ep).add(order.getTradableAmount()));
                                         break;
@@ -490,7 +471,7 @@ public class TraderList extends AbstractPage{
                                     //estimate
                                     BigDecimal balance = traderService.getAccountInfo(exchangeMessage.getExchangeType()).getBalance(ep.getCurrency());
 
-                                    if (!ep.getExchangeType().equals(ExchangeType.OKCOIN)){
+                                    if (!ep.getExchangeType().equals(ExchangeType.OKCOIN)) {
                                         balance = balance.add(amount);
                                     }
 
@@ -499,9 +480,9 @@ public class TraderList extends AbstractPage{
 
                                     //position
                                     BigDecimal position;
-                                    if (countBuyMap.get(ep).compareTo(countSellMap.get(ep)) == 0){
+                                    if (countBuyMap.get(ep).compareTo(countSellMap.get(ep)) == 0) {
                                         position = ZERO;
-                                    }else{
+                                    } else {
                                         position = BigDecimal.valueOf(100 * (countBuyMap.get(ep).floatValue()
                                                 - countSellMap.get(ep).floatValue()) / (countBuyMap.get(ep).floatValue()
                                                 + countSellMap.get(ep).floatValue()));
@@ -511,15 +492,15 @@ public class TraderList extends AbstractPage{
                                 }
                             }
                         });
-                    }else if (payload instanceof OrderHistory){
+                    } else if (payload instanceof OrderHistory) {
                         OrderHistory orderHistory = (OrderHistory) payload;
 
-                        if (orderHistory.getExchangeType().equals(ExchangeType.OKCOIN)){
+                        if (orderHistory.getExchangeType().equals(ExchangeType.OKCOIN)) {
                             orderHistory.setFilledAmountScale(0);
 
-                            if (orderHistory.getPair().contains("LTC/")){
+                            if (orderHistory.getPair().contains("LTC/")) {
                                 orderHistory.setPriceScale(3);
-                            }else if (orderHistory.getPair().contains("BTC/")){
+                            } else if (orderHistory.getPair().contains("BTC/")) {
                                 orderHistory.setPriceScale(2);
                             }
                         }
@@ -531,7 +512,7 @@ public class TraderList extends AbstractPage{
                             String style = "style= \"color: " + (orderHistory.getType().equals(Order.OrderType.ASK) ? "#62c462" : "#ee5f5b") + "\"";
                             handler.appendJavaScript("$('#orders').prepend('<tr " + style + "><td>" + orderHistory.toString() + "</td></tr>')");
                         }
-                    } else if (payload instanceof Futures){
+                    } else if (payload instanceof Futures) {
                         Futures futures = (Futures) payload;
 
                         chart4.getOptions().getSeries().get(0).getData().clear();
@@ -548,19 +529,19 @@ public class TraderList extends AbstractPage{
                                 .multiply(BigDecimal.valueOf(0.01)))
                                 .multiply(last).setScale(1, ROUND_UP);
 
-                        for (OrderStat s : orderStats){
+                        for (OrderStat s : orderStats) {
                             if (s.getAvgPrice().compareTo(futures.getEquity().get(0).getPrice()) < 0
-                                    || s.getAvgPrice().compareTo(futures.getEquity().get(futures.getEquity().size()-1).getPrice()) > 0){
+                                    || s.getAvgPrice().compareTo(futures.getEquity().get(futures.getEquity().size() - 1).getPrice()) > 0) {
                                 continue;
                             }
 
                             Point point = new Point(s.getAvgPrice(), s.getSumAmount());
 
-                            if (predictionPrice.compareTo(s.getAvgPrice()) > 0 && last.compareTo(s.getAvgPrice()) < 0){
+                            if (predictionPrice.compareTo(s.getAvgPrice()) > 0 && last.compareTo(s.getAvgPrice()) < 0) {
                                 point.setColor(new HexColor("#62c462"));
-                            }else if (predictionPrice.compareTo(s.getAvgPrice()) < 0 && last.compareTo(s.getAvgPrice()) > 0){
+                            } else if (predictionPrice.compareTo(s.getAvgPrice()) < 0 && last.compareTo(s.getAvgPrice()) > 0) {
                                 point.setColor(new HexColor("#ee5f5b"));
-                            }else if (last.compareTo(s.getAvgPrice()) == 0) {
+                            } else if (last.compareTo(s.getAvgPrice()) == 0) {
                                 point.setColor(new HexColor("#C8C8C8"));
                             }
 
@@ -568,7 +549,7 @@ public class TraderList extends AbstractPage{
                             chart4.getOptions().getSeries().get(0).getData().add(point);
                         }
 
-                        for (int i =0; i < futures.getAsks().size(); ++i){
+                        for (int i = 0; i < futures.getAsks().size(); ++i) {
                             //noinspection unchecked
                             chart4.getOptions().getSeries().get(1).getData().add(new Point(futures.getAsks().get(i).getPrice().setScale(1, ROUND_UP),
                                     futures.getAsks().get(i).getAmount().setScale(4, ROUND_UP)));
@@ -583,15 +564,15 @@ public class TraderList extends AbstractPage{
                         }
 
                         handler.add(chart4);
-                    } else if (payload instanceof String){
-                        if (((String)payload).contains("Unable to Authorize Request")){
+                    } else if (payload instanceof String) {
+                        if (((String) payload).contains("Unable to Authorize Request")) {
                             return;
                         }
 
                         if (System.currentTimeMillis() - notificationTime > 1000) {
                             if (!((String) payload).contains("@")) {
                                 handler.add(notificationLabel.setDefaultModelObject(payload));
-                            }else {
+                            } else {
                                 handler.add(notificationLabel2.setDefaultModelObject(payload));
                             }
 
@@ -647,15 +628,13 @@ public class TraderList extends AbstractPage{
 
             List<Point> data = new ArrayList<>();
 
-            if (!sumVolumes.isEmpty()){
-                sumVolumes.remove(0);
-            }
+            List<Equity> equities = traderBean.getEquities(startDate);
 
             long time = 0L;
-            for (Volume volume : sumVolumes){
-                if (volume.getDate().getTime() - time > 1000*60){
-                    data.add(new Point(volume.getDate().getTime(), volume.getVolume()));
-                    time = volume.getDate().getTime();
+            for (Equity equity : equities){
+                if (equity.getDate().getTime() - time > 1000*60){
+                    data.add(new Point(equity.getDate().getTime(), equity.getVolume()));
+                    time = equity.getDate().getTime();
                 }
             }
 

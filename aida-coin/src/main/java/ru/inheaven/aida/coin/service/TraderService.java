@@ -9,10 +9,7 @@ import com.xeiam.xchange.dto.Order;
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.marketdata.OrderBook;
 import com.xeiam.xchange.dto.marketdata.Ticker;
-import com.xeiam.xchange.dto.trade.LimitOrder;
-import com.xeiam.xchange.dto.trade.OpenOrders;
-import com.xeiam.xchange.dto.trade.UserTrade;
-import com.xeiam.xchange.dto.trade.UserTrades;
+import com.xeiam.xchange.dto.trade.*;
 import com.xeiam.xchange.okcoin.dto.trade.OkCoinCrossPosition;
 import com.xeiam.xchange.okcoin.dto.trade.OkCoinCrossPositionResult;
 import com.xeiam.xchange.okcoin.service.polling.OkCoinTradeServiceRaw;
@@ -81,8 +78,10 @@ public class TraderService {
     private Map<ExchangeType, OpenOrders> openOrdersMap = new ConcurrentHashMap<>();
     private Map<ExchangeType, AccountInfo> accountInfoMap = new ConcurrentHashMap<>();
 
-    private List<OrderStat> orderStatMap = new CopyOnWriteArrayList<>();
+    private Map<ExchangeType, Equity> equityMap = new ConcurrentHashMap<>();
+    private Equity equity;
 
+    private List<OrderStat> orderStatMap = new CopyOnWriteArrayList<>();
 
     private Map<ExchangePair,Integer> errorMap = new ConcurrentHashMap<>();
     private Map<ExchangePair,  Long> errorTimeMap = new ConcurrentHashMap<>();
@@ -266,12 +265,15 @@ public class TraderService {
 
     public void trade(ExchangeType exchangeType){
         try {
-            updateBalance(exchangeType);
+            updateAccountInfo(exchangeType);
             updateOpenOrders(exchangeType);
             updateClosedOrders(exchangeType);
             updateTicker(exchangeType);
 
             tradeAlpha(exchangeType);
+
+            updateEquity(exchangeType);
+            updateEquity();
         } catch (Exception e) {
             log.error("Schedule trade error", e);
 
@@ -369,7 +371,7 @@ public class TraderService {
         }
     }
 
-    private void updateBalance(ExchangeType exchangeType) throws IOException {
+    private void updateAccountInfo(ExchangeType exchangeType) throws IOException {
         AccountInfo accountInfo = getExchange(exchangeType).getPollingAccountService().getAccountInfo();
         accountInfoMap.put(exchangeType, accountInfo);
 
@@ -529,6 +531,56 @@ public class TraderService {
                 broadcast(exchangeType, exchangeType.name() + ": " + Throwables.getRootCause(e).getMessage());
             }
         }
+    }
+
+    public void updateEquity(ExchangeType exchangeType){
+        AccountInfo accountInfo = getAccountInfo(exchangeType);
+
+        if (accountInfo != null){
+            BigDecimal volume = ZERO;
+
+            for (Wallet wallet : accountInfo.getWallets()){
+                volume = volume.add(getEstimateBalance(exchangeType, wallet.getCurrency(), wallet.getBalance()));
+            }
+
+            if (BTCE.equals(exchangeType)){ //do check it
+                for (LimitOrder limitOrder : getOpenOrders(ExchangeType.BTCE).getOpenOrders()){
+                    volume = volume.add(getBTCVolume(
+                            ExchangePair.of(ExchangeType.BTCE, TraderUtil.getPair(limitOrder.getCurrencyPair())),
+                            limitOrder.getTradableAmount(), limitOrder.getLimitPrice()));
+                }
+            }
+
+            Equity equity = equityMap.get(exchangeType);
+
+            if (equity == null || equity.getVolume().compareTo(volume) != 0){
+                equityMap.put(exchangeType, new Equity(exchangeType, volume));
+
+                traderBean.save(equity);
+
+                broadcast(exchangeType, equity);
+            }
+        }
+    }
+
+    public void updateEquity(){
+        BigDecimal volume = ZERO;
+
+        for (ExchangeType exchangeType : ExchangeType.values()){
+            Equity e = equityMap.get(exchangeType);
+
+            if (e == null){
+                return;
+            }
+
+            volume = volume.add(e.getVolume());
+        }
+
+        equity = new Equity(volume);
+
+        traderBean.save(equity);
+
+        broadcast(null, equity);
     }
 
     public BigDecimal getMinSpread(Trader trader, Ticker ticker){

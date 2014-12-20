@@ -191,4 +191,10 @@ public class TraderBean {
                 .setParameter(3, startDate)
                 .getResultList();
     }
+
+    public List<Equity> getEquities(Date startDate){
+        return em.createQuery("select e from Equity e where e.date > :startDate", Equity.class)
+                .setParameter("startDate", startDate)
+                .getResultList();
+    }
 }
