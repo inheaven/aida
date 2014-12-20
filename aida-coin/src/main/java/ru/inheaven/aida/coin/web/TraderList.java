@@ -352,9 +352,11 @@ public class TraderList extends AbstractPage{
                                             + renderer.toJson(new Point(System.currentTimeMillis(), ticker.getLast())) + ", true, true);";
                                     handler.appendJavaScript(javaScript);
 
-                                    javaScript = "eval(" + chart.getJavaScriptVarName() + ").series[" + 0 + "].addPoint("
-                                            + renderer.toJson(new Point(System.currentTimeMillis() + 1000*60*15, prediction)) + ", true, true);";
-                                    handler.appendJavaScript(javaScript);
+                                    if (prediction.doubleValue() < 0.005) {
+                                        javaScript = "eval(" + chart.getJavaScriptVarName() + ").series[" + 0 + "].addPoint("
+                                                + renderer.toJson(new Point(System.currentTimeMillis() + 1000*60*30, prediction)) + ", true, true);";
+                                        handler.appendJavaScript(javaScript);
+                                    }
                                 } else {
                                     String javaScript = "var s = eval(" + chart.getJavaScriptVarName() + ").series[2];" +
                                             "s.data[s.data.length - 1].update(" + equity.getVolume().toPlainString() + ")";
@@ -670,8 +672,8 @@ public class TraderList extends AbstractPage{
                 if (tickerHistory.getDate().getTime() - time > 1000*60){
                     data2.add(new Point(tickerHistory.getDate().getTime(), tickerHistory.getPrice()));
 
-                    if (tickerHistory.getPrediction().abs().doubleValue() < 0.01) {
-                        data3.add(new Point(tickerHistory.getDate().getTime() + 1000*60*15, ONE.add(tickerHistory.getPrediction()).multiply(tickerHistory.getPrice())));
+                    if (tickerHistory.getPrediction().abs().doubleValue() < 0.005) {
+                        data3.add(new Point(tickerHistory.getDate().getTime() + 1000*60*30, ONE.add(tickerHistory.getPrediction()).multiply(tickerHistory.getPrice())));
                     }
 
                     time = tickerHistory.getDate().getTime();
