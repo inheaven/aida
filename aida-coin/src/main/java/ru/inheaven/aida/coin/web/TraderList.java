@@ -100,7 +100,7 @@ public class TraderList extends AbstractPage{
     private int chart3Index2 = 1;
 
     Date startDay = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24);
-    Date startDate = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 3);
+    Date startDate = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24);
     long startWeekDate = System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 7;
     long pageInitTime = System.currentTimeMillis();
 
@@ -338,7 +338,9 @@ public class TraderList extends AbstractPage{
 
                             //update chart balance
                             if (lastChartValue.compareTo(equity.getVolume()) != 0) {
-                                Ticker ticker = traderService.getTicker(ExchangePair.of(OKCOIN, "BTC/USD"));
+                                ExchangePair exchangePair = ExchangePair.of(OKCOIN, "BTC/USD");
+                                Ticker ticker = traderService.getTicker(exchangePair);
+                                BigDecimal prediction = ONE.add(traderService.getPredictionIndex(exchangePair)).multiply(ticker.getLast());
 
                                 lastChartValue = equity.getVolume();
 
@@ -354,6 +356,10 @@ public class TraderList extends AbstractPage{
                                     javaScript = "eval(" + chart.getJavaScriptVarName() + ").series[" + 1 + "].addPoint("
                                             + renderer.toJson(new Point(System.currentTimeMillis(), ticker.getLast())) + ", true, true);";
                                     handler.appendJavaScript(javaScript);
+
+                                    javaScript = "eval(" + chart.getJavaScriptVarName() + ").series[" + 2 + "].addPoint("
+                                            + renderer.toJson(new Point(System.currentTimeMillis() + 1000*60*10, prediction)) + ", true, true);";
+                                    handler.appendJavaScript(javaScript);
                                 } else {
                                     String javaScript = "var s = eval(" + chart.getJavaScriptVarName() + ").series[0];" +
                                             "s.data[s.data.length - 1].update(" + equity.getVolume().toPlainString() + ")";
@@ -361,6 +367,10 @@ public class TraderList extends AbstractPage{
 
                                     javaScript = "var s = eval(" + chart.getJavaScriptVarName() + ").series[1];" +
                                             "s.data[s.data.length - 1].update(" + ticker.getLast().toPlainString() + ")";
+                                    handler.appendJavaScript(javaScript);
+
+                                    javaScript = "var s = eval(" + chart.getJavaScriptVarName() + ").series[2];" +
+                                            "s.data[s.data.length - 1].update(" + prediction.toPlainString() + ")";
                                     handler.appendJavaScript(javaScript);
                                 }
                             }
@@ -632,7 +642,9 @@ public class TraderList extends AbstractPage{
             options.setxAxis(new Axis().setType(AxisType.DATETIME));
             options.setyAxis(Arrays.asList(new Axis().setTitle(new Title("")), new Axis().setOpposite(true).setTitle(new Title(""))));
 
-            options.setPlotOptions(new PlotOptionsChoice().setLine(new PlotOptions().setMarker(new Marker(false))
+            options.setPlotOptions(new PlotOptionsChoice().setLine(new PlotOptions()
+                    .setMarker(new Marker(false))
+                    .setLineWidth(1)
                     .setTurboThreshold(20000)));
 
             List<Point> data = new ArrayList<>();
@@ -656,18 +668,21 @@ public class TraderList extends AbstractPage{
             }
 
             List<Point> data2 = new ArrayList<>();
+            List<Point> data3 = new ArrayList<>();
             List<TickerHistory> tickerHistories = traderBean.getTickerHistories(ExchangePair.of(OKCOIN, "BTC/USD"), startDate);
 
             time = 0L;
             for (TickerHistory tickerHistory : tickerHistories){
                 if (tickerHistory.getDate().getTime() - time > 1000*60){
                     data2.add(new Point(tickerHistory.getDate().getTime(), tickerHistory.getPrice()));
+                    data3.add(new Point(tickerHistory.getDate().getTime() + 1000*60*10, ONE.add(tickerHistory.getPrediction()).multiply(tickerHistory.getPrice())));
                     time = tickerHistory.getDate().getTime();
                 }
             }
 
             options.addSeries(new PointSeries().setData(data).setName("Equity").setColor(new HexColor("#7798BF")).setyAxis(0));
-            options.addSeries(new PointSeries().setData(data2).setName("BTC/USD").setyAxis(1));
+            options.addSeries(new PointSeries().setData(data2).setName("BTC/USD").setColor(new HexColor("#DDDF0D")).setyAxis(1));
+            options.addSeries(new PointSeries().setData(data3).setName("Prediction").setColor(new HexColor("#62c462")).setyAxis(1));
 
             add(chart = new Chart("chart", options));
         }
