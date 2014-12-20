@@ -632,7 +632,7 @@ public class TraderList extends AbstractPage{
             options.setxAxis(new Axis().setType(AxisType.DATETIME));
             options.setyAxis(Arrays.asList(new Axis().setTitle(new Title("")), new Axis().setOpposite(true).setTitle(new Title(""))));
 
-            options.setPlotOptions(new PlotOptionsChoice().setSpline(new PlotOptions().setMarker(new Marker(false))));
+            options.setPlotOptions(new PlotOptionsChoice().setLine(new PlotOptions().setMarker(new Marker(false))));
 
             List<Point> data = new ArrayList<>();
             List<Equity> equities = traderBean.getEquities(startDate);
