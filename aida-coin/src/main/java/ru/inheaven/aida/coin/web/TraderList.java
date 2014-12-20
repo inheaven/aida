@@ -349,7 +349,7 @@ public class TraderList extends AbstractPage{
                                 if (System.currentTimeMillis() - lastChartTime > 60000) {
                                     lastChartTime = System.currentTimeMillis();
 
-                                    String javaScript = "eval(" + chart.getJavaScriptVarName() + ").series[" + 0 + "].addPoint("
+                                    String javaScript = "eval(" + chart.getJavaScriptVarName() + ").series[" + 2 + "].addPoint("
                                             + renderer.toJson(new Point(System.currentTimeMillis(), equity.getVolume())) + ", true, true);";
                                     handler.appendJavaScript(javaScript);
 
@@ -357,11 +357,11 @@ public class TraderList extends AbstractPage{
                                             + renderer.toJson(new Point(System.currentTimeMillis(), ticker.getLast())) + ", true, true);";
                                     handler.appendJavaScript(javaScript);
 
-                                    javaScript = "eval(" + chart.getJavaScriptVarName() + ").series[" + 2 + "].addPoint("
+                                    javaScript = "eval(" + chart.getJavaScriptVarName() + ").series[" + 0 + "].addPoint("
                                             + renderer.toJson(new Point(System.currentTimeMillis() + 1000*60*15, prediction)) + ", true, true);";
                                     handler.appendJavaScript(javaScript);
                                 } else {
-                                    String javaScript = "var s = eval(" + chart.getJavaScriptVarName() + ").series[0];" +
+                                    String javaScript = "var s = eval(" + chart.getJavaScriptVarName() + ").series[2];" +
                                             "s.data[s.data.length - 1].update(" + equity.getVolume().toPlainString() + ")";
                                     handler.appendJavaScript(javaScript);
 
@@ -369,7 +369,7 @@ public class TraderList extends AbstractPage{
                                             "s.data[s.data.length - 1].update(" + ticker.getLast().toPlainString() + ")";
                                     handler.appendJavaScript(javaScript);
 
-                                    javaScript = "var s = eval(" + chart.getJavaScriptVarName() + ").series[2];" +
+                                    javaScript = "var s = eval(" + chart.getJavaScriptVarName() + ").series[0];" +
                                             "s.data[s.data.length - 1].update(" + prediction.toPlainString() + ")";
                                     handler.appendJavaScript(javaScript);
                                 }
@@ -683,9 +683,9 @@ public class TraderList extends AbstractPage{
                 }
             }
 
-            options.addSeries(new PointSeries().setData(data).setName("Equity").setColor(new HexColor("#7798BF")).setyAxis(0));
-            options.addSeries(new PointSeries().setData(data2).setName("BTC/USD").setColor(new HexColor("#DDDF0D")).setyAxis(1));
             options.addSeries(new PointSeries().setData(data3).setName("Prediction").setColor(new HighchartsColor(1)).setyAxis(1));
+            options.addSeries(new PointSeries().setData(data2).setName("BTC/USD").setColor(new HexColor("#DDDF0D")).setyAxis(1));
+            options.addSeries(new PointSeries().setData(data).setName("Equity").setColor(new HexColor("#7798BF")).setyAxis(0));
 
             add(chart = new Chart("chart", options));
         }
