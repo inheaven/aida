@@ -630,7 +630,7 @@ public class TraderList extends AbstractPage{
         //Chart
         {
             Options options = new GrayTheme();
-            options.setChartOptions(new ChartOptions(SeriesType.LINE).setHeight(366)
+            options.setChartOptions(new ChartOptions(SeriesType.LINE).setHeight(366).setZoomType(ZoomType.X)
                     .setBackgroundColor(HexColor.fromString("#272b30")));
             options.setGlobal(new Global().setUseUTC(false));
             options.setCredits(new CreditOptions().setEnabled(false));

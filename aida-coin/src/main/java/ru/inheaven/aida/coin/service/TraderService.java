@@ -571,11 +571,9 @@ public class TraderService {
         for (ExchangeType exchangeType : ExchangeType.values()){
             Equity e = equityMap.get(exchangeType);
 
-            if (e == null){
-                return;
+            if (e != null){
+                volume = volume.add(e.getVolume());
             }
-
-            volume = volume.add(e.getVolume());
         }
 
         equity = new Equity(volume);
