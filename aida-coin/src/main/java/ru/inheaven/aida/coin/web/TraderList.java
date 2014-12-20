@@ -335,7 +335,8 @@ public class TraderList extends AbstractPage{
                             if (lastChartValue.compareTo(equity.getVolume()) != 0) {
                                 ExchangePair exchangePair = ExchangePair.of(OKCOIN, "BTC/USD");
                                 Ticker ticker = traderService.getTicker(exchangePair);
-                                BigDecimal prediction = ONE.add(traderService.getPredictionIndex(exchangePair)).multiply(ticker.getLast());
+                                BigDecimal prediction = ONE.add(traderService.getPredictionIndex(exchangePair))
+                                        .multiply(ticker.getLast()).setScale(8, ROUND_UP);
 
                                 lastChartValue = equity.getVolume();
 
@@ -352,9 +353,9 @@ public class TraderList extends AbstractPage{
                                             + renderer.toJson(new Point(System.currentTimeMillis(), ticker.getLast())) + ", true, true);";
                                     handler.appendJavaScript(javaScript);
 
-                                    if (prediction.doubleValue() < 0.005) {
+                                    if (prediction.abs().doubleValue() < 0.005) {
                                         javaScript = "eval(" + chart.getJavaScriptVarName() + ").series[" + 0 + "].addPoint("
-                                                + renderer.toJson(new Point(System.currentTimeMillis() + 1000*60*30, prediction)) + ", true, true);";
+                                                + renderer.toJson(new Point(System.currentTimeMillis(), prediction)) + ", true, true);";
                                         handler.appendJavaScript(javaScript);
                                     }
                                 } else {
@@ -640,7 +641,6 @@ public class TraderList extends AbstractPage{
 
             options.setPlotOptions(new PlotOptionsChoice().setLine(new PlotOptions()
                     .setMarker(new Marker(false))
-                    .setLineWidth(1)
                     .setTurboThreshold(20000)));
 
             List<Point> data = new ArrayList<>();
@@ -673,7 +673,8 @@ public class TraderList extends AbstractPage{
                     data2.add(new Point(tickerHistory.getDate().getTime(), tickerHistory.getPrice()));
 
                     if (tickerHistory.getPrediction().abs().doubleValue() < 0.005) {
-                        data3.add(new Point(tickerHistory.getDate().getTime() + 1000*60*30, ONE.add(tickerHistory.getPrediction()).multiply(tickerHistory.getPrice())));
+                        data3.add(new Point(tickerHistory.getDate().getTime(), ONE.add(tickerHistory.getPrediction())
+                                .multiply(tickerHistory.getPrice()).setScale(8, ROUND_UP)));
                     }
 
                     time = tickerHistory.getDate().getTime();
@@ -681,7 +682,7 @@ public class TraderList extends AbstractPage{
             }
 
             options.addSeries(new PointSeries().setData(data3).setName("Prediction").setColor(new HighchartsColor(1)).setyAxis(1));
-            options.addSeries(new PointSeries().setData(data2).setName("BTC/USD").setColor(new HexColor("#DDDF0D")).setyAxis(1));
+            options.addSeries(new PointSeries().setData(data2).setName("Btc / Usd").setColor(new HexColor("#DDDF0D")).setyAxis(1));
             options.addSeries(new PointSeries().setData(data).setName("Equity").setColor(new HexColor("#7798BF")).setyAxis(0));
 
             add(chart = new Chart("chart", options));
