@@ -661,7 +661,7 @@ public class TraderList extends AbstractPage{
             time = 0L;
             for (TickerHistory tickerHistory : tickerHistories){
                 if (tickerHistory.getDate().getTime() - time > 1000*60){
-                    data2.add(new Point(tickerHistory.getDate().getTime(), tickerHistory.getVolume()));
+                    data2.add(new Point(tickerHistory.getDate().getTime(), tickerHistory.getPrice()));
                     time = tickerHistory.getDate().getTime();
                 }
             }
