@@ -335,12 +335,12 @@ public class TraderList extends AbstractPage{
                             if (lastChartValue.compareTo(equity.getVolume()) != 0) {
                                 ExchangePair exchangePair = ExchangePair.of(OKCOIN, "BTC/USD");
                                 Ticker ticker = traderService.getTicker(exchangePair);
-                                BigDecimal prediction = ONE.add(traderService.getPredictionIndex(exchangePair))
-                                        .multiply(ticker.getLast()).setScale(8, ROUND_UP);
-
-                                if (prediction.abs().doubleValue() > 0.005){
-                                    prediction = BigDecimal.valueOf(0.005);
+                                BigDecimal predictionIndex = traderService.getPredictionIndex(exchangePair);
+                                if (predictionIndex.abs().doubleValue() > 0.01){
+                                    predictionIndex = BigDecimal.valueOf(0.01);
                                 }
+
+                                BigDecimal prediction = ONE.add(predictionIndex).multiply(ticker.getLast()).setScale(8, ROUND_UP);
 
                                 lastChartValue = equity.getVolume();
 
