@@ -349,11 +349,11 @@ public class TraderList extends AbstractPage{
                                 if (System.currentTimeMillis() - lastChartTime > 60000) {
                                     lastChartTime = System.currentTimeMillis();
 
-                                    String javaScript = "eval(" + chart.getJavaScriptVarName() + ").series[" + 2 + "].addPoint("
+                                    String javaScript = "eval(" + chart.getJavaScriptVarName() + ").series[2].addPoint("
                                             + renderer.toJson(new Point(System.currentTimeMillis(), equity.getVolume())) + ", true, true);";
-                                    javaScript += "eval(" + chart.getJavaScriptVarName() + ").series[" + 1 + "].addPoint("
+                                    javaScript += "eval(" + chart.getJavaScriptVarName() + ").series[1].addPoint("
                                             + renderer.toJson(new Point(System.currentTimeMillis(), ticker.getLast())) + ", true, true);";
-                                    javaScript += "eval(" + chart.getJavaScriptVarName() + ").series[" + 0 + "].addPoint("
+                                    javaScript += "eval(" + chart.getJavaScriptVarName() + ").series[0].addPoint("
                                             + renderer.toJson(new Point(System.currentTimeMillis(), prediction)) + ", true, true);";
 
                                     handler.appendJavaScript(javaScript);
