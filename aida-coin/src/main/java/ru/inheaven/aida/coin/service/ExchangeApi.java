@@ -22,8 +22,8 @@ public class ExchangeApi {
 
     private static Exchange bittrexExchange = INSTANCE.createExchange(new ExchangeSpecification(BittrexExchange.class){{
         if (debug) {
-            setApiKey("52bb28e4e5454efd90b427e4ea1f4e1e");
-            setSecretKey("6d4548bfbc404176829a94ae5471fd82");
+            setApiKey("61071ae498bf423d8cf0c05359e81dcd ");
+            setSecretKey("3ed20b0624fd4e02932582c4c342cd07");
         } else {
             setApiKey("14935ef36d8b4afc8204946be7ddd152");
             setSecretKey("44d84de3865e4fbfa4c17dd42c026d11");
