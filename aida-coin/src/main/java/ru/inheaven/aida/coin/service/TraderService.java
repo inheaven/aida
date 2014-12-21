@@ -1066,7 +1066,7 @@ public class TraderService {
 
         for (OrderHistory order : orders){
             volumes.add(new Volume(getBTCVolume(ExchangePair.of(order.getExchangeType(), order.getPair()),
-                    order.getTradableAmount(), order.getPrice()).multiply(BigDecimal.valueOf(BID.equals(order.getType()) ? 1 : -1)),
+                    order.getTradableAmount(), order.getPrice()).multiply(BigDecimal.valueOf(ASK.equals(order.getType()) ? 1 : -1)),
                     order.getClosed()));
         }
 
