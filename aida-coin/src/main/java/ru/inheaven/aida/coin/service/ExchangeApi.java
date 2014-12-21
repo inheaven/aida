@@ -25,8 +25,8 @@ public class ExchangeApi {
             setApiKey("61071ae498bf423d8cf0c05359e81dcd ");
             setSecretKey("3ed20b0624fd4e02932582c4c342cd07");
         } else {
-            setApiKey("14935ef36d8b4afc8204946be7ddd152");
-            setSecretKey("44d84de3865e4fbfa4c17dd42c026d11");
+            setApiKey("61071ae498bf423d8cf0c05359e81dcd");
+            setSecretKey("3ed20b0624fd4e02932582c4c342cd07");
         }
     }});
 
