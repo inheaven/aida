@@ -346,7 +346,7 @@ public class TraderList extends AbstractPage{
 
                                 JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
 
-                                if (System.currentTimeMillis() - lastChartTime > 60000) {
+                                if (System.currentTimeMillis() - lastChartTime > 1000*60*5) {
                                     lastChartTime = System.currentTimeMillis();
 
                                     String javaScript = "eval(" + chart.getJavaScriptVarName() + ").series[2].addPoint("
@@ -665,7 +665,7 @@ public class TraderList extends AbstractPage{
 
             time = 0L;
             for (TickerHistory tickerHistory : tickerHistories){
-                if (tickerHistory.getDate().getTime() - time > 1000*60){
+                if (tickerHistory.getDate().getTime() - time > 1000*60*5){
                     data2.add(new Point(tickerHistory.getDate().getTime(), tickerHistory.getPrice()));
 
                     BigDecimal predictionIndex = tickerHistory.getPrediction();
