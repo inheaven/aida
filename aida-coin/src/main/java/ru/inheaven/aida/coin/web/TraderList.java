@@ -338,6 +338,10 @@ public class TraderList extends AbstractPage{
                                 BigDecimal prediction = ONE.add(traderService.getPredictionIndex(exchangePair))
                                         .multiply(ticker.getLast()).setScale(8, ROUND_UP);
 
+                                if (prediction.abs().doubleValue() > 0.005){
+                                    prediction = BigDecimal.valueOf(0.005);
+                                }
+
                                 lastChartValue = equity.getVolume();
 
                                 JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
@@ -347,28 +351,20 @@ public class TraderList extends AbstractPage{
 
                                     String javaScript = "eval(" + chart.getJavaScriptVarName() + ").series[" + 2 + "].addPoint("
                                             + renderer.toJson(new Point(System.currentTimeMillis(), equity.getVolume())) + ", true, true);";
-                                    handler.appendJavaScript(javaScript);
-
-                                    javaScript = "eval(" + chart.getJavaScriptVarName() + ").series[" + 1 + "].addPoint("
+                                    javaScript += "eval(" + chart.getJavaScriptVarName() + ").series[" + 1 + "].addPoint("
                                             + renderer.toJson(new Point(System.currentTimeMillis(), ticker.getLast())) + ", true, true);";
-                                    handler.appendJavaScript(javaScript);
+                                    javaScript += "eval(" + chart.getJavaScriptVarName() + ").series[" + 0 + "].addPoint("
+                                            + renderer.toJson(new Point(System.currentTimeMillis(), prediction)) + ", true, true);";
 
-                                    if (prediction.abs().doubleValue() < 0.005) {
-                                        javaScript = "eval(" + chart.getJavaScriptVarName() + ").series[" + 0 + "].addPoint("
-                                                + renderer.toJson(new Point(System.currentTimeMillis(), prediction)) + ", true, true);";
-                                        handler.appendJavaScript(javaScript);
-                                    }
+                                    handler.appendJavaScript(javaScript);
                                 } else {
                                     String javaScript = "var s = eval(" + chart.getJavaScriptVarName() + ").series[2];" +
                                             "s.data[s.data.length - 1].update(" + equity.getVolume().toPlainString() + ")";
-                                    handler.appendJavaScript(javaScript);
-
-                                    javaScript = "var s = eval(" + chart.getJavaScriptVarName() + ").series[1];" +
+                                    javaScript += "var s = eval(" + chart.getJavaScriptVarName() + ").series[1];" +
                                             "s.data[s.data.length - 1].update(" + ticker.getLast().toPlainString() + ")";
-                                    handler.appendJavaScript(javaScript);
-
-                                    javaScript = "var s = eval(" + chart.getJavaScriptVarName() + ").series[0];" +
+                                    javaScript += "var s = eval(" + chart.getJavaScriptVarName() + ").series[0];" +
                                             "s.data[s.data.length - 1].update(" + prediction.toPlainString() + ")";
+
                                     handler.appendJavaScript(javaScript);
                                 }
                             }
