@@ -1234,8 +1234,8 @@ public class TraderService {
         if (exchangePair.getExchangeType().equals(OKCOIN)){
             int contract = exchangePair.getPair().contains("BTC/") ? 100 :10;
 
-            return BigDecimal.valueOf((contract/map.get(ASK).getAvgPrice().doubleValue() - contract/map.get(BID).getAvgPrice().doubleValue())
-                    * (map.get(ASK).getSumAmount().intValue() + map.get(BID).getSumAmount().intValue())).setScale(8, HALF_UP);
+            return BigDecimal.valueOf((contract/map.get(BID).getAvgPrice().doubleValue() - contract/map.get(ASK).getAvgPrice().doubleValue())
+                    * (map.get(ASK).getSumAmount().add(map.get(BID).getSumAmount()).intValue())).setScale(8, HALF_UP);
         }
 
         BigDecimal priceDiff = ZERO;
