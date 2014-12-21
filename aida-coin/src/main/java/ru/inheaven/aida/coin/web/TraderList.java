@@ -668,8 +668,14 @@ public class TraderList extends AbstractPage{
                 if (tickerHistory.getDate().getTime() - time > 1000*60){
                     data2.add(new Point(tickerHistory.getDate().getTime(), tickerHistory.getPrice()));
 
+                    BigDecimal predictionIndex = tickerHistory.getPrediction();
+
+                    if (predictionIndex.abs().doubleValue() > 0.01){
+                        predictionIndex = BigDecimal.valueOf(0.01);
+                    }
+
                     if (tickerHistory.getPrediction().abs().doubleValue() < 0.005) {
-                        data3.add(new Point(tickerHistory.getDate().getTime(), ONE.add(tickerHistory.getPrediction())
+                        data3.add(new Point(tickerHistory.getDate().getTime(), ONE.add(predictionIndex)
                                 .multiply(tickerHistory.getPrice()).setScale(8, ROUND_UP)));
                     }
 
