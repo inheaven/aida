@@ -571,9 +571,11 @@ public class TraderService {
         for (ExchangeType exchangeType : ExchangeType.values()){
             Equity e = equityMap.get(exchangeType);
 
-            if (e != null){
-                volume = volume.add(e.getVolume());
+            if (e == null){
+                return;
             }
+
+            volume = volume.add(e.getVolume());
         }
 
         equity = new Equity(volume);
@@ -1165,7 +1167,7 @@ public class TraderService {
             double index = (predictorService.getPrediction(timeSeries) - timeSeries[size-1]) / timeSeries[size-1];
 
             try {
-                predictionIndex =  BigDecimal.valueOf(Math.abs(index) < 1 ? index : Math.signum(index));
+                predictionIndex = BigDecimal.valueOf(Math.abs(index) < 1 ? index : Math.signum(index));
             } catch (Exception e) {
                 //
             }
