@@ -582,9 +582,9 @@ public class TraderList extends AbstractPage{
                         String id = chart4.getJavaScriptVarName();
 
                         String js = "$('" + id  + "').series[0].setData(" + renderer.toJson(data0) + ");"
-                                + "$('" + id+ "').series[0].setData(" + renderer.toJson(data1) + ");"
-                                + "$('" + id + "').series[0].setData(" + renderer.toJson(data2) + ");"
-                                + "$('" + id + "').series[0].setData(" + renderer.toJson(data3) + ");";
+                                + "$('" + id+ "').series[1].setData(" + renderer.toJson(data1) + ");"
+                                + "$('" + id + "').series[2].setData(" + renderer.toJson(data2) + ");"
+                                + "$('" + id + "').series[3].setData(" + renderer.toJson(data3) + ");";
 
                         handler.appendJavaScript(js);
                     } else if (payload instanceof String) {
