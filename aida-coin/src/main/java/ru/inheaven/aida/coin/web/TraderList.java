@@ -100,7 +100,7 @@ public class TraderList extends AbstractPage{
     private int chart3Index2 = 1;
 
     Date startDay = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24);
-    Date startDate = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24);
+    Date startDate = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 2);
     long startWeekDate = System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 7;
     long pageInitTime = System.currentTimeMillis();
 
@@ -644,18 +644,9 @@ public class TraderList extends AbstractPage{
 
             long time = 0L;
             for (Equity equity : equities){
-                if (equity.getDate().getTime() - time > 1000*60){
+                if (equity.getDate().getTime() - time > 1000*60*5){
                     data.add(new Point(equity.getDate().getTime(), equity.getVolume()));
                     time = equity.getDate().getTime();
-                }
-            }
-
-            if (!data.isEmpty() && data.size() < 1000) {
-                long x = data.get(0).getX().longValue();
-                BigDecimal v = (BigDecimal) data.get(0).getY();
-
-                for (int i = 0; i < 1000 - data.size(); ++i) {
-                    data.add(0, new Point(x, v));
                 }
             }
 
