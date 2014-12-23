@@ -525,8 +525,9 @@ public class TraderList extends AbstractPage{
 
                         if (orderHistory.getStatus().equals(OrderStatus.CLOSED)) {
                             String style = "style= \"color: " + (orderHistory.getType().equals(Order.OrderType.ASK) ? "#62c462" : "#ee5f5b") + "\"";
-                            handler.appendJavaScript("$('#orders').prepend('<tr " + style + "><td>" + orderHistory.toString() + "</td></tr>')");
-                        }
+                            String row = "var row = '<tr " + style + "><td>" + orderHistory.toString() + "</td></tr>')';";
+
+                            handler.appendJavaScript(row + "$(row).hide().insertAfter('#orders').fadeIn();");                        }
                     } else if (payload instanceof Futures) {
                         Futures futures = (Futures) payload;
 
