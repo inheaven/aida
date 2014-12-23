@@ -76,6 +76,7 @@ public class TraderList extends AbstractPage{
 
     private Component notificationLabel, notificationLabel2, notificationLabel3;
     private long notificationTime = System.currentTimeMillis();
+    private long notificationErrorTime = System.currentTimeMillis();
 
     private Component bittrexBTC, bittrexCoins;
     private Component cexioBTC, cexioCoins;
@@ -520,14 +521,14 @@ public class TraderList extends AbstractPage{
                             }
                         }
 
-                        notificationLabel3.setDefaultModelObject(orderHistory.toString());
-                        handler.add(notificationLabel3);
+                        handler.add(notificationLabel3.setDefaultModelObject(orderHistory.toString()));
 
                         if (orderHistory.getStatus().equals(OrderStatus.CLOSED)) {
-                            String style = "style= \"color: " + (orderHistory.getType().equals(Order.OrderType.ASK) ? "#62c462" : "#ee5f5b") + "\"";
+                            String style = "style= \"color: " + (orderHistory.getType().equals(Order.OrderType.ASK)
+                                    ? "#62c462" : "#ee5f5b") + "; display: none\"";
                             String row = "var row = '<tr " + style + "><td>" + orderHistory.toString() + "</td></tr>';";
 
-                            handler.appendJavaScript(row + "$(row).hide().insertAfter('#orders').fadeIn();");                        }
+                            handler.appendJavaScript(row + "$(row).insertAfter('#orders').fadeIn('slow');");                        }
                     } else if (payload instanceof Futures) {
                         Futures futures = (Futures) payload;
 
@@ -592,18 +593,26 @@ public class TraderList extends AbstractPage{
 
                         handler.appendJavaScript(js);
                     } else if (payload instanceof String) {
-                        if (((String) payload).contains("Unable to Authorize Request")) {
+                        String logMessage = ((String) payload);
+
+                        if (logMessage.contains("Unable to Authorize Request")) {
                             return;
                         }
 
-                        if (System.currentTimeMillis() - notificationTime > 1000) {
-                            if (!((String) payload).contains("@")) {
-                                handler.add(notificationLabel.setDefaultModelObject(payload));
-                            } else {
+                        if (System.currentTimeMillis() - notificationTime > 500) {
+                            if (logMessage.contains("@")) {
                                 handler.add(notificationLabel2.setDefaultModelObject(payload));
+                            } else {
+                                handler.add(notificationLabel.setDefaultModelObject(payload));
+                                notificationErrorTime = System.currentTimeMillis();
                             }
 
                             notificationTime = System.currentTimeMillis();
+                        }
+
+                        if (System.currentTimeMillis() - notificationErrorTime > 1000*60*10){
+                            handler.add(notificationLabel.setDefaultModelObject(""));
+                            notificationErrorTime = System.currentTimeMillis();
                         }
                     }
                 }
