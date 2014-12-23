@@ -557,6 +557,8 @@ public class TraderList extends AbstractPage{
                                 point.setColor(new HexColor("#ee5f5b"));
                             } else if (last.compareTo(s.getAvgPrice()) == 0) {
                                 point.setColor(new HexColor("#C8C8C8"));
+                            } else {
+                                point.setColor(new HexColor("#434348"));
                             }
 
                             //noinspection unchecked
@@ -581,10 +583,11 @@ public class TraderList extends AbstractPage{
                         JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
                         String id = chart4.getJavaScriptVarName();
 
-                        String js = id  + ".series[0].setData(" + renderer.toJson(data0) + ");"
-                                + id  + ".series[1].setData(" + renderer.toJson(data1) + ");"
-                                + id  + ".series[2].setData(" + renderer.toJson(data2) + ");"
-                                + id  + ".series[3].setData(" + renderer.toJson(data3) + ");";
+                        String js = id  + ".series[0].setData(" + renderer.toJson(data0) + ", false);"
+                                + id  + ".series[1].setData(" + renderer.toJson(data1) + ", false);"
+                                + id  + ".series[2].setData(" + renderer.toJson(data2) + ", false);"
+                                + id  + ".series[3].setData(" + renderer.toJson(data3) + ", false);"
+                                + id + ".redraw();";
 
                         handler.appendJavaScript(js);
                     } else if (payload instanceof String) {
@@ -750,13 +753,11 @@ public class TraderList extends AbstractPage{
 
             options.setPlotOptions(new PlotOptionsChoice()
                     .setSpline(new PlotOptions()
-                            .setAnimation(false)
                             .setMarker(new Marker(false))
                             .setTurboThreshold(20000))
                     .setColumn(new PlotOptions()
                             .setBorderWidth(0)
-                            .setPointPadding(0f)
-                            .setAnimation(false)));
+                            .setPointPadding(0f)));
 
             options.addSeries(new PointSeries().setData(new ArrayList<>()).setName("Volume").setColor(new HighchartsColor(1))
                     .setyAxis(1).setType(SeriesType.COLUMN));
