@@ -530,10 +530,10 @@ public class TraderList extends AbstractPage{
                     } else if (payload instanceof Futures) {
                         Futures futures = (Futures) payload;
 
-                        chart4.getOptions().getSeries().get(0).getData().clear();
-                        chart4.getOptions().getSeries().get(1).getData().clear();
-                        chart4.getOptions().getSeries().get(2).getData().clear();
-                        chart4.getOptions().getSeries().get(3).getData().clear();
+                        List<Point> data0 = new ArrayList<>();
+                        List<Point> data1 = new ArrayList<>();
+                        List<Point> data2 = new ArrayList<>();
+                        List<Point> data3 = new ArrayList<>();
 
                         //volume
                         ExchangePair btcUsd = ExchangePair.of(OKCOIN, "BTC/USD");
@@ -560,24 +560,33 @@ public class TraderList extends AbstractPage{
                             }
 
                             //noinspection unchecked
-                            chart4.getOptions().getSeries().get(0).getData().add(point);
+                            data0.add(point);
                         }
 
                         for (int i = 0; i < futures.getAsks().size(); ++i) {
                             //noinspection unchecked
-                            chart4.getOptions().getSeries().get(1).getData().add(new Point(futures.getAsks().get(i).getPrice().setScale(1, ROUND_UP),
+                            data1.add(new Point(futures.getAsks().get(i).getPrice().setScale(1, ROUND_UP),
                                     futures.getAsks().get(i).getAmount().setScale(4, ROUND_UP)));
 
                             //noinspection unchecked
-                            chart4.getOptions().getSeries().get(2).getData().add(new Point(futures.getBids().get(i).getPrice().setScale(1, ROUND_UP),
+                            data2.add(new Point(futures.getBids().get(i).getPrice().setScale(1, ROUND_UP),
                                     futures.getBids().get(i).getAmount().setScale(4, ROUND_UP)));
 
                             //noinspection unchecked
-                            chart4.getOptions().getSeries().get(3).getData().add(new Point(futures.getEquity().get(i).getPrice().setScale(1, ROUND_UP),
+                            data3.add(new Point(futures.getEquity().get(i).getPrice().setScale(1, ROUND_UP),
                                     futures.getMargin().subtract(futures.getRealProfit()).subtract(futures.getEquity().get(i).getAmount()).setScale(4, ROUND_UP)));
                         }
 
-                        handler.add(chart4);
+                        //render js
+                        JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
+                        String id = chart4.getJavaScriptVarName();
+
+                        String js = "$('" + id  + "').series[0].setData(" + renderer.toJson(data0) + ");"
+                                + "$('" + id+ "').series[0].setData(" + renderer.toJson(data1) + ");"
+                                + "$('" + id + "').series[0].setData(" + renderer.toJson(data2) + ");"
+                                + "$('" + id + "').series[0].setData(" + renderer.toJson(data3) + ");";
+
+                        handler.appendJavaScript(js);
                     } else if (payload instanceof String) {
                         if (((String) payload).contains("Unable to Authorize Request")) {
                             return;
