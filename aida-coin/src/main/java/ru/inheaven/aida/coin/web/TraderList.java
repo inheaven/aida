@@ -347,24 +347,26 @@ public class TraderList extends AbstractPage{
 
                                 JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
 
+                                String id = chart.getJavaScriptVarName();
+
                                 if (System.currentTimeMillis() - lastChartTime > 1000*60*5) {
                                     lastChartTime = System.currentTimeMillis();
 
-                                    String javaScript = "eval(" + chart.getJavaScriptVarName() + ").series[2].addPoint("
+                                    String javaScript = id + ".series[2].addPoint("
                                             + renderer.toJson(new Point(System.currentTimeMillis(), equity.getVolume())) + ", true, true);";
-                                    javaScript += "eval(" + chart.getJavaScriptVarName() + ").series[1].addPoint("
+                                    javaScript += id + ".series[1].addPoint("
                                             + renderer.toJson(new Point(System.currentTimeMillis(), ticker.getLast())) + ", true, true);";
-                                    javaScript += "eval(" + chart.getJavaScriptVarName() + ").series[0].addPoint("
+                                    javaScript += id + ".series[0].addPoint("
                                             + renderer.toJson(new Point(System.currentTimeMillis(), prediction)) + ", true, true);";
 
                                     handler.appendJavaScript(javaScript);
                                 } else {
-                                    String javaScript = "var s = eval(" + chart.getJavaScriptVarName() + ").series[2];" +
-                                            "s.data[s.data.length - 1].update(" + equity.getVolume().toPlainString() + ")";
-                                    javaScript += "var s = eval(" + chart.getJavaScriptVarName() + ").series[1];" +
-                                            "s.data[s.data.length - 1].update(" + ticker.getLast().toPlainString() + ")";
-                                    javaScript += "var s = eval(" + chart.getJavaScriptVarName() + ").series[0];" +
-                                            "s.data[s.data.length - 1].update(" + prediction.toPlainString() + ")";
+                                    String javaScript = id + ".series[2].data[s.data.length - 1].update("
+                                            + equity.getVolume().toPlainString() + ")";
+                                    javaScript +=  id  + ".series[1].data[s.data.length - 1].update("
+                                            + ticker.getLast().toPlainString() + ")";
+                                    javaScript += id + ".series[0].data[s.data.length - 1].update("
+                                            + prediction.toPlainString() + ")";
 
                                     handler.appendJavaScript(javaScript);
                                 }
