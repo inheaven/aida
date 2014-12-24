@@ -12,7 +12,7 @@ import javax.ejb.Singleton;
 public class PredictorService {
     public static final int SIZE = 1024;
 
-    private final static VectorForecastSSA VECTOR_FORECAST_SSA =  new VectorForecastSSA(SIZE, 512, 7, 128);
+    private final static VectorForecastSSA VECTOR_FORECAST_SSA =  new VectorForecastSSA(SIZE, 512, 16, 128);
 
     public double getPrediction(double[] timeSeries){
         if (timeSeries.length < SIZE){
