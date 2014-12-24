@@ -337,8 +337,8 @@ public class TraderList extends AbstractPage{
                                 ExchangePair exchangePair = ExchangePair.of(OKCOIN, "BTC/USD");
                                 Ticker ticker = traderService.getTicker(exchangePair);
                                 BigDecimal predictionIndex = traderService.getPredictionIndex(exchangePair);
-                                if (predictionIndex.abs().doubleValue() > 0.01){
-                                    predictionIndex = BigDecimal.valueOf(0.01);
+                                if (predictionIndex.abs().doubleValue() > 0.05){
+                                    predictionIndex = BigDecimal.valueOf(0.05);
                                 }
 
                                 BigDecimal prediction = ONE.add(predictionIndex).multiply(ticker.getLast()).setScale(8, ROUND_UP);
@@ -683,8 +683,8 @@ public class TraderList extends AbstractPage{
 
                     BigDecimal predictionIndex = tickerHistory.getPrediction();
 
-                    if (predictionIndex.abs().doubleValue() > 0.01){
-                        predictionIndex = BigDecimal.valueOf(0.01);
+                    if (predictionIndex.abs().doubleValue() > 0.05){
+                        predictionIndex = BigDecimal.valueOf(0.05);
                     }
 
                     data3.add(new Point(tickerHistory.getDate().getTime(), ONE.add(predictionIndex)
