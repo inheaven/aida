@@ -224,7 +224,7 @@ public class TraderService {
 
 
     private void balanceOKCoinWeekPosition(String pair) {
-        int minAmount = 3;
+        int minAmount = 0;
 
         try {
             OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService())
@@ -786,7 +786,7 @@ public class TraderService {
                     BigDecimal halfMinSpread = minSpread.divide(BigDecimal.valueOf(2), 8, ROUND_UP);
 
                     //create order
-                    for (int index = 1; index < 12; ++index) {
+                    for (int index = 1; index < 4; ++index) {
 
                         BigDecimal delta = halfMinSpread.multiply(BigDecimal.valueOf(index));
 

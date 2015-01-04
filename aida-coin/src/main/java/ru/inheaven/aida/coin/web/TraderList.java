@@ -341,7 +341,7 @@ public class TraderList extends AbstractPage{
                                     predictionIndex = BigDecimal.valueOf(0.05);
                                 }
 
-                                BigDecimal prediction = ONE.add(predictionIndex).multiply(ticker.getLast()).setScale(8, ROUND_UP);
+                                BigDecimal prediction = ONE.add(predictionIndex).multiply(ticker.getLast()).setScale(2, ROUND_UP);
 
                                 lastChartValue = equity.getVolume();
 
@@ -386,7 +386,7 @@ public class TraderList extends AbstractPage{
                         update(handler, tradesCount, traderBean.getOrderHistoryCount(startDate, OrderStatus.CLOSED).toString());
 
                         //update total
-                        if (System.currentTimeMillis() - lastChart4Time > 60000) {
+                        if (System.currentTimeMillis() - lastChart4Time > 60000*5) {
                             lastChart4Time = System.currentTimeMillis();
 
                             OrderVolume orderVolume = traderService.getOrderVolumeRate(startDate);
