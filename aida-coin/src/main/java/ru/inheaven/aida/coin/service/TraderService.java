@@ -138,7 +138,7 @@ public class TraderService {
 
             int levels = 50;
             double spread = 0.0009;
-            int balancing = 3;
+            int balancing = 1;
 
             OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("btc_usd", "this_week");
 
@@ -224,7 +224,7 @@ public class TraderService {
 
 
     private void balanceOKCoinWeekPosition(String pair) {
-        int minAmount = 0;
+        int minAmount = 1;
 
         try {
             OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService())
