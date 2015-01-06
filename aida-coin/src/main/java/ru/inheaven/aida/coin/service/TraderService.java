@@ -137,7 +137,7 @@ public class TraderService {
             balanceOKCoinWeekPosition("LTC/USD");
 
             int levels = 50;
-            double spread = 0.0009;
+            double spread = 0.00155;
             int balancing = 1;
 
             OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("btc_usd", "this_week");
@@ -597,9 +597,9 @@ public class TraderService {
                 break;
             case OKCOIN:
                 if (trader.getPair().contains("LTC/")){
-                    minSpread = middlePrice.multiply(new BigDecimal("0.0018")).setScale(8, HALF_UP);
+                    minSpread = middlePrice.multiply(new BigDecimal("0.0031")).setScale(8, HALF_UP);
                 }else{
-                    minSpread = middlePrice.multiply(new BigDecimal("0.0018")).setScale(8, HALF_UP);
+                    minSpread = middlePrice.multiply(new BigDecimal("0.0031")).setScale(8, HALF_UP);
                 }
 
                 break;
