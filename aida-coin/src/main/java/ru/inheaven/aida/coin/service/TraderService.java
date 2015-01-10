@@ -777,7 +777,7 @@ public class TraderService {
                     }
 
                     //prediction
-                    BigDecimal predictionIndex = getPredictionIndex(exchangePair);
+                    BigDecimal predictionIndex = ONE;
 
                     //internal amount
                     BigDecimal internalAmount = ZERO;
@@ -822,8 +822,10 @@ public class TraderService {
 
                         //random prediction
                         if (!trader.isFuture()) {
-                            askAmount = predictionIndex.compareTo(ZERO) > 0 ? random50(askAmount) : random10(askAmount);
-                            bidAmount = predictionIndex.compareTo(ZERO) > 0 ? random10(bidAmount) : random50(bidAmount);
+                            if (predictionIndex.compareTo(ONE) != 0) {
+                                askAmount = predictionIndex.compareTo(ZERO) > 0 ? random50(askAmount) : random10(askAmount);
+                                bidAmount = predictionIndex.compareTo(ZERO) > 0 ? random10(bidAmount) : random50(bidAmount);
+                            }
 
                             //check ask
                             if (accountInfo.getBalance(currencyPair.counterSymbol).compareTo(askAmount.multiply(middlePrice)) < 0) {
@@ -852,8 +854,12 @@ public class TraderService {
                         }
 
                         //random ask delta
-                        BigDecimal randomAskDelta = predictionIndex.compareTo(ZERO) > 0
-                                ? random10(delta) : randomMinus10(delta);
+                        BigDecimal randomAskDelta = delta;
+
+                        if (predictionIndex.compareTo(ONE) != 0) {
+                            randomAskDelta = predictionIndex.compareTo(ZERO) > 0 ? random10(delta) : randomMinus10(delta);
+                        }
+
 
                         if (randomAskDelta.compareTo(ZERO) == 0){
                             randomAskDelta = "USD".equals(currencyPair.counterSymbol)
@@ -870,8 +876,11 @@ public class TraderService {
                         }
 
                         //random bid delta
-                        BigDecimal randomBidDelta = predictionIndex.compareTo(ZERO) > 0
-                                ? randomMinus10(delta) : random10(delta);
+                        BigDecimal randomBidDelta = delta;
+
+                        if (predictionIndex.compareTo(ONE) != 0) {
+                            randomBidDelta = predictionIndex.compareTo(ZERO) > 0 ? randomMinus10(delta) : random10(delta);
+                        }
 
                         if (randomBidDelta.compareTo(ZERO) == 0){
                             randomBidDelta = "USD".equals(currencyPair.counterSymbol)
