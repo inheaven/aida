@@ -195,8 +195,8 @@ public class TraderService {
                     futures.getAsks().add(new Position(askProfit, askPrice));
 
                     if (sellAmount + i < balancing){
-                        buyAmount = (int) ((buyAmount + sellAmount)*0.8 + i);
-                        sellAmount = (int) ((buyAmount + sellAmount)*0.2 - i);
+                        buyAmount = (int) ((buyAmount + sellAmount)*0.2 + i);
+                        sellAmount = (int) ((buyAmount + sellAmount)*0.8 - i);
                     }
                 }
 
