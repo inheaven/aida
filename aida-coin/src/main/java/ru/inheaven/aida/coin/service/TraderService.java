@@ -236,24 +236,31 @@ public class TraderService {
                 PollingTradeService tradeService = getExchange(OKCOIN).getPollingTradeService();
                 Ticker ticker = getTicker(ExchangePair.of(OKCOIN, pair));
 
-                BigDecimal amount = p.getSellAmount().subtract(p.getBuyAmount()).divide(BigDecimal.valueOf(2), 0, HALF_UP).abs();
+
+                boolean _short = p.getSellAmount().intValue() < minAmount;
+                Order.OrderType orderType = _short ? ASK : BID;
+
+                BigDecimal sumAmount = p.getSellAmount().add(p.getBuyAmount());
+
+                BigDecimal a1 = _short ? sumAmount.multiply(BigDecimal.valueOf(0.2)) : sumAmount.multiply(BigDecimal.valueOf(0.8));
+                a1 = a1.setScale(0, HALF_UP);
+
+                BigDecimal a2 = _short ? sumAmount.multiply(BigDecimal.valueOf(0.8)) : sumAmount.multiply(BigDecimal.valueOf(0.2));
+                a2 = a2.setScale(0, HALF_UP);
 
                 if (p.getBuyAmount().intValue() < minAmount && p.getSellAmount().intValue() > 2*minAmount
                         || p.getSellAmount().intValue() < minAmount && p.getBuyAmount().intValue() > 2*minAmount ){
-                    boolean _short = p.getSellAmount().intValue() < minAmount;
-                    Order.OrderType orderType = _short ? ASK : BID;
-
                     BigDecimal price = _short
                             ? ticker.getBid().multiply(BigDecimal.valueOf(0.99))
                             : ticker.getAsk().multiply(BigDecimal.valueOf(1.01));
 
-                    String id = tradeService.placeLimitOrder(new LimitOrder(orderType, amount, getCurrencyPair(pair),
+                    String id = tradeService.placeLimitOrder(new LimitOrder(orderType, a1, getCurrencyPair(pair),
                             _short ? "LONG" : "SHORT", new Date(), price));
-                    traderBean.save(new OrderHistory(id, OKCOIN, pair, orderType, amount, price, new Date()));
+                    traderBean.save(new OrderHistory(id, OKCOIN, pair, orderType, a1, price, new Date()));
 
-                    id = tradeService.placeLimitOrder(new LimitOrder(orderType, amount, getCurrencyPair(pair),
+                    id = tradeService.placeLimitOrder(new LimitOrder(orderType, a2, getCurrencyPair(pair),
                             _short ? "SHORT" : "LONG", new Date(), price));
-                    traderBean.save(new OrderHistory(id, OKCOIN, pair, orderType, amount, price, new Date()));
+                    traderBean.save(new OrderHistory(id, OKCOIN, pair, orderType, a2, price, new Date()));
                 }
             }
         } catch (Exception e) {
