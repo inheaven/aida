@@ -137,8 +137,8 @@ public class TraderService {
             balanceOKCoinWeekPosition("LTC/USD");
 
             int levels = 50;
-            double spread = 0.00155;
             int balancing = 1;
+            double delta = getMinSpread(ExchangePair.of(OKCOIN, "BTC/USD")).doubleValue()/2;
 
             OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("btc_usd", "this_week");
 
@@ -159,13 +159,13 @@ public class TraderService {
                 int sellAmount = p.getSellAmount().intValue();
 
                 for (int i = 1; i < levels; ++i){
-                    double bidPrice0 = p.getBuyPriceAvg().doubleValue() * (1f + spread * (i-1));
-                    double bidPrice = p.getBuyPriceAvg().doubleValue() * (1f + spread * i);
+                    double bidPrice0 = p.getBuyPriceAvg().doubleValue() * (1f + delta * (i-1));
+                    double bidPrice = p.getBuyPriceAvg().doubleValue() * (1f + delta * i);
                     bidProfit += (buyAmount - i) * (100/bidPrice0 - 100/bidPrice);
                     futures.getBids().add(new Position(bidProfit, bidPrice));
 
-                    double askPrice0 = (p.getSellPriceAvg().doubleValue() * (1f + spread * (i-1)));
-                    double askPrice = (p.getSellPriceAvg().doubleValue() * (1f + spread * i));
+                    double askPrice0 = (p.getSellPriceAvg().doubleValue() * (1f + delta * (i-1)));
+                    double askPrice = (p.getSellPriceAvg().doubleValue() * (1f + delta * i));
                     askProfit -= (sellAmount + i) * (100/askPrice0 - 100/askPrice);
                     futures.getAsks().add(new Position(askProfit, askPrice));
 
@@ -185,13 +185,13 @@ public class TraderService {
                 sellAmount = p.getSellAmount().intValue();
 
                 for (int i = -1; i > -levels; --i){
-                    double bidPrice0 = p.getBuyPriceAvg().doubleValue() * (1f + spread * (i+1));
-                    double bidPrice = p.getBuyPriceAvg().doubleValue() * (1f + spread * i);
+                    double bidPrice0 = p.getBuyPriceAvg().doubleValue() * (1f + delta * (i+1));
+                    double bidPrice = p.getBuyPriceAvg().doubleValue() * (1f + delta * i);
                     bidProfit += (buyAmount - i) * (100/bidPrice0 - 100/bidPrice);
                     futures.getBids().add(new Position(bidProfit, bidPrice));
 
-                    double askPrice0 = (p.getSellPriceAvg().doubleValue() * (1f + spread * (i+1)));
-                    double askPrice = (p.getSellPriceAvg().doubleValue() * (1f + spread * i));
+                    double askPrice0 = (p.getSellPriceAvg().doubleValue() * (1f + delta * (i+1)));
+                    double askPrice = (p.getSellPriceAvg().doubleValue() * (1f + delta * i));
                     askProfit -= (sellAmount + i) * (100/askPrice0 - 100/askPrice);
                     futures.getAsks().add(new Position(askProfit, askPrice));
 
@@ -594,21 +594,22 @@ public class TraderService {
         broadcast(null, equity);
     }
 
-    public BigDecimal getMinSpread(Trader trader, Ticker ticker){
+    public BigDecimal getMinSpread(ExchangePair exchangePair){
         BigDecimal minSpread;
 
+        Ticker ticker = getTicker(exchangePair);
         BigDecimal middlePrice = ticker.getAsk().add(ticker.getBid()).divide(BigDecimal.valueOf(2), 8, HALF_UP);
 
         //bitfinex spread
-        switch (trader.getExchange()){
+        switch (exchangePair.getExchangeType()){
             case BITFINEX:
                 minSpread = middlePrice.multiply(new BigDecimal("0.008")).setScale(8, HALF_UP);
                 break;
             case OKCOIN:
-                if (trader.getPair().contains("LTC/")){
-                    minSpread = middlePrice.multiply(new BigDecimal("0.0031")).setScale(8, HALF_UP);
+                if (exchangePair.getPair().contains("LTC/")){
+                    minSpread = middlePrice.multiply(new BigDecimal("0.011")).setScale(8, HALF_UP);
                 }else{
-                    minSpread = middlePrice.multiply(new BigDecimal("0.0031")).setScale(8, HALF_UP);
+                    minSpread = middlePrice.multiply(new BigDecimal("0.011")).setScale(8, HALF_UP);
                 }
 
                 break;
@@ -623,7 +624,7 @@ public class TraderService {
         }
 
         //min spread scale
-        if (!trader.getExchange().equals(OKCOIN) && trader.getPair().contains("/USD")){
+        if (!exchangePair.getExchangeType().equals(OKCOIN) && exchangePair.getPair().contains("/USD")){
             if (minSpread.compareTo(new BigDecimal("0.03")) < 0){
                 minSpread = new BigDecimal("0.02").setScale(2, HALF_UP);
             }
@@ -632,11 +633,11 @@ public class TraderService {
         }
 
         //volatility
-        //BigDecimal volatility = volatilitySigmaMap.get(trader.getExchangePair()) != null
-        //        ? volatilitySigmaMap.get(trader.getExchangePair()).divide(ticker.getLast(), 8, HALF_UP)
-        //        : ZERO;
+        BigDecimal volatility = volatilitySigmaMap.get(exchangePair) != null
+                ? volatilitySigmaMap.get(exchangePair).divide(ticker.getLast(), 8, HALF_UP)
+                : ZERO;
 
-        //minSpread = minSpread.multiply(ONE.add(volatility.multiply(BigDecimal.valueOf(2*Math.PI)))).setScale(8, HALF_UP);
+        minSpread = minSpread.multiply(ONE.add(volatility).pow(2)).setScale(8, HALF_UP);
 
         return minSpread;
     }
@@ -749,7 +750,7 @@ public class TraderService {
                     }
 
                     //min spread
-                    BigDecimal minSpread = getMinSpread(trader, ticker);
+                    BigDecimal minSpread = getMinSpread(exchangePair);
 
                     //min order amount
                     BigDecimal minOrderAmount = getMinOrderAmount(trader, ticker);
