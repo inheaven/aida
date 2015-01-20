@@ -5,6 +5,8 @@ import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.NotAvailableFromExchangeException;
 import com.xeiam.xchange.NotYetImplementedForExchangeException;
 import com.xeiam.xchange.bittrex.v1.BittrexAdapters;
+import com.xeiam.xchange.currency.CurrencyPair;
+import com.xeiam.xchange.dto.marketdata.TradeServiceHelper;
 import com.xeiam.xchange.dto.marketdata.Trades.TradeSortType;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.MarketOrder;
@@ -14,6 +16,7 @@ import com.xeiam.xchange.service.polling.PollingTradeService;
 import com.xeiam.xchange.service.polling.trade.TradeHistoryParams;
 
 import java.io.IOException;
+import java.util.Map;
 
 public class BittrexTradeService extends BittrexTradeServiceRaw implements PollingTradeService {
 
@@ -68,6 +71,11 @@ public class BittrexTradeService extends BittrexTradeServiceRaw implements Polli
 
   @Override
   public TradeHistoryParams createTradeHistoryParams() {
+    return null;
+  }
+
+  @Override
+  public Map<CurrencyPair, ? extends TradeServiceHelper> getTradeServiceHelperMap() throws ExchangeException, NotAvailableFromExchangeException, NotYetImplementedForExchangeException, IOException {
     return null;
   }
 

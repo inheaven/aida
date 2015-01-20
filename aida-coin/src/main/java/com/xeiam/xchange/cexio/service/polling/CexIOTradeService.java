@@ -6,6 +6,8 @@ import com.xeiam.xchange.NotAvailableFromExchangeException;
 import com.xeiam.xchange.NotYetImplementedForExchangeException;
 import com.xeiam.xchange.cexio.CexIOAdapters;
 import com.xeiam.xchange.cexio.dto.trade.CexIOOrder;
+import com.xeiam.xchange.currency.CurrencyPair;
+import com.xeiam.xchange.dto.marketdata.TradeServiceHelper;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.MarketOrder;
 import com.xeiam.xchange.dto.trade.OpenOrders;
@@ -15,6 +17,7 @@ import com.xeiam.xchange.service.polling.trade.TradeHistoryParams;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Author: brox
@@ -74,6 +77,11 @@ public class CexIOTradeService extends CexIOTradeServiceRaw implements PollingTr
 
   @Override
   public TradeHistoryParams createTradeHistoryParams() {
+    return null;
+  }
+
+  @Override
+  public Map<CurrencyPair, ? extends TradeServiceHelper> getTradeServiceHelperMap() throws ExchangeException, NotAvailableFromExchangeException, NotYetImplementedForExchangeException, IOException {
     return null;
   }
 

@@ -11,7 +11,9 @@ import com.xeiam.xchange.cryptsy.dto.trade.CryptsyCancelOrderReturn;
 import com.xeiam.xchange.cryptsy.dto.trade.CryptsyOpenOrdersReturn;
 import com.xeiam.xchange.cryptsy.dto.trade.CryptsyPlaceOrderReturn;
 import com.xeiam.xchange.cryptsy.dto.trade.CryptsyTradeHistoryReturn;
+import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.dto.Order.OrderType;
+import com.xeiam.xchange.dto.marketdata.TradeServiceHelper;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.MarketOrder;
 import com.xeiam.xchange.dto.trade.OpenOrders;
@@ -21,6 +23,7 @@ import com.xeiam.xchange.service.polling.trade.TradeHistoryParams;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * @author ObsessiveOrange
@@ -99,6 +102,11 @@ public class CryptsyTradeService extends CryptsyTradeServiceRaw implements Polli
 
   @Override
   public TradeHistoryParams createTradeHistoryParams() {
+    return null;
+  }
+
+  @Override
+  public Map<CurrencyPair, ? extends TradeServiceHelper> getTradeServiceHelperMap() throws ExchangeException, NotAvailableFromExchangeException, NotYetImplementedForExchangeException, IOException {
     return null;
   }
 
