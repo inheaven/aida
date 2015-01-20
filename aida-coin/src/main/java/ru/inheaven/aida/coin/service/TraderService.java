@@ -133,14 +133,14 @@ public class TraderService {
     public void scheduleFuturePosition(){
         try {
             //balance
-            balanceOKCoinWeekPosition("BTC/USD");
+            //balanceOKCoinWeekPosition("BTC/USD");
             balanceOKCoinWeekPosition("LTC/USD");
 
             int levels = 50;
             int balancing = 1;
-            double delta = getMinSpread(ExchangePair.of(OKCOIN, "BTC/USD")).doubleValue()/2;
+            double delta = getMinSpread(ExchangePair.of(OKCOIN, "LTC/USD")).doubleValue()/2;
 
-            OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("btc_usd", "this_week");
+            OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("ltc_usd", "this_week");
 
             Futures futures = new Futures();
 
@@ -161,12 +161,12 @@ public class TraderService {
                 for (int i = 1; i < levels; ++i){
                     double bidPrice0 = p.getBuyPriceAvg().doubleValue() * (1f + delta * (i-1));
                     double bidPrice = p.getBuyPriceAvg().doubleValue() * (1f + delta * i);
-                    bidProfit += (buyAmount - i) * (100/bidPrice0 - 100/bidPrice);
+                    bidProfit += (buyAmount - i) * (10/bidPrice0 - 10/bidPrice);
                     futures.getBids().add(new Position(bidProfit, bidPrice));
 
                     double askPrice0 = (p.getSellPriceAvg().doubleValue() * (1f + delta * (i-1)));
                     double askPrice = (p.getSellPriceAvg().doubleValue() * (1f + delta * i));
-                    askProfit -= (sellAmount + i) * (100/askPrice0 - 100/askPrice);
+                    askProfit -= (sellAmount + i) * (10/askPrice0 - 10/askPrice);
                     futures.getAsks().add(new Position(askProfit, askPrice));
 
                     if (buyAmount - i < balancing){
@@ -187,12 +187,12 @@ public class TraderService {
                 for (int i = -1; i > -levels; --i){
                     double bidPrice0 = p.getBuyPriceAvg().doubleValue() * (1f + delta * (i+1));
                     double bidPrice = p.getBuyPriceAvg().doubleValue() * (1f + delta * i);
-                    bidProfit += (buyAmount - i) * (100/bidPrice0 - 100/bidPrice);
+                    bidProfit += (buyAmount - i) * (10/bidPrice0 - 10/bidPrice);
                     futures.getBids().add(new Position(bidProfit, bidPrice));
 
                     double askPrice0 = (p.getSellPriceAvg().doubleValue() * (1f + delta * (i+1)));
                     double askPrice = (p.getSellPriceAvg().doubleValue() * (1f + delta * i));
-                    askProfit -= (sellAmount + i) * (100/askPrice0 - 100/askPrice);
+                    askProfit -= (sellAmount + i) * (10/askPrice0 - 10/askPrice);
                     futures.getAsks().add(new Position(askProfit, askPrice));
 
                     if (sellAmount + i < balancing){
