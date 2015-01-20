@@ -138,7 +138,12 @@ public class TraderService {
 
             int levels = 50;
             int balancing = 1;
-            double delta = getMinSpread(ExchangePair.of(OKCOIN, "LTC/USD")).doubleValue()/2;
+            double delta = 0;
+            try {
+                delta = getMinSpread(ExchangePair.of(OKCOIN, "LTC/USD")).doubleValue()/2;
+            } catch (Exception e) {
+                return;
+            }
 
             OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("ltc_usd", "this_week");
 
