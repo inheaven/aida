@@ -540,11 +540,11 @@ public class TraderList extends AbstractPage{
                         List<Point> data3 = new ArrayList<>();
 
                         //volume
-                        ExchangePair btcUsd = ExchangePair.of(OKCOIN, "BTC/USD");
-                        List<OrderStat> orderStats = traderBean.getOrderStatVolume(btcUsd, startDate);
-                        BigDecimal last = traderService.getTicker(btcUsd).getLast().setScale(1, ROUND_UP);
+                        ExchangePair ltcUsd = ExchangePair.of(OKCOIN, "LTC/USD");
+                        List<OrderStat> orderStats = traderBean.getOrderStatVolume(ltcUsd, startDate);
+                        BigDecimal last = traderService.getTicker(ltcUsd).getLast().setScale(1, ROUND_UP);
 
-                        BigDecimal predictionPrice = ONE.add(traderService.getPredictionIndex(btcUsd))
+                        BigDecimal predictionPrice = ONE.add(traderService.getPredictionIndex(ltcUsd))
                                 .multiply(last).setScale(1, ROUND_UP);
 
                         for (OrderStat s : orderStats) {
@@ -696,7 +696,7 @@ public class TraderList extends AbstractPage{
                 }
             }
 
-            options.addSeries(new PointSeries().setData(data3).setName("Prediction").setColor(new HighchartsColor(1)).setyAxis(1).setShowInLegend(false));
+            options.addSeries(new PointSeries().setData(data3).setName("Prediction").setColor(new HighchartsColor(1)).setyAxis(1));
             options.addSeries(new PointSeries().setData(data2).setName("Btc / Usd").setColor(new HexColor("#DDDF0D")).setyAxis(1));
             options.addSeries(new PointSeries().setData(data).setName("Equity").setColor(new HexColor("#7798BF")).setyAxis(0));
 
