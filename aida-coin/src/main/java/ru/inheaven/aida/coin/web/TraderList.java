@@ -571,15 +571,15 @@ public class TraderList extends AbstractPage{
 
                         for (int i = 0; i < futures.getAsks().size(); ++i) {
                             //noinspection unchecked
-                            data1.add(new Point(futures.getAsks().get(i).getPrice().setScale(1, ROUND_UP),
+                            data1.add(new Point(futures.getAsks().get(i).getPrice().setScale(4, ROUND_UP),
                                     futures.getAsks().get(i).getAmount().setScale(4, ROUND_UP)));
 
                             //noinspection unchecked
-                            data2.add(new Point(futures.getBids().get(i).getPrice().setScale(1, ROUND_UP),
+                            data2.add(new Point(futures.getBids().get(i).getPrice().setScale(4, ROUND_UP),
                                     futures.getBids().get(i).getAmount().setScale(4, ROUND_UP)));
 
                             //noinspection unchecked
-                            data3.add(new Point(futures.getEquity().get(i).getPrice().setScale(1, ROUND_UP),
+                            data3.add(new Point(futures.getEquity().get(i).getPrice().setScale(4, ROUND_UP),
                                     futures.getMargin().subtract(futures.getRealProfit()).subtract(futures.getEquity().get(i).getAmount()).setScale(4, ROUND_UP)));
                         }
 
@@ -696,7 +696,7 @@ public class TraderList extends AbstractPage{
                 }
             }
 
-            options.addSeries(new PointSeries().setData(data3).setName("Prediction").setColor(new HighchartsColor(1)).setyAxis(1));
+            options.addSeries(new PointSeries().setData(data3).setName("Prediction").setColor(new HighchartsColor(1)).setyAxis(1).setShowInLegend(false));
             options.addSeries(new PointSeries().setData(data2).setName("Btc / Usd").setColor(new HexColor("#DDDF0D")).setyAxis(1));
             options.addSeries(new PointSeries().setData(data).setName("Equity").setColor(new HexColor("#7798BF")).setyAxis(0));
 
