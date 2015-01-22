@@ -138,7 +138,8 @@ public class TraderService {
 
             int levels = 50;
             int balancing = 1;
-            double delta = 0;
+
+            double delta;
             try {
                 delta = getMinSpread(ExchangePair.of(OKCOIN, "LTC/USD")).doubleValue()/2;
             } catch (Exception e) {
@@ -612,7 +613,7 @@ public class TraderService {
                 break;
             case OKCOIN:
                 if (exchangePair.getPair().contains("LTC/")){
-                    minSpread = middlePrice.multiply(new BigDecimal("0.006")).setScale(8, HALF_UP);
+                    minSpread = middlePrice.multiply(new BigDecimal("0.003")).setScale(8, HALF_UP);
                 }else{
                     minSpread = middlePrice.multiply(new BigDecimal("0.011")).setScale(8, HALF_UP);
                 }
@@ -772,7 +773,7 @@ public class TraderService {
 
                         if (currencyPair.equals(order.getCurrencyPair())
                                 && order.getLimitPrice().subtract(middlePrice).abs()
-                                .compareTo(minSpread.multiply(BigDecimal.valueOf(3))) > 0) {
+                                .compareTo(minSpread.multiply(BigDecimal.valueOf(11))) > 0) {
                             String orderId = order.getId().split("&")[0];
 
                             //update order status
@@ -801,7 +802,7 @@ public class TraderService {
                     BigDecimal halfMinSpread = minSpread.divide(BigDecimal.valueOf(2), 8, ROUND_UP);
 
                     //create order
-                    for (int index = 1; index < 4; ++index) {
+                    for (int index = 1; index <= 11; ++index) {
 
                         BigDecimal delta = halfMinSpread.multiply(BigDecimal.valueOf(index));
 
