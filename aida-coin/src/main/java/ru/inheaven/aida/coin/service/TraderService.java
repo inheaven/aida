@@ -924,9 +924,14 @@ public class TraderService {
 
                         if (trader.getType().equals(SHORT)){
                             //ASK
-                            BigDecimal askPrice = middlePrice.add(randomAskDelta);
-                            String id = tradeService.placeLimitOrder(new LimitOrder(ASK, askAmount, currencyPair, trader.getType().name(), new Date(), askPrice));
-                            traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), ASK, askAmount, askPrice, new Date()));
+                            BigDecimal askPrice = null;
+                            String id = null;
+                            try {
+                                askPrice = middlePrice.add(randomAskDelta);
+                                id = tradeService.placeLimitOrder(new LimitOrder(ASK, askAmount, currencyPair, trader.getType().name(), new Date(), askPrice));
+                                traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), ASK, askAmount, askPrice, new Date()));
+                            } catch (Exception e) {
+                            }
 
                             //BID
                             BigDecimal bidPrice =  middlePrice.subtract(randomBidDelta);
@@ -948,8 +953,12 @@ public class TraderService {
                                 return;
                             }
 
-                            String id = tradeService.placeLimitOrder(new LimitOrder(BID, bidAmount, currencyPair, trader.getType().name(), new Date(), bidPrice));
-                            traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), BID, bidAmount, bidPrice, new Date()));
+                            String id = null;
+                            try {
+                                id = tradeService.placeLimitOrder(new LimitOrder(BID, bidAmount, currencyPair, trader.getType().name(), new Date(), bidPrice));
+                                traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), BID, bidAmount, bidPrice, new Date()));
+                            } catch (Exception e){
+                            }
 
                             //ASK
                             BigDecimal askPrice = middlePrice.add(randomAskDelta);
