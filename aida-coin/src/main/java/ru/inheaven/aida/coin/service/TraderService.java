@@ -141,7 +141,7 @@ public class TraderService {
 
             double delta;
             try {
-                delta = getMinSpread(ExchangePair.of(OKCOIN, "LTC/USD")).doubleValue()/2;
+                delta = getMinSpread(ExchangePair.of(OKCOIN, "LTC/USD")).doubleValue();
             } catch (Exception e) {
                 return;
             }
@@ -165,13 +165,13 @@ public class TraderService {
                 int sellAmount = p.getSellAmount().intValue();
 
                 for (int i = 1; i < levels; ++i){
-                    double bidPrice0 = p.getBuyPriceAvg().doubleValue() * (1f + delta * (i-1));
-                    double bidPrice = p.getBuyPriceAvg().doubleValue() * (1f + delta * i);
+                    double bidPrice0 = p.getBuyPriceAvg().doubleValue() * (1f + delta * (i-1) + delta/2);
+                    double bidPrice = p.getBuyPriceAvg().doubleValue() * (1f + delta * i + delta/2);
                     bidProfit += (buyAmount - i) * (10/bidPrice0 - 10/bidPrice);
                     futures.getBids().add(new Position(bidProfit, bidPrice));
 
-                    double askPrice0 = (p.getSellPriceAvg().doubleValue() * (1f + delta * (i-1)));
-                    double askPrice = (p.getSellPriceAvg().doubleValue() * (1f + delta * i));
+                    double askPrice0 = (p.getSellPriceAvg().doubleValue() * (1f + delta * (i-1) + delta/2));
+                    double askPrice = (p.getSellPriceAvg().doubleValue() * (1f + delta * i) + delta/2);
                     askProfit -= (sellAmount + i) * (10/askPrice0 - 10/askPrice);
                     futures.getAsks().add(new Position(askProfit, askPrice));
 
@@ -191,13 +191,13 @@ public class TraderService {
                 sellAmount = p.getSellAmount().intValue();
 
                 for (int i = -1; i > -levels; --i){
-                    double bidPrice0 = p.getBuyPriceAvg().doubleValue() * (1f + delta * (i+1));
-                    double bidPrice = p.getBuyPriceAvg().doubleValue() * (1f + delta * i);
+                    double bidPrice0 = p.getBuyPriceAvg().doubleValue() * (1f + delta * (i+1) + delta/2);
+                    double bidPrice = p.getBuyPriceAvg().doubleValue() * (1f + delta * i + delta/2);
                     bidProfit += (buyAmount - i) * (10/bidPrice0 - 10/bidPrice);
                     futures.getBids().add(new Position(bidProfit, bidPrice));
 
-                    double askPrice0 = (p.getSellPriceAvg().doubleValue() * (1f + delta * (i+1)));
-                    double askPrice = (p.getSellPriceAvg().doubleValue() * (1f + delta * i));
+                    double askPrice0 = (p.getSellPriceAvg().doubleValue() * (1f + delta * (i+1) + delta/2));
+                    double askPrice = (p.getSellPriceAvg().doubleValue() * (1f + delta * i) + delta/2);
                     askProfit -= (sellAmount + i) * (10/askPrice0 - 10/askPrice);
                     futures.getAsks().add(new Position(askProfit, askPrice));
 
