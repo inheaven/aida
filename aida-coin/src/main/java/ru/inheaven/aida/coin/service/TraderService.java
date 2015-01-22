@@ -136,12 +136,12 @@ public class TraderService {
             //balanceOKCoinWeekPosition("BTC/USD");
             balanceOKCoinWeekPosition("LTC/USD");
 
-            int levels = 50;
+            int levels = 84;
             int balancing = 1;
 
             double delta;
             try {
-                delta = getMinSpread(ExchangePair.of(OKCOIN, "LTC/USD")).doubleValue();
+                delta = getMinSpread(ExchangePair.of(OKCOIN, "LTC/USD")).doubleValue()/2;
             } catch (Exception e) {
                 return;
             }
