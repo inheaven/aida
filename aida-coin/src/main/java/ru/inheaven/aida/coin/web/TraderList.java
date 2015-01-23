@@ -580,7 +580,7 @@ public class TraderList extends AbstractPage{
 
                             //noinspection unchecked
                             data3.add(new Point(futures.getEquity().get(i).getPrice().setScale(4, ROUND_UP),
-                                    futures.getMargin().subtract(futures.getRealProfit()).subtract(futures.getEquity().get(i).getAmount()).setScale(4, ROUND_UP)));
+                                    futures.getRealProfit().add(futures.getEquity().get(i).getAmount()).subtract(futures.getMargin()).setScale(4, ROUND_UP)));
                         }
 
                         //render js
@@ -775,7 +775,7 @@ public class TraderList extends AbstractPage{
                     .setyAxis(1).setType(SeriesType.COLUMN));
             options.addSeries(new PointSeries().setData(new ArrayList<>()).setName("Short").setColor(new HexColor("#ee5f5b")));
             options.addSeries(new PointSeries().setData(new ArrayList<>()).setName("Long").setColor(new HexColor("#62c462")));
-            options.addSeries(new PointSeries().setData(new ArrayList<>()).setName("Risk").setColor(new HexColor("#DDDF0D")));
+            options.addSeries(new PointSeries().setData(new ArrayList<>()).setName("Hedge").setColor(new HexColor("#DDDF0D")));
 
             add(chart4 = new Chart("chart4", options));
         }
