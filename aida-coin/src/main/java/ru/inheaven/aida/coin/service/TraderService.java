@@ -13,7 +13,7 @@ import com.xeiam.xchange.dto.trade.*;
 import com.xeiam.xchange.okcoin.dto.trade.OkCoinCrossPosition;
 import com.xeiam.xchange.okcoin.dto.trade.OkCoinCrossPositionResult;
 import com.xeiam.xchange.okcoin.service.polling.OkCoinTradeServiceRaw;
-import com.xeiam.xchange.service.polling.PollingTradeService;
+import com.xeiam.xchange.service.polling.trade.PollingTradeService;
 import org.apache.wicket.Application;
 import org.apache.wicket.protocol.ws.IWebSocketSettings;
 import org.apache.wicket.protocol.ws.WebSocketSettings;
