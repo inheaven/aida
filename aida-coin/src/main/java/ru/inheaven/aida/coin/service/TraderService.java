@@ -251,11 +251,7 @@ public class TraderService {
 
                 BigDecimal sumAmount = p.getSellAmount().add(p.getBuyAmount());
 
-                BigDecimal a1 = _short ? sumAmount.multiply(BigDecimal.valueOf(0.2)) : sumAmount.multiply(BigDecimal.valueOf(0.8));
-                a1 = a1.setScale(0, HALF_UP);
-
-                BigDecimal a2 = _short ? sumAmount.multiply(BigDecimal.valueOf(0.8)) : sumAmount.multiply(BigDecimal.valueOf(0.2));
-                a2 = a2.setScale(0, HALF_UP);
+                BigDecimal a1 = sumAmount.multiply(BigDecimal.valueOf(0.8));
 
                 if (p.getBuyAmount().intValue() < minAmount && p.getSellAmount().intValue() > 2*minAmount
                         || p.getSellAmount().intValue() < minAmount && p.getBuyAmount().intValue() > 2*minAmount ){
@@ -290,9 +286,9 @@ public class TraderService {
                             _short ? "LONG" : "SHORT", new Date(), price));
                     traderBean.save(new OrderHistory(id, OKCOIN, pair, orderType, a1, price, new Date()));
 
-                    id = tradeService.placeLimitOrder(new LimitOrder(orderType, a2, getCurrencyPair(pair),
+                    id = tradeService.placeLimitOrder(new LimitOrder(orderType, a1, getCurrencyPair(pair),
                             _short ? "SHORT" : "LONG", new Date(), price));
-                    traderBean.save(new OrderHistory(id, OKCOIN, pair, orderType, a2, price, new Date()));
+                    traderBean.save(new OrderHistory(id, OKCOIN, pair, orderType, a1, price, new Date()));
                 }
             }
         } catch (Exception e) {
