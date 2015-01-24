@@ -248,7 +248,6 @@ public class TraderService {
 
 
                 boolean _short = p.getSellAmount().intValue() < minAmount;
-                Order.OrderType orderType = _short ? ASK : BID;
 
                 BigDecimal sumAmount = p.getSellAmount().add(p.getBuyAmount());
 
@@ -260,9 +259,32 @@ public class TraderService {
 
                 if (p.getBuyAmount().intValue() < minAmount && p.getSellAmount().intValue() > 2*minAmount
                         || p.getSellAmount().intValue() < minAmount && p.getBuyAmount().intValue() > 2*minAmount ){
+                    //cancel orders
+                    List<LimitOrder> openOrders = getOpenOrders(OKCOIN).getOpenOrders();
+
+                    for (LimitOrder order : openOrders){
+                        String orderId = order.getId().split("&")[0];
+
+                        OrderHistory h = traderBean.getOrderHistory(orderId);
+
+                        if (h != null){
+                            h.setStatus(CANCELED);
+                            h.setClosed(new Date());
+
+                            traderBean.save(h);
+
+                            tradeService.cancelOrder(orderId);
+
+                            broadcast(OKCOIN, h);
+                        }
+                    }
+
+                    //balance
                     BigDecimal price = _short
                             ? ticker.getBid().multiply(BigDecimal.valueOf(0.99))
                             : ticker.getAsk().multiply(BigDecimal.valueOf(1.01));
+
+                    Order.OrderType orderType = _short ? ASK : BID;
 
                     String id = tradeService.placeLimitOrder(new LimitOrder(orderType, a1, getCurrencyPair(pair),
                             _short ? "LONG" : "SHORT", new Date(), price));
