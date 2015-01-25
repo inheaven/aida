@@ -960,7 +960,7 @@ public class TraderService {
 
                         if (trader.getType().equals(SHORT)){
                             //ASK
-                            BigDecimal askPrice = null;
+                            BigDecimal askPrice = middlePrice.add(randomAskDelta);
                             String id = tradeService.placeLimitOrder(new LimitOrder(ASK, askAmount, currencyPair, trader.getType().name(), new Date(), askPrice));
                             askPrice = middlePrice.add(randomAskDelta);
 
