@@ -35,6 +35,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.xeiam.xchange.dto.Order.OrderType.ASK;
 import static com.xeiam.xchange.dto.Order.OrderType.BID;
@@ -89,6 +90,8 @@ public class TraderService {
     private Set<String> tradesHash = new ConcurrentHashSet<>(10000);
 
     private WebSocketPushBroadcaster broadcaster;
+
+    private AtomicBoolean canceling = new AtomicBoolean(false);
 
     @PreDestroy
     public void cancelTimers(){
@@ -244,7 +247,7 @@ public class TraderService {
             OkCoinCrossPositionResult thisWeek = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService())
                     .getCrossPosition(pair.toLowerCase().replace("/", "_"), "this_week");
 
-            if (thisWeek.getPositions().length > 0){
+            if (thisWeek.getPositions().length > 0 && !canceling.get()){
                 OkCoinCrossPosition tw = thisWeek.getPositions()[0];
 
                 PollingTradeService tradeService = getExchange(OKCOIN).getPollingTradeService();
@@ -261,26 +264,32 @@ public class TraderService {
 
                 BigDecimal a1 = sumAmount.multiply(BigDecimal.valueOf(0.8));
 
-                if (tw.getBuyAmount().intValue() < minAmount && tw.getSellAmount().intValue() > 2*minAmount
-                        || tw.getSellAmount().intValue() < minAmount && tw.getBuyAmount().intValue() > 2*minAmount ){
+                if ((tw.getBuyAmount().intValue() < minAmount && tw.getSellAmount().intValue() > 2*minAmount)
+                        || (tw.getSellAmount().intValue() < minAmount && tw.getBuyAmount().intValue() > 2*minAmount)){
                     //cancel orders
-                    List<LimitOrder> openOrders = getOpenOrders(OKCOIN).getOpenOrders();
+                    try {
+                        canceling.set(true);
 
-                    for (LimitOrder order : openOrders){
-                        String orderId = order.getId().split("&")[0];
+                        List<LimitOrder> openOrders = getOpenOrders(OKCOIN).getOpenOrders();
 
-                        OrderHistory h = traderBean.getOrderHistory(orderId);
+                        for (LimitOrder order : openOrders){
+                            String orderId = order.getId().split("&")[0];
 
-                        if (h != null){
-                            h.setStatus(CANCELED);
-                            h.setClosed(new Date());
+                            OrderHistory h = traderBean.getOrderHistory(orderId);
 
-                            traderBean.save(h);
+                            if (h != null){
+                                h.setStatus(CANCELED);
+                                h.setClosed(new Date());
 
-                            tradeService.cancelOrder(orderId);
+                                traderBean.save(h);
 
-                            broadcast(OKCOIN, h);
+                                tradeService.cancelOrder(orderId);
+
+                                broadcast(OKCOIN, h);
+                            }
                         }
+                    } finally {
+                        canceling.set(false);
                     }
 
                     //balance
@@ -753,7 +762,7 @@ public class TraderService {
                     continue;
                 }
 
-                if (trader.isRunning()) {
+                if (trader.isRunning() && !canceling.get()) {
                     Ticker ticker = getTicker(exchangePair);
 
                     if (ticker == null || ticker.getLast() == null) {
