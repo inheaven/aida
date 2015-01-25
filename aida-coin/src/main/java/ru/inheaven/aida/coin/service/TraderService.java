@@ -142,9 +142,9 @@ public class TraderService {
             int levels = 84;
             int balancing = 11;
 
-            double delta;
+            double spread;
             try {
-                delta = getMinSpread(ExchangePair.of(OKCOIN, "LTC/USD")).doubleValue()/2;
+                spread = getMinSpread(ExchangePair.of(OKCOIN, "LTC/USD")).doubleValue();
             } catch (Exception e) {
                 return;
             }
@@ -170,7 +170,7 @@ public class TraderService {
                 int sellAmount = p.getSellAmount().intValue();
 
                 double price0 = last;
-                double price = last * (1 + delta);
+                double price = last + spread/2;
 
                 for (int i = 1; i < levels; ++i){
                     bidProfit += (buyAmount - i) * (10/price0 - 10/price);
@@ -186,7 +186,7 @@ public class TraderService {
                     }
 
                     price0 = price;
-                    price *= (1 + delta);
+                    price += spread/2;
                 }
 
                 //short
@@ -198,7 +198,7 @@ public class TraderService {
                 sellAmount = p.getSellAmount().intValue();
 
                 price0 = last;
-                price = last * (1 - delta);
+                price = last - spread/2;
 
                 for (int i = -1; i > -levels; --i){
                     bidProfit += (buyAmount - i) * (10/price0 - 10/price);
@@ -214,7 +214,7 @@ public class TraderService {
                     }
 
                     price0 = price;
-                    price *= (1 - delta);
+                    price -= spread/2;
                 }
 
                 //sort
@@ -830,7 +830,7 @@ public class TraderService {
                     }
 
                     //prediction
-                    BigDecimal predictionIndex = ONE;
+                    BigDecimal predictionIndex = ZERO;
 
                     //internal amount
                     BigDecimal internalAmount = ZERO;
@@ -840,7 +840,6 @@ public class TraderService {
 
                     //create order
                     for (int index = 1; index <= 22; ++index) {
-
                         BigDecimal delta = halfMinSpread.multiply(BigDecimal.valueOf(index));
 
                         //btc-e delta
@@ -875,7 +874,7 @@ public class TraderService {
 
                         //random prediction
                         if (!trader.isFuture()) {
-                            if (predictionIndex.compareTo(ONE) != 0) {
+                            if (predictionIndex.compareTo(ZERO) != 0) {
                                 askAmount = predictionIndex.compareTo(ZERO) > 0 ? random50(askAmount) : random10(askAmount);
                                 bidAmount = predictionIndex.compareTo(ZERO) > 0 ? random10(bidAmount) : random50(bidAmount);
                             }
@@ -909,7 +908,7 @@ public class TraderService {
                         //random ask delta
                         BigDecimal randomAskDelta = delta;
 
-                        if (predictionIndex.compareTo(ONE) != 0) {
+                        if (predictionIndex.compareTo(ZERO) != 0) {
                             randomAskDelta = predictionIndex.compareTo(ZERO) > 0 ? random10(delta) : randomMinus10(delta);
                         }
 
@@ -931,7 +930,7 @@ public class TraderService {
                         //random bid delta
                         BigDecimal randomBidDelta = delta;
 
-                        if (predictionIndex.compareTo(ONE) != 0) {
+                        if (predictionIndex.compareTo(ZERO) != 0) {
                             randomBidDelta = predictionIndex.compareTo(ZERO) > 0 ? randomMinus10(delta) : random10(delta);
                         }
 
