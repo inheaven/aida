@@ -199,7 +199,7 @@ public class TraderService {
                 sellAmount = p.getSellAmount().intValue();
 
                 price0 = last;
-                price *= last * (1 - delta);
+                price = last * (1 - delta);
 
                 for (int i = -1; i > -levels; --i){
                     bidProfit += (buyAmount - i) * (10/price0 - 10/price);
