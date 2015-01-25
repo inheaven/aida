@@ -139,7 +139,7 @@ public class TraderService {
             //balanceOKCoinWeekPosition("BTC/USD");
             balanceOKCoinWeekPosition("LTC/USD");
 
-            int levels = 84;
+            int levels = 100;
             int balancing = 22;
 
             double spread;
@@ -152,6 +152,7 @@ public class TraderService {
             OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("ltc_usd", "this_week");
 
             double last = getTicker(ExchangePair.of(OKCOIN, "LTC/USD")).getLast().doubleValue();
+            double delta = spread / (2*last);
 
             Futures futures = new Futures();
 
@@ -170,7 +171,7 @@ public class TraderService {
                 int sellAmount = p.getSellAmount().intValue();
 
                 double price0 = last;
-                double price = last + spread/2;
+                double price = last * (1 + delta);
 
                 for (int i = 1; i < levels; ++i){
                     bidProfit += (buyAmount - i) * (10/price0 - 10/price);
@@ -186,7 +187,7 @@ public class TraderService {
                     }
 
                     price0 = price;
-                    price += spread/2;
+                    price *= (1 + delta);
                 }
 
                 //short
@@ -198,7 +199,7 @@ public class TraderService {
                 sellAmount = p.getSellAmount().intValue();
 
                 price0 = last;
-                price = last - spread/2;
+                price *= last * (1 - delta);
 
                 for (int i = -1; i > -levels; --i){
                     bidProfit += (buyAmount - i) * (10/price0 - 10/price);
@@ -214,7 +215,7 @@ public class TraderService {
                     }
 
                     price0 = price;
-                    price -= spread/2;
+                    price *= (1 - delta);
                 }
 
                 //sort
