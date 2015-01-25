@@ -237,24 +237,28 @@ public class TraderService {
         int minAmount = 1;
 
         try {
-            OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService())
+            OkCoinCrossPositionResult thisWeek = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService())
                     .getCrossPosition(pair.toLowerCase().replace("/", "_"), "this_week");
 
-            if (positions.getPositions().length > 0){
-                OkCoinCrossPosition p = positions.getPositions()[0];
+            if (thisWeek.getPositions().length > 0){
+                OkCoinCrossPosition tw = thisWeek.getPositions()[0];
 
                 PollingTradeService tradeService = getExchange(OKCOIN).getPollingTradeService();
                 Ticker ticker = getTicker(ExchangePair.of(OKCOIN, pair));
 
+                boolean _short = tw.getSellAmount().intValue() < minAmount;
 
-                boolean _short = p.getSellAmount().intValue() < minAmount;
+                OkCoinCrossPositionResult quarter = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService())
+                        .getCrossPosition(pair.toLowerCase().replace("/", "_"), "quarter");
 
-                BigDecimal sumAmount = p.getSellAmount().add(p.getBuyAmount());
+                BigDecimal sumAmount = quarter.getPositions().length > 0
+                        ? quarter.getPositions()[0].getBuyAmount().multiply(BigDecimal.valueOf(2))
+                        : tw.getSellAmount().add(tw.getBuyAmount());
 
                 BigDecimal a1 = sumAmount.multiply(BigDecimal.valueOf(0.8));
 
-                if (p.getBuyAmount().intValue() < minAmount && p.getSellAmount().intValue() > 2*minAmount
-                        || p.getSellAmount().intValue() < minAmount && p.getBuyAmount().intValue() > 2*minAmount ){
+                if (tw.getBuyAmount().intValue() < minAmount && tw.getSellAmount().intValue() > 2*minAmount
+                        || tw.getSellAmount().intValue() < minAmount && tw.getBuyAmount().intValue() > 2*minAmount ){
                     //cancel orders
                     List<LimitOrder> openOrders = getOpenOrders(OKCOIN).getOpenOrders();
 
