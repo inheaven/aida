@@ -650,7 +650,7 @@ public class TraderService {
                 break;
             case OKCOIN:
                 if (exchangePair.getPair().contains("LTC/")){
-                    minSpread = middlePrice.multiply(new BigDecimal("0.0024")).setScale(8, HALF_UP);
+                    minSpread = middlePrice.multiply(new BigDecimal("0.0022")).setScale(8, HALF_UP);
                 }else{
                     minSpread = middlePrice.multiply(new BigDecimal("0.011")).setScale(8, HALF_UP);
                 }
@@ -680,7 +680,7 @@ public class TraderService {
                 ? volatilitySigmaMap.get(exchangePair).divide(ticker.getLast(), 8, HALF_UP)
                 : ZERO;
 
-        minSpread = minSpread.multiply(ONE.add(volatility).pow(2)).setScale(8, HALF_UP);
+        minSpread = minSpread.multiply(ONE.add(volatility.multiply(BigDecimal.TEN)).pow(2)).setScale(8, HALF_UP);
 
         return minSpread;
     }
