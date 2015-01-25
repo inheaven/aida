@@ -1,6 +1,5 @@
 package com.xeiam.xchange.bittrex.v1.service.polling;
 
-import com.xeiam.xchange.ExchangeException;
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.bittrex.v1.BittrexAuthenticated;
 import com.xeiam.xchange.bittrex.v1.BittrexUtils;
@@ -8,6 +7,7 @@ import com.xeiam.xchange.bittrex.v1.dto.trade.*;
 import com.xeiam.xchange.dto.Order.OrderType;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.MarketOrder;
+import com.xeiam.xchange.exceptions.ExchangeException;
 
 import java.io.IOException;
 import java.util.List;

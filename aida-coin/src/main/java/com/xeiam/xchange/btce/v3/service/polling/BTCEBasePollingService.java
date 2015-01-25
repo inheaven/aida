@@ -1,26 +1,24 @@
 package com.xeiam.xchange.btce.v3.service.polling;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import si.mazi.rescu.ParamsDigest;
-import si.mazi.rescu.RestProxyFactory;
-
-import com.xeiam.xchange.ExchangeException;
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.btce.v3.BTCE;
 import com.xeiam.xchange.btce.v3.BTCEAdapters;
 import com.xeiam.xchange.btce.v3.dto.BTCEReturn;
 import com.xeiam.xchange.btce.v3.service.BTCEHmacPostBodyDigest;
 import com.xeiam.xchange.currency.CurrencyPair;
+import com.xeiam.xchange.exceptions.ExchangeException;
 import com.xeiam.xchange.service.BaseExchangeService;
 import com.xeiam.xchange.service.polling.BasePollingService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import si.mazi.rescu.ParamsDigest;
+import si.mazi.rescu.RestProxyFactory;
+
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author Matija Mazi

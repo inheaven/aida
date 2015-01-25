@@ -1,9 +1,9 @@
 package com.xeiam.xchange.bittrex.v1.service.polling;
 
-import com.xeiam.xchange.ExchangeException;
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.bittrex.v1.Bittrex;
 import com.xeiam.xchange.bittrex.v1.dto.marketdata.*;
+import com.xeiam.xchange.exceptions.ExchangeException;
 
 import java.io.IOException;
 import java.util.ArrayList;

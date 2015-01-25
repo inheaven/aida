@@ -1,35 +1,21 @@
 package com.xeiam.xchange.bitfinex.v1.service.polling;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-
-import com.xeiam.xchange.ExchangeException;
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.bitfinex.v1.BitfinexAuthenticated;
 import com.xeiam.xchange.bitfinex.v1.BitfinexOrderType;
 import com.xeiam.xchange.bitfinex.v1.BitfinexUtils;
 import com.xeiam.xchange.bitfinex.v1.dto.BitfinexException;
-import com.xeiam.xchange.bitfinex.v1.dto.trade.BitfinexActiveCreditsRequest;
-import com.xeiam.xchange.bitfinex.v1.dto.trade.BitfinexActivePositionsResponse;
-import com.xeiam.xchange.bitfinex.v1.dto.trade.BitfinexCancelOfferRequest;
-import com.xeiam.xchange.bitfinex.v1.dto.trade.BitfinexCancelOrderRequest;
-import com.xeiam.xchange.bitfinex.v1.dto.trade.BitfinexCreditResponse;
-import com.xeiam.xchange.bitfinex.v1.dto.trade.BitfinexNewHiddenOrderRequest;
-import com.xeiam.xchange.bitfinex.v1.dto.trade.BitfinexNewOfferRequest;
-import com.xeiam.xchange.bitfinex.v1.dto.trade.BitfinexNewOrderRequest;
-import com.xeiam.xchange.bitfinex.v1.dto.trade.BitfinexNonceOnlyRequest;
-import com.xeiam.xchange.bitfinex.v1.dto.trade.BitfinexOfferStatusRequest;
-import com.xeiam.xchange.bitfinex.v1.dto.trade.BitfinexOfferStatusResponse;
-import com.xeiam.xchange.bitfinex.v1.dto.trade.BitfinexOrderStatusRequest;
-import com.xeiam.xchange.bitfinex.v1.dto.trade.BitfinexOrderStatusResponse;
-import com.xeiam.xchange.bitfinex.v1.dto.trade.BitfinexPastTradesRequest;
-import com.xeiam.xchange.bitfinex.v1.dto.trade.BitfinexTradeResponse;
+import com.xeiam.xchange.bitfinex.v1.dto.trade.*;
 import com.xeiam.xchange.dto.Order;
 import com.xeiam.xchange.dto.Order.OrderType;
 import com.xeiam.xchange.dto.trade.FixedRateLoanOrder;
 import com.xeiam.xchange.dto.trade.FloatingRateLoanOrder;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.MarketOrder;
+import com.xeiam.xchange.exceptions.ExchangeException;
+
+import java.io.IOException;
+import java.math.BigDecimal;
 
 public class BitfinexTradeServiceRaw extends BitfinexBasePollingService<BitfinexAuthenticated> {
 

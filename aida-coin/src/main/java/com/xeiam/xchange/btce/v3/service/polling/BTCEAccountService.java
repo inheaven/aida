@@ -1,10 +1,10 @@
 package com.xeiam.xchange.btce.v3.service.polling;
 
 import com.xeiam.xchange.ExchangeSpecification;
-import com.xeiam.xchange.NotAvailableFromExchangeException;
 import com.xeiam.xchange.btce.v3.BTCEAdapters;
 import com.xeiam.xchange.btce.v3.dto.account.BTCEAccountInfo;
 import com.xeiam.xchange.dto.account.AccountInfo;
+import com.xeiam.xchange.exceptions.NotAvailableFromExchangeException;
 import com.xeiam.xchange.service.polling.account.PollingAccountService;
 
 import java.io.IOException;

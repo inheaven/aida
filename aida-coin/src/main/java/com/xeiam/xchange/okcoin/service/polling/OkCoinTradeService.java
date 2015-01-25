@@ -1,12 +1,15 @@
 package com.xeiam.xchange.okcoin.service.polling;
 
-import com.xeiam.xchange.ExchangeException;
 import com.xeiam.xchange.ExchangeSpecification;
-import com.xeiam.xchange.NotAvailableFromExchangeException;
-import com.xeiam.xchange.NotYetImplementedForExchangeException;
 import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.dto.Order.OrderType;
-import com.xeiam.xchange.dto.trade.*;
+import com.xeiam.xchange.dto.trade.LimitOrder;
+import com.xeiam.xchange.dto.trade.MarketOrder;
+import com.xeiam.xchange.dto.trade.OpenOrders;
+import com.xeiam.xchange.dto.trade.UserTrades;
+import com.xeiam.xchange.exceptions.ExchangeException;
+import com.xeiam.xchange.exceptions.NotAvailableFromExchangeException;
+import com.xeiam.xchange.exceptions.NotYetImplementedForExchangeException;
 import com.xeiam.xchange.okcoin.OkCoinAdapters;
 import com.xeiam.xchange.okcoin.dto.trade.OkCoinOrderResult;
 import com.xeiam.xchange.okcoin.dto.trade.OkCoinTradeResult;
@@ -19,7 +22,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 public class OkCoinTradeService extends OkCoinTradeServiceRaw implements PollingTradeService {
     private static final OpenOrders noOpenOrders = new OpenOrders(Collections.<LimitOrder>emptyList());
@@ -140,9 +142,5 @@ public class OkCoinTradeService extends OkCoinTradeServiceRaw implements Polling
         return null;
     }
 
-    @Override
-    public Map<CurrencyPair, ? extends TradeMetaData> getTradeMetaDataMap() throws ExchangeException, NotAvailableFromExchangeException, NotYetImplementedForExchangeException, IOException {
-        return null;
-    }
 
 }

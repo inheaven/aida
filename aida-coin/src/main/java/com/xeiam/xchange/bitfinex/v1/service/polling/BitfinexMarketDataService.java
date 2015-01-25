@@ -1,6 +1,5 @@
 package com.xeiam.xchange.bitfinex.v1.service.polling;
 
-import com.xeiam.xchange.ExchangeException;
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.bitfinex.v1.BitfinexAdapters;
 import com.xeiam.xchange.bitfinex.v1.BitfinexUtils;
@@ -14,6 +13,7 @@ import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.dto.marketdata.Trades;
 import com.xeiam.xchange.dto.trade.FixedRateLoanOrder;
 import com.xeiam.xchange.dto.trade.FloatingRateLoanOrder;
+import com.xeiam.xchange.exceptions.ExchangeException;
 import com.xeiam.xchange.service.polling.marketdata.PollingMarketDataService;
 
 import java.io.IOException;

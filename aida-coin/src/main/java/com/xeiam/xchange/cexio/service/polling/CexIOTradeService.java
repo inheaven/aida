@@ -1,19 +1,20 @@
 package com.xeiam.xchange.cexio.service.polling;
 
-import com.xeiam.xchange.ExchangeException;
 import com.xeiam.xchange.ExchangeSpecification;
-import com.xeiam.xchange.NotAvailableFromExchangeException;
-import com.xeiam.xchange.NotYetImplementedForExchangeException;
 import com.xeiam.xchange.cexio.CexIOAdapters;
 import com.xeiam.xchange.cexio.dto.trade.CexIOOrder;
-import com.xeiam.xchange.currency.CurrencyPair;
-import com.xeiam.xchange.dto.trade.*;
+import com.xeiam.xchange.dto.trade.LimitOrder;
+import com.xeiam.xchange.dto.trade.MarketOrder;
+import com.xeiam.xchange.dto.trade.OpenOrders;
+import com.xeiam.xchange.dto.trade.UserTrades;
+import com.xeiam.xchange.exceptions.ExchangeException;
+import com.xeiam.xchange.exceptions.NotAvailableFromExchangeException;
+import com.xeiam.xchange.exceptions.NotYetImplementedForExchangeException;
 import com.xeiam.xchange.service.polling.trade.PollingTradeService;
 import com.xeiam.xchange.service.polling.trade.params.TradeHistoryParams;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Author: brox
@@ -75,10 +76,6 @@ public class CexIOTradeService extends CexIOTradeServiceRaw implements PollingTr
     return null;
   }
 
-  @Override
-  public Map<CurrencyPair, ? extends TradeMetaData> getTradeMetaDataMap() throws ExchangeException, NotAvailableFromExchangeException, NotYetImplementedForExchangeException, IOException {
-    return null;
-  }
 
 
 }

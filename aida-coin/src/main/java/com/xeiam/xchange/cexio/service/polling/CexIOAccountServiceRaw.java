@@ -1,6 +1,5 @@
 package com.xeiam.xchange.cexio.service.polling;
 
-import com.xeiam.xchange.ExchangeException;
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.cexio.CexIOAuthenticated;
 import com.xeiam.xchange.cexio.CexIOUtils;
@@ -8,6 +7,7 @@ import com.xeiam.xchange.cexio.dto.account.CexIOBalanceInfo;
 import com.xeiam.xchange.cexio.dto.account.GHashIOHashrate;
 import com.xeiam.xchange.cexio.dto.account.GHashIOWorker;
 import com.xeiam.xchange.cexio.service.CexIODigest;
+import com.xeiam.xchange.exceptions.ExchangeException;
 import si.mazi.rescu.ParamsDigest;
 import si.mazi.rescu.RestProxyFactory;
 

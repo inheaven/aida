@@ -234,7 +234,7 @@ public class TraderService {
 
 
     private void balanceOKCoinWeekPosition(String pair) {
-        int minAmount = 1;
+        int minAmount = 12;
 
         try {
             OkCoinCrossPositionResult thisWeek = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService())
@@ -424,7 +424,7 @@ public class TraderService {
         broadcast(exchangeType, openOrders);
     }
 
-    private void updateTicker(ExchangeType exchangeType) throws IOException {
+    private void updateTicker(ExchangeType exchangeType) throws Exception {
         List<Trader> traders = traderBean.getTraders(exchangeType);
 
         for (Trader trader : traders) {

@@ -161,7 +161,7 @@ public class CexIOAdapters {
             wallets.add(new Wallet(Currencies.WDC, balance.getBalanceWDC().getOrders(), "orders"));
         }
 
-        return new AccountInfo(userName, null, wallets);
+        return new AccountInfo(userName, wallets);
     }
 
     public static List<LimitOrder> createOrders(CurrencyPair currencyPair, Order.OrderType orderType, List<List<BigDecimal>> orders) {

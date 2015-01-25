@@ -1,12 +1,5 @@
 package com.xeiam.xchange.bter.dto.marketdata;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.ObjectCodec;
@@ -14,10 +7,17 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.xeiam.xchange.ExchangeException;
 import com.xeiam.xchange.bter.BTERAdapters;
 import com.xeiam.xchange.bter.dto.marketdata.BTERMarketInfoWrapper.BTERMarketInfoWrapperDeserializer;
 import com.xeiam.xchange.currency.CurrencyPair;
+import com.xeiam.xchange.exceptions.ExchangeException;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 @JsonDeserialize(using = BTERMarketInfoWrapperDeserializer.class)
 public class BTERMarketInfoWrapper {

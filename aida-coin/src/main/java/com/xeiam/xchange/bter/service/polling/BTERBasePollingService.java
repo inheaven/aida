@@ -1,19 +1,18 @@
 package com.xeiam.xchange.bter.service.polling;
 
-import java.io.IOException;
-import java.util.Collection;
-
-import si.mazi.rescu.ParamsDigest;
-import si.mazi.rescu.RestProxyFactory;
-
-import com.xeiam.xchange.ExchangeException;
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.bter.BTER;
 import com.xeiam.xchange.bter.dto.BTERBaseResponse;
 import com.xeiam.xchange.bter.service.BTERHmacPostBodyDigest;
 import com.xeiam.xchange.currency.CurrencyPair;
+import com.xeiam.xchange.exceptions.ExchangeException;
 import com.xeiam.xchange.service.BaseExchangeService;
 import com.xeiam.xchange.service.polling.BasePollingService;
+import si.mazi.rescu.ParamsDigest;
+import si.mazi.rescu.RestProxyFactory;
+
+import java.io.IOException;
+import java.util.Collection;
 
 public class BTERBasePollingService<T extends BTER> extends BaseExchangeService implements BasePollingService {
 
