@@ -182,7 +182,7 @@ public class TraderService {
                     if (buyAmount - i < balancing){
                         double sum = buyAmount + sellAmount;
                         buyAmount = (int) (sum*0.8 + i);
-                        sellAmount = (int) (sum*0.2 - i);
+                        sellAmount = (int) (sum*0.8 - i);
                     }
 
                     price0 = price;
@@ -209,7 +209,7 @@ public class TraderService {
 
                     if (sellAmount + i < balancing){
                         double sum = buyAmount + sellAmount;
-                        buyAmount = (int) (sum*0.2 + i);
+                        buyAmount = (int) (sum*0.8 + i);
                         sellAmount = (int) (sum*0.8 - i);
                     }
 
