@@ -87,7 +87,7 @@ public class TraderBean {
     public BigDecimal getSigma(ExchangePair exchangePair){
         try {
             return new BigDecimal((Double) em.createNativeQuery("select std(price) from ticker_history " +
-                    "where exchangetype = ? and pair = ? and `date` >  DATE_SUB(NOW(), INTERVAL 1 HOUR)")
+                    "where exchangetype = ? and pair = ? and `date` >  DATE_SUB(NOW(), INTERVAL 12 HOUR)")
                     .setParameter(1, exchangePair.getExchangeType().name())
                     .setParameter(2, exchangePair.getPair())
                     .getSingleResult());
