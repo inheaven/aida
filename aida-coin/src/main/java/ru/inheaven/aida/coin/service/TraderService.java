@@ -166,22 +166,24 @@ public class TraderService {
                 int buyAmount = p.getBuyAmount().intValue();
                 int sellAmount = p.getSellAmount().intValue();
 
-                for (int i = 1; i < levels; ++i){
-                    double bidPrice0 = last * (1f + delta * (i-1));
-                    double bidPrice = last * (1f + delta * i);
-                    bidProfit += (buyAmount - i) * (10/bidPrice0 - 10/bidPrice);
-                    futures.getBids().add(new Position(bidProfit, bidPrice));
+                double price0 = last;
+                double price = last * (1 + delta);
 
-                    double askPrice0 = (last * (1f + delta * (i-1) ));
-                    double askPrice = (last * (1f + delta * i) );
-                    askProfit -= (sellAmount + i) * (10/askPrice0 - 10/askPrice);
-                    futures.getAsks().add(new Position(askProfit, askPrice));
+                for (int i = 1; i < levels; ++i){
+                    bidProfit += (buyAmount - i) * (10/price0 - 10/price);
+                    futures.getBids().add(new Position(bidProfit, price));
+
+                    askProfit -= (sellAmount + i) * (10/price0 - 10/price);
+                    futures.getAsks().add(new Position(askProfit, price));
 
                     if (buyAmount - i < balancing){
                         double sum = buyAmount + sellAmount;
                         buyAmount = (int) (sum*0.8 + i);
                         sellAmount = (int) (sum*0.2 - i);
                     }
+
+                    price0 = price;
+                    price *= (1 + delta);
                 }
 
                 //short
@@ -192,22 +194,24 @@ public class TraderService {
                 buyAmount = p.getBuyAmount().intValue();
                 sellAmount = p.getSellAmount().intValue();
 
-                for (int i = -1; i > -levels; --i){
-                    double bidPrice0 = last * (1f + delta * (i+1));
-                    double bidPrice = last * (1f + delta * i );
-                    bidProfit += (buyAmount - i) * (10/bidPrice0 - 10/bidPrice);
-                    futures.getBids().add(new Position(bidProfit, bidPrice));
+                price0 = last;
+                price = last * (1 - delta);
 
-                    double askPrice0 = (last * (1f + delta * (i+1)));
-                    double askPrice = (last * (1f + delta * i) );
-                    askProfit -= (sellAmount + i) * (10/askPrice0 - 10/askPrice);
-                    futures.getAsks().add(new Position(askProfit, askPrice));
+                for (int i = -1; i > -levels; --i){
+                    bidProfit += (buyAmount - i) * (10/price0 - 10/price);
+                    futures.getBids().add(new Position(bidProfit, price));
+
+                    askProfit -= (sellAmount + i) * (10/price0 - 10/price);
+                    futures.getAsks().add(new Position(askProfit, price));
 
                     if (sellAmount + i < balancing){
                         double sum = buyAmount + sellAmount;
                         buyAmount = (int) (sum*0.2 + i);
                         sellAmount = (int) (sum*0.8 - i);
                     }
+
+                    price0 = price;
+                    price *= (1 - delta);
                 }
 
                 //sort
