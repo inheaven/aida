@@ -137,7 +137,7 @@ public class TraderService {
             balanceOKCoinWeekPosition("LTC/USD");
 
             int levels = 84;
-            int balancing = 1;
+            int balancing = 11;
 
             double delta;
             try {
@@ -234,7 +234,7 @@ public class TraderService {
 
 
     private void balanceOKCoinWeekPosition(String pair) {
-        int minAmount = 12;
+        int minAmount = 11;
 
         try {
             OkCoinCrossPositionResult thisWeek = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService())
@@ -949,13 +949,10 @@ public class TraderService {
                         if (trader.getType().equals(SHORT)){
                             //ASK
                             BigDecimal askPrice = null;
-                            String id = null;
-                            try {
-                                askPrice = middlePrice.add(randomAskDelta);
-                                id = tradeService.placeLimitOrder(new LimitOrder(ASK, askAmount, currencyPair, trader.getType().name(), new Date(), askPrice));
-                                traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), ASK, askAmount, askPrice, new Date()));
-                            } catch (Exception e) {
-                            }
+                            String id = tradeService.placeLimitOrder(new LimitOrder(ASK, askAmount, currencyPair, trader.getType().name(), new Date(), askPrice));
+                            askPrice = middlePrice.add(randomAskDelta);
+
+                            traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), ASK, askAmount, askPrice, new Date()));
 
                             //BID
                             BigDecimal bidPrice =  middlePrice.subtract(randomBidDelta);
@@ -977,12 +974,8 @@ public class TraderService {
                                 return;
                             }
 
-                            String id = null;
-                            try {
-                                id = tradeService.placeLimitOrder(new LimitOrder(BID, bidAmount, currencyPair, trader.getType().name(), new Date(), bidPrice));
-                                traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), BID, bidAmount, bidPrice, new Date()));
-                            } catch (Exception e){
-                            }
+                            String id = tradeService.placeLimitOrder(new LimitOrder(BID, bidAmount, currencyPair, trader.getType().name(), new Date(), bidPrice));
+                            traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), BID, bidAmount, bidPrice, new Date()));
 
                             //ASK
                             BigDecimal askPrice = middlePrice.add(randomAskDelta);
