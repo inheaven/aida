@@ -140,7 +140,7 @@ public class TraderService {
             balanceOKCoinWeekPosition("LTC/USD");
 
             int levels = 84;
-            int balancing = 11;
+            int balancing = 22;
 
             double spread;
             try {
@@ -241,7 +241,7 @@ public class TraderService {
 
 
     private void balanceOKCoinWeekPosition(String pair) {
-        int minAmount = 11;
+        int minAmount = 22;
 
         try {
             OkCoinCrossPositionResult thisWeek = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService())
@@ -267,30 +267,30 @@ public class TraderService {
                 if ((tw.getBuyAmount().intValue() < minAmount && tw.getSellAmount().intValue() > 2*minAmount)
                         || (tw.getSellAmount().intValue() < minAmount && tw.getBuyAmount().intValue() > 2*minAmount)){
                     //cancel orders
-                    try {
-                        canceling.set(true);
-
-                        List<LimitOrder> openOrders = getOpenOrders(OKCOIN).getOpenOrders();
-
-                        for (LimitOrder order : openOrders){
-                            String orderId = order.getId().split("&")[0];
-
-                            OrderHistory h = traderBean.getOrderHistory(orderId);
-
-                            if (h != null){
-                                h.setStatus(CANCELED);
-                                h.setClosed(new Date());
-
-                                traderBean.save(h);
-
-                                tradeService.cancelOrder(orderId);
-
-                                broadcast(OKCOIN, h);
-                            }
-                        }
-                    } finally {
-                        canceling.set(false);
-                    }
+//                    try {
+//                        canceling.set(true);
+//
+//                        List<LimitOrder> openOrders = getOpenOrders(OKCOIN).getOpenOrders();
+//
+//                        for (LimitOrder order : openOrders){
+//                            String orderId = order.getId().split("&")[0];
+//
+//                            OrderHistory h = traderBean.getOrderHistory(orderId);
+//
+//                            if (h != null){
+//                                h.setStatus(CANCELED);
+//                                h.setClosed(new Date());
+//
+//                                traderBean.save(h);
+//
+//                                tradeService.cancelOrder(orderId);
+//
+//                                broadcast(OKCOIN, h);
+//                            }
+//                        }
+//                    } finally {
+//                        canceling.set(false);
+//                    }
 
                     //balance
                     BigDecimal price = _short
