@@ -180,9 +180,9 @@ public class TraderService {
                     futures.getAsks().add(new Position(askProfit, price));
 
                     if (buyAmount - i < balancing){
-                        double sum = buyAmount + sellAmount;
-                        buyAmount = (int) (sum*0.8 + i);
-                        sellAmount = (int) (sum*0.8 - i);
+                        double b = (buyAmount + sellAmount)*0.6;
+                        buyAmount += b;
+                        sellAmount -= b;
                     }
 
                     price0 = price;
@@ -208,9 +208,9 @@ public class TraderService {
                     futures.getAsks().add(new Position(askProfit, price));
 
                     if (sellAmount + i < balancing){
-                        double sum = buyAmount + sellAmount;
-                        buyAmount = (int) (sum*0.8 + i);
-                        sellAmount = (int) (sum*0.8 - i);
+                        double b = (buyAmount + sellAmount)*0.6;
+                        buyAmount -= b;
+                        sellAmount += b;
                     }
 
                     price0 = price;
@@ -262,7 +262,7 @@ public class TraderService {
                         ? quarter.getPositions()[0].getBuyAmount().multiply(BigDecimal.valueOf(2))
                         : tw.getSellAmount().add(tw.getBuyAmount());
 
-                BigDecimal a1 = sumAmount.multiply(BigDecimal.valueOf(0.8));
+                BigDecimal a1 = sumAmount.multiply(BigDecimal.valueOf(0.6));
 
                 if ((tw.getBuyAmount().intValue() < minAmount && tw.getSellAmount().intValue() > 2*minAmount)
                         || (tw.getSellAmount().intValue() < minAmount && tw.getBuyAmount().intValue() > 2*minAmount)){
@@ -962,8 +962,6 @@ public class TraderService {
                             //ASK
                             BigDecimal askPrice = middlePrice.add(randomAskDelta);
                             String id = tradeService.placeLimitOrder(new LimitOrder(ASK, askAmount, currencyPair, trader.getType().name(), new Date(), askPrice));
-                            askPrice = middlePrice.add(randomAskDelta);
-
                             traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), ASK, askAmount, askPrice, new Date()));
 
                             //BID
