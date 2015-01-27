@@ -72,7 +72,7 @@ public class TraderList extends AbstractPage{
     private Map<ExchangePair, Component> volatilityMap = new HashMap<>();
     private Map<ExchangePair, Component> profitMap = new HashMap<>();
     private Map<ExchangePair, Component> predictionMap = new HashMap<>();
-    private Map<ExchangePair, Component> predictionTestMap = new HashMap<>();
+    private Map<ExchangePair, Component> averageMap = new HashMap<>();
 
     private Component notificationLabel, notificationLabel2, notificationLabel3;
     private long notificationTime = System.currentTimeMillis();
@@ -214,7 +214,7 @@ public class TraderList extends AbstractPage{
             }
         });
         list.add(new TraderColumn(of("Prediction"), predictionMap));
-        list.add(new TraderColumn(of("Test"), predictionTestMap){
+        list.add(new TraderColumn(of("Average"), averageMap){
             @Override
             protected String getInitValue(Trader trader) {
                 return traderService.getPredictionTestIndex(trader.getExchangePair()).toPlainString() + "%";
@@ -433,9 +433,9 @@ public class TraderList extends AbstractPage{
                         update(handler, predictionMap.get(ep2), prediction, true, true);
 
                         //prediction test
-                        BigDecimal predictionTest = traderService.getPredictionTestIndex(ep);
-                        update(handler, predictionTestMap.get(ep), predictionTest, true, false);
-                        update(handler, predictionTestMap.get(ep2), predictionTest, true, false);
+                        BigDecimal average = traderService.getAverage(ep);
+                        update(handler, averageMap.get(ep), average, true, false);
+                        update(handler, averageMap.get(ep2), average, true, false);
                     } else if (payload instanceof OpenOrders) {
                         OpenOrders openOrders = (OpenOrders) exchangeMessage.getPayload();
 

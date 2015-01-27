@@ -75,6 +75,7 @@ public class TraderService {
 
     private Map<ExchangePair, BigDecimal> predictionIndexMap = new ConcurrentHashMap<>();
     private Map<ExchangePair, BigDecimal> volatilitySigmaMap = new ConcurrentHashMap<>();
+    private Map<ExchangePair, BigDecimal> averageMap = new ConcurrentHashMap<>();
 
     private Map<ExchangeType, OpenOrders> openOrdersMap = new ConcurrentHashMap<>();
     private Map<ExchangeType, AccountInfo> accountInfoMap = new ConcurrentHashMap<>();
@@ -127,6 +128,8 @@ public class TraderService {
             }
 
             updateVolatility(trader.getExchangePair());
+
+            updateAvarage(trader.getExchangePair());
         });
 
         scheduleBalanceHistory();
@@ -833,11 +836,30 @@ public class TraderService {
                     //prediction
                     BigDecimal predictionIndex = getPredictionIndex(exchangePair);
 
+                    //average
+                    BigDecimal average = getAverage(exchangePair);
+
                     //internal amount
                     BigDecimal internalAmount = ZERO;
 
                     //half min spread
                     BigDecimal halfMinSpread = minSpread.divide(BigDecimal.valueOf(2), 8, ROUND_UP);
+
+                    //avg position
+                    BigDecimal avgPosition = ZERO;
+
+                    if (OKCOIN.equals(trader.getExchange())){
+                        OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN)
+                                .getPollingTradeService()).getCrossPosition("ltc_usd", "this_week");
+
+                        if (positions.getPositions().length > 0){
+                            OkCoinCrossPosition p = positions.getPositions()[0];
+
+                            avgPosition = p.getBuyPriceAvg().multiply(p.getBuyAmount())
+                                    .add(p.getSellPriceAvg().multiply(p.getSellAmount()))
+                                    .divide(p.getBuyAmount().add(p.getSellAmount()), 8, ROUND_UP);
+                        }
+                    }
 
                     //create order
                     for (int index = 1; index <= 22; ++index) {
@@ -912,7 +934,11 @@ public class TraderService {
                         if (predictionIndex.compareTo(ZERO) != 0) {
                             randomAskDelta = predictionIndex.compareTo(ZERO) > 0 ? random10(delta) : randomMinus10(delta);
                         }
-
+                        if (avgPosition.compareTo(ZERO) != 0 && average.compareTo(ZERO) != 0){
+                            randomAskDelta = average.compareTo(avgPosition) > 0
+                                    ? random10(randomAskDelta)
+                                    : randomMinus10(randomAskDelta);
+                        }
 
                         if (randomAskDelta.compareTo(ZERO) == 0){
                             randomAskDelta = "USD".equals(currencyPair.counterSymbol)
@@ -933,6 +959,11 @@ public class TraderService {
 
                         if (predictionIndex.compareTo(ZERO) != 0) {
                             randomBidDelta = predictionIndex.compareTo(ZERO) > 0 ? random10(delta) : randomMinus10(delta);
+                        }
+                        if (avgPosition.compareTo(ZERO) != 0 && average.compareTo(ZERO) != 0){
+                            randomBidDelta = average.compareTo(avgPosition) > 0
+                                    ? random10(randomBidDelta)
+                                    : randomMinus10(randomBidDelta);
                         }
 
                         if (randomBidDelta.compareTo(ZERO) == 0){
@@ -1275,6 +1306,16 @@ public class TraderService {
         } catch (Exception e) {
             return ZERO;
         }
+    }
+
+    public void updateAvarage(ExchangePair exchangePair){
+        averageMap.put(exchangePair, traderBean.getAverage(exchangePair));
+    }
+
+    public BigDecimal getAverage(ExchangePair exchangePair){
+        BigDecimal average = averageMap.get(exchangePair);
+
+        return average != null ? average : ZERO;
     }
 
     public BigDecimal getOrderStatProfit(ExchangePair exchangePair, Date startDate){
