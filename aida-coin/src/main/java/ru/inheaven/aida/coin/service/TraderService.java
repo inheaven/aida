@@ -152,7 +152,7 @@ public class TraderService {
             OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("ltc_usd", "this_week");
 
             double last = getTicker(ExchangePair.of(OKCOIN, "LTC/USD")).getLast().doubleValue();
-            double delta = spread / (2*last);
+            double delta = spread / last / 2;
 
             Futures futures = new Futures();
 
@@ -831,7 +831,7 @@ public class TraderService {
                     }
 
                     //prediction
-                    BigDecimal predictionIndex = ZERO;
+                    BigDecimal predictionIndex = getPredictionIndex(exchangePair);
 
                     //internal amount
                     BigDecimal internalAmount = ZERO;
@@ -932,7 +932,7 @@ public class TraderService {
                         BigDecimal randomBidDelta = delta;
 
                         if (predictionIndex.compareTo(ZERO) != 0) {
-                            randomBidDelta = predictionIndex.compareTo(ZERO) > 0 ? randomMinus10(delta) : random10(delta);
+                            randomBidDelta = predictionIndex.compareTo(ZERO) > 0 ? random10(delta) : randomMinus10(delta);
                         }
 
                         if (randomBidDelta.compareTo(ZERO) == 0){
