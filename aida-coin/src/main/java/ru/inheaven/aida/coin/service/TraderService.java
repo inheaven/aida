@@ -934,7 +934,7 @@ public class TraderService {
                         if (predictionIndex.compareTo(ZERO) != 0) {
                             randomAskDelta = predictionIndex.compareTo(ZERO) > 0 ? random10(delta) : randomMinus10(delta);
                         }
-                        if (avgPosition.compareTo(ZERO) != 0 && average.compareTo(ZERO) != 0){
+                        if (average.compareTo(ZERO) != 0 && avgPosition.compareTo(ZERO) != 0){
                             randomAskDelta = average.compareTo(avgPosition) > 0
                                     ? random10(randomAskDelta)
                                     : randomMinus10(randomAskDelta);
@@ -960,7 +960,7 @@ public class TraderService {
                         if (predictionIndex.compareTo(ZERO) != 0) {
                             randomBidDelta = predictionIndex.compareTo(ZERO) > 0 ? random10(delta) : randomMinus10(delta);
                         }
-                        if (avgPosition.compareTo(ZERO) != 0 && average.compareTo(ZERO) != 0){
+                        if (average.compareTo(ZERO) != 0 && avgPosition.compareTo(ZERO) != 0){
                             randomBidDelta = average.compareTo(avgPosition) > 0
                                     ? random10(randomBidDelta)
                                     : randomMinus10(randomBidDelta);

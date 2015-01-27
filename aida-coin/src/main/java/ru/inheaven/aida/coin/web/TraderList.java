@@ -434,8 +434,8 @@ public class TraderList extends AbstractPage{
 
                         //prediction test
                         BigDecimal average = traderService.getAverage(ep);
-                        update(handler, averageMap.get(ep), average, true, false);
-                        update(handler, averageMap.get(ep2), average, true, false);
+                        update(handler, averageMap.get(ep), average);
+                        update(handler, averageMap.get(ep2), average);
                     } else if (payload instanceof OpenOrders) {
                         OpenOrders openOrders = (OpenOrders) exchangeMessage.getPayload();
 
