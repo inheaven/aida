@@ -129,7 +129,7 @@ public class TraderService {
 
             updateVolatility(trader.getExchangePair());
 
-            updateAvarage(trader.getExchangePair());
+            updateAverage(trader.getExchangePair());
         });
 
         scheduleBalanceHistory();
@@ -1308,7 +1308,7 @@ public class TraderService {
         }
     }
 
-    public void updateAvarage(ExchangePair exchangePair){
+    public void updateAverage(ExchangePair exchangePair){
         averageMap.put(exchangePair, traderBean.getAverage(exchangePair));
     }
 

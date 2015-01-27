@@ -214,12 +214,7 @@ public class TraderList extends AbstractPage{
             }
         });
         list.add(new TraderColumn(of("Prediction"), predictionMap));
-        list.add(new TraderColumn(of("Average"), averageMap){
-            @Override
-            protected String getInitValue(Trader trader) {
-                return traderService.getPredictionTestIndex(trader.getExchangePair()).toPlainString() + "%";
-            }
-        });
+        list.add(new TraderColumn(of("Average"), averageMap));
         list.add(new TraderColumn(of("Position"), positionMap));
         list.add(new TraderColumn(of("Day"), profitMap){
             @Override

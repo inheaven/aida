@@ -98,11 +98,11 @@ public class TraderBean {
 
     public BigDecimal getAverage(ExchangePair exchangePair){
         try {
-            return new BigDecimal((Double) em.createNativeQuery("select avg(price) from ticker_history " +
+            return (BigDecimal) em.createNativeQuery("select avg(price) from ticker_history " +
                     "where exchangetype = ? and pair = ? and `date` >  DATE_SUB(NOW(), INTERVAL 72 HOUR)")
                     .setParameter(1, exchangePair.getExchangeType().name())
                     .setParameter(2, exchangePair.getPair())
-                    .getSingleResult());
+                    .getSingleResult();
         } catch (Exception e) {
             return BigDecimal.ZERO;
         }
