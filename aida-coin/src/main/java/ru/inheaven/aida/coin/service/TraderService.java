@@ -569,10 +569,6 @@ public class TraderService {
 
             for (Wallet wallet : accountInfo.getWallets()){
                 volume = volume.add(getEstimateBalance(exchangeType, wallet.getCurrency(), wallet.getBalance()));
-
-                if (wallet.getBalance().compareTo(ZERO) != 0 && volume.compareTo(ZERO) == 0){
-                    return;
-                }
             }
 
             if (BTCE.equals(exchangeType)){ //do check it
@@ -603,8 +599,10 @@ public class TraderService {
         for (ExchangeType exchangeType : ExchangeType.values()){
             Equity e = equityMap.get(exchangeType);
 
-            if (e == null){
-                return;
+            if (OKCOIN.equals(exchangeType) || CRYPTSY.equals(exchangeType)){
+                if (e.getVolume().equals(ZERO)){
+                    return;
+                }
             }
 
             volume = volume.add(e.getVolume());
@@ -976,9 +974,10 @@ public class TraderService {
                             traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), BID, bidAmount, bidPrice, new Date()));
 
                             //notification
+                            String avg = avgPosition.compareTo(ZERO) != 0 ? " : " + avgPosition.toString() : "";
                             broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": " +
                                     bidAmount.toString() + " @ " + bidPrice.toString() + " | " +
-                                    askAmount.toString() + " @ " + askPrice.toString());
+                                    askAmount.toString() + " @ " + askPrice.toString() + avg);
 
                             //internal amount
                             internalAmount = internalAmount.add(askAmount).add(bidAmount);
@@ -999,9 +998,10 @@ public class TraderService {
                             traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), ASK, askAmount, askPrice, new Date()));
 
                             //notification
+                            String avg = avgPosition.compareTo(ZERO) != 0 ? " : " + avgPosition.toString() : "";
                             broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": " +
                                     bidAmount.toString() + " @ " + bidPrice.toString() + " | " +
-                                    askAmount.toString() + " @ " + askPrice.toString());
+                                    askAmount.toString() + " @ " + askPrice.toString() + avg);
 
                             //internal amount
                             internalAmount = internalAmount.add(askAmount).add(bidAmount);
