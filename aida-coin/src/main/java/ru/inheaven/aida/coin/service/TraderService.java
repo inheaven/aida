@@ -259,9 +259,7 @@ public class TraderService {
                 OkCoinCrossPositionResult quarter = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService())
                         .getCrossPosition(pair.toLowerCase().replace("/", "_"), "quarter");
 
-                BigDecimal sumAmount = quarter.getPositions().length > 0
-                        ? quarter.getPositions()[0].getBuyAmount().multiply(BigDecimal.valueOf(2))
-                        : tw.getSellAmount().add(tw.getBuyAmount());
+                BigDecimal sumAmount = tw.getSellAmount().add(tw.getBuyAmount());
 
                 BigDecimal a1 = sumAmount.multiply(BigDecimal.valueOf(0.6));
 
