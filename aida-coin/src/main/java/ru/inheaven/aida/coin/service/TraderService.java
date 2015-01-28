@@ -906,12 +906,12 @@ public class TraderService {
                         BigDecimal randomAskDelta = delta;
 
                         if (predictionIndex.compareTo(ZERO) != 0) {
-                            randomAskDelta = predictionIndex.compareTo(ZERO) > 0 ? random10(delta) : randomMinus10(delta);
+                            randomAskDelta = predictionIndex.compareTo(ZERO) > 0 ? random20(delta) : randomMinus20(delta);
                         }
                         if (average.compareTo(ZERO) != 0 && avgPosition.compareTo(ZERO) != 0){
                             randomAskDelta = average.compareTo(avgPosition) > 0
-                                    ? random10(randomAskDelta)
-                                    : randomMinus10(randomAskDelta);
+                                    ? random20(randomAskDelta)
+                                    : randomMinus20(randomAskDelta);
                         }
 
                         if (randomAskDelta.compareTo(ZERO) == 0){
@@ -932,12 +932,12 @@ public class TraderService {
                         BigDecimal randomBidDelta = delta;
 
                         if (predictionIndex.compareTo(ZERO) != 0) {
-                            randomBidDelta = predictionIndex.compareTo(ZERO) > 0 ? randomMinus10(delta) : random10(delta);
+                            randomBidDelta = predictionIndex.compareTo(ZERO) > 0 ? randomMinus20(delta) : random20(delta);
                         }
                         if (average.compareTo(ZERO) != 0 && avgPosition.compareTo(ZERO) != 0){
                             randomBidDelta = average.compareTo(avgPosition) > 0
-                                    ? randomMinus10(randomBidDelta)
-                                    : random10(randomBidDelta);
+                                    ? randomMinus20(randomBidDelta)
+                                    : random20(randomBidDelta);
                         }
 
                         if (randomBidDelta.compareTo(ZERO) == 0){
