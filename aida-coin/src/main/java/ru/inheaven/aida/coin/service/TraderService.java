@@ -932,12 +932,12 @@ public class TraderService {
                         BigDecimal randomBidDelta = delta;
 
                         if (predictionIndex.compareTo(ZERO) != 0) {
-                            randomBidDelta = predictionIndex.compareTo(ZERO) > 0 ? random10(delta) : randomMinus10(delta);
+                            randomBidDelta = predictionIndex.compareTo(ZERO) > 0 ? randomMinus10(delta) : random10(delta);
                         }
                         if (average.compareTo(ZERO) != 0 && avgPosition.compareTo(ZERO) != 0){
                             randomBidDelta = average.compareTo(avgPosition) > 0
-                                    ? random10(randomBidDelta)
-                                    : randomMinus10(randomBidDelta);
+                                    ? randomMinus10(randomBidDelta)
+                                    : random10(randomBidDelta);
                         }
 
                         if (randomBidDelta.compareTo(ZERO) == 0){
