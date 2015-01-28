@@ -98,7 +98,7 @@ public class TraderService {
         }
     }
 
-    @Schedule(second = "*", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/2", minute="*", hour="*", persistent=false)
     public void scheduleTradeFuture(){
         trade(OKCOIN);
     }
@@ -295,11 +295,11 @@ public class TraderService {
         try {
             updateAccountInfo(exchangeType);
             updateOpenOrders(exchangeType);
-            updateClosedOrders(exchangeType);
             updateTicker(exchangeType);
 
             tradeAlpha(exchangeType);
 
+            updateClosedOrders(exchangeType);
             updateEquity(exchangeType);
             updateEquity();
         } catch (Exception e) {
@@ -599,7 +599,9 @@ public class TraderService {
         for (ExchangeType exchangeType : ExchangeType.values()){
             Equity e = equityMap.get(exchangeType);
 
-            if (OKCOIN.equals(exchangeType) || CRYPTSY.equals(exchangeType)){
+            if(e == null){
+                return;
+            }else if (OKCOIN.equals(exchangeType) || CRYPTSY.equals(exchangeType)){
                 if (e.getVolume().equals(ZERO)){
                     return;
                 }
