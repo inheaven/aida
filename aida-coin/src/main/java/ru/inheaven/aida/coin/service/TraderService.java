@@ -35,7 +35,6 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.xeiam.xchange.dto.Order.OrderType.ASK;
 import static com.xeiam.xchange.dto.Order.OrderType.BID;
@@ -91,8 +90,6 @@ public class TraderService {
     private Set<String> tradesHash = new ConcurrentHashSet<>(10000);
 
     private WebSocketPushBroadcaster broadcaster;
-
-    private AtomicBoolean canceling = new AtomicBoolean(false);
 
     @PreDestroy
     public void cancelTimers(){
@@ -251,7 +248,7 @@ public class TraderService {
             OkCoinCrossPositionResult thisWeek = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService())
                     .getCrossPosition(pair.toLowerCase().replace("/", "_"), "this_week");
 
-            if (thisWeek.getPositions().length > 0 && !canceling.get()){
+            if (thisWeek.getPositions().length > 0){
                 OkCoinCrossPosition tw = thisWeek.getPositions()[0];
 
                 PollingTradeService tradeService = getExchange(OKCOIN).getPollingTradeService();
@@ -270,31 +267,6 @@ public class TraderService {
 
                 if ((tw.getBuyAmount().intValue() < minAmount && tw.getSellAmount().intValue() > 2*minAmount)
                         || (tw.getSellAmount().intValue() < minAmount && tw.getBuyAmount().intValue() > 2*minAmount)){
-                    //cancel orders
-//                    try {
-//                        canceling.set(true);
-//
-//                        List<LimitOrder> openOrders = getOpenOrders(OKCOIN).getOpenOrders();
-//
-//                        for (LimitOrder order : openOrders){
-//                            String orderId = order.getId().split("&")[0];
-//
-//                            OrderHistory h = traderBean.getOrderHistory(orderId);
-//
-//                            if (h != null){
-//                                h.setStatus(CANCELED);
-//                                h.setClosed(new Date());
-//
-//                                traderBean.save(h);
-//
-//                                tradeService.cancelOrder(orderId);
-//
-//                                broadcast(OKCOIN, h);
-//                            }
-//                        }
-//                    } finally {
-//                        canceling.set(false);
-//                    }
 
                     //balance
                     BigDecimal price = _short
@@ -597,6 +569,10 @@ public class TraderService {
 
             for (Wallet wallet : accountInfo.getWallets()){
                 volume = volume.add(getEstimateBalance(exchangeType, wallet.getCurrency(), wallet.getBalance()));
+
+                if (wallet.getBalance().compareTo(ZERO) != 0 && volume.compareTo(ZERO) == 0){
+                    return;
+                }
             }
 
             if (BTCE.equals(exchangeType)){ //do check it
@@ -766,7 +742,7 @@ public class TraderService {
                     continue;
                 }
 
-                if (trader.isRunning() && !canceling.get()) {
+                if (trader.isRunning()) {
                     Ticker ticker = getTicker(exchangePair);
 
                     if (ticker == null || ticker.getLast() == null) {
@@ -855,9 +831,7 @@ public class TraderService {
                         if (positions.getPositions().length > 0){
                             OkCoinCrossPosition p = positions.getPositions()[0];
 
-                            avgPosition = p.getBuyPriceAvg().multiply(p.getBuyAmount())
-                                    .add(p.getSellPriceAvg().multiply(p.getSellAmount()))
-                                    .divide(p.getBuyAmount().add(p.getSellAmount()), 8, ROUND_UP);
+                            avgPosition = middlePrice.add(p.getBuyAmount().subtract(p.getSellAmount()).multiply(halfMinSpread));
                         }
                     }
 
