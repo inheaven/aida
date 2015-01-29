@@ -628,7 +628,7 @@ public class TraderService {
                 break;
             case OKCOIN:
                 if (exchangePair.getPair().contains("LTC/")){
-                    minSpread = middlePrice.multiply(new BigDecimal("0.0022")).setScale(8, HALF_UP);
+                    minSpread = middlePrice.multiply(new BigDecimal("0.0042")).setScale(8, HALF_UP);
                 }else{
                     minSpread = middlePrice.multiply(new BigDecimal("0.011")).setScale(8, HALF_UP);
                 }
