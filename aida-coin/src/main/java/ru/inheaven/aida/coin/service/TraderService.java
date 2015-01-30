@@ -904,12 +904,12 @@ public class TraderService {
                         BigDecimal randomAskDelta = delta;
 
                         if (predictionIndex.compareTo(ZERO) != 0) {
-                            randomAskDelta = predictionIndex.compareTo(ZERO) > 0 ? random10(delta) : randomMinus10(delta);
+                            randomAskDelta = predictionIndex.compareTo(ZERO) > 0 ? random20(delta) : randomMinus20(delta);
                         }
                         if (average.compareTo(ZERO) != 0 && avgPosition.compareTo(ZERO) != 0){
                             randomAskDelta = average.compareTo(avgPosition) > 0
-                                    ? random20(randomAskDelta)
-                                    : randomMinus20(randomAskDelta);
+                                    ? random30(randomAskDelta)
+                                    : randomMinus30(randomAskDelta);
                         }
 
                         if (randomAskDelta.compareTo(ZERO) == 0){
@@ -930,12 +930,12 @@ public class TraderService {
                         BigDecimal randomBidDelta = delta;
 
                         if (predictionIndex.compareTo(ZERO) != 0) {
-                            randomBidDelta = predictionIndex.compareTo(ZERO) > 0 ? randomMinus10(delta) : random10(delta);
+                            randomBidDelta = predictionIndex.compareTo(ZERO) > 0 ? randomMinus20(delta) : random20(delta);
                         }
                         if (average.compareTo(ZERO) != 0 && avgPosition.compareTo(ZERO) != 0){
                             randomBidDelta = average.compareTo(avgPosition) > 0
-                                    ? randomMinus20(randomBidDelta)
-                                    : random20(randomBidDelta);
+                                    ? randomMinus30(randomBidDelta)
+                                    : random30(randomBidDelta);
                         }
 
                         if (randomBidDelta.compareTo(ZERO) == 0){
@@ -962,29 +962,24 @@ public class TraderService {
                             middlePrice = middlePrice.setScale(2, HALF_UP);
                         }
 
+                        //bid ask price
+                        BigDecimal askPrice = middlePrice.add(randomAskDelta);
+                        BigDecimal bidPrice =  middlePrice.subtract(randomBidDelta);
+                        String avg = avgPosition.compareTo(ZERO) != 0 ? " : " + avgPosition.toString() : "";
+
+                        //internal amount
+                        internalAmount = internalAmount.add(askAmount).add(bidAmount);
+
                         if (trader.getType().equals(SHORT)){
                             //ASK
-                            BigDecimal askPrice = middlePrice.add(randomAskDelta);
                             String id = tradeService.placeLimitOrder(new LimitOrder(ASK, askAmount, currencyPair, trader.getType().name(), new Date(), askPrice));
                             traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), ASK, askAmount, askPrice, new Date()));
 
                             //BID
-                            BigDecimal bidPrice =  middlePrice.subtract(randomBidDelta);
                             id = tradeService.placeLimitOrder(new LimitOrder(BID, bidAmount, currencyPair, trader.getType().name(), new Date(), bidPrice));
                             traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), BID, bidAmount, bidPrice, new Date()));
-
-                            //notification
-                            String avg = avgPosition.compareTo(ZERO) != 0 ? " : " + avgPosition.toString() : "";
-                            broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": " +
-                                    bidAmount.toString() + " @ " + bidPrice.toString() + " | " +
-                                    askAmount.toString() + " @ " + askPrice.toString() + avg);
-
-                            //internal amount
-                            internalAmount = internalAmount.add(askAmount).add(bidAmount);
                         }else{
                             //BID
-                            BigDecimal bidPrice =  middlePrice.subtract(randomBidDelta);
-
                             if (bidPrice.compareTo(ZERO) < 0){
                                 return;
                             }
@@ -993,19 +988,14 @@ public class TraderService {
                             traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), BID, bidAmount, bidPrice, new Date()));
 
                             //ASK
-                            BigDecimal askPrice = middlePrice.add(randomAskDelta);
                             id = tradeService.placeLimitOrder(new LimitOrder(ASK, askAmount, currencyPair, trader.getType().name(), new Date(), askPrice));
                             traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), ASK, askAmount, askPrice, new Date()));
-
-                            //notification
-                            String avg = avgPosition.compareTo(ZERO) != 0 ? " : " + avgPosition.toString() : "";
-                            broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": " +
-                                    bidAmount.toString() + " @ " + bidPrice.toString() + " | " +
-                                    askAmount.toString() + " @ " + askPrice.toString() + avg);
-
-                            //internal amount
-                            internalAmount = internalAmount.add(askAmount).add(bidAmount);
                         }
+
+                        //notification
+                        broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": " +
+                                bidAmount.toString() + " @ " + bidPrice.toString() + " | " +
+                                askAmount.toString() + " @ " + askPrice.toString() + avg);
                     }
                 }
             } catch (Exception e) {
