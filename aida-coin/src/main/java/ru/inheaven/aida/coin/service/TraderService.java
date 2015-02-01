@@ -161,10 +161,10 @@ public class TraderService {
 
                 //long
 
-                double bidProfit =  p.getBuyProfitReal().doubleValue();
-                double askProfit =  p.getSellProfitReal().doubleValue();
+                double buyProfit =  p.getBuyProfitReal().doubleValue();
+                double sellProfit =  p.getSellProfitReal().doubleValue();
 
-                futures.setMargin(BigDecimal.valueOf(bidProfit + askProfit));
+                futures.setMargin(BigDecimal.valueOf(buyProfit + sellProfit));
                 futures.setRealProfit(p.getBuyProfitReal().add(p.getSellProfitReal()));
 
                 int buyAmount = p.getBuyAmount().intValue();
@@ -174,11 +174,11 @@ public class TraderService {
                 double price = last * (1 + delta);
 
                 for (int i = 1; i < levels; ++i){
-                    bidProfit += (buyAmount - i) * (10/price0 - 10/price);
-                    futures.getBids().add(new Position(bidProfit, price));
+                    buyProfit += (buyAmount - i) * (10/price0 - 10/price);
+                    futures.getBids().add(new Position(buyProfit, price));
 
-                    askProfit -= (sellAmount + i) * (10/price0 - 10/price);
-                    futures.getAsks().add(new Position(askProfit, price));
+                    sellProfit -= (sellAmount + i) * (10/price0 - 10/price);
+                    futures.getAsks().add(new Position(sellProfit, price));
 
                     if (buyAmount - i < balancing){
                         double b = (buyAmount + sellAmount)*0.6;
@@ -192,8 +192,8 @@ public class TraderService {
 
                 //short
 
-                bidProfit =  p.getBuyProfitReal().doubleValue();
-                askProfit =  p.getSellProfitReal().doubleValue();
+                buyProfit =  p.getBuyProfitReal().doubleValue();
+                sellProfit =  p.getSellProfitReal().doubleValue();
 
                 buyAmount = p.getBuyAmount().intValue();
                 sellAmount = p.getSellAmount().intValue();
@@ -202,11 +202,11 @@ public class TraderService {
                 price = last * (1 - delta);
 
                 for (int i = -1; i > -levels; --i){
-                    bidProfit += (buyAmount - i) * (10/price0 - 10/price);
-                    futures.getBids().add(new Position(bidProfit, price));
+                    buyProfit += (buyAmount - i) * (10/price0 - 10/price);
+                    futures.getBids().add(new Position(buyProfit, price));
 
-                    askProfit -= (sellAmount + i) * (10/price0 - 10/price);
-                    futures.getAsks().add(new Position(askProfit, price));
+                    sellProfit -= (sellAmount + i) * (10/price0 - 10/price);
+                    futures.getAsks().add(new Position(sellProfit, price));
 
                     if (sellAmount + i < balancing){
                         double b = (buyAmount + sellAmount)*0.6;
@@ -615,23 +615,23 @@ public class TraderService {
         BigDecimal minSpread;
 
         Ticker ticker = getTicker(exchangePair);
-        BigDecimal middlePrice = ticker.getAsk().add(ticker.getBid()).divide(BigDecimal.valueOf(2), 8, HALF_UP);
+        BigDecimal price = ticker.getLast();
 
         //bitfinex spread
         switch (exchangePair.getExchangeType()){
             case BITFINEX:
-                minSpread = middlePrice.multiply(new BigDecimal("0.008")).setScale(8, HALF_UP);
+                minSpread = price.multiply(new BigDecimal("0.008")).setScale(8, HALF_UP);
                 break;
             case OKCOIN:
                 if (exchangePair.getPair().contains("LTC/")){
-                    minSpread = middlePrice.multiply(new BigDecimal("0.0042")).setScale(8, HALF_UP);
+                    minSpread = price.multiply(new BigDecimal("0.0042")).setScale(8, HALF_UP);
                 }else{
-                    minSpread = middlePrice.multiply(new BigDecimal("0.011")).setScale(8, HALF_UP);
+                    minSpread = price.multiply(new BigDecimal("0.011")).setScale(8, HALF_UP);
                 }
 
                 break;
             default:
-                minSpread = middlePrice.multiply(new BigDecimal("0.013")).setScale(8, HALF_UP);
+                minSpread = price.multiply(new BigDecimal("0.013")).setScale(8, HALF_UP);
         }
 
         //ticker spread
