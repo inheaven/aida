@@ -651,9 +651,11 @@ public class TraderService {
         spread = spread.multiply(ONE.add(volatility.multiply(BigDecimal.TEN)).pow(2)).setScale(8, HALF_UP);
 
         //ticker spread
-        BigDecimal tickerSpread = ticker.getAsk().subtract(ticker.getBid()).abs();
-        if (tickerSpread.compareTo(spread) > 0){
-            spread = tickerSpread;
+        if (!exchangePair.getExchangeType().equals(OKCOIN)) {
+            BigDecimal tickerSpread = ticker.getAsk().subtract(ticker.getBid()).abs();
+            if (tickerSpread.compareTo(spread) > 0){
+                spread = tickerSpread;
+            }
         }
 
         return spread;
