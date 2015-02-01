@@ -153,7 +153,7 @@ public class TraderList extends AbstractPage{
         add(bitfinexCoins = new Label("bitfinexCoins", Model.of("0")).setOutputMarkupId(true));
 
         add(okcoinBTC = new Label("okcoinBTC", Model.of("0")).setOutputMarkupId(true));
-        add(okcoinCoins = new Label("okcoinCoins", Model.of("0")));
+        add(okcoinCoins = new Label("okcoinCoins", Model.of("0")).setOutputMarkupId(true));
 
         String quote = ".·´`·.¸¸.·´´`·.¸.·´´``·.¸.·´``·.´``·.¸¸.·´´``· <º>< ><º>";
 
