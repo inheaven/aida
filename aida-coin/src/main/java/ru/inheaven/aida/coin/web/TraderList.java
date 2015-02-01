@@ -540,7 +540,7 @@ public class TraderList extends AbstractPage{
                         //volume
                         ExchangePair ltcUsd = ExchangePair.of(OKCOIN, "LTC/USD");
                         List<OrderStat> orderStats = traderBean.getOrderStatVolume(ltcUsd, startDate);
-                        BigDecimal last = traderService.getTicker(ltcUsd).getLast().setScale(3, ROUND_UP);
+                        BigDecimal last = traderService.getTicker(ltcUsd).getLast().setScale(2, ROUND_UP);
 
                         BigDecimal predictionPrice = ONE.add(traderService.getPredictionIndex(ltcUsd))
                                 .multiply(last).setScale(4, ROUND_UP);

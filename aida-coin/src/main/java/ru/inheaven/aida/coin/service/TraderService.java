@@ -139,7 +139,7 @@ public class TraderService {
             //balanceOKCoinWeekPosition("BTC/USD");
             balanceOKCoinWeekPosition("LTC/USD");
 
-            int levels = 100;
+            int levels = 120;
             int balancing = 11;
 
             double spread;
