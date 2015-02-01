@@ -140,7 +140,7 @@ public class TraderService {
             balanceOKCoinWeekPosition("LTC/USD");
 
             int levels = 100;
-            int balancing = 22;
+            int balancing = 11;
 
             double spread;
             try {
@@ -242,7 +242,7 @@ public class TraderService {
 
 
     private void balanceOKCoinWeekPosition(String pair) {
-        int minAmount = 22;
+        int minAmount = 11;
 
         try {
             OkCoinCrossPositionResult thisWeek = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService())
@@ -261,7 +261,7 @@ public class TraderService {
 
                 BigDecimal sumAmount = tw.getSellAmount().add(tw.getBuyAmount());
 
-                BigDecimal a1 = sumAmount.multiply(BigDecimal.valueOf(0.6));
+                BigDecimal a1 = sumAmount.multiply(BigDecimal.valueOf(0.22));
 
                 if ((tw.getBuyAmount().intValue() < minAmount && tw.getSellAmount().intValue() > 2*minAmount)
                         || (tw.getSellAmount().intValue() < minAmount && tw.getBuyAmount().intValue() > 2*minAmount)){
@@ -599,10 +599,6 @@ public class TraderService {
 
             if(e == null){
                 return;
-            }else if (OKCOIN.equals(exchangeType) || CRYPTSY.equals(exchangeType)){
-                if (e.getVolume().equals(ZERO)){
-                    return;
-                }
             }
 
             volume = volume.add(e.getVolume());
@@ -788,7 +784,7 @@ public class TraderService {
 
                         if (currencyPair.equals(order.getCurrencyPair())
                                 && order.getLimitPrice().subtract(middlePrice).abs()
-                                .compareTo(minSpread.multiply(BigDecimal.valueOf(22))) > 0) {
+                                .compareTo(minSpread.multiply(BigDecimal.valueOf(11))) > 0) {
                             String orderId = order.getId().split("&")[0];
 
                             //update order status
@@ -834,7 +830,7 @@ public class TraderService {
                     }
 
                     //create order
-                    for (int index = 1; index <= 22; ++index) {
+                    for (int index = 1; index <= 11; ++index) {
                         BigDecimal delta = halfMinSpread.multiply(BigDecimal.valueOf(index));
 
                         //btc-e delta
@@ -1200,7 +1196,11 @@ public class TraderService {
                     return balance.multiply(ticker.getLast()).setScale(8, HALF_UP);
             }
         } catch (Exception e) {
-            return ZERO;
+            if (OKCOIN.equals(exchangeType)) {
+                throw e;
+            } else {
+                return ZERO;
+            }
         }
     }
 
