@@ -51,6 +51,7 @@ import java.util.function.BiConsumer;
 
 import static java.math.BigDecimal.*;
 import static org.apache.wicket.model.Model.of;
+import static ru.inheaven.aida.coin.entity.ExchangeType.BTCE;
 import static ru.inheaven.aida.coin.entity.ExchangeType.OKCOIN;
 
 /**
@@ -86,7 +87,7 @@ public class TraderList extends AbstractPage{
     private Component bitfinexBTC, bitfinexCoins;
     private Component okcoinBTC, okcoinCoins;
 
-    private Component sumEstimate, tradesCount;
+    private Component sumEstimate, tradesCount, rubEstimate;
 
     private BigDecimal lastChartValue = BigDecimal.ZERO;
 
@@ -152,11 +153,11 @@ public class TraderList extends AbstractPage{
         add(bitfinexCoins = new Label("bitfinexCoins", Model.of("0")).setOutputMarkupId(true));
 
         add(okcoinBTC = new Label("okcoinBTC", Model.of("0")).setOutputMarkupId(true));
-        add(okcoinCoins = new Label("okcoinCoins", Model.of("0")).setOutputMarkupId(true));
+        add(okcoinCoins = new Label("okcoinCoins", Model.of("0")));
 
         String quote = ".·´`·.¸¸.·´´`·.¸.·´´``·.¸.·´``·.´``·.¸¸.·´´``· <º>< ><º>";
 
-        add(new Label("quote", Model.of(quote)));
+        add(rubEstimate = new Label("quote", Model.of(quote)).setOutputMarkupId(true));
 
         List<IColumn<Trader, String>> list = new ArrayList<>();
 
@@ -326,6 +327,8 @@ public class TraderList extends AbstractPage{
                             }
                         } else {
                             update(handler, sumEstimate, equity.getVolume());
+                            handler.add(rubEstimate.setDefaultModelObject(equity.getVolume().multiply(traderService.getTicker(
+                                    ExchangePair.of(BTCE, "BTC/RUR")).getLast()).setScale(2, ROUND_UP).toString() + "\u20BD"));
 
                             //update chart balance
                             if (lastChartValue.compareTo(equity.getVolume()) != 0) {
