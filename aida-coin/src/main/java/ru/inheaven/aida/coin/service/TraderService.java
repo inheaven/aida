@@ -161,8 +161,8 @@ public class TraderService {
 
                 //long
 
-                double bidProfit =  p.getBuyAmount().doubleValue() / p.getBuyPriceAvg().doubleValue();
-                double askProfit =  p.getSellAmount().doubleValue() / p.getSellPriceAvg().doubleValue();
+                double bidProfit =  p.getBuyProfitReal().doubleValue();
+                double askProfit =  p.getSellProfitReal().doubleValue();
 
                 futures.setMargin(BigDecimal.valueOf(bidProfit + askProfit));
                 futures.setRealProfit(p.getBuyProfitReal().add(p.getSellProfitReal()));
@@ -192,8 +192,8 @@ public class TraderService {
 
                 //short
 
-                bidProfit =  p.getBuyAmount().doubleValue() / p.getBuyPriceAvg().doubleValue();
-                askProfit =  p.getSellAmount().doubleValue() / p.getSellPriceAvg().doubleValue();
+                bidProfit =  p.getBuyProfitReal().doubleValue();
+                askProfit =  p.getSellProfitReal().doubleValue();
 
                 buyAmount = p.getBuyAmount().intValue();
                 sellAmount = p.getSellAmount().intValue();
