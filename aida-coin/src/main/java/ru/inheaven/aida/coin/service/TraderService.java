@@ -842,7 +842,7 @@ public class TraderService {
 
                         //magic
                         BigDecimal spreadSumAmount = internalAmount;
-                        BigDecimal magic = delta.multiply(BigDecimal.valueOf(1.1)).add(halfMinSpread);
+                        BigDecimal magic = delta.add(halfMinSpread.multiply(BigDecimal.valueOf(1.1)));
 
                         for (LimitOrder order : openOrders) {
                             if ((trader.getType().equals(LONG) && (order.getId().contains("&2") || order.getId().contains("&4")))
@@ -900,12 +900,12 @@ public class TraderService {
                         BigDecimal randomAskDelta = delta;
 
                         if (predictionIndex.compareTo(ZERO) != 0) {
-                            randomAskDelta = predictionIndex.compareTo(ZERO) > 0 ? random20(delta) : randomMinus20(delta);
+                            randomAskDelta = predictionIndex.compareTo(ZERO) > 0 ? random50(delta) : randomMinus50(delta);
                         }
                         if (average.compareTo(ZERO) != 0 && avgPosition.compareTo(ZERO) != 0){
                             randomAskDelta = average.compareTo(avgPosition) > 0
-                                    ? random30(randomAskDelta)
-                                    : randomMinus30(randomAskDelta);
+                                    ? random50(randomAskDelta)
+                                    : randomMinus50(randomAskDelta);
                         }
 
                         if (randomAskDelta.compareTo(ZERO) == 0){
@@ -926,12 +926,12 @@ public class TraderService {
                         BigDecimal randomBidDelta = delta;
 
                         if (predictionIndex.compareTo(ZERO) != 0) {
-                            randomBidDelta = predictionIndex.compareTo(ZERO) > 0 ? randomMinus20(delta) : random20(delta);
+                            randomBidDelta = predictionIndex.compareTo(ZERO) > 0 ? randomMinus50(delta) : random50(delta);
                         }
                         if (average.compareTo(ZERO) != 0 && avgPosition.compareTo(ZERO) != 0){
                             randomBidDelta = average.compareTo(avgPosition) > 0
-                                    ? randomMinus30(randomBidDelta)
-                                    : random30(randomBidDelta);
+                                    ? randomMinus50(randomBidDelta)
+                                    : random50(randomBidDelta);
                         }
 
                         if (randomBidDelta.compareTo(ZERO) == 0){
