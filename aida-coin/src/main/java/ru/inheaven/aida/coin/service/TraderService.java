@@ -152,7 +152,7 @@ public class TraderService {
             OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("ltc_usd", "this_week");
 
             double last = getTicker(ExchangePair.of(OKCOIN, "LTC/USD")).getLast().doubleValue();
-            double delta = spread / last / 2;
+            double delta = spread / last;
 
             Futures futures = new Futures();
 
@@ -620,18 +620,18 @@ public class TraderService {
         //bitfinex spread
         switch (exchangePair.getExchangeType()){
             case BITFINEX:
-                spread = price.multiply(new BigDecimal("0.008")).setScale(8, HALF_UP);
+                spread = price.multiply(new BigDecimal("0.004")).setScale(8, HALF_UP);
                 break;
             case OKCOIN:
                 if (exchangePair.getPair().contains("LTC/")){
-                    spread = price.multiply(new BigDecimal("0.0042")).setScale(8, HALF_UP);
+                    spread = price.multiply(new BigDecimal("0.0022")).setScale(8, HALF_UP);
                 }else{
-                    spread = price.multiply(new BigDecimal("0.011")).setScale(8, HALF_UP);
+                    spread = price.multiply(new BigDecimal("0.005")).setScale(8, HALF_UP);
                 }
 
                 break;
             default:
-                spread = price.multiply(new BigDecimal("0.013")).setScale(8, HALF_UP);
+                spread = price.multiply(new BigDecimal("0.005")).setScale(8, HALF_UP);
         }
 
         //ticker spread
@@ -784,7 +784,7 @@ public class TraderService {
 
                         if (currencyPair.equals(order.getCurrencyPair())
                                 && order.getLimitPrice().subtract(middlePrice).abs()
-                                .compareTo(spread.multiply(BigDecimal.valueOf(11))) > 0) {
+                                .compareTo(spread.multiply(BigDecimal.valueOf(22))) > 0) {
                             String orderId = order.getId().split("&")[0];
 
                             //update order status
@@ -812,9 +812,6 @@ public class TraderService {
                     //internal amount
                     BigDecimal internalAmount = ZERO;
 
-                    //half min spread
-                    BigDecimal halfSpread = spread.divide(BigDecimal.valueOf(2), 8, ROUND_UP);
-
                     //avg position
                     BigDecimal avgPosition = ZERO;
 
@@ -825,7 +822,7 @@ public class TraderService {
                         if (positions.getPositions().length > 0){
                             OkCoinCrossPosition p = positions.getPositions()[0];
 
-                            avgPosition = middlePrice.add(p.getBuyAmount().subtract(p.getSellAmount()).multiply(halfSpread));
+                            avgPosition = middlePrice.add(p.getBuyAmount().subtract(p.getSellAmount()).multiply(spread));
                         }
                     }
 
@@ -833,14 +830,14 @@ public class TraderService {
                     for (int index = 1; index <= 11; ++index) {
                         //btc-e spread
                         if (BTCE.equals(trader.getExchange())){
-                            if (halfSpread.compareTo(new BigDecimal("0.00002")) < 0){
-                                halfSpread = new BigDecimal("0.00002").setScale(5, ROUND_UP);
+                            if (spread.compareTo(new BigDecimal("0.00002")) < 0){
+                                spread = new BigDecimal("0.00002").setScale(5, ROUND_UP);
                             }
                         }
 
                         //magic
                         BigDecimal spreadSumAmount = internalAmount;
-                        BigDecimal magic = halfSpread.multiply(BigDecimal.valueOf(index)).add(halfSpread.multiply(BigDecimal.valueOf(1.1)));
+                        BigDecimal magic = spread.multiply(BigDecimal.valueOf(index)).add(spread.multiply(BigDecimal.valueOf(1.1)));
 
                         for (LimitOrder order : openOrders) {
                             if ((trader.getType().equals(LONG) && (order.getId().contains("&2") || order.getId().contains("&4")))
@@ -895,7 +892,7 @@ public class TraderService {
                         }
 
                         //random ask delta
-                        BigDecimal randomAskSpread = halfSpread;
+                        BigDecimal randomAskSpread = spread;
 
                         if (predictionIndex.compareTo(ZERO) != 0) {
                             randomAskSpread = predictionIndex.compareTo(ZERO) > 0 ? random30(randomAskSpread) : randomMinus30(randomAskSpread);
@@ -911,7 +908,7 @@ public class TraderService {
                                     : randomMinus30(randomAskSpread);
                         }
 
-                        randomAskSpread = randomAskSpread.add(halfSpread.multiply(BigDecimal.valueOf(index-1)));
+                        randomAskSpread = randomAskSpread.add(spread.multiply(BigDecimal.valueOf(index-1)));
 
                         if (randomAskSpread.compareTo(ZERO) == 0){
                             randomAskSpread = "USD".equals(currencyPair.counterSymbol)
@@ -928,7 +925,7 @@ public class TraderService {
                         }
 
                         //random bid delta
-                        BigDecimal randomBidSpread = halfSpread;
+                        BigDecimal randomBidSpread = spread;
 
                         if (predictionIndex.compareTo(ZERO) != 0) {
                             randomBidSpread = predictionIndex.compareTo(ZERO) > 0 ? randomMinus30(randomBidSpread) : random30(randomBidSpread);
@@ -944,7 +941,7 @@ public class TraderService {
                                     : randomMinus30(randomBidSpread);
                         }
 
-                        randomBidSpread = randomBidSpread.add(halfSpread.multiply(BigDecimal.valueOf(index-1)));
+                        randomBidSpread = randomBidSpread.add(spread.multiply(BigDecimal.valueOf(index-1)));
 
                         if (randomBidSpread.compareTo(ZERO) == 0){
                             randomBidSpread = "USD".equals(currencyPair.counterSymbol)
