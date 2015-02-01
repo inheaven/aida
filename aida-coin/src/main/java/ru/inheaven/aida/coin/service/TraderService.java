@@ -831,18 +831,16 @@ public class TraderService {
 
                     //create order
                     for (int index = 1; index <= 11; ++index) {
-                        BigDecimal delta = halfSpread.multiply(BigDecimal.valueOf(index));
-
-                        //btc-e delta
+                        //btc-e spread
                         if (BTCE.equals(trader.getExchange())){
-                            if (delta.compareTo(new BigDecimal("0.00002")) < 0){
-                                delta = new BigDecimal("0.00002").setScale(5, ROUND_UP);
+                            if (halfSpread.compareTo(new BigDecimal("0.00002")) < 0){
+                                halfSpread = new BigDecimal("0.00002").setScale(5, ROUND_UP);
                             }
                         }
 
                         //magic
                         BigDecimal spreadSumAmount = internalAmount;
-                        BigDecimal magic = delta.add(halfSpread.multiply(BigDecimal.valueOf(1.1)));
+                        BigDecimal magic = halfSpread.multiply(BigDecimal.valueOf(index)).add(halfSpread.multiply(BigDecimal.valueOf(1.1)));
 
                         for (LimitOrder order : openOrders) {
                             if ((trader.getType().equals(LONG) && (order.getId().contains("&2") || order.getId().contains("&4")))
@@ -897,68 +895,68 @@ public class TraderService {
                         }
 
                         //random ask delta
-                        BigDecimal randomAskDelta = halfSpread;
+                        BigDecimal randomAskSpread = halfSpread;
 
                         if (predictionIndex.compareTo(ZERO) != 0) {
-                            randomAskDelta = predictionIndex.compareTo(ZERO) > 0 ? random30(delta) : randomMinus30(delta);
+                            randomAskSpread = predictionIndex.compareTo(ZERO) > 0 ? random30(randomAskSpread) : randomMinus30(randomAskSpread);
                         }
                         if (average.compareTo(ZERO) != 0 && avgPosition.compareTo(ZERO) != 0){
-                            randomAskDelta = average.compareTo(avgPosition) > 0
-                                    ? random30(randomAskDelta)
-                                    : randomMinus30(randomAskDelta);
+                            randomAskSpread = average.compareTo(avgPosition) > 0
+                                    ? random30(randomAskSpread)
+                                    : randomMinus30(randomAskSpread);
                         }
                         if (OKCOIN.equals(trader.getExchange())){
-                            randomAskDelta =trader.getType().equals(LONG)
-                                    ? random30(randomAskDelta)
-                                    : randomMinus30(randomAskDelta);
+                            randomAskSpread =trader.getType().equals(LONG)
+                                    ? random30(randomAskSpread)
+                                    : randomMinus30(randomAskSpread);
                         }
 
-                        randomAskDelta = randomAskDelta.add(halfSpread.multiply(BigDecimal.valueOf(index-1)));
+                        randomAskSpread = randomAskSpread.add(halfSpread.multiply(BigDecimal.valueOf(index-1)));
 
-                        if (randomAskDelta.compareTo(ZERO) == 0){
-                            randomAskDelta = "USD".equals(currencyPair.counterSymbol)
+                        if (randomAskSpread.compareTo(ZERO) == 0){
+                            randomAskSpread = "USD".equals(currencyPair.counterSymbol)
                                     ? new BigDecimal("0.01")
                                     : new BigDecimal("0.00000001");
                         }else {
                             if (trader.getExchange().equals(OKCOIN) && trader.getPair().contains("LTC/")){
-                                randomAskDelta = randomAskDelta.setScale(3, HALF_UP);
+                                randomAskSpread = randomAskSpread.setScale(3, HALF_UP);
                             }else {
-                                randomAskDelta = "USD".equals(currencyPair.counterSymbol)
-                                        ? randomAskDelta.setScale(2, HALF_UP)
-                                        : randomAskDelta.setScale(8, HALF_UP);
+                                randomAskSpread = "USD".equals(currencyPair.counterSymbol)
+                                        ? randomAskSpread.setScale(2, HALF_UP)
+                                        : randomAskSpread.setScale(8, HALF_UP);
                             }
                         }
 
                         //random bid delta
-                        BigDecimal randomBidDelta = halfSpread;
+                        BigDecimal randomBidSpread = halfSpread;
 
                         if (predictionIndex.compareTo(ZERO) != 0) {
-                            randomBidDelta = predictionIndex.compareTo(ZERO) > 0 ? randomMinus30(delta) : random30(delta);
+                            randomBidSpread = predictionIndex.compareTo(ZERO) > 0 ? randomMinus30(randomBidSpread) : random30(randomBidSpread);
                         }
                         if (average.compareTo(ZERO) != 0 && avgPosition.compareTo(ZERO) != 0){
-                            randomBidDelta = average.compareTo(avgPosition) > 0
-                                    ? randomMinus30(randomBidDelta)
-                                    : random30(randomBidDelta);
+                            randomBidSpread = average.compareTo(avgPosition) > 0
+                                    ? randomMinus30(randomBidSpread)
+                                    : random30(randomBidSpread);
                         }
                         if (OKCOIN.equals(trader.getExchange())){
-                            randomBidDelta =trader.getType().equals(LONG)
-                                    ? random30(randomBidDelta)
-                                    : randomMinus30(randomBidDelta);
+                            randomBidSpread =trader.getType().equals(LONG)
+                                    ? random30(randomBidSpread)
+                                    : randomMinus30(randomBidSpread);
                         }
 
-                        randomBidDelta = randomBidDelta.add(halfSpread.multiply(BigDecimal.valueOf(index-1)));
+                        randomBidSpread = randomBidSpread.add(halfSpread.multiply(BigDecimal.valueOf(index-1)));
 
-                        if (randomBidDelta.compareTo(ZERO) == 0){
-                            randomBidDelta = "USD".equals(currencyPair.counterSymbol)
+                        if (randomBidSpread.compareTo(ZERO) == 0){
+                            randomBidSpread = "USD".equals(currencyPair.counterSymbol)
                                     ? new BigDecimal("0.01")
                                     : new BigDecimal("0.00000001");
                         }else {
                             if (trader.getExchange().equals(OKCOIN) && trader.getPair().contains("LTC/")){
-                                randomBidDelta = randomBidDelta.setScale(3, HALF_UP);
+                                randomBidSpread = randomBidSpread.setScale(3, HALF_UP);
                             }else {
-                                randomBidDelta = "USD".equals(currencyPair.counterSymbol)
-                                        ? randomBidDelta.setScale(2, HALF_UP)
-                                        : randomBidDelta.setScale(8, HALF_UP);
+                                randomBidSpread = "USD".equals(currencyPair.counterSymbol)
+                                        ? randomBidSpread.setScale(2, HALF_UP)
+                                        : randomBidSpread.setScale(8, HALF_UP);
                             }
                         }
 
@@ -973,8 +971,8 @@ public class TraderService {
                         }
 
                         //bid ask price
-                        BigDecimal askPrice = middlePrice.add(randomAskDelta);
-                        BigDecimal bidPrice =  middlePrice.subtract(randomBidDelta);
+                        BigDecimal askPrice = middlePrice.add(randomAskSpread);
+                        BigDecimal bidPrice =  middlePrice.subtract(randomBidSpread);
                         String avg = avgPosition.compareTo(ZERO) != 0 ? " : " + avgPosition.toString() : "";
 
                         //internal amount
