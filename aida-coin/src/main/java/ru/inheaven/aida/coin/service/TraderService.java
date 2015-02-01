@@ -634,12 +634,6 @@ public class TraderService {
                 spread = price.multiply(new BigDecimal("0.005")).setScale(8, HALF_UP);
         }
 
-        //ticker spread
-        BigDecimal tickerSpread = ticker.getAsk().subtract(ticker.getBid());
-        if (tickerSpread.compareTo(spread) > 0){
-            spread = tickerSpread;
-        }
-
         //min spread scale
         if (!exchangePair.getExchangeType().equals(OKCOIN) && exchangePair.getPair().contains("/USD")){
             if (spread.compareTo(new BigDecimal("0.03")) < 0){
@@ -655,6 +649,12 @@ public class TraderService {
                 : ZERO;
 
         spread = spread.multiply(ONE.add(volatility.multiply(BigDecimal.TEN)).pow(2)).setScale(8, HALF_UP);
+
+        //ticker spread
+        BigDecimal tickerSpread = ticker.getAsk().subtract(ticker.getBid()).abs();
+        if (tickerSpread.compareTo(spread) > 0){
+            spread = tickerSpread;
+        }
 
         return spread;
     }
