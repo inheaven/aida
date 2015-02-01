@@ -897,7 +897,9 @@ public class TraderService {
                         BigDecimal randomAskSpread = spread;
 
                         if (predictionIndex.compareTo(ZERO) != 0) {
-                            randomAskSpread = predictionIndex.compareTo(ZERO) > 0 ? random30(randomAskSpread) : randomMinus30(randomAskSpread);
+                            randomAskSpread = predictionIndex.compareTo(ZERO) > 0
+                                    ? random30(randomAskSpread)
+                                    : randomMinus30(randomAskSpread);
                         }
                         if (average.compareTo(ZERO) != 0 && avgPosition.compareTo(ZERO) != 0){
                             randomAskSpread = average.compareTo(avgPosition) > 0
@@ -905,7 +907,7 @@ public class TraderService {
                                     : randomMinus30(randomAskSpread);
                         }
                         if (OKCOIN.equals(trader.getExchange())){
-                            randomAskSpread =trader.getType().equals(LONG)
+                            randomAskSpread = trader.getType().equals(LONG)
                                     ? random30(randomAskSpread)
                                     : randomMinus30(randomAskSpread);
                         }
@@ -930,7 +932,9 @@ public class TraderService {
                         BigDecimal randomBidSpread = spread;
 
                         if (predictionIndex.compareTo(ZERO) != 0) {
-                            randomBidSpread = predictionIndex.compareTo(ZERO) > 0 ? randomMinus30(randomBidSpread) : random30(randomBidSpread);
+                            randomBidSpread = predictionIndex.compareTo(ZERO) > 0
+                                    ? randomMinus30(randomBidSpread)
+                                    : random30(randomBidSpread);
                         }
                         if (average.compareTo(ZERO) != 0 && avgPosition.compareTo(ZERO) != 0){
                             randomBidSpread = average.compareTo(avgPosition) > 0
@@ -939,14 +943,14 @@ public class TraderService {
                         }
                         if (OKCOIN.equals(trader.getExchange())){
                             randomBidSpread =trader.getType().equals(LONG)
-                                    ? random30(randomBidSpread)
-                                    : randomMinus30(randomBidSpread);
+                                    ? randomMinus30(randomBidSpread)
+                                    : random30(randomBidSpread);
                         }
 
                         randomBidSpread = randomBidSpread.add(spread.multiply(BigDecimal.valueOf(index-1)));
 
                         if (randomBidSpread.compareTo(ZERO) == 0){
-                            randomBidSpread = "USD".equals(currencyPair.counterSymbol)
+                            randomBidSpread = "`USD".equals(currencyPair.counterSymbol)
                                     ? new BigDecimal("0.01")
                                     : new BigDecimal("0.00000001");
                         }else {
