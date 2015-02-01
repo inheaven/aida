@@ -900,12 +900,17 @@ public class TraderService {
                         BigDecimal randomAskDelta = delta;
 
                         if (predictionIndex.compareTo(ZERO) != 0) {
-                            randomAskDelta = predictionIndex.compareTo(ZERO) > 0 ? random50(delta) : randomMinus50(delta);
+                            randomAskDelta = predictionIndex.compareTo(ZERO) > 0 ? random30(delta) : randomMinus30(delta);
                         }
                         if (average.compareTo(ZERO) != 0 && avgPosition.compareTo(ZERO) != 0){
                             randomAskDelta = average.compareTo(avgPosition) > 0
-                                    ? random50(randomAskDelta)
-                                    : randomMinus50(randomAskDelta);
+                                    ? random30(randomAskDelta)
+                                    : randomMinus30(randomAskDelta);
+                        }
+                        if (OKCOIN.equals(trader.getExchange())){
+                            randomAskDelta =trader.getType().equals(LONG)
+                                    ? random30(randomAskDelta)
+                                    : randomMinus30(randomAskDelta);
                         }
 
                         if (randomAskDelta.compareTo(ZERO) == 0){
@@ -926,12 +931,17 @@ public class TraderService {
                         BigDecimal randomBidDelta = delta;
 
                         if (predictionIndex.compareTo(ZERO) != 0) {
-                            randomBidDelta = predictionIndex.compareTo(ZERO) > 0 ? randomMinus50(delta) : random50(delta);
+                            randomBidDelta = predictionIndex.compareTo(ZERO) > 0 ? randomMinus30(delta) : random30(delta);
                         }
                         if (average.compareTo(ZERO) != 0 && avgPosition.compareTo(ZERO) != 0){
                             randomBidDelta = average.compareTo(avgPosition) > 0
-                                    ? randomMinus50(randomBidDelta)
-                                    : random50(randomBidDelta);
+                                    ? randomMinus30(randomBidDelta)
+                                    : random30(randomBidDelta);
+                        }
+                        if (OKCOIN.equals(trader.getExchange())){
+                            randomBidDelta =trader.getType().equals(LONG)
+                                    ? random30(randomBidDelta)
+                                    : randomMinus30(randomBidDelta);
                         }
 
                         if (randomBidDelta.compareTo(ZERO) == 0){
