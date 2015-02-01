@@ -897,7 +897,7 @@ public class TraderService {
                         }
 
                         //random ask delta
-                        BigDecimal randomAskDelta = delta;
+                        BigDecimal randomAskDelta = halfMinSpread;
 
                         if (predictionIndex.compareTo(ZERO) != 0) {
                             randomAskDelta = predictionIndex.compareTo(ZERO) > 0 ? random30(delta) : randomMinus30(delta);
@@ -912,6 +912,8 @@ public class TraderService {
                                     ? random30(randomAskDelta)
                                     : randomMinus30(randomAskDelta);
                         }
+
+                        randomAskDelta = randomAskDelta.add(halfMinSpread.multiply(BigDecimal.valueOf(index-1)));
 
                         if (randomAskDelta.compareTo(ZERO) == 0){
                             randomAskDelta = "USD".equals(currencyPair.counterSymbol)
@@ -928,7 +930,7 @@ public class TraderService {
                         }
 
                         //random bid delta
-                        BigDecimal randomBidDelta = delta;
+                        BigDecimal randomBidDelta = halfMinSpread;
 
                         if (predictionIndex.compareTo(ZERO) != 0) {
                             randomBidDelta = predictionIndex.compareTo(ZERO) > 0 ? randomMinus30(delta) : random30(delta);
@@ -943,6 +945,8 @@ public class TraderService {
                                     ? random30(randomBidDelta)
                                     : randomMinus30(randomBidDelta);
                         }
+
+                        randomBidDelta = randomBidDelta.add(halfMinSpread.multiply(BigDecimal.valueOf(index-1)));
 
                         if (randomBidDelta.compareTo(ZERO) == 0){
                             randomBidDelta = "USD".equals(currencyPair.counterSymbol)
