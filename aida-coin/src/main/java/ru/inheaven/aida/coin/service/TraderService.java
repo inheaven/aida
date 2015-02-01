@@ -144,7 +144,7 @@ public class TraderService {
 
             double spread;
             try {
-                spread = getMinSpread(ExchangePair.of(OKCOIN, "LTC/USD")).doubleValue();
+                spread = getSpread(ExchangePair.of(OKCOIN, "LTC/USD")).doubleValue();
             } catch (Exception e) {
                 return;
             }
@@ -611,8 +611,8 @@ public class TraderService {
         broadcast(null, equity);
     }
 
-    public BigDecimal getMinSpread(ExchangePair exchangePair){
-        BigDecimal minSpread;
+    public BigDecimal getSpread(ExchangePair exchangePair){
+        BigDecimal spread;
 
         Ticker ticker = getTicker(exchangePair);
         BigDecimal price = ticker.getLast();
@@ -620,33 +620,33 @@ public class TraderService {
         //bitfinex spread
         switch (exchangePair.getExchangeType()){
             case BITFINEX:
-                minSpread = price.multiply(new BigDecimal("0.008")).setScale(8, HALF_UP);
+                spread = price.multiply(new BigDecimal("0.008")).setScale(8, HALF_UP);
                 break;
             case OKCOIN:
                 if (exchangePair.getPair().contains("LTC/")){
-                    minSpread = price.multiply(new BigDecimal("0.0042")).setScale(8, HALF_UP);
+                    spread = price.multiply(new BigDecimal("0.0042")).setScale(8, HALF_UP);
                 }else{
-                    minSpread = price.multiply(new BigDecimal("0.011")).setScale(8, HALF_UP);
+                    spread = price.multiply(new BigDecimal("0.011")).setScale(8, HALF_UP);
                 }
 
                 break;
             default:
-                minSpread = price.multiply(new BigDecimal("0.013")).setScale(8, HALF_UP);
+                spread = price.multiply(new BigDecimal("0.013")).setScale(8, HALF_UP);
         }
 
         //ticker spread
         BigDecimal tickerSpread = ticker.getAsk().subtract(ticker.getBid());
-        if (tickerSpread.compareTo(minSpread) > 0){
-            minSpread = tickerSpread;
+        if (tickerSpread.compareTo(spread) > 0){
+            spread = tickerSpread;
         }
 
         //min spread scale
         if (!exchangePair.getExchangeType().equals(OKCOIN) && exchangePair.getPair().contains("/USD")){
-            if (minSpread.compareTo(new BigDecimal("0.03")) < 0){
-                minSpread = new BigDecimal("0.02").setScale(2, HALF_UP);
+            if (spread.compareTo(new BigDecimal("0.03")) < 0){
+                spread = new BigDecimal("0.02").setScale(2, HALF_UP);
             }
-        }else if (minSpread.compareTo(new BigDecimal("0.00000003")) < 0){
-            minSpread = new BigDecimal("0.00000002");
+        }else if (spread.compareTo(new BigDecimal("0.00000003")) < 0){
+            spread = new BigDecimal("0.00000002");
         }
 
         //volatility
@@ -654,9 +654,9 @@ public class TraderService {
                 ? volatilitySigmaMap.get(exchangePair).divide(ticker.getLast(), 8, HALF_UP)
                 : ZERO;
 
-        minSpread = minSpread.multiply(ONE.add(volatility.multiply(BigDecimal.TEN)).pow(2)).setScale(8, HALF_UP);
+        spread = spread.multiply(ONE.add(volatility.multiply(BigDecimal.TEN)).pow(2)).setScale(8, HALF_UP);
 
-        return minSpread;
+        return spread;
     }
 
     public BigDecimal getMinOrderVolume(ExchangePair exchangePair) {
@@ -689,7 +689,7 @@ public class TraderService {
         }
     }
 
-    public BigDecimal getMinOrderAmount(Trader trader, Ticker ticker){
+    public BigDecimal getOrderAmount(Trader trader, Ticker ticker){
         if (trader.isFuture()){
             return ONE;
         }
@@ -767,10 +767,10 @@ public class TraderService {
                     }
 
                     //min spread
-                    BigDecimal minSpread = getMinSpread(exchangePair);
+                    BigDecimal spread = getSpread(exchangePair);
 
                     //min order amount
-                    BigDecimal minOrderAmount = getMinOrderAmount(trader, ticker);
+                    BigDecimal orderAmount = getOrderAmount(trader, ticker);
 
                     //open orders
                     List<LimitOrder> openOrders = getOpenOrders(exchangeType).getOpenOrders();
@@ -784,7 +784,7 @@ public class TraderService {
 
                         if (currencyPair.equals(order.getCurrencyPair())
                                 && order.getLimitPrice().subtract(middlePrice).abs()
-                                .compareTo(minSpread.multiply(BigDecimal.valueOf(11))) > 0) {
+                                .compareTo(spread.multiply(BigDecimal.valueOf(11))) > 0) {
                             String orderId = order.getId().split("&")[0];
 
                             //update order status
@@ -813,7 +813,7 @@ public class TraderService {
                     BigDecimal internalAmount = ZERO;
 
                     //half min spread
-                    BigDecimal halfMinSpread = minSpread.divide(BigDecimal.valueOf(2), 8, ROUND_UP);
+                    BigDecimal halfSpread = spread.divide(BigDecimal.valueOf(2), 8, ROUND_UP);
 
                     //avg position
                     BigDecimal avgPosition = ZERO;
@@ -825,13 +825,13 @@ public class TraderService {
                         if (positions.getPositions().length > 0){
                             OkCoinCrossPosition p = positions.getPositions()[0];
 
-                            avgPosition = middlePrice.add(p.getBuyAmount().subtract(p.getSellAmount()).multiply(halfMinSpread));
+                            avgPosition = middlePrice.add(p.getBuyAmount().subtract(p.getSellAmount()).multiply(halfSpread));
                         }
                     }
 
                     //create order
                     for (int index = 1; index <= 11; ++index) {
-                        BigDecimal delta = halfMinSpread.multiply(BigDecimal.valueOf(index));
+                        BigDecimal delta = halfSpread.multiply(BigDecimal.valueOf(index));
 
                         //btc-e delta
                         if (BTCE.equals(trader.getExchange())){
@@ -842,7 +842,7 @@ public class TraderService {
 
                         //magic
                         BigDecimal spreadSumAmount = internalAmount;
-                        BigDecimal magic = delta.add(halfMinSpread.multiply(BigDecimal.valueOf(1.1)));
+                        BigDecimal magic = delta.add(halfSpread.multiply(BigDecimal.valueOf(1.1)));
 
                         for (LimitOrder order : openOrders) {
                             if ((trader.getType().equals(LONG) && (order.getId().contains("&2") || order.getId().contains("&4")))
@@ -855,13 +855,13 @@ public class TraderService {
                                 spreadSumAmount = spreadSumAmount.add(order.getTradableAmount());
                             }
                         }
-                        if (spreadSumAmount.compareTo(minOrderAmount.multiply(BigDecimal.valueOf(index*2 - 1))) >= 0) {
+                        if (spreadSumAmount.compareTo(orderAmount.multiply(BigDecimal.valueOf(index*2 - 1))) >= 0) {
                             continue;
                         }
 
                         //random ask
-                        BigDecimal askAmount = minOrderAmount;
-                        BigDecimal bidAmount = minOrderAmount;
+                        BigDecimal askAmount = orderAmount;
+                        BigDecimal bidAmount = orderAmount;
 
                         //random prediction
                         if (!trader.isFuture()) {
@@ -897,7 +897,7 @@ public class TraderService {
                         }
 
                         //random ask delta
-                        BigDecimal randomAskDelta = halfMinSpread;
+                        BigDecimal randomAskDelta = halfSpread;
 
                         if (predictionIndex.compareTo(ZERO) != 0) {
                             randomAskDelta = predictionIndex.compareTo(ZERO) > 0 ? random30(delta) : randomMinus30(delta);
@@ -913,7 +913,7 @@ public class TraderService {
                                     : randomMinus30(randomAskDelta);
                         }
 
-                        randomAskDelta = randomAskDelta.add(halfMinSpread.multiply(BigDecimal.valueOf(index-1)));
+                        randomAskDelta = randomAskDelta.add(halfSpread.multiply(BigDecimal.valueOf(index-1)));
 
                         if (randomAskDelta.compareTo(ZERO) == 0){
                             randomAskDelta = "USD".equals(currencyPair.counterSymbol)
@@ -930,7 +930,7 @@ public class TraderService {
                         }
 
                         //random bid delta
-                        BigDecimal randomBidDelta = halfMinSpread;
+                        BigDecimal randomBidDelta = halfSpread;
 
                         if (predictionIndex.compareTo(ZERO) != 0) {
                             randomBidDelta = predictionIndex.compareTo(ZERO) > 0 ? randomMinus30(delta) : random30(delta);
@@ -946,7 +946,7 @@ public class TraderService {
                                     : randomMinus30(randomBidDelta);
                         }
 
-                        randomBidDelta = randomBidDelta.add(halfMinSpread.multiply(BigDecimal.valueOf(index-1)));
+                        randomBidDelta = randomBidDelta.add(halfSpread.multiply(BigDecimal.valueOf(index-1)));
 
                         if (randomBidDelta.compareTo(ZERO) == 0){
                             randomBidDelta = "USD".equals(currencyPair.counterSymbol)
