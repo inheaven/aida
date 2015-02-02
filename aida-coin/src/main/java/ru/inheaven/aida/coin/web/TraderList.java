@@ -583,13 +583,18 @@ public class TraderList extends AbstractPage{
                             //noinspection unchecked
                             data3.add(new Point(futures.getEquity().get(i).getPrice().setScale(4, ROUND_UP),
                                     futures.getRealProfit().add(futures.getEquity().get(i).getAmount()).subtract(futures.getMargin()).setScale(4, ROUND_UP)));
+                        }
 
-                            if (((BigDecimal)data3.get(i).getX()).subtract(futures.getAvgPosition()).abs().doubleValue() < 0.01){
-                                data3.get(i).setColor(new HexColor("#62c462"));
+                        for(Point point : data3){
+                            if (((BigDecimal)point.getX()).subtract(avg).abs().doubleValue() < 0.01){
+                                point.setMarker(new Marker(true).setSymbol(new Symbol(Symbol.PredefinedSymbol.TRIANGLE)));
+                                break;
                             }
-
-                            if (((BigDecimal)data3.get(i).getX()).subtract(avg).abs().doubleValue() < 0.01){
-                                data3.get(i).setColor(new HexColor("#ee5f5b"));
+                        }
+                        for(Point point : data3){
+                            if (((BigDecimal)point.getX()).subtract(futures.getAvgPosition()).abs().doubleValue() < 0.01){
+                                point.setMarker(new Marker(true).setSymbol(new Symbol(Symbol.PredefinedSymbol.TRIANGLEDOWN)));
+                                break;
                             }
                         }
 
