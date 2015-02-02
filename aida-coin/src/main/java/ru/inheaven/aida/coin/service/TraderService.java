@@ -648,7 +648,9 @@ public class TraderService {
                 ? volatilitySigmaMap.get(exchangePair).divide(ticker.getLast(), 8, HALF_UP)
                 : ZERO;
 
-        spread = spread.multiply(ONE.add(volatility.multiply(BigDecimal.TEN)).pow(2)).setScale(8, HALF_UP);
+        if (volatility.compareTo(BigDecimal.valueOf(0.05)) > 0) {
+            spread = spread.multiply(ONE.add(volatility.multiply(BigDecimal.TEN)).pow(2)).setScale(8, HALF_UP);
+        }
 
         //ticker spread
         if (!exchangePair.getExchangeType().equals(OKCOIN)) {
