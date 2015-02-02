@@ -583,7 +583,7 @@ public class TraderList extends AbstractPage{
                                     futures.getRealProfit().add(futures.getEquity().get(i).getAmount()).subtract(futures.getMargin()).setScale(4, ROUND_UP)));
 
                             if (i == size/2){
-                                data3.get(i).setSelected(true);
+                                data3.get(i).setMarker(new Marker().setEnabled(true));
                             }
                         }
 
