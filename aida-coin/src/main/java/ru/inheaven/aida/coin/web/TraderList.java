@@ -567,7 +567,9 @@ public class TraderList extends AbstractPage{
                             data0.add(point);
                         }
 
-                        for (int i = 0; i < futures.getAsks().size(); ++i) {
+                        int size = futures.getAsks().size();
+
+                        for (int i = 0; i < size; ++i) {
                             //noinspection unchecked
                             data1.add(new Point(futures.getAsks().get(i).getPrice().setScale(4, ROUND_UP),
                                     futures.getAsks().get(i).getAmount().setScale(4, ROUND_UP)));
@@ -579,6 +581,10 @@ public class TraderList extends AbstractPage{
                             //noinspection unchecked
                             data3.add(new Point(futures.getEquity().get(i).getPrice().setScale(4, ROUND_UP),
                                     futures.getRealProfit().add(futures.getEquity().get(i).getAmount()).subtract(futures.getMargin()).setScale(4, ROUND_UP)));
+
+                            if (i == size/2){
+                                data3.get(i).setSelected(true);
+                            }
                         }
 
                         //render js

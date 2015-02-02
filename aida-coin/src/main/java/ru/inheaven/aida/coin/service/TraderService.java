@@ -139,7 +139,7 @@ public class TraderService {
             //balanceOKCoinWeekPosition("BTC/USD");
             balanceOKCoinWeekPosition("LTC/USD");
 
-            int levels = 120;
+            int levels = 200;
             int balancing = 11;
 
             double spread;
@@ -149,90 +149,93 @@ public class TraderService {
                 return;
             }
 
-            OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("ltc_usd", "this_week");
+            OkCoinCrossPositionResult week = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("ltc_usd", "this_week");
+
+            OkCoinCrossPositionResult quarter = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("ltc_usd", "quarter");
 
             double last = getTicker(ExchangePair.of(OKCOIN, "LTC/USD")).getLast().doubleValue();
             double delta = spread / last;
 
             Futures futures = new Futures();
 
-            if (positions.getPositions().length > 0){
-                OkCoinCrossPosition p = positions.getPositions()[0];
+            OkCoinCrossPosition p = week.getPositions()[0];
+            OkCoinCrossPosition q = quarter.getPositions()[0];
 
-                //long
 
-                double buyProfit =  p.getBuyProfitReal().doubleValue();
-                double sellProfit =  p.getSellProfitReal().doubleValue();
 
-                futures.setMargin(BigDecimal.valueOf(buyProfit + sellProfit));
-                futures.setRealProfit(p.getBuyProfitReal().add(p.getSellProfitReal()));
+            //long
 
-                int buyAmount = p.getBuyAmount().intValue();
-                int sellAmount = p.getSellAmount().intValue();
+            double buyProfit =  p.getBuyProfitReal().doubleValue() + q.getBuyProfitReal().doubleValue();
+            double sellProfit =  p.getSellProfitReal().doubleValue() + q.getSellProfitReal().doubleValue();
 
-                double price0 = last;
-                double price = last * (1 + delta);
+            int buyAmount = p.getBuyAmount().intValue() +  q.getBuyAmount().intValue();
+            int sellAmount = p.getSellAmount().intValue() + q.getSellAmount().intValue();
 
-                for (int i = 1; i < levels; ++i){
-                    buyProfit += (buyAmount - i) * (10/price0 - 10/price);
-                    futures.getBids().add(new Position(buyProfit, price));
+            futures.setMargin(BigDecimal.valueOf(buyProfit + sellProfit));
+            futures.setRealProfit(p.getBuyProfitReal().add(p.getSellProfitReal()));
 
-                    sellProfit -= (sellAmount + i) * (10/price0 - 10/price);
-                    futures.getAsks().add(new Position(sellProfit, price));
+            double price0 = last;
+            double price = last * (1 + delta);
 
-                    if (buyAmount - i < balancing){
-                        double b = (buyAmount + sellAmount)*0.6;
-                        buyAmount += b;
-                        sellAmount -= b;
-                    }
+            for (int i = 1; i < levels; ++i){
+                buyProfit += (buyAmount - i) * (10/price0 - 10/price);
+                futures.getBids().add(new Position(buyProfit, price));
 
-                    price0 = price;
-                    price *= (1 + delta);
+                sellProfit -= (sellAmount + i) * (10/price0 - 10/price);
+                futures.getAsks().add(new Position(sellProfit, price));
+
+                if (buyAmount - i < balancing){
+                    double b = (buyAmount + sellAmount)*0.6;
+                    buyAmount += b;
+                    sellAmount -= b;
                 }
 
-                //short
-
-                buyProfit =  p.getBuyProfitReal().doubleValue();
-                sellProfit =  p.getSellProfitReal().doubleValue();
-
-                buyAmount = p.getBuyAmount().intValue();
-                sellAmount = p.getSellAmount().intValue();
-
-                price0 = last;
-                price = last * (1 - delta);
-
-                for (int i = -1; i > -levels; --i){
-                    buyProfit += (buyAmount - i) * (10/price0 - 10/price);
-                    futures.getBids().add(new Position(buyProfit, price));
-
-                    sellProfit -= (sellAmount + i) * (10/price0 - 10/price);
-                    futures.getAsks().add(new Position(sellProfit, price));
-
-                    if (sellAmount + i < balancing){
-                        double b = (buyAmount + sellAmount)*0.6;
-                        buyAmount -= b;
-                        sellAmount += b;
-                    }
-
-                    price0 = price;
-                    price *= (1 - delta);
-                }
-
-                //sort
-                futures.getAsks().sort((o1, o2) -> o1.getPrice().compareTo(o2.getPrice()));
-                futures.getBids().sort((o1, o2) -> o1.getPrice().compareTo(o2.getPrice()));
-
-                for (int i = 0; i < 2*levels - 2; ++i){
-                    Position bid = futures.getBids().get(i);
-                    Position ask = futures.getAsks().get(i);
-
-                    futures.getEquity().add(new Position(ask.getAmount().add(bid.getAmount()).setScale(4, ROUND_UP),
-                            ask.getPrice().add(bid.getPrice()).divide(BigDecimal.valueOf(2), 4, ROUND_UP)));
-                }
-
-                //broadcast
-                broadcast(OKCOIN, futures);
+                price0 = price;
+                price *= (1 + delta);
             }
+
+            //short
+
+            buyProfit =  p.getBuyProfitReal().doubleValue() + q.getBuyProfitReal().doubleValue();
+            sellProfit =  p.getSellProfitReal().doubleValue() + q.getSellProfitReal().doubleValue();
+
+            buyAmount = p.getBuyAmount().intValue() +  q.getBuyAmount().intValue();
+            sellAmount = p.getSellAmount().intValue() + q.getSellAmount().intValue();
+
+            price0 = last;
+            price = last * (1 - delta);
+
+            for (int i = -1; i > -levels; --i){
+                buyProfit += (buyAmount - i) * (10/price0 - 10/price);
+                futures.getBids().add(new Position(buyProfit, price));
+
+                sellProfit -= (sellAmount + i) * (10/price0 - 10/price);
+                futures.getAsks().add(new Position(sellProfit, price));
+
+                if (sellAmount + i < balancing){
+                    double b = (buyAmount + sellAmount)*0.6;
+                    buyAmount -= b;
+                    sellAmount += b;
+                }
+
+                price0 = price;
+                price *= (1 - delta);
+            }
+
+            //sort
+            futures.getAsks().sort((o1, o2) -> o1.getPrice().compareTo(o2.getPrice()));
+            futures.getBids().sort((o1, o2) -> o1.getPrice().compareTo(o2.getPrice()));
+
+            for (int i = 0; i < 2*levels - 2; ++i){
+                Position bid = futures.getBids().get(i);
+                Position ask = futures.getAsks().get(i);
+
+                futures.getEquity().add(new Position(ask.getAmount().add(bid.getAmount()).setScale(4, ROUND_UP),
+                        ask.getPrice().add(bid.getPrice()).divide(BigDecimal.valueOf(2), 4, ROUND_UP)));
+            }
+
+            //broadcast
+            broadcast(OKCOIN, futures);
         } catch (IOException e) {
             log.error("scheduleFuturePosition error", e);
 
@@ -255,9 +258,6 @@ public class TraderService {
                 Ticker ticker = getTicker(ExchangePair.of(OKCOIN, pair));
 
                 boolean _short = tw.getSellAmount().intValue() < minAmount;
-
-                OkCoinCrossPositionResult quarter = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService())
-                        .getCrossPosition(pair.toLowerCase().replace("/", "_"), "quarter");
 
                 BigDecimal sumAmount = tw.getSellAmount().add(tw.getBuyAmount());
 
