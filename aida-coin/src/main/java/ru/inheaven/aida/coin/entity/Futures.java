@@ -15,6 +15,7 @@ public class Futures {
 
     private BigDecimal margin = BigDecimal.ZERO;
     private BigDecimal realProfit = BigDecimal.ZERO;
+    private BigDecimal avgPosition = BigDecimal.ZERO;
 
     public List<Position> getMargins() {
         return margins;
@@ -62,5 +63,13 @@ public class Futures {
 
     public void setRealProfit(BigDecimal realProfit) {
         this.realProfit = realProfit;
+    }
+
+    public BigDecimal getAvgPosition() {
+        return avgPosition;
+    }
+
+    public void setAvgPosition(BigDecimal avgPosition) {
+        this.avgPosition = avgPosition;
     }
 }

@@ -161,8 +161,6 @@ public class TraderService {
             OkCoinCrossPosition p = week.getPositions()[0];
             OkCoinCrossPosition q = quarter.getPositions()[0];
 
-
-
             //long
 
             double buyProfit =  p.getBuyProfitReal().doubleValue() + q.getBuyProfitReal().doubleValue();
@@ -173,6 +171,7 @@ public class TraderService {
 
             futures.setMargin(BigDecimal.valueOf(buyProfit + sellProfit));
             futures.setRealProfit(p.getBuyProfitReal().add(p.getSellProfitReal()));
+            futures.setAvgPosition(BigDecimal.valueOf(last).add(p.getBuyAmount().subtract(p.getSellAmount()).multiply(BigDecimal.valueOf(spread))));
 
             double price0 = last;
             double price = last * (1 + delta);
@@ -823,11 +822,8 @@ public class TraderService {
                         OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN)
                                 .getPollingTradeService()).getCrossPosition("ltc_usd", "this_week");
 
-                        if (positions.getPositions().length > 0){
-                            OkCoinCrossPosition p = positions.getPositions()[0];
-
-                            avgPosition = middlePrice.add(p.getBuyAmount().subtract(p.getSellAmount()).multiply(spread));
-                        }
+                        OkCoinCrossPosition p = positions.getPositions()[0];
+                        avgPosition = middlePrice.add(p.getBuyAmount().subtract(p.getSellAmount()).multiply(spread));
                     }
 
                     //create order
@@ -944,7 +940,7 @@ public class TraderService {
                                     : random30(randomBidSpread);
                         }
                         if (OKCOIN.equals(trader.getExchange())){
-                            randomBidSpread =trader.getType().equals(LONG)
+                            randomBidSpread = trader.getType().equals(LONG)
                                     ? randomMinus30(randomBidSpread)
                                     : random30(randomBidSpread);
                         }

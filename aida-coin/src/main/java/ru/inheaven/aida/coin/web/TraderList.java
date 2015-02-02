@@ -569,6 +569,8 @@ public class TraderList extends AbstractPage{
 
                         int size = futures.getAsks().size();
 
+                        BigDecimal avg = traderService.getAverage(ltcUsd);
+
                         for (int i = 0; i < size; ++i) {
                             //noinspection unchecked
                             data1.add(new Point(futures.getAsks().get(i).getPrice().setScale(4, ROUND_UP),
@@ -582,8 +584,12 @@ public class TraderList extends AbstractPage{
                             data3.add(new Point(futures.getEquity().get(i).getPrice().setScale(4, ROUND_UP),
                                     futures.getRealProfit().add(futures.getEquity().get(i).getAmount()).subtract(futures.getMargin()).setScale(4, ROUND_UP)));
 
-                            if (i == size/2){
-                                data3.get(i).setMarker(new Marker().setEnabled(true));
+                            if (((BigDecimal)data3.get(i).getX()).subtract(futures.getAvgPosition()).abs().doubleValue() < 0.01){
+                                data3.get(i).setColor(new HexColor("#62c462"));
+                            }
+
+                            if (((BigDecimal)data3.get(i).getX()).subtract(avg).abs().doubleValue() < 0.01){
+                                data3.get(i).setColor(new HexColor("#ee5f5b"));
                             }
                         }
 
