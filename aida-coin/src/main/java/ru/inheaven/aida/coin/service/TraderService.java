@@ -930,18 +930,18 @@ public class TraderService {
 
 //                        if (OKCOIN.equals(trader.getExchange()) && index > 1){
 //                            randomBidSpread = trader.getType().equals(LONG)
-//                                    ? randomMinus50(randomBidSpread)
-//                                    : random50(randomBidSpread);
+//                                    ? random50(randomBidSpread)
+//                                    : randomMinus50(randomBidSpread);
 //                        }
                         if (predictionIndex.compareTo(ZERO) != 0) {
                             randomBidSpread = predictionIndex.compareTo(ZERO) > 0
-                                    ? randomMinus50(randomBidSpread)
-                                    : random50(randomBidSpread);
+                                    ? random50(randomBidSpread)
+                                    : randomMinus50(randomBidSpread);
                         }
                         if (average.compareTo(ZERO) != 0 && avgPosition.compareTo(ZERO) != 0 && index > 1){
                             randomBidSpread = average.compareTo(avgPosition) > 0
-                                    ? randomMinus50(randomBidSpread)
-                                    : random50(randomBidSpread);
+                                    ? random50(randomBidSpread)
+                                    : randomMinus50(randomBidSpread);
                         }
 
                         randomBidSpread = randomBidSpread.add(spread.multiply(BigDecimal.valueOf(index-1)));
