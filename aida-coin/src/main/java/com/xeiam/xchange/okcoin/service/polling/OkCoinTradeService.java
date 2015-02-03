@@ -49,14 +49,20 @@ public class OkCoinTradeService extends OkCoinTradeServiceRaw implements Polling
                 orderResults.add(orderResult);
             }
 
-            orderResult = getOrder(-1, OkCoinAdapters.adaptSymbol(symbol), "this_week", 2);
-            if (orderResult.getOrders().length > 0) {
-                orderResults.add(orderResult);
-            }
+            for (int i = 2; i < 50; ++i) {
+                if (orderResult.getOrders().length == 50) {
+                    orderResult = getOrder(-1, OkCoinAdapters.adaptSymbol(symbol), "this_week", i);
 
-            orderResult = getOrder(-1, OkCoinAdapters.adaptSymbol(symbol), "this_week", 3);
-            if (orderResult.getOrders().length > 0) {
-                orderResults.add(orderResult);
+                    if (orderResult.getOrders().length > 0) {
+                        orderResults.add(orderResult);
+                    }
+                }else {
+                    if (orderResult.getOrders().length > 50){
+                        throw new RuntimeException("Getting order max page size error");
+                    }
+
+                    break;
+                }
             }
         }
 

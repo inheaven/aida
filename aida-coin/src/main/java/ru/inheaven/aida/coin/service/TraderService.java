@@ -290,9 +290,13 @@ public class TraderService {
 
     public void trade(ExchangeType exchangeType){
         try {
+            long time = System.currentTimeMillis();
+
             updateAccountInfo(exchangeType);
             updateOpenOrders(exchangeType);
             updateTicker(exchangeType);
+
+            log.info("trade data update time: {} ms", System.currentTimeMillis() - time);
 
             tradeAlpha(exchangeType);
 
@@ -787,7 +791,7 @@ public class TraderService {
 
                         if (currencyPair.equals(order.getCurrencyPair())
                                 && order.getLimitPrice().subtract(middlePrice).abs()
-                                .compareTo(spread.multiply(BigDecimal.valueOf(22))) > 0) {
+                                .compareTo(spread.multiply(BigDecimal.valueOf(150))) > 0) {
                             String orderId = order.getId().split("&")[0];
 
                             //update order status
