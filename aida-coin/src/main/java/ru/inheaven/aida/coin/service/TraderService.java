@@ -893,23 +893,23 @@ public class TraderService {
 
                         //random shift
                         int shift = 0;
-                        if (predictionIndex.compareTo(ZERO) != 0) {
+                        if (index > 2 && predictionIndex.compareTo(ZERO) != 0) {
                             shift += predictionIndex.compareTo(ZERO) > 0 ? 1 :  -1;
                         }
-                        if (average.compareTo(ZERO) != 0 && avgPosition.compareTo(ZERO) != 0 && index > 1){
+                        if (index > 2 && average.compareTo(ZERO) != 0 && avgPosition.compareTo(ZERO) != 0){
                             shift += average.compareTo(avgPosition) > 0 ? 1 : - 1;
                         }
 
                         //random ask delta
-                        BigDecimal randomAskSpread = spread;
+                        BigDecimal randomAskShift = spread;
                         switch (shift){
-                            case -2: randomAskSpread = random80(spread).negate(); break;
-                            case -1: randomAskSpread = random50(spread).negate(); break;
-                            case 1: randomAskSpread = random50(spread); break;
-                            case 2: randomAskSpread = random80(spread); break;
+                            case -2: randomAskShift = random100(spread).negate(); break;
+                            case -1: randomAskShift = random50(spread).negate(); break;
+                            case 1: randomAskShift = random50(spread); break;
+                            case 2: randomAskShift = random100(spread); break;
                         }
 
-                        randomAskSpread = spread.multiply(BigDecimal.valueOf(index-1)).add(randomAskSpread);
+                        BigDecimal randomAskSpread = spread.multiply(BigDecimal.valueOf(index-1)).add(randomAskShift);
 
                         if (randomAskSpread.compareTo(ZERO) == 0){
                             randomAskSpread = "USD".equals(currencyPair.counterSymbol)
@@ -926,15 +926,15 @@ public class TraderService {
                         }
 
                         //random bid delta
-                        BigDecimal randomBidSpread = spread;
+                        BigDecimal randomBidShift = spread;
                         switch (shift){
-                            case -2: randomBidSpread = random80(spread); break;
-                            case -1: randomBidSpread = random50(spread); break;
-                            case 1: randomBidSpread = random50(spread).negate(); break;
-                            case 2: randomBidSpread = random80(spread).negate(); break;
+                            case -2: randomBidShift = random100(spread); break;
+                            case -1: randomBidShift = random50(spread); break;
+                            case 1: randomBidShift = random50(spread).negate(); break;
+                            case 2: randomBidShift = random100(spread).negate(); break;
                         }
 
-                        randomBidSpread = spread.multiply(BigDecimal.valueOf(index-1)).add(randomBidSpread);
+                        BigDecimal randomBidSpread = spread.multiply(BigDecimal.valueOf(index-1)).add(randomBidShift);
 
                         if (randomBidSpread.compareTo(ZERO) == 0){
                             randomBidSpread = "`USD".equals(currencyPair.counterSymbol)
