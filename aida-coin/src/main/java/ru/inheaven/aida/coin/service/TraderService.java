@@ -893,11 +893,11 @@ public class TraderService {
 
                         //random ask delta
                         BigDecimal randomAskSpread = spread;
-                        if (OKCOIN.equals(trader.getExchange()) && index > 1){
-                            randomAskSpread = trader.getType().equals(LONG)
-                                    ? random50(randomAskSpread)
-                                    : randomMinus50(randomAskSpread);
-                        }
+//                        if (OKCOIN.equals(trader.getExchange()) && index > 1){
+//                            randomAskSpread = trader.getType().equals(LONG)
+//                                    ? random50(randomAskSpread)
+//                                    : randomMinus50(randomAskSpread);
+//                        }
                         if (predictionIndex.compareTo(ZERO) != 0) {
                             randomAskSpread = predictionIndex.compareTo(ZERO) > 0
                                     ? random50(randomAskSpread)
@@ -928,11 +928,11 @@ public class TraderService {
                         //random bid delta
                         BigDecimal randomBidSpread = spread;
 
-                        if (OKCOIN.equals(trader.getExchange()) && index > 1){
-                            randomBidSpread = trader.getType().equals(LONG)
-                                    ? randomMinus50(randomBidSpread)
-                                    : random50(randomBidSpread);
-                        }
+//                        if (OKCOIN.equals(trader.getExchange()) && index > 1){
+//                            randomBidSpread = trader.getType().equals(LONG)
+//                                    ? randomMinus50(randomBidSpread)
+//                                    : random50(randomBidSpread);
+//                        }
                         if (predictionIndex.compareTo(ZERO) != 0) {
                             randomBidSpread = predictionIndex.compareTo(ZERO) > 0
                                     ? randomMinus50(randomBidSpread)
