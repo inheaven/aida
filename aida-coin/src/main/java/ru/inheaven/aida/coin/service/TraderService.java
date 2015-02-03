@@ -891,25 +891,25 @@ public class TraderService {
                             //[check future create order balance here]
                         }
 
-                        //random ask delta
-                        BigDecimal randomAskSpread = spread;
-//                        if (OKCOIN.equals(trader.getExchange()) && index > 1){
-//                            randomAskSpread = trader.getType().equals(LONG)
-//                                    ? random50(randomAskSpread)
-//                                    : randomMinus50(randomAskSpread);
-//                        }
+                        //random shift
+                        int shift = 0;
                         if (predictionIndex.compareTo(ZERO) != 0) {
-                            randomAskSpread = predictionIndex.compareTo(ZERO) > 0
-                                    ? random50(randomAskSpread)
-                                    : randomMinus50(randomAskSpread);
+                            shift += predictionIndex.compareTo(ZERO) > 0 ? 1 :  -1;
                         }
                         if (average.compareTo(ZERO) != 0 && avgPosition.compareTo(ZERO) != 0 && index > 1){
-                            randomAskSpread = average.compareTo(avgPosition) > 0
-                                    ? random50(randomAskSpread)
-                                    : randomMinus50(randomAskSpread);
+                            shift += average.compareTo(avgPosition) > 0 ? 1 : - 1;
                         }
 
-                        randomAskSpread = randomAskSpread.add(spread.multiply(BigDecimal.valueOf(index-1)));
+                        //random ask delta
+                        BigDecimal randomAskSpread = spread;
+                        switch (shift){
+                            case -2: randomAskSpread = random80(spread).negate(); break;
+                            case -1: randomAskSpread = random50(spread).negate(); break;
+                            case 1: randomAskSpread = random50(spread); break;
+                            case 2: randomAskSpread = random80(spread); break;
+                        }
+
+                        randomAskSpread = spread.multiply(BigDecimal.valueOf(index-1)).add(randomAskSpread);
 
                         if (randomAskSpread.compareTo(ZERO) == 0){
                             randomAskSpread = "USD".equals(currencyPair.counterSymbol)
@@ -927,24 +927,14 @@ public class TraderService {
 
                         //random bid delta
                         BigDecimal randomBidSpread = spread;
-
-//                        if (OKCOIN.equals(trader.getExchange()) && index > 1){
-//                            randomBidSpread = trader.getType().equals(LONG)
-//                                    ? random50(randomBidSpread)
-//                                    : randomMinus50(randomBidSpread);
-//                        }
-                        if (predictionIndex.compareTo(ZERO) != 0) {
-                            randomBidSpread = predictionIndex.compareTo(ZERO) > 0
-                                    ? random50(randomBidSpread)
-                                    : randomMinus50(randomBidSpread);
-                        }
-                        if (average.compareTo(ZERO) != 0 && avgPosition.compareTo(ZERO) != 0 && index > 1){
-                            randomBidSpread = average.compareTo(avgPosition) > 0
-                                    ? random50(randomBidSpread)
-                                    : randomMinus50(randomBidSpread);
+                        switch (shift){
+                            case -2: randomBidSpread = random80(spread); break;
+                            case -1: randomBidSpread = random50(spread); break;
+                            case 1: randomBidSpread = random50(spread).negate(); break;
+                            case 2: randomBidSpread = random80(spread).negate(); break;
                         }
 
-                        randomBidSpread = randomBidSpread.add(spread.multiply(BigDecimal.valueOf(index-1)));
+                        randomBidSpread = spread.multiply(BigDecimal.valueOf(index-1)).add(randomBidSpread);
 
                         if (randomBidSpread.compareTo(ZERO) == 0){
                             randomBidSpread = "`USD".equals(currencyPair.counterSymbol)
