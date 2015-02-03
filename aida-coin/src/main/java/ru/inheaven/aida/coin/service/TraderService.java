@@ -103,14 +103,19 @@ public class TraderService {
         trade(OKCOIN);
     }
 
-    @Schedule(second = "*/30", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/5", minute="*", hour="*", persistent=false)
+    public void scheduleUpdateFuture(){
+        update(OKCOIN);
+    }
+
+    @Schedule(second = "*", minute="*/1", hour="*", persistent=false)
     public void scheduleTrade(){
-        trade(BITTREX);
-        trade(CRYPTSY);
-        trade(BTCE);
-        trade(BTER);
-        trade(CEXIO);
-        trade(BITFINEX);
+        updateAndTrade(BITTREX);
+        updateAndTrade(CRYPTSY);
+        updateAndTrade(BTCE);
+        updateAndTrade(BTER);
+        updateAndTrade(CEXIO);
+        updateAndTrade(BITFINEX);
     }
 
     @Schedule(second = "0", minute="*", hour="*", persistent=false)
@@ -292,23 +297,37 @@ public class TraderService {
         try {
             long time = System.currentTimeMillis();
 
-            updateAccountInfo(exchangeType);
             updateOpenOrders(exchangeType);
             updateTicker(exchangeType);
 
-            log.info("trade data update time: {} ms", System.currentTimeMillis() - time);
+            log.info("open order and ticker data update time: {} ms", System.currentTimeMillis() - time);
 
             tradeAlpha(exchangeType);
-
-            updateClosedOrders(exchangeType);
-            updateEquity(exchangeType);
-            updateEquity();
         } catch (Exception e) {
             log.error("Schedule trade error", e);
 
             //noinspection ThrowableResultOfMethodCallIgnored
             broadcast(exchangeType, exchangeType.name() + ": " + Throwables.getRootCause(e).getMessage());
         }
+    }
+
+    public void update(ExchangeType exchangeType){
+        try {
+            updateAccountInfo(exchangeType);
+            updateClosedOrders(exchangeType);
+            updateEquity(exchangeType);
+            updateEquity();
+        } catch (Exception e) {
+            log.error("Schedule update error", e);
+
+            //noinspection ThrowableResultOfMethodCallIgnored
+            broadcast(exchangeType, exchangeType.name() + ": " + Throwables.getRootCause(e).getMessage());
+        }
+    }
+
+    public void updateAndTrade(ExchangeType exchangeType){
+        update(exchangeType);
+        trade(exchangeType);
     }
 
     public void scheduleBalanceHistory(){
