@@ -99,6 +99,7 @@ public class TraderService {
     }
 
     @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
+    @Lock(LockType.READ)
     public void scheduleTradeFuture(){
         trade(OKCOIN);
     }
