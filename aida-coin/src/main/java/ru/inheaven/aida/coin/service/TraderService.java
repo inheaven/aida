@@ -298,9 +298,9 @@ public class TraderService {
             long time = System.currentTimeMillis();
 
             updateOpenOrders(exchangeType);
-            updateTicker(exchangeType);
+            updateTicker(exchangeType, false);
 
-            log.info("open order and ticker data update time: {} ms", System.currentTimeMillis() - time);
+            log.info("{}:  open order and ticker data update time: {} ms", exchangeType.name(), System.currentTimeMillis() - time);
 
             tradeAlpha(exchangeType);
         } catch (Exception e) {
@@ -313,6 +313,7 @@ public class TraderService {
 
     public void update(ExchangeType exchangeType){
         try {
+            updateTicker(exchangeType, true);
             updateAccountInfo(exchangeType);
             updateClosedOrders(exchangeType);
             updateEquity(exchangeType);
@@ -433,7 +434,7 @@ public class TraderService {
         broadcast(exchangeType, openOrders);
     }
 
-    private void updateTicker(ExchangeType exchangeType) throws Exception {
+    private void updateTicker(ExchangeType exchangeType, boolean save) throws Exception {
         List<Trader> traders = traderBean.getTraders(exchangeType);
 
         for (Trader trader : traders) {
@@ -455,17 +456,19 @@ public class TraderService {
                         Ticker previous = tickerMap.put(ep, ticker);
 
                         //ticker history
-                        TickerHistory tickerHistory = new TickerHistory(exchangeType, trader.getPair(), ticker.getLast(),
-                                ticker.getBid(), ticker.getAsk(), ticker.getVolume(),
-                                getVolatilityIndex(ep), getPredictionIndex(ep));
+                        if (save) {
+                            TickerHistory tickerHistory = new TickerHistory(exchangeType, trader.getPair(), ticker.getLast(),
+                                    ticker.getBid(), ticker.getAsk(), ticker.getVolume(),
+                                    getVolatilityIndex(ep), getPredictionIndex(ep));
 
-                        if (previous == null || previous.getLast().compareTo(ticker.getLast()) != 0){
-                            traderBean.save(tickerHistory);
-                        }
+                            if (previous == null || previous.getLast().compareTo(ticker.getLast()) != 0){
+                                traderBean.save(tickerHistory);
+                            }
 
-                        if (previous == null || previous.getAsk().compareTo(ticker.getAsk()) != 0
-                                || previous.getBid().compareTo(ticker.getBid()) != 0){
-                            broadcast(exchangeType, tickerHistory);
+                            if (previous == null || previous.getAsk().compareTo(ticker.getAsk()) != 0
+                                    || previous.getBid().compareTo(ticker.getBid()) != 0){
+                                broadcast(exchangeType, tickerHistory);
+                            }
                         }
                     }
                 }
