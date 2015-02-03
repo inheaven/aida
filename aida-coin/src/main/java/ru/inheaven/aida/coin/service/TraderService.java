@@ -899,15 +899,15 @@ public class TraderService {
                                     ? random30(randomAskSpread)
                                     : randomMinus30(randomAskSpread);
                         }
-                        if (average.compareTo(ZERO) != 0 && avgPosition.compareTo(ZERO) != 0){
+                        if (average.compareTo(ZERO) != 0 && avgPosition.compareTo(ZERO) != 0 && index > 1){
                             randomAskSpread = average.compareTo(avgPosition) > 0
-                                    ? random30(randomAskSpread)
-                                    : randomMinus30(randomAskSpread);
+                                    ? random50(randomAskSpread)
+                                    : randomMinus50(randomAskSpread);
                         }
-                        if (OKCOIN.equals(trader.getExchange())){
+                        if (OKCOIN.equals(trader.getExchange()) && index > 1){
                             randomAskSpread = trader.getType().equals(LONG)
-                                    ? random30(randomAskSpread)
-                                    : randomMinus30(randomAskSpread);
+                                    ? random50(randomAskSpread)
+                                    : randomMinus50(randomAskSpread);
                         }
 
                         randomAskSpread = randomAskSpread.add(spread.multiply(BigDecimal.valueOf(index-1)));
@@ -934,15 +934,15 @@ public class TraderService {
                                     ? randomMinus30(randomBidSpread)
                                     : random30(randomBidSpread);
                         }
-                        if (average.compareTo(ZERO) != 0 && avgPosition.compareTo(ZERO) != 0){
+                        if (average.compareTo(ZERO) != 0 && avgPosition.compareTo(ZERO) != 0 && index > 1){
                             randomBidSpread = average.compareTo(avgPosition) > 0
-                                    ? randomMinus30(randomBidSpread)
-                                    : random30(randomBidSpread);
+                                    ? randomMinus50(randomBidSpread)
+                                    : random50(randomBidSpread);
                         }
-                        if (OKCOIN.equals(trader.getExchange())){
+                        if (OKCOIN.equals(trader.getExchange()) && index > 1){
                             randomBidSpread = trader.getType().equals(LONG)
-                                    ? randomMinus30(randomBidSpread)
-                                    : random30(randomBidSpread);
+                                    ? randomMinus50(randomBidSpread)
+                                    : random50(randomBidSpread);
                         }
 
                         randomBidSpread = randomBidSpread.add(spread.multiply(BigDecimal.valueOf(index-1)));
