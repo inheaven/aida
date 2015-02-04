@@ -927,7 +927,7 @@ public class TraderService {
                             shift += average.compareTo(avgPosition) > 0 ? 1 : - 1;
                         }
                         if (index > 2 && trader.isFuture()){
-                            shift += LONG.equals(trader.getType()) ? 1 : - 1;
+                            shift += SHORT.equals(trader.getType()) ? 1 : - 1;
                         }
 
                         //random ask delta
