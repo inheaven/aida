@@ -926,14 +926,19 @@ public class TraderService {
                         if (index > 2 && average.compareTo(ZERO) != 0 && avgPosition.compareTo(ZERO) != 0){
                             shift += average.compareTo(avgPosition) > 0 ? 1 : - 1;
                         }
+                        if (index > 2 && trader.isFuture()){
+                            shift += LONG.equals(trader.getType()) ? 1 : - 1;
+                        }
 
                         //random ask delta
                         BigDecimal randomAskShift = spread;
                         switch (shift){
-                            case -2: randomAskShift = random100(spread).negate(); break;
-                            case -1: randomAskShift = random50(spread).negate(); break;
-                            case 1: randomAskShift = random50(spread); break;
-                            case 2: randomAskShift = random100(spread); break;
+                            case -3: randomAskShift = random100(spread).negate(); break;
+                            case -2: randomAskShift = random50(spread).negate(); break;
+                            case -1: randomAskShift = random30(spread).negate(); break;
+                            case 1: randomAskShift = random30(spread); break;
+                            case 2: randomAskShift = random50(spread); break;
+                            case 3: randomAskShift = random100(spread); break;
                         }
 
                         BigDecimal randomAskSpread = spread.multiply(BigDecimal.valueOf(index-1)).add(randomAskShift);
@@ -955,10 +960,12 @@ public class TraderService {
                         //random bid delta
                         BigDecimal randomBidShift = spread;
                         switch (shift){
-                            case -2: randomBidShift = random100(spread); break;
-                            case -1: randomBidShift = random50(spread); break;
-                            case 1: randomBidShift = random50(spread).negate(); break;
-                            case 2: randomBidShift = random100(spread).negate(); break;
+                            case -3: randomBidShift = random100(spread); break;
+                            case -2: randomBidShift = random50(spread); break;
+                            case -1: randomBidShift = random30(spread); break;
+                            case 1: randomBidShift = random30(spread).negate(); break;
+                            case 2: randomBidShift = random50(spread).negate(); break;
+                            case 3: randomBidShift = random100(spread).negate(); break;
                         }
 
                         BigDecimal randomBidSpread = spread.multiply(BigDecimal.valueOf(index-1)).add(randomBidShift);
