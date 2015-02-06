@@ -570,19 +570,20 @@ public class TraderList extends AbstractPage{
                         int size = futures.getAsks().size();
 
                         BigDecimal avg = traderService.getAverage(ltcUsd);
+                        BigDecimal ltcEquity = traderService.getAccountInfo(OKCOIN).getBalance("LTC");
 
                         for (int i = 0; i < size; ++i) {
                             //noinspection unchecked
                             data1.add(new Point(futures.getAsks().get(i).getPrice().setScale(4, ROUND_UP),
-                                    futures.getAsks().get(i).getAmount().setScale(4, ROUND_UP)));
+                                    futures.getAsks().get(i).getAmount().add(ltcEquity).setScale(4, ROUND_UP)));
 
                             //noinspection unchecked
                             data2.add(new Point(futures.getBids().get(i).getPrice().setScale(4, ROUND_UP),
-                                    futures.getBids().get(i).getAmount().setScale(4, ROUND_UP)));
+                                    futures.getBids().get(i).getAmount().add(ltcEquity).setScale(4, ROUND_UP)));
 
                             //noinspection unchecked
                             data3.add(new Point(futures.getEquity().get(i).getPrice().setScale(4, ROUND_UP),
-                                    futures.getRealProfit().add(futures.getEquity().get(i).getAmount()).subtract(futures.getMargin()).setScale(4, ROUND_UP))
+                                    futures.getEquity().get(i).getAmount().add(ltcEquity).setScale(4, ROUND_UP))
                                     .setMarker(new Marker(false)));
                         }
 
