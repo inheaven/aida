@@ -589,13 +589,13 @@ public class TraderList extends AbstractPage{
 
                         for(Point point : data3){
                             if (((BigDecimal)point.getX()).subtract(avg).abs().doubleValue() < 0.01){
-                                point.setMarker(new Marker(true).setSymbol(new Symbol(Symbol.PredefinedSymbol.TRIANGLE)));
+                                point.setMarker(new Marker(true).setSymbol(new Symbol(Symbol.PredefinedSymbol.TRIANGLEDOWN)));
                                 break;
                             }
                         }
                         for(Point point : data3){
                             if (((BigDecimal)point.getX()).subtract(futures.getAvgPosition()).abs().doubleValue() < 0.01){
-                                point.setMarker(new Marker(true).setSymbol(new Symbol(Symbol.PredefinedSymbol.TRIANGLEDOWN)));
+                                point.setMarker(new Marker(true).setSymbol(new Symbol(Symbol.PredefinedSymbol.TRIANGLE)));
                                 break;
                             }
                         }
