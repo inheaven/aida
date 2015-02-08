@@ -650,7 +650,7 @@ public class TraderService {
                 break;
             case OKCOIN:
                 if (exchangePair.getPair().contains("LTC/")){
-                    spread = price.multiply(new BigDecimal("0.0022")).setScale(8, HALF_UP);
+                    spread = price.multiply(new BigDecimal("0.0011")).setScale(8, HALF_UP);
                 }else{
                     spread = price.multiply(new BigDecimal("0.005")).setScale(8, HALF_UP);
                 }
@@ -674,7 +674,7 @@ public class TraderService {
                 ? volatilitySigmaMap.get(exchangePair).divide(ticker.getLast(), 8, HALF_UP)
                 : ZERO;
 
-        if (volatility.compareTo(BigDecimal.valueOf(0.05)) > 0) {
+        if (volatility.compareTo(BigDecimal.valueOf(0.03)) > 0) {
             spread = spread.multiply(ONE.add(volatility.multiply(BigDecimal.TEN)).pow(2)).setScale(8, HALF_UP);
         }
 
