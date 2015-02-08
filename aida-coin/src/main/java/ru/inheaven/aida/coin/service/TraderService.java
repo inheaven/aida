@@ -145,7 +145,7 @@ public class TraderService {
             //balanceOKCoinWeekPosition("BTC/USD");
             balanceOKCoinWeekPosition("LTC/USD");
 
-            int levels = 200;
+            int levels = 150;
             int balancing = 11;
 
             double spread;
@@ -169,8 +169,8 @@ public class TraderService {
 
             //long
 
-            double buyProfit =  p.getBuyProfitReal().doubleValue() + q.getBuyProfitReal().doubleValue();
-            double sellProfit =  p.getSellProfitReal().doubleValue() + q.getSellProfitReal().doubleValue();
+            double buyProfit = 0;
+            double sellProfit = 0;
 
             int buyAmount = p.getBuyAmount().intValue() +  q.getBuyAmount().intValue();
             int sellAmount = p.getSellAmount().intValue() + q.getSellAmount().intValue();
@@ -201,8 +201,8 @@ public class TraderService {
 
             //short
 
-            buyProfit =  p.getBuyProfitReal().doubleValue() + q.getBuyProfitReal().doubleValue();
-            sellProfit =  p.getSellProfitReal().doubleValue() + q.getSellProfitReal().doubleValue();
+            buyProfit =  0;
+            sellProfit =  0;
 
             buyAmount = p.getBuyAmount().intValue() +  q.getBuyAmount().intValue();
             sellAmount = p.getSellAmount().intValue() + q.getSellAmount().intValue();
