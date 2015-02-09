@@ -1,8 +1,7 @@
 package com.xeiam.xchange.cexio.service.polling;
 
-import com.xeiam.xchange.ExchangeSpecification;
+import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.cexio.CexIOAuthenticated;
-import com.xeiam.xchange.cexio.CexIOUtils;
 import com.xeiam.xchange.cexio.dto.trade.CexIOOpenOrders;
 import com.xeiam.xchange.cexio.dto.trade.CexIOOrder;
 import com.xeiam.xchange.cexio.service.CexIODigest;
@@ -28,15 +27,16 @@ public class CexIOTradeServiceRaw extends CexIOBasePollingService {
   private ParamsDigest signatureCreator;
 
   /**
-   * Initialize common properties from the exchange specification
-   * 
-   * @param exchangeSpecification The {@link com.xeiam.xchange.ExchangeSpecification}
+   * Constructor
+   *
+   * @param exchange
    */
-  public CexIOTradeServiceRaw(ExchangeSpecification exchangeSpecification) {
+  public CexIOTradeServiceRaw(Exchange exchange) {
 
-    super(exchangeSpecification);
-    cexIOAuthenticated = RestProxyFactory.createProxy(CexIOAuthenticated.class, exchangeSpecification.getSslUri());
-    signatureCreator = CexIODigest.createInstance(exchangeSpecification.getSecretKey(), exchangeSpecification.getUserName(), exchangeSpecification.getApiKey());
+    super(exchange);
+    cexIOAuthenticated = RestProxyFactory.createProxy(CexIOAuthenticated.class, exchange.getExchangeSpecification().getSslUri());
+    signatureCreator = CexIODigest.createInstance(exchange.getExchangeSpecification().getSecretKey(), exchange.getExchangeSpecification()
+        .getUserName(), exchange.getExchangeSpecification().getApiKey());
   }
 
   public List<CexIOOrder> getCexIOOpenOrders(CurrencyPair currencyPair) throws IOException {
@@ -46,7 +46,8 @@ public class CexIOTradeServiceRaw extends CexIOBasePollingService {
     String tradableIdentifier = currencyPair.baseSymbol;
     String transactionCurrency = currencyPair.counterSymbol;
 
-    CexIOOpenOrders openOrders = cexIOAuthenticated.getOpenOrders(tradableIdentifier, transactionCurrency, exchangeSpecification.getApiKey(), signatureCreator, CexIOUtils.nextNonce());
+    CexIOOpenOrders openOrders = cexIOAuthenticated.getOpenOrders(tradableIdentifier, transactionCurrency, exchange.getExchangeSpecification()
+        .getApiKey(), signatureCreator, exchange.getNonceFactory());
 
     for (CexIOOrder cexIOOrder : openOrders.getOpenOrders()) {
       cexIOOrder.setTradableIdentifier(tradableIdentifier);
@@ -61,7 +62,7 @@ public class CexIOTradeServiceRaw extends CexIOBasePollingService {
 
     List<CexIOOrder> cexIOOrderList = new ArrayList<CexIOOrder>();
 
-    for (CurrencyPair currencyPair : getExchangeSymbols()) {
+    for (CurrencyPair currencyPair : exchange.getMetaData().getCurrencyPairs()) {
       cexIOOrderList.addAll(getCexIOOpenOrders(currencyPair));
     }
     return cexIOOrderList;
@@ -69,9 +70,9 @@ public class CexIOTradeServiceRaw extends CexIOBasePollingService {
 
   public CexIOOrder placeCexIOLimitOrder(LimitOrder limitOrder) throws IOException {
 
-    CexIOOrder order =
-        cexIOAuthenticated.placeOrder(limitOrder.getCurrencyPair().baseSymbol, limitOrder.getCurrencyPair().counterSymbol, exchangeSpecification.getApiKey(), signatureCreator, CexIOUtils.nextNonce(),
-            (limitOrder.getType() == BID ? CexIOOrder.Type.buy : CexIOOrder.Type.sell), limitOrder.getLimitPrice(), limitOrder.getTradableAmount());
+    CexIOOrder order = cexIOAuthenticated.placeOrder(limitOrder.getCurrencyPair().baseSymbol, limitOrder.getCurrencyPair().counterSymbol, exchange
+        .getExchangeSpecification().getApiKey(), signatureCreator, exchange.getNonceFactory(), (limitOrder.getType() == BID ? CexIOOrder.Type.buy
+        : CexIOOrder.Type.sell), limitOrder.getLimitPrice(), limitOrder.getTradableAmount());
     if (order.getErrorMessage() != null) {
       throw new ExchangeException(order.getErrorMessage());
     }
@@ -80,7 +81,8 @@ public class CexIOTradeServiceRaw extends CexIOBasePollingService {
 
   public boolean cancelCexIOOrder(String orderId) throws IOException {
 
-    return cexIOAuthenticated.cancelOrder(exchangeSpecification.getApiKey(), signatureCreator, CexIOUtils.nextNonce(), Long.parseLong(orderId)).equals(true);
+    return cexIOAuthenticated.cancelOrder(exchange.getExchangeSpecification().getApiKey(), signatureCreator, exchange.getNonceFactory(),
+        Long.parseLong(orderId)).equals(true);
   }
 
 }

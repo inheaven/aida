@@ -1,9 +1,9 @@
 package com.xeiam.xchange.bter.dto.marketdata;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.xeiam.xchange.bter.dto.BTERBaseResponse;
+
+import java.util.List;
 
 /**
  * Data object representing depth from Bter
@@ -19,7 +19,8 @@ public class BTERDepth extends BTERBaseResponse {
    * @param asks
    * @param bids
    */
-  private BTERDepth(@JsonProperty("asks") List<BTERPublicOrder> asks, @JsonProperty("bids") List<BTERPublicOrder> bids, @JsonProperty("result") boolean result) {
+  private BTERDepth(@JsonProperty("asks") List<BTERPublicOrder> asks, @JsonProperty("bids") List<BTERPublicOrder> bids,
+      @JsonProperty("result") boolean result) {
 
     super(result, null);
     this.asks = asks;

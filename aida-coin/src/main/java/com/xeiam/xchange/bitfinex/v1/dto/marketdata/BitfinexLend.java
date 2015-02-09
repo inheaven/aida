@@ -1,8 +1,8 @@
 package com.xeiam.xchange.bitfinex.v1.dto.marketdata;
 
-import java.math.BigDecimal;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.math.BigDecimal;
 
 public class BitfinexLend {
 
@@ -17,7 +17,8 @@ public class BitfinexLend {
    * @param amountLent
    * @param timestamp
    */
-  public BitfinexLend(@JsonProperty("rate") BigDecimal rate, @JsonProperty("amount_lent") BigDecimal amountLent, @JsonProperty("timestamp") long timestamp) {
+  public BitfinexLend(@JsonProperty("rate") BigDecimal rate, @JsonProperty("amount_lent") BigDecimal amountLent,
+      @JsonProperty("timestamp") long timestamp) {
 
     this.rate = rate;
     this.amountLent = amountLent;

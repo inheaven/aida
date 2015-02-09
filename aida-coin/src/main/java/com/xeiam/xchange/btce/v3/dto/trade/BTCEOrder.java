@@ -1,9 +1,9 @@
 package com.xeiam.xchange.btce.v3.dto.trade;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.math.BigDecimal;
 import java.text.MessageFormat;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Matija Mazi
@@ -28,8 +28,9 @@ public class BTCEOrder {
    * @param type
    * @param pair
    */
-  public BTCEOrder(@JsonProperty("status") int status, @JsonProperty("timestamp_created") Long timestampCreated, @JsonProperty("rate") BigDecimal rate, @JsonProperty("amount") BigDecimal amount,
-      @JsonProperty("type") Type type, @JsonProperty("pair") String pair) {
+  public BTCEOrder(@JsonProperty("status") int status, @JsonProperty("timestamp_created") Long timestampCreated,
+      @JsonProperty("rate") BigDecimal rate, @JsonProperty("amount") BigDecimal amount, @JsonProperty("type") Type type,
+      @JsonProperty("pair") String pair) {
 
     this.status = status;
     this.timestampCreated = timestampCreated;
@@ -72,7 +73,8 @@ public class BTCEOrder {
   @Override
   public String toString() {
 
-    return MessageFormat.format("BTCEOrder[pair=''{0}'', type={1}, amount={2}, rate={3}, timestampCreated={4}, status={5}]", pair, type, amount, rate, timestampCreated, status);
+    return MessageFormat.format("BTCEOrder[pair=''{0}'', type={1}, amount={2}, rate={3}, timestampCreated={4}, status={5}]", pair, type, amount,
+        rate, timestampCreated, status);
   }
 
   public static enum Type {

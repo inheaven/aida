@@ -1,8 +1,8 @@
 package com.xeiam.xchange.bitfinex.v1.dto.trade;
 
-import java.math.BigDecimal;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.math.BigDecimal;
 
 public class BitfinexCreditResponse {
 
@@ -12,10 +12,11 @@ public class BitfinexCreditResponse {
   private final BigDecimal rate;
   private final int period;
   private final BigDecimal amount;
-  private final float timestamp;
+  private final BigDecimal timestamp;
 
-  public BitfinexCreditResponse(@JsonProperty("id") int id, @JsonProperty("currency") String currency, @JsonProperty("status") String status, @JsonProperty("rate") BigDecimal rate,
-      @JsonProperty("period") int period, @JsonProperty("amount") BigDecimal amount, @JsonProperty("timestamp") float timestamp) {
+  public BitfinexCreditResponse(@JsonProperty("id") int id, @JsonProperty("currency") String currency, @JsonProperty("status") String status,
+      @JsonProperty("rate") BigDecimal rate, @JsonProperty("period") int period, @JsonProperty("amount") BigDecimal amount,
+      @JsonProperty("timestamp") BigDecimal timestamp) {
 
     this.id = id;
     this.currency = currency;
@@ -56,7 +57,7 @@ public class BitfinexCreditResponse {
     return amount;
   }
 
-  public float getTimestamp() {
+  public BigDecimal getTimestamp() {
 
     return timestamp;
   }
@@ -64,7 +65,8 @@ public class BitfinexCreditResponse {
   @Override
   public String toString() {
 
-    return "BitfinexCreditResponse [id=" + id + ", currency=" + currency + ", status=" + status + ", rate=" + rate + ", period=" + period + ", amount=" + amount + ", timestamp=" + timestamp + "]";
+    return "BitfinexCreditResponse [id=" + id + ", currency=" + currency + ", status=" + status + ", rate=" + rate + ", period=" + period
+        + ", amount=" + amount + ", timestamp=" + timestamp + "]";
   }
 
 }

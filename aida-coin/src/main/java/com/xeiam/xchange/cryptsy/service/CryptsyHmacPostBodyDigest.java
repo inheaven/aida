@@ -1,20 +1,19 @@
 package com.xeiam.xchange.cryptsy.service;
 
-import java.math.BigInteger;
-
-import javax.crypto.Mac;
-
+import com.xeiam.xchange.service.BaseParamsDigest;
 import si.mazi.rescu.RestInvocation;
 
-import com.xeiam.xchange.service.BaseParamsDigest;
+import javax.crypto.Mac;
+import java.math.BigInteger;
 
 /**
- * This may be used as the value of a @HeaderParam, @QueryParam or @PathParam to create a digest of the post body (composed of @FormParam's). Don't use as the value of a @FormParam, it will probably
- * cause an infinite loop.
+ * This may be used as the value of a @HeaderParam, @QueryParam or @PathParam to create a digest of the post body (composed of @FormParam's). Don't
+ * use as the value of a @FormParam, it will probably cause an infinite loop.
  * <p>
- * This may be used for REST APIs where some parameters' values must be digests of other parameters. An example is the MtGox API v1, where the Rest-Sign header parameter must be a digest of the
- * request body (which is composed of @FormParams).
- * </p>
+ * This may be used for REST APIs where some parameters' values must be digests of other parameters. An example is the MtGox API v1, where the
+ * Rest-Sign header parameter must be a digest of the request body (which is composed of
+ * 
+ * @FormParams). </p>
  */
 public class CryptsyHmacPostBodyDigest extends BaseParamsDigest {
 

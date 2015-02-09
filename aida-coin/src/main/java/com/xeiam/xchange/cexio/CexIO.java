@@ -9,7 +9,7 @@ import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 
 /**
- * Author: brox
+ * @author brox
  */
 @Path("api")
 @Produces(MediaType.APPLICATION_JSON)
@@ -21,7 +21,7 @@ public interface CexIO {
 
   @GET
   @Path("order_book/{ident}/{currency}")
-  CexIODepth getDepth(@PathParam("ident") String tradeableIdentifier, @PathParam("currency") String currency, @FormParam("depth") Integer depth) throws IOException;
+  CexIODepth getDepth(@PathParam("ident") String tradeableIdentifier, @PathParam("currency") String currency) throws IOException;
 
   @GET
   @Path("trade_history/{ident}/{currency}/")
@@ -29,6 +29,7 @@ public interface CexIO {
 
   @POST
   @Path("trade_history/{ident}/{currency}/")
-  CexIOTrade[] getTradesSince(@PathParam("ident") String tradeableIdentifier, @PathParam("currency") String currency, @DefaultValue("1") @FormParam("since") long since) throws IOException;
+  CexIOTrade[] getTradesSince(@PathParam("ident") String tradeableIdentifier, @PathParam("currency") String currency,
+      @DefaultValue("1") @FormParam("since") long since) throws IOException;
 
 }

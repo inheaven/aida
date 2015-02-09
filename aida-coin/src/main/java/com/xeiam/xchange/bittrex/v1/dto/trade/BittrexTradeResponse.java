@@ -1,16 +1,10 @@
 package com.xeiam.xchange.bittrex.v1.dto.trade;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.fasterxml.jackson.annotation.*;
 
 import javax.annotation.Generated;
-
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import java.util.HashMap;
+import java.util.Map;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("org.jsonschema2pojo")
@@ -77,7 +71,8 @@ public class BittrexTradeResponse {
   @Override
   public String toString() {
 
-    return "BittrexTradeResponse [success=" + success + ", message=" + message + ", result=" + result + ", additionalProperties=" + additionalProperties + "]";
+    return "BittrexTradeResponse [success=" + success + ", message=" + message + ", result=" + result + ", additionalProperties="
+        + additionalProperties + "]";
   }
 
 }

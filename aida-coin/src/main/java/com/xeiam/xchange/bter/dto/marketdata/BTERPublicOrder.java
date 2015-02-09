@@ -1,8 +1,5 @@
 package com.xeiam.xchange.bter.dto.marketdata;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.ObjectCodec;
@@ -12,13 +9,16 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.xeiam.xchange.bter.dto.marketdata.BTERPublicOrder.BTERPublicOrderDeserializer;
 
+import java.io.IOException;
+import java.math.BigDecimal;
+
 @JsonDeserialize(using = BTERPublicOrderDeserializer.class)
 public class BTERPublicOrder {
 
   private final BigDecimal price;
   private final BigDecimal amount;
 
-  private BTERPublicOrder(final BigDecimal price, final BigDecimal amount) {
+  private BTERPublicOrder(BigDecimal price, final BigDecimal amount) {
 
     this.price = price;
     this.amount = amount;

@@ -1,19 +1,13 @@
 package com.xeiam.xchange.bittrex.v1;
 
-import java.io.IOException;
+import com.xeiam.xchange.bittrex.v1.dto.marketdata.*;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-
-import com.xeiam.xchange.bittrex.v1.dto.marketdata.BittrexCurrenciesResponse;
-import com.xeiam.xchange.bittrex.v1.dto.marketdata.BittrexDepthResponse;
-import com.xeiam.xchange.bittrex.v1.dto.marketdata.BittrexSymbolsResponse;
-import com.xeiam.xchange.bittrex.v1.dto.marketdata.BittrexTickerResponse;
-import com.xeiam.xchange.bittrex.v1.dto.marketdata.BittrexTickersResponse;
-import com.xeiam.xchange.bittrex.v1.dto.marketdata.BittrexTradesResponse;
+import java.io.IOException;
 
 @Path("v1.1")
 @Produces(MediaType.APPLICATION_JSON)
@@ -29,7 +23,8 @@ public interface Bittrex {
 
   @GET
   @Path("public/getorderbook/")
-  BittrexDepthResponse getBook(@QueryParam("market") String market, @QueryParam("type") String type, @QueryParam("depth") int depth) throws IOException;
+  BittrexDepthResponse getBook(@QueryParam("market") String market, @QueryParam("type") String type, @QueryParam("depth") int depth)
+      throws IOException;
 
   @GET
   @Path("public/getmarkethistory/")

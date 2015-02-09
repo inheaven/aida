@@ -6,22 +6,24 @@ import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.cexio.service.polling.CexIOAccountService;
 import com.xeiam.xchange.cexio.service.polling.CexIOMarketDataService;
 import com.xeiam.xchange.cexio.service.polling.CexIOTradeService;
+import com.xeiam.xchange.utils.nonce.AtomicLongIncrementalTime2014NonceFactory;
+import si.mazi.rescu.SynchronizedValueFactory;
 
 /**
- * Author: brox
- * Since: 2/6/14
+ * @Author brox
  */
-
 public class CexIOExchange extends BaseExchange implements Exchange {
+
+  private SynchronizedValueFactory<Long> nonceFactory = new AtomicLongIncrementalTime2014NonceFactory();
 
   @Override
   public void applySpecification(ExchangeSpecification exchangeSpecification) {
 
     super.applySpecification(exchangeSpecification);
 
-    this.pollingMarketDataService = new CexIOMarketDataService(exchangeSpecification);
-    this.pollingAccountService = new CexIOAccountService(exchangeSpecification);
-    this.pollingTradeService = new CexIOTradeService(exchangeSpecification);
+    this.pollingMarketDataService = new CexIOMarketDataService(this);
+    this.pollingAccountService = new CexIOAccountService(this);
+    this.pollingTradeService = new CexIOTradeService(this);
   }
 
   @Override
@@ -31,10 +33,15 @@ public class CexIOExchange extends BaseExchange implements Exchange {
     exchangeSpecification.setSslUri("https://cex.io");
     exchangeSpecification.setHost("cex.io");
     exchangeSpecification.setPort(80);
-    exchangeSpecification.setExchangeName("Cex.IO");
+    exchangeSpecification.setExchangeName("Cex IO");
     exchangeSpecification.setExchangeDescription("Cex.IO is a virtual commodities exchange registered in United Kingdom.");
 
     return exchangeSpecification;
   }
 
+  @Override
+  public SynchronizedValueFactory<Long> getNonceFactory() {
+
+    return nonceFactory;
+  }
 }

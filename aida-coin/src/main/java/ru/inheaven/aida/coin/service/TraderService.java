@@ -446,7 +446,7 @@ public class TraderService {
                     Ticker ticker;
 
                     if (CRYPTSY.equals(exchangeType)) {
-                        ticker = ((CryptsyExchange)getExchange(exchangeType)).getPublicPollingMarketDataService().getTicker(currencyPair);
+                        ticker = ((CryptsyExchange)getExchange(exchangeType)).getPollingPublicMarketDataService().getTicker(currencyPair);
                     }else{
                         ticker = getExchange(exchangeType).getPollingMarketDataService().getTicker(currencyPair);
                     }

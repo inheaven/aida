@@ -1,9 +1,9 @@
 package com.xeiam.xchange.cryptsy.dto.marketdata;
 
-import java.math.BigDecimal;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.math.BigDecimal;
 
 public class CryptsyPublicOrder {
 
@@ -12,7 +12,8 @@ public class CryptsyPublicOrder {
   private final BigDecimal total;
 
   @JsonCreator
-  public CryptsyPublicOrder(@JsonProperty("price") BigDecimal price, @JsonProperty("quantity") BigDecimal quantity, @JsonProperty("total") BigDecimal total) {
+  public CryptsyPublicOrder(@JsonProperty("price") BigDecimal price, @JsonProperty("quantity") BigDecimal quantity,
+      @JsonProperty("total") BigDecimal total) {
 
     this.price = price;
     this.quantity = quantity;

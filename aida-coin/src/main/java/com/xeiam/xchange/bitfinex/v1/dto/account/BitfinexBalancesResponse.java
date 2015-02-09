@@ -1,8 +1,8 @@
 package com.xeiam.xchange.bitfinex.v1.dto.account;
 
-import java.math.BigDecimal;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.math.BigDecimal;
 
 public class BitfinexBalancesResponse {
 
@@ -19,8 +19,8 @@ public class BitfinexBalancesResponse {
    * @param amount
    * @param available
    */
-  public BitfinexBalancesResponse(@JsonProperty("type") String type, @JsonProperty("currency") String currency, @JsonProperty("amount") BigDecimal amount,
-      @JsonProperty("available") BigDecimal available) {
+  public BitfinexBalancesResponse(@JsonProperty("type") String type, @JsonProperty("currency") String currency,
+      @JsonProperty("amount") BigDecimal amount, @JsonProperty("available") BigDecimal available) {
 
     this.type = type;
     this.currency = currency;

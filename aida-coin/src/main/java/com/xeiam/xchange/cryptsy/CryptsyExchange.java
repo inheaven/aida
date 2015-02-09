@@ -7,49 +7,63 @@ import com.xeiam.xchange.cryptsy.service.polling.CryptsyAccountService;
 import com.xeiam.xchange.cryptsy.service.polling.CryptsyMarketDataService;
 import com.xeiam.xchange.cryptsy.service.polling.CryptsyPublicMarketDataService;
 import com.xeiam.xchange.cryptsy.service.polling.CryptsyTradeService;
+import com.xeiam.xchange.service.polling.marketdata.PollingMarketDataService;
+import com.xeiam.xchange.utils.nonce.AtomicLongIncrementalTime2014NonceFactory;
+import si.mazi.rescu.SynchronizedValueFactory;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author ObsessiveOrange
  */
 public class CryptsyExchange extends BaseExchange implements Exchange {
 
-  private CryptsyPublicMarketDataService pollingPublicMarketDataService;
+  private SynchronizedValueFactory<Long> nonceFactory = new AtomicLongIncrementalTime2014NonceFactory();
+
+  public static final String KEY_PUBLIC_API_HOST = "KEY_PUBLIC_API_HOST";
+  public static final String KEY_PUBLIC_API_URL = "KEY_PUBLIC_API_URL";
 
   /**
-   * Default constructor for ExchangeFactory
+   * Crptsy has both a public and private market data API. Here we add the public maraketdata service
    */
-  public CryptsyExchange() {
-
-  }
+  protected PollingMarketDataService pollingPublicMarketDataService;
 
   @Override
   public void applySpecification(ExchangeSpecification exchangeSpecification) {
 
     super.applySpecification(exchangeSpecification);
 
-    this.pollingMarketDataService = new CryptsyMarketDataService(exchangeSpecification);
-    this.pollingAccountService = new CryptsyAccountService(exchangeSpecification);
-    this.pollingTradeService = new CryptsyTradeService(exchangeSpecification);
+    this.pollingMarketDataService = new CryptsyMarketDataService(this);
+    this.pollingAccountService = new CryptsyAccountService(this);
+    this.pollingTradeService = new CryptsyTradeService(this);
 
-    this.pollingPublicMarketDataService = new CryptsyPublicMarketDataService();
+    // public
+    this.pollingPublicMarketDataService = new CryptsyPublicMarketDataService(this);
   }
 
   @Override
   public ExchangeSpecification getDefaultExchangeSpecification() {
 
+    // Cryptsy has different endpoint URLs for public and private data
+
+    // the common params
     ExchangeSpecification exchangeSpecification = new ExchangeSpecification(this.getClass().getCanonicalName());
-    exchangeSpecification.setSslUri("https://api.cryptsy.com");
-    exchangeSpecification.setHost("api.cryptsy.com");
     exchangeSpecification.setPort(80);
     exchangeSpecification.setExchangeName("Cryptsy");
     exchangeSpecification.setExchangeDescription("Cryptsy is an altcoin exchange");
 
+    // the private params
+    exchangeSpecification.setSslUri("https://api.cryptsy.com");
+    exchangeSpecification.setHost("api.cryptsy.com");
+
+    // the public params
+    Map<String, Object> exchangeSpecificParameters = new HashMap<String, Object>();
+    exchangeSpecificParameters.put(KEY_PUBLIC_API_HOST, "pubapi.cryptsy.com");
+    exchangeSpecificParameters.put(KEY_PUBLIC_API_URL, "http://pubapi.cryptsy.com");
+    exchangeSpecification.setExchangeSpecificParameters(exchangeSpecificParameters);
+
     return exchangeSpecification;
-  }
-
-  public void applyPublicSpecification(ExchangeSpecification exchangeSpecification) {
-
-    this.pollingPublicMarketDataService = new CryptsyPublicMarketDataService(exchangeSpecification);
   }
 
   public static ExchangeSpecification getDefaultPublicExchangeSpecification() {
@@ -64,8 +78,13 @@ public class CryptsyExchange extends BaseExchange implements Exchange {
     return exchangeSpecification;
   }
 
-  public CryptsyPublicMarketDataService getPublicPollingMarketDataService() {
-
+  public PollingMarketDataService getPollingPublicMarketDataService() {
     return pollingPublicMarketDataService;
+  }
+
+  @Override
+  public SynchronizedValueFactory<Long> getNonceFactory() {
+
+    return nonceFactory;
   }
 }

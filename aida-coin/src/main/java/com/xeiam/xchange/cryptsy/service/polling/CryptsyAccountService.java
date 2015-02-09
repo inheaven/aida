@@ -1,6 +1,6 @@
 package com.xeiam.xchange.cryptsy.service.polling;
 
-import com.xeiam.xchange.ExchangeSpecification;
+import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.cryptsy.CryptsyAdapters;
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.exceptions.ExchangeException;
@@ -16,12 +16,12 @@ public class CryptsyAccountService extends CryptsyAccountServiceRaw implements P
 
   /**
    * Constructor
-   * 
-   * @param exchangeSpecification The {@link ExchangeSpecification}
+   *
+   * @param exchange
    */
-  public CryptsyAccountService(ExchangeSpecification exchangeSpecification) {
+  public CryptsyAccountService(Exchange exchange) {
 
-    super(exchangeSpecification);
+    super(exchange);
   }
 
   @Override

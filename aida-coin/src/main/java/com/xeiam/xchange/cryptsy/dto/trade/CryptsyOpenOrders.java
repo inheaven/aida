@@ -1,13 +1,13 @@
 package com.xeiam.xchange.cryptsy.dto.trade;
 
-import java.math.BigDecimal;
-import java.text.ParseException;
-import java.util.Date;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.xeiam.xchange.cryptsy.CryptsyUtils;
 import com.xeiam.xchange.cryptsy.dto.CryptsyOrder.CryptsyOrderType;
+
+import java.math.BigDecimal;
+import java.text.ParseException;
+import java.util.Date;
 
 /**
  * @author ObsessiveOrange
@@ -37,8 +37,9 @@ public class CryptsyOpenOrders {
    * @param pair
    * @throws ParseException
    */
-  public CryptsyOpenOrders(@JsonProperty("marketid") int marketId, @JsonProperty("ordertype") CryptsyOrderType type, @JsonProperty("orderid") int orderId, @JsonProperty("created") String timeStamp,
-      @JsonProperty("price") BigDecimal price, @JsonProperty("quantity") BigDecimal quantityRem, @JsonProperty("total") BigDecimal total, @JsonProperty("orig_quantity") BigDecimal quantityOrg)
+  public CryptsyOpenOrders(@JsonProperty("marketid") int marketId, @JsonProperty("ordertype") CryptsyOrderType type,
+      @JsonProperty("orderid") int orderId, @JsonProperty("created") String timeStamp, @JsonProperty("price") BigDecimal price,
+      @JsonProperty("quantity") BigDecimal quantityRem, @JsonProperty("total") BigDecimal total, @JsonProperty("orig_quantity") BigDecimal quantityOrg)
       throws ParseException {
 
     this.marketId = marketId;
@@ -94,7 +95,7 @@ public class CryptsyOpenOrders {
   @Override
   public String toString() {
 
-    return "CryptsyOpenOrder[" + "Market ID='" + marketId + "',Order ID='" + orderId + "',Type='" + type + "',Timestamp='" + timeStamp + "',Price='" + price + "',Quantity Remaining='" + quantityRem
-        + "',Total='" + total + "',Original Quantity='" + quantityOrg + "']";
+    return "CryptsyOpenOrder[" + "Market ID='" + marketId + "',Order ID='" + orderId + "',Type='" + type + "',Timestamp='" + timeStamp + "',Price='"
+        + price + "',Quantity Remaining='" + quantityRem + "',Total='" + total + "',Original Quantity='" + quantityOrg + "']";
   }
 }

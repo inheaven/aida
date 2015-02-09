@@ -1,14 +1,13 @@
 package com.xeiam.xchange.cryptsy;
 
-import java.io.IOException;
+import com.xeiam.xchange.cryptsy.dto.marketdata.CryptsyCurrencyPairsReturn;
+import com.xeiam.xchange.cryptsy.dto.marketdata.CryptsyPublicMarketDataReturn;
+import com.xeiam.xchange.cryptsy.dto.marketdata.CryptsyPublicOrderbookReturn;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-
-import com.xeiam.xchange.cryptsy.dto.marketdata.CryptsyCurrencyPairsReturn;
-import com.xeiam.xchange.cryptsy.dto.marketdata.CryptsyPublicMarketDataReturn;
-import com.xeiam.xchange.cryptsy.dto.marketdata.CryptsyPublicOrderbookReturn;
+import java.io.IOException;
 
 /**
  * @author ObsessiveOrange
@@ -31,7 +30,7 @@ public interface Cryptsy {
   @GET
   @Path("api.php?method=singleorderdata&marketid={marketid}")
   CryptsyPublicOrderbookReturn getOrderbookData(@PathParam("marketid") int marketId) throws IOException;
-  
+
   @GET
   @Path("api.php?method=orderdatav2")
   CryptsyCurrencyPairsReturn getCryptsyCurrencyPairs() throws IOException;

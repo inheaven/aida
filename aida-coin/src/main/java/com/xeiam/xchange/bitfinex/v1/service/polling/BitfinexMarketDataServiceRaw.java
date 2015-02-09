@@ -1,7 +1,6 @@
 package com.xeiam.xchange.bitfinex.v1.service.polling;
 
-import com.xeiam.xchange.ExchangeSpecification;
-import com.xeiam.xchange.bitfinex.v1.Bitfinex;
+import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.bitfinex.v1.dto.BitfinexException;
 import com.xeiam.xchange.bitfinex.v1.dto.marketdata.*;
 import com.xeiam.xchange.exceptions.ExchangeException;
@@ -17,16 +16,16 @@ import java.util.Collection;
  * <li>Provides access to various market data values</li>
  * </ul>
  */
-public class BitfinexMarketDataServiceRaw extends BitfinexBasePollingService<Bitfinex> {
+public class BitfinexMarketDataServiceRaw extends BitfinexBasePollingService {
 
   /**
    * Constructor
    *
-   * @param exchangeSpecification The {@link ExchangeSpecification}
+   * @param exchange
    */
-  public BitfinexMarketDataServiceRaw(ExchangeSpecification exchangeSpecification) {
+  public BitfinexMarketDataServiceRaw(Exchange exchange) {
 
-    super(Bitfinex.class, exchangeSpecification);
+    super(exchange);
   }
 
   public BitfinexTicker getBitfinexTicker(String pair) throws IOException {
@@ -45,8 +44,7 @@ public class BitfinexMarketDataServiceRaw extends BitfinexBasePollingService<Bit
       BitfinexDepth bitfinexDepth;
       if (limitBids == null && limitAsks == null) {
         bitfinexDepth = bitfinex.getBook(pair);
-      }
-      else {
+      } else {
         bitfinexDepth = bitfinex.getBook(pair, limitBids, limitAsks);
       }
       return bitfinexDepth;

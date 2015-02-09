@@ -1,6 +1,6 @@
 package com.xeiam.xchange.bitfinex.v1.service.polling;
 
-import com.xeiam.xchange.ExchangeSpecification;
+import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.bitfinex.v1.BitfinexAdapters;
 import com.xeiam.xchange.bitfinex.v1.BitfinexUtils;
 import com.xeiam.xchange.bitfinex.v1.dto.marketdata.BitfinexDepth;
@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
-
 /**
  * <p>
  * Implementation of the market data service for Bitfinex
@@ -34,11 +33,11 @@ public class BitfinexMarketDataService extends BitfinexMarketDataServiceRaw impl
   /**
    * Constructor
    *
-   * @param exchangeSpecification The {@link ExchangeSpecification}
+   * @param exchange
    */
-  public BitfinexMarketDataService(ExchangeSpecification exchangeSpecification) {
+  public BitfinexMarketDataService(Exchange exchange) {
 
-    super(exchangeSpecification);
+    super(exchange);
   }
 
   @Override
@@ -61,15 +60,13 @@ public class BitfinexMarketDataService extends BitfinexMarketDataServiceRaw impl
       Object arg0 = args[0];
       if (!(arg0 instanceof Integer)) {
         throw new ExchangeException("Argument 0 must be an Integer!");
-      }
-      else {
+      } else {
         limitBids = (Integer) arg0;
       }
       Object arg1 = args[1];
       if (!(arg1 instanceof Integer)) {
         throw new ExchangeException("Argument 1 must be an Integer!");
-      }
-      else {
+      } else {
         limitAsks = (Integer) arg1;
       }
     }
@@ -91,15 +88,13 @@ public class BitfinexMarketDataService extends BitfinexMarketDataServiceRaw impl
       Object arg0 = args[0];
       if (!(arg0 instanceof Integer)) {
         throw new ExchangeException("Argument 0 must be an Integer!");
-      }
-      else {
+      } else {
         limitBids = (Integer) arg0;
       }
       Object arg1 = args[1];
       if (!(arg1 instanceof Integer)) {
         throw new ExchangeException("Argument 1 must be an Integer!");
-      }
-      else {
+      } else {
         limitAsks = (Integer) arg1;
       }
     }
@@ -116,9 +111,8 @@ public class BitfinexMarketDataService extends BitfinexMarketDataServiceRaw impl
 
   /**
    * @param currencyPair The CurrencyPair for which to query trades.
-   * @param args One argument may be supplied which is the timestamp after which trades should be collected.
-   *          Trades before this time are not reported. The argument may be of type java.util.Date or
-   *          Number (milliseconds since Jan 1, 1970)
+   * @param args One argument may be supplied which is the timestamp after which trades should be collected. Trades before this time are not reported.
+   *        The argument may be of type java.util.Date or Number (milliseconds since Jan 1, 1970)
    */
   @Override
   public Trades getTrades(CurrencyPair currencyPair, Object... args) throws IOException {
@@ -129,13 +123,12 @@ public class BitfinexMarketDataService extends BitfinexMarketDataServiceRaw impl
       if (args[0] instanceof Number) {
         Number arg = (Number) args[0];
         lastTradeTime = arg.longValue() / 1000; // divide by 1000 to convert to unix timestamp (seconds)
-      }
-      else if (args[0] instanceof Date) {
+      } else if (args[0] instanceof Date) {
         Date arg = (Date) args[0];
         lastTradeTime = arg.getTime() / 1000; // divide by 1000 to convert to unix timestamp (seconds)
-      }
-      else {
-        throw new IllegalArgumentException("Extra argument #1, the last trade time, must be a Date or Long (millisecond timestamp) (was " + args[0].getClass() + ")");
+      } else {
+        throw new IllegalArgumentException("Extra argument #1, the last trade time, must be a Date or Long (millisecond timestamp) (was "
+            + args[0].getClass() + ")");
       }
     }
     BitfinexTrade[] trades = getBitfinexTrades(BitfinexUtils.toPairString(currencyPair), lastTradeTime);

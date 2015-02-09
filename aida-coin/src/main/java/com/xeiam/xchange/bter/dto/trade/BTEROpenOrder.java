@@ -1,8 +1,8 @@
 package com.xeiam.xchange.bter.dto.trade;
 
-import java.math.BigDecimal;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.math.BigDecimal;
 
 /**
  * Created by David Henry on 2/19/14.
@@ -59,10 +59,10 @@ public class BTEROpenOrder {
     return buyAmount;
   }
 
-
-    @Override
+  @Override
   public String toString() {
 
-    return "BTEROpenOrder [id=" + id + ", sellCurrency=" + sellCurrency + ", buyCurrency=" + buyCurrency + ", sellAmount=" + sellAmount + ", buyAmount=" + buyAmount + "]";
+    return "BTEROpenOrder [id=" + id + ", sellCurrency=" + sellCurrency + ", buyCurrency=" + buyCurrency + ", sellAmount=" + sellAmount
+        + ", buyAmount=" + buyAmount + "]";
   }
 }

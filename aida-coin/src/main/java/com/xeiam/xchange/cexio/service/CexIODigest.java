@@ -1,17 +1,14 @@
 package com.xeiam.xchange.cexio.service;
 
-import java.math.BigInteger;
+import com.xeiam.xchange.service.BaseParamsDigest;
+import si.mazi.rescu.RestInvocation;
 
 import javax.crypto.Mac;
 import javax.ws.rs.FormParam;
-
-import si.mazi.rescu.RestInvocation;
-
-import com.xeiam.xchange.service.BaseParamsDigest;
+import java.math.BigInteger;
 
 /**
- * Author: brox
- * Since: 2/7/14 9:42 PM
+ * Author: brox Since: 2/7/14 9:42 PM
  */
 public class CexIODigest extends BaseParamsDigest {
 

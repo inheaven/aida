@@ -1,9 +1,7 @@
 package com.xeiam.xchange.cryptsy.service.polling;
 
-import com.xeiam.xchange.ExchangeSpecification;
-import com.xeiam.xchange.cryptsy.Cryptsy;
+import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.cryptsy.CryptsyAdapters;
-import com.xeiam.xchange.cryptsy.CryptsyExchange;
 import com.xeiam.xchange.cryptsy.dto.marketdata.CryptsyCurrencyPairsReturn;
 import com.xeiam.xchange.cryptsy.dto.marketdata.CryptsyPublicMarketData;
 import com.xeiam.xchange.cryptsy.dto.marketdata.CryptsyPublicOrderbook;
@@ -12,16 +10,16 @@ import com.xeiam.xchange.exceptions.ExchangeException;
 import java.io.IOException;
 import java.util.Map;
 
-public class CryptsyPublicMarketDataServiceRaw extends CryptsyBasePollingService<Cryptsy> {
+public class CryptsyPublicMarketDataServiceRaw extends CryptsyBasePollingService {
 
-  public CryptsyPublicMarketDataServiceRaw(ExchangeSpecification exchangeSpecification) {
+  /**
+   * Constructor
+   *
+   * @param exchange
+   */
+  public CryptsyPublicMarketDataServiceRaw(Exchange exchange) {
 
-    super(Cryptsy.class, exchangeSpecification);
-  }
-
-  public CryptsyPublicMarketDataServiceRaw() {
-
-    this(CryptsyExchange.getDefaultPublicExchangeSpecification());
+    super(exchange);
   }
 
   public Map<Integer, CryptsyPublicMarketData> getAllCryptsyMarketData() throws IOException, ExchangeException {
@@ -43,9 +41,9 @@ public class CryptsyPublicMarketDataServiceRaw extends CryptsyBasePollingService
 
     return CryptsyAdapters.adaptPublicOrderBookMap(checkResult(cryptsy.getOrderbookData(marketId)).getReturnValue());
   }
-  
+
   public CryptsyCurrencyPairsReturn getCryptsyCurrencyPairs() throws IOException {
-    
+
     return checkResult(cryptsy.getCryptsyCurrencyPairs());
   }
 }

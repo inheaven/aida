@@ -1,6 +1,6 @@
 package com.xeiam.xchange.okcoin.service.polling;
 
-import com.xeiam.xchange.ExchangeSpecification;
+import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.okcoin.OkCoin;
 import com.xeiam.xchange.okcoin.OkCoinAdapters;
@@ -16,18 +16,13 @@ public class OkCoinMarketDataServiceRaw extends OkCoinBasePollingService {
 
 	private final OkCoin okCoin;
 
-	/**
-	 * Constructor
-	 *
-	 * @param exchangeSpecification
-	 */
-	public OkCoinMarketDataServiceRaw(ExchangeSpecification exchangeSpecification) {
+    public OkCoinMarketDataServiceRaw(Exchange exchange) {
 
-		super(exchangeSpecification);
+        super(exchange);
 
-		Map<String, Object> specific = exchangeSpecification.getExchangeSpecificParameters();
-		okCoin = RestProxyFactory.createProxy(OkCoin.class, useIntl ? (String) specific.get("Intl_SslUri") : exchangeSpecification.getSslUri());
-	}
+        Map<String, Object> specific = exchange.getExchangeSpecification().getExchangeSpecificParameters();
+        okCoin = RestProxyFactory.createProxy(OkCoin.class, exchange.getExchangeSpecification().getSslUri());
+    }
 
 	public OkCoinTickerResponse getTicker(CurrencyPair currencyPair) throws IOException {
 

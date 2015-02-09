@@ -1,22 +1,16 @@
 package com.xeiam.xchange.bittrex.v1.dto.trade;
 
+import com.fasterxml.jackson.annotation.*;
+
+import javax.annotation.Generated;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Generated;
-
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("org.jsonschema2pojo")
-@JsonPropertyOrder({ "OrderUuid", "Exchange", "TimeStamp", "OrderType", "Limit", "Quantity", "QuantityRemaining", "Commission", "Price", "PricePerUnit", "IsConditional", "Condition",
-    "ConditionTarget", "ImmediateOrCancel" })
+@JsonPropertyOrder({ "OrderUuid", "Exchange", "TimeStamp", "OrderType", "Limit", "Quantity", "QuantityRemaining", "Commission", "Price",
+    "PricePerUnit", "IsConditional", "Condition", "ConditionTarget", "ImmediateOrCancel" })
 public class BittrexUserTrade {
 
   @JsonProperty("OrderUuid")
@@ -233,9 +227,10 @@ public class BittrexUserTrade {
   @Override
   public String toString() {
 
-    return "BittrexUserTrade [orderUuid=" + orderUuid + ", exchange=" + exchange + ", timeStamp=" + timeStamp + ", orderType=" + orderType + ", limit=" + limit + ", quantity=" + quantity
-        + ", quantityRemaining=" + quantityRemaining + ", commission=" + commission + ", price=" + price + ", pricePerUnit=" + pricePerUnit + ", isConditional=" + isConditional + ", condition="
-        + condition + ", conditionTarget=" + conditionTarget + ", immediateOrCancel=" + immediateOrCancel + ", additionalProperties=" + additionalProperties + "]";
+    return "BittrexUserTrade [orderUuid=" + orderUuid + ", exchange=" + exchange + ", timeStamp=" + timeStamp + ", orderType=" + orderType
+        + ", limit=" + limit + ", quantity=" + quantity + ", quantityRemaining=" + quantityRemaining + ", commission=" + commission + ", price="
+        + price + ", pricePerUnit=" + pricePerUnit + ", isConditional=" + isConditional + ", condition=" + condition + ", conditionTarget="
+        + conditionTarget + ", immediateOrCancel=" + immediateOrCancel + ", additionalProperties=" + additionalProperties + "]";
   }
 
 }

@@ -1,21 +1,18 @@
 package com.xeiam.xchange.bter.service;
 
+import com.xeiam.xchange.service.BaseParamsDigest;
+import si.mazi.rescu.RestInvocation;
+
+import javax.crypto.Mac;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 
-import javax.crypto.Mac;
-
-import si.mazi.rescu.RestInvocation;
-
-import com.xeiam.xchange.service.BaseParamsDigest;
-
 /**
- * This may be used as the value of a @HeaderParam, @QueryParam or @PathParam to
- * create a digest of the post body (composed of @FormParam's). Don't use as the
- * value of a @FormParam, it will probably cause an infinite loop.
+ * This may be used as the value of a @HeaderParam, @QueryParam or @PathParam to create a digest of the post body (composed of @FormParam's). Don't
+ * use as the value of a @FormParam, it will probably cause an infinite loop.
  * <p/>
- * This may be used for REST APIs where some parameters' values must be digests of other parameters. An example is the MtGox API v1, where the Rest-Sign header parameter must be a digest of the
- * request body (which is composed of
+ * This may be used for REST APIs where some parameters' values must be digests of other parameters. An example is the MtGox API v1, where the
+ * Rest-Sign header parameter must be a digest of the request body (which is composed of
  * 
  * @FormParams).
  */
@@ -25,9 +22,7 @@ public class BTERHmacPostBodyDigest extends BaseParamsDigest {
    * Constructor
    * 
    * @param secretKeyBase64
-   * @throws IllegalArgumentException
-   *           if key is invalid (cannot be base-64-decoded or the decoded
-   *           key is invalid).
+   * @throws IllegalArgumentException if key is invalid (cannot be base-64-decoded or the decoded key is invalid).
    */
   private BTERHmacPostBodyDigest(String secretKeyBase64) {
 

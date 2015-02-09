@@ -1,7 +1,6 @@
 package com.xeiam.xchange.bittrex.v1.service.polling;
 
-import com.xeiam.xchange.ExchangeSpecification;
-import com.xeiam.xchange.bittrex.v1.BittrexAuthenticated;
+import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.bittrex.v1.dto.account.BittrexBalance;
 import com.xeiam.xchange.bittrex.v1.dto.account.BittrexBalancesResponse;
 import com.xeiam.xchange.bittrex.v1.dto.account.BittrexDepositAddressResponse;
@@ -10,38 +9,36 @@ import com.xeiam.xchange.exceptions.ExchangeException;
 import java.io.IOException;
 import java.util.List;
 
-public class BittrexAccountServiceRaw extends BittrexBasePollingService<BittrexAuthenticated> {
+public class BittrexAccountServiceRaw extends BittrexBasePollingService {
 
   /**
    * Constructor
-   * 
-   * @param exchangeSpecification The {@link ExchangeSpecification}
+   *
+   * @param exchange
    */
-  public BittrexAccountServiceRaw(ExchangeSpecification exchangeSpecification) {
+  public BittrexAccountServiceRaw(Exchange exchange) {
 
-    super(BittrexAuthenticated.class, exchangeSpecification);
+    super(exchange);
   }
 
   public List<BittrexBalance> getBittrexAccountInfo() throws IOException {
 
-    BittrexBalancesResponse response = bittrex.balances(apiKey, signatureCreator, String.valueOf(nextNonce()));
+    BittrexBalancesResponse response = bittrexAuthenticated.balances(apiKey, signatureCreator, exchange.getNonceFactory());
 
     if (response.getSuccess()) {
       return response.getResult();
-    }
-    else {
-      throw new ExchangeException("Bittrex returned an error: " + response.getMessage());
+    } else {
+      throw new ExchangeException(response.getMessage());
     }
   }
 
   public String getBittrexDepositAddress(String currency) throws IOException {
 
-    BittrexDepositAddressResponse response = bittrex.getdepositaddress(apiKey, signatureCreator, String.valueOf(nextNonce()), currency);
+    BittrexDepositAddressResponse response = bittrexAuthenticated.getdepositaddress(apiKey, signatureCreator, exchange.getNonceFactory(), currency);
     if (response.getSuccess()) {
       return response.getResult().getAddress();
-    }
-    else {
-      throw new ExchangeException("Bittrex returned an error: " + response.getMessage());
+    } else {
+      throw new ExchangeException(response.getMessage());
     }
   }
 

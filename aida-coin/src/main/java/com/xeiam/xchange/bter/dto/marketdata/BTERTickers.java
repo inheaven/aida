@@ -1,11 +1,5 @@
 package com.xeiam.xchange.bter.dto.marketdata;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.ObjectCodec;
@@ -19,12 +13,18 @@ import com.xeiam.xchange.bter.dto.marketdata.BTERTicker.BTERTickerTickerDeserial
 import com.xeiam.xchange.bter.dto.marketdata.BTERTickers.BTERTickersDeserializer;
 import com.xeiam.xchange.currency.CurrencyPair;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+
 @JsonDeserialize(using = BTERTickersDeserializer.class)
 public class BTERTickers extends BTERBaseResponse {
 
   private final Map<CurrencyPair, BTERTicker> tickerMap;
 
-  private BTERTickers(final Map<CurrencyPair, BTERTicker> tickerMap, boolean result, String message) {
+  private BTERTickers(Map<CurrencyPair, BTERTicker> tickerMap, boolean result, String message) {
 
     super(result, message);
     this.tickerMap = tickerMap;

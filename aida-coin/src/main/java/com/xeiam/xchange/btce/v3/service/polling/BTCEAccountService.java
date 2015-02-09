@@ -1,6 +1,6 @@
 package com.xeiam.xchange.btce.v3.service.polling;
 
-import com.xeiam.xchange.ExchangeSpecification;
+import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.btce.v3.BTCEAdapters;
 import com.xeiam.xchange.btce.v3.dto.account.BTCEAccountInfo;
 import com.xeiam.xchange.dto.account.AccountInfo;
@@ -10,7 +10,6 @@ import com.xeiam.xchange.service.polling.account.PollingAccountService;
 import java.io.IOException;
 import java.math.BigDecimal;
 
-
 /**
  * @author Matija Mazi
  */
@@ -18,12 +17,12 @@ public class BTCEAccountService extends BTCEAccountServiceRaw implements Polling
 
   /**
    * Constructor
-   * 
-   * @param exchangeSpecification The {@link ExchangeSpecification}
+   *
+   * @param exchange
    */
-  public BTCEAccountService(ExchangeSpecification exchangeSpecification) {
+  public BTCEAccountService(Exchange exchange) {
 
-    super(exchangeSpecification);
+    super(exchange);
   }
 
   @Override
@@ -44,4 +43,5 @@ public class BTCEAccountService extends BTCEAccountServiceRaw implements Polling
 
     throw new NotAvailableFromExchangeException();
   }
+
 }

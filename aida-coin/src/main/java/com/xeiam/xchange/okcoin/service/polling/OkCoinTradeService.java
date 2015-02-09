@@ -1,6 +1,6 @@
 package com.xeiam.xchange.okcoin.service.polling;
 
-import com.xeiam.xchange.ExchangeSpecification;
+import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.dto.Order.OrderType;
 import com.xeiam.xchange.dto.trade.LimitOrder;
@@ -29,12 +29,10 @@ public class OkCoinTradeService extends OkCoinTradeServiceRaw implements Polling
     private final Logger log = LoggerFactory.getLogger(OkCoinTradeService.class);
     private final List<CurrencyPair> exchangeSymbols = (List<CurrencyPair>) getExchangeSymbols();
 
-
-    public OkCoinTradeService(ExchangeSpecification exchangeSpecification) {
-
-        super(exchangeSpecification);
-
+    public OkCoinTradeService(Exchange exchange) {
+        super(exchange);
     }
+
 
     @Override
     public OpenOrders getOpenOrders() throws ExchangeException, NotAvailableFromExchangeException, NotYetImplementedForExchangeException, IOException {

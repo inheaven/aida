@@ -1,12 +1,5 @@
 package com.xeiam.xchange.bter.dto.marketdata;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.ObjectCodec;
@@ -17,6 +10,13 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.xeiam.xchange.bter.dto.BTERBaseResponse;
 import com.xeiam.xchange.bter.dto.marketdata.BTERTicker.BTERTickerTickerDeserializer;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 @JsonDeserialize(using = BTERTickerTickerDeserializer.class)
 public class BTERTicker extends BTERBaseResponse {
@@ -29,8 +29,8 @@ public class BTERTicker extends BTERBaseResponse {
   private final BigDecimal buy;
   private final Map<String, BigDecimal> volumes;
 
-  private BTERTicker(final BigDecimal last, final BigDecimal high, final BigDecimal low, final BigDecimal average, final BigDecimal sell, final BigDecimal buy, final Map<String, BigDecimal> volumes,
-      final boolean result, final String message) {
+  private BTERTicker(BigDecimal last, BigDecimal high, BigDecimal low, BigDecimal average, BigDecimal sell, BigDecimal buy,
+      Map<String, BigDecimal> volumes, boolean result, String message) {
 
     super(result, message);
     this.last = last;
@@ -72,7 +72,7 @@ public class BTERTicker extends BTERBaseResponse {
     return buy;
   }
 
-  public BigDecimal getVolume(final String currency) {
+  public BigDecimal getVolume(String currency) {
 
     return volumes.get(currency.toUpperCase());
   }
@@ -80,12 +80,13 @@ public class BTERTicker extends BTERBaseResponse {
   @Override
   public String toString() {
 
-    return "BTERTicker [last=" + last + ", high=" + high + ", low=" + low + ", avg=" + avg + ", sell=" + sell + ", buy=" + buy + ", volumes=" + volumes + "]";
+    return "BTERTicker [last=" + last + ", high=" + high + ", low=" + low + ", avg=" + avg + ", sell=" + sell + ", buy=" + buy + ", volumes="
+        + volumes + "]";
   }
 
   static class BTERTickerTickerDeserializer extends JsonDeserializer<BTERTicker> {
 
-    private static BigDecimal getNumberIfPresent(final JsonNode numberNode) {
+    private static BigDecimal getNumberIfPresent(JsonNode numberNode) {
 
       final String numberString = numberNode.asText();
       return numberString.isEmpty() ? null : new BigDecimal(numberString);

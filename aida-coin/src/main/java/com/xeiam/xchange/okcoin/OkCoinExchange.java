@@ -1,14 +1,15 @@
 package com.xeiam.xchange.okcoin;
 
-import java.util.Arrays;
-import java.util.List;
-
 import com.xeiam.xchange.BaseExchange;
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.okcoin.service.polling.OkCoinAccountService;
 import com.xeiam.xchange.okcoin.service.polling.OkCoinMarketDataService;
 import com.xeiam.xchange.okcoin.service.polling.OkCoinTradeService;
+import si.mazi.rescu.SynchronizedValueFactory;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class OkCoinExchange extends BaseExchange {
 
@@ -23,16 +24,21 @@ public class OkCoinExchange extends BaseExchange {
 
   @Override
   public void applySpecification(ExchangeSpecification exchangeSpecification) {
-
     super.applySpecification(exchangeSpecification);
-    this.pollingMarketDataService = new OkCoinMarketDataService(exchangeSpecification);
+
+    this.pollingMarketDataService = new OkCoinMarketDataService(this);
     if (exchangeSpecification.getApiKey() != null) {
-      this.pollingAccountService = new OkCoinAccountService(exchangeSpecification);
-      this.pollingTradeService = new OkCoinTradeService(exchangeSpecification);
+      this.pollingAccountService = new OkCoinAccountService(this);
+      this.pollingTradeService = new OkCoinTradeService(this);
     }
   }
 
-  /**
+    @Override
+    public SynchronizedValueFactory<Long> getNonceFactory() {
+        return null;
+    }
+
+    /**
    * {@inheritDoc}
    */
   @Override

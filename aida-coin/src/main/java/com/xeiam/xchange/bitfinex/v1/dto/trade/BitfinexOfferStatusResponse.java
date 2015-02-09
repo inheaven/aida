@@ -1,8 +1,8 @@
 package com.xeiam.xchange.bitfinex.v1.dto.trade;
 
-import java.math.BigDecimal;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.math.BigDecimal;
 
 public class BitfinexOfferStatusResponse {
 
@@ -12,16 +12,17 @@ public class BitfinexOfferStatusResponse {
   private final int period;
   private final String direction;
   private final String type;
-  private final float timestamp;
+  private final BigDecimal timestamp;
   private final boolean isLive;
   private final boolean isCancelled;
   private final BigDecimal originalAmount;
   private final BigDecimal remainingAmount;
   private final BigDecimal executedAmount;
 
-  public BitfinexOfferStatusResponse(@JsonProperty("id") int id, @JsonProperty("currency") String currency, @JsonProperty("rate") BigDecimal rate, @JsonProperty("period") int period,
-      @JsonProperty("direction") String direction, @JsonProperty("type") String type, @JsonProperty("timestamp") float timestamp, @JsonProperty("is_live") boolean isLive,
-      @JsonProperty("is_cancelled") boolean isCancelled, @JsonProperty("original_amount") BigDecimal originalAmount, @JsonProperty("remaining_amount") BigDecimal remainingAmount,
+  public BitfinexOfferStatusResponse(@JsonProperty("id") int id, @JsonProperty("currency") String currency, @JsonProperty("rate") BigDecimal rate,
+      @JsonProperty("period") int period, @JsonProperty("direction") String direction, @JsonProperty("type") String type,
+      @JsonProperty("timestamp") BigDecimal timestamp, @JsonProperty("is_live") boolean isLive, @JsonProperty("is_cancelled") boolean isCancelled,
+      @JsonProperty("original_amount") BigDecimal originalAmount, @JsonProperty("remaining_amount") BigDecimal remainingAmount,
       @JsonProperty("executed_amount") BigDecimal executedAmount) {
 
     this.id = id;
@@ -68,7 +69,7 @@ public class BitfinexOfferStatusResponse {
     return type;
   }
 
-  public float getTimestamp() {
+  public BigDecimal getTimestamp() {
 
     return timestamp;
   }
@@ -101,8 +102,9 @@ public class BitfinexOfferStatusResponse {
   @Override
   public String toString() {
 
-    return "BitfinexOfferStatusResponse [id=" + id + ", currency=" + currency + ", rate=" + rate + ", period=" + period + ", direction=" + direction + ", type=" + type + ", timestamp=" + timestamp
-        + ", isLive=" + isLive + ", isCancelled=" + isCancelled + ", originalAmount=" + originalAmount + ", remainingAmount=" + remainingAmount + ", executedAmount=" + executedAmount + "]";
+    return "BitfinexOfferStatusResponse [id=" + id + ", currency=" + currency + ", rate=" + rate + ", period=" + period + ", direction=" + direction
+        + ", type=" + type + ", timestamp=" + timestamp + ", isLive=" + isLive + ", isCancelled=" + isCancelled + ", originalAmount="
+        + originalAmount + ", remainingAmount=" + remainingAmount + ", executedAmount=" + executedAmount + "]";
   }
 
 }

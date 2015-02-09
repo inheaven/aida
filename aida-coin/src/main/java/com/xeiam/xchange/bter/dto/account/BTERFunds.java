@@ -1,10 +1,10 @@
 package com.xeiam.xchange.bter.dto.account;
 
-import java.math.BigDecimal;
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.xeiam.xchange.bter.dto.BTERBaseResponse;
+
+import java.math.BigDecimal;
+import java.util.Map;
 
 public class BTERFunds extends BTERBaseResponse {
 
@@ -18,8 +18,9 @@ public class BTERFunds extends BTERBaseResponse {
    * @param theAvailableFunds
    * @param theLockedFunds
    */
-  public BTERFunds(@JsonProperty("available_funds") Map<String, BigDecimal> theAvailableFunds, @JsonProperty("locked_funds") Map<String, BigDecimal> theLockedFunds,
-      @JsonProperty("result") boolean result, @JsonProperty("message") final String message) {
+  public BTERFunds(@JsonProperty("available_funds") Map<String, BigDecimal> theAvailableFunds,
+      @JsonProperty("locked_funds") Map<String, BigDecimal> theLockedFunds, @JsonProperty("result") boolean result,
+      @JsonProperty("message") final String message) {
 
     super(result, message);
     availableFunds = theAvailableFunds;

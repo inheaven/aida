@@ -1,84 +1,79 @@
 package com.xeiam.xchange.btce.v3.service.polling;
 
-import com.xeiam.xchange.ExchangeSpecification;
-import com.xeiam.xchange.btce.v3.BTCE;
+import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.btce.v3.BTCEAdapters;
+import com.xeiam.xchange.btce.v3.BTCEAuthenticated;
 import com.xeiam.xchange.btce.v3.dto.BTCEReturn;
 import com.xeiam.xchange.btce.v3.service.BTCEHmacPostBodyDigest;
 import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.exceptions.ExchangeException;
+import com.xeiam.xchange.exceptions.FundsExceededException;
+import com.xeiam.xchange.exceptions.NonceException;
 import com.xeiam.xchange.service.BaseExchangeService;
 import com.xeiam.xchange.service.polling.BasePollingService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import si.mazi.rescu.ParamsDigest;
 import si.mazi.rescu.RestProxyFactory;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * @author Matija Mazi
- */
-public class BTCEBasePollingService<T extends BTCE> extends BaseExchangeService implements BasePollingService {
+public class BTCEBasePollingService extends BaseExchangeService implements BasePollingService {
 
-  private final Logger logger = LoggerFactory.getLogger(BTCEBasePollingService.class);
+  //  protected static final String PREFIX = "btce";
+  //  protected static final String KEY_ORDER_SIZE_SCALE_DEFAULT = PREFIX + SUF_ORDER_SIZE_SCALE_DEFAULT;
 
-  public final Set<CurrencyPair> currencyPairs = new HashSet<CurrencyPair>();
-
-  private static final long START_MILLIS = 1356998400000L; // Jan 1st, 2013 in milliseconds from epoch
-  // counter for the nonce
-  private static final AtomicInteger lastNonce = new AtomicInteger((int) ((System.currentTimeMillis() - START_MILLIS) / 250L));
+  private static final String ERR_MSG_NONCE = "invalid nonce parameter; on key:";
+  private static final String ERR_MSG_FUNDS = "It is not enough ";
 
   protected final String apiKey;
-  protected final T btce;
+  protected final BTCEAuthenticated btce;
   protected final ParamsDigest signatureCreator;
 
   /**
    * Constructor
-   * 
-   * @param exchangeSpecification The {@link ExchangeSpecification}
+   *
+   * @param exchange
    */
-  public BTCEBasePollingService(Class<T> btceType, ExchangeSpecification exchangeSpecification) {
+  public BTCEBasePollingService(Exchange exchange) {
 
-    super(exchangeSpecification);
+    super(exchange);
 
-    this.btce = RestProxyFactory.createProxy(btceType, exchangeSpecification.getSslUri());
-    this.apiKey = exchangeSpecification.getApiKey();
-    this.signatureCreator = BTCEHmacPostBodyDigest.createInstance(exchangeSpecification.getSecretKey());
+    this.btce = RestProxyFactory.createProxy(BTCEAuthenticated.class, exchange.getExchangeSpecification().getSslUri());
+    this.apiKey = exchange.getExchangeSpecification().getApiKey();
+    this.signatureCreator = BTCEHmacPostBodyDigest.createInstance(exchange.getExchangeSpecification().getSecretKey());
   }
 
   @Override
-  public Collection<CurrencyPair> getExchangeSymbols() throws IOException {
+  public List<CurrencyPair> getExchangeSymbols() throws IOException {
 
-    if (currencyPairs.isEmpty()) {
-      currencyPairs.addAll(BTCEAdapters.adaptCurrencyPairs(btce.getInfo().getPairs().keySet()));
-    }
+    List<CurrencyPair> currencyPairs = new ArrayList<CurrencyPair>();
+
+    currencyPairs.addAll(BTCEAdapters.adaptCurrencyPairs(btce.getInfo().getPairs().keySet()));
 
     return currencyPairs;
   }
 
-  protected int nextNonce() {
+  protected void checkResult(BTCEReturn<?> result) {
+    String error = result.getError();
 
-    int nextNonce = lastNonce.incrementAndGet();
-    logger.debug("nextNonce in BTCEBaseService: " + nextNonce);
-
-    return nextNonce;
-  }
-
-  protected void checkResult(BTCEReturn<?> info) {
-
-    if (!info.isSuccess()) {
-      throw new ExchangeException("BTCE returned an error: " + info.getError());
+    if (!result.isSuccess()) {
+      if (error != null) {
+        if (error.startsWith(ERR_MSG_NONCE)) {
+          throw new NonceException(error);
+        } else if (error.startsWith(ERR_MSG_FUNDS)) {
+          throw new FundsExceededException(error);
+        }
+      }
+      throw new ExchangeException(error);
     }
-    else if (info.getReturnValue() == null) {
-      throw new ExchangeException("Didn't recieve any return value. Message: " + info.getError());
+
+    else if (result.getReturnValue() == null) {
+      throw new ExchangeException("Didn't receive any return value. Message: " + error);
     }
-    else if (info.getError() != null) {
-      throw new ExchangeException("Got error message: " + info.getError());
+
+    else if (error != null) {
+      throw new ExchangeException(error);
     }
   }
 

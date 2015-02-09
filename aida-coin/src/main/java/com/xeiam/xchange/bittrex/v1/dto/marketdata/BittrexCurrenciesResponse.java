@@ -1,8 +1,8 @@
 package com.xeiam.xchange.bittrex.v1.dto.marketdata;
 
-import java.util.Arrays;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.Arrays;
 
 public class BittrexCurrenciesResponse {
 
@@ -10,7 +10,8 @@ public class BittrexCurrenciesResponse {
   private final String message;
   private final BittrexCurrency[] currencies;
 
-  public BittrexCurrenciesResponse(@JsonProperty("success") boolean success, @JsonProperty("message") String message, @JsonProperty("result") BittrexCurrency[] currencies) {
+  public BittrexCurrenciesResponse(@JsonProperty("success") boolean success, @JsonProperty("message") String message,
+      @JsonProperty("result") BittrexCurrency[] currencies) {
 
     this.success = success;
     this.message = message;
@@ -29,7 +30,7 @@ public class BittrexCurrenciesResponse {
   }
 
   public BittrexCurrency[] getCurrencies() {
-  
+
     return currencies;
   }
 

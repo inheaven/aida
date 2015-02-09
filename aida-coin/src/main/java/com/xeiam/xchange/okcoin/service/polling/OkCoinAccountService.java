@@ -1,6 +1,6 @@
 package com.xeiam.xchange.okcoin.service.polling;
 
-import com.xeiam.xchange.ExchangeSpecification;
+import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.exceptions.ExchangeException;
 import com.xeiam.xchange.exceptions.NotAvailableFromExchangeException;
@@ -13,15 +13,17 @@ import java.math.BigDecimal;
 
 public class OkCoinAccountService extends OkCoinAccountServiceRaw implements PollingAccountService {
 
-  /**
-   * @param exchangeSpecification the exchange specification.
-   */
-  public OkCoinAccountService(ExchangeSpecification exchangeSpecification) {
 
-    super(exchangeSpecification);
-  }
+    /**
+     * Constructor
+     *
+     * @param exchange
+     */
+    public OkCoinAccountService(Exchange exchange) {
+        super(exchange);
+    }
 
-  /**
+    /**
    * {@inheritDoc}
    */
   @Override

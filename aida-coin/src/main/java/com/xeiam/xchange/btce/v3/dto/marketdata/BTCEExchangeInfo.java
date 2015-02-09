@@ -1,12 +1,11 @@
 package com.xeiam.xchange.btce.v3.dto.marketdata;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Map;
+
 /**
- * Author: brox
- * Takes public BTC-E exchange info, such as valid currency pairs, fees, etc
+ * @author brox
  */
 public class BTCEExchangeInfo {
 

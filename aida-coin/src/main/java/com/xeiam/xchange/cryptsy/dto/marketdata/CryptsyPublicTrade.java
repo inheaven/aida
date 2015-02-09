@@ -1,13 +1,13 @@
 package com.xeiam.xchange.cryptsy.dto.marketdata;
 
-import java.math.BigDecimal;
-import java.text.ParseException;
-import java.util.Date;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.xeiam.xchange.cryptsy.CryptsyUtils;
+
+import java.math.BigDecimal;
+import java.text.ParseException;
+import java.util.Date;
 
 @JsonIgnoreProperties("id")
 public class CryptsyPublicTrade {
@@ -25,8 +25,9 @@ public class CryptsyPublicTrade {
    * @throws ParseException
    */
   @JsonCreator
-  public CryptsyPublicTrade(@JsonProperty("id") long id, @JsonProperty("time") String time, @JsonProperty("price") BigDecimal price, @JsonProperty("quantity") BigDecimal quantity,
-      @JsonProperty("total") BigDecimal total, @JsonProperty("type") String type) throws ParseException {
+  public CryptsyPublicTrade(@JsonProperty("id") long id, @JsonProperty("time") String time, @JsonProperty("price") BigDecimal price,
+      @JsonProperty("quantity") BigDecimal quantity, @JsonProperty("total") BigDecimal total, @JsonProperty("type") String type)
+      throws ParseException {
 
     this.id = id;
     this.time = time == null ? null : CryptsyUtils.convertDateTime(time);
@@ -60,9 +61,9 @@ public class CryptsyPublicTrade {
 
     return total;
   }
-  
+
   public String getType() {
-    
+
     return type;
   }
 

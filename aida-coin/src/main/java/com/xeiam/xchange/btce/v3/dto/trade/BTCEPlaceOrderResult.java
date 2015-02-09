@@ -1,10 +1,10 @@
 package com.xeiam.xchange.btce.v3.dto.trade;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.util.Map;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Matija Mazi
@@ -24,8 +24,8 @@ public class BTCEPlaceOrderResult {
    * @param remains
    * @param funds
    */
-  public BTCEPlaceOrderResult(@JsonProperty("order_id") long orderId, @JsonProperty("received") BigDecimal received, @JsonProperty("remains") BigDecimal remains,
-      @JsonProperty("funds") Map<String, BigDecimal> funds) {
+  public BTCEPlaceOrderResult(@JsonProperty("order_id") long orderId, @JsonProperty("received") BigDecimal received,
+      @JsonProperty("remains") BigDecimal remains, @JsonProperty("funds") Map<String, BigDecimal> funds) {
 
     this.orderId = orderId;
     this.received = received;

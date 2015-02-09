@@ -1,8 +1,8 @@
 package com.xeiam.xchange.btce.v3.dto.marketdata;
 
-import java.math.BigDecimal;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.math.BigDecimal;
 
 /**
  * Author: okhomenko
@@ -26,8 +26,8 @@ public class BTCETrade {
    * @param tid
    * @param date
    */
-  public BTCETrade(@JsonProperty("type") String tradeType, @JsonProperty("price") BigDecimal price, @JsonProperty("amount") BigDecimal amount, @JsonProperty("tid") long tid,
-      @JsonProperty("timestamp") long date) {
+  public BTCETrade(@JsonProperty("type") String tradeType, @JsonProperty("price") BigDecimal price, @JsonProperty("amount") BigDecimal amount,
+      @JsonProperty("tid") long tid, @JsonProperty("timestamp") long date) {
 
     this.tradeType = tradeType;
     this.price = price;

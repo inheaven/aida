@@ -1,8 +1,8 @@
 package com.xeiam.xchange.bittrex.v1.dto.marketdata;
 
-import java.util.ArrayList;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.ArrayList;
 
 public class BittrexTickerResponse {
 
@@ -10,7 +10,8 @@ public class BittrexTickerResponse {
   private final String message;
   private final BittrexTicker ticker;
 
-  public BittrexTickerResponse(@JsonProperty("success") boolean success, @JsonProperty("message") String message, @JsonProperty("result") ArrayList<BittrexTicker> result) {
+  public BittrexTickerResponse(@JsonProperty("success") boolean success, @JsonProperty("message") String message,
+      @JsonProperty("result") ArrayList<BittrexTicker> result) {
 
     super();
     this.success = success;

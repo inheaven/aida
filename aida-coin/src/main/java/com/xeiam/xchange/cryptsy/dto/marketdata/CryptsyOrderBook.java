@@ -1,10 +1,10 @@
 package com.xeiam.xchange.cryptsy.dto.marketdata;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.List;
 
 /**
  * @author ObsessiveOrange
@@ -21,7 +21,8 @@ public class CryptsyOrderBook {
    * Constructor
    */
   @JsonCreator
-  public CryptsyOrderBook(@JsonProperty("marketid") int marketId, @JsonProperty("buyorders") List<CryptsyBuyOrder> buyOrders, @JsonProperty("sellorders") List<CryptsySellOrder> sellOrders) {
+  public CryptsyOrderBook(@JsonProperty("marketid") int marketId, @JsonProperty("buyorders") List<CryptsyBuyOrder> buyOrders,
+      @JsonProperty("sellorders") List<CryptsySellOrder> sellOrders) {
 
     this.marketId = marketId;
     this.buyOrders = buyOrders;

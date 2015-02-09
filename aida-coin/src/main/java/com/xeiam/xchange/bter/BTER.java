@@ -1,19 +1,13 @@
 package com.xeiam.xchange.bter;
 
-import java.io.IOException;
+import com.xeiam.xchange.bter.dto.marketdata.*;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-
-import com.xeiam.xchange.bter.dto.marketdata.BTERCurrencyPairs;
-import com.xeiam.xchange.bter.dto.marketdata.BTERDepth;
-import com.xeiam.xchange.bter.dto.marketdata.BTERMarketInfoWrapper;
-import com.xeiam.xchange.bter.dto.marketdata.BTERTicker;
-import com.xeiam.xchange.bter.dto.marketdata.BTERTickers;
-import com.xeiam.xchange.bter.dto.marketdata.BTERTradeHistory;
+import java.io.IOException;
 
 @Path("api/1")
 @Produces(MediaType.APPLICATION_JSON)
@@ -45,5 +39,6 @@ public interface BTER {
 
   @GET
   @Path("trade/{ident}_{currency}/{tradeId}")
-  BTERTradeHistory getTradeHistorySince(@PathParam("ident") String tradeableIdentifier, @PathParam("currency") String currency, @PathParam("tradeId") String tradeId) throws IOException;
+  BTERTradeHistory getTradeHistorySince(@PathParam("ident") String tradeableIdentifier, @PathParam("currency") String currency,
+      @PathParam("tradeId") String tradeId) throws IOException;
 }
