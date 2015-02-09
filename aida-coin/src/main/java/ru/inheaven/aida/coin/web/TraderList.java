@@ -380,9 +380,6 @@ public class TraderList extends AbstractPage{
                         ep = new ExchangePair(bh.getExchangeType(), bh.getPair(), TraderType.SHORT);
                         update(handler, profitMap.get(ep), traderService.getOrderStatProfit(ep, startDay), false, true);
 
-                        //update trades count
-                        update(handler, tradesCount, traderBean.getOrderHistoryCount(startDate, OrderStatus.CLOSED).toString());
-
                         //update total
                         if (System.currentTimeMillis() - lastChart4Time > 60000*5) {
                             lastChart4Time = System.currentTimeMillis();
@@ -528,7 +525,11 @@ public class TraderList extends AbstractPage{
                                     ? "#62c462" : "#ee5f5b") + "; display: none\"";
                             String row = "var row = '<tr " + style + "><td>" + orderHistory.toString() + "</td></tr>';";
 
-                            handler.appendJavaScript(row + "$(row).insertAfter('#orders').fadeIn('slow');");                        }
+                            handler.appendJavaScript(row + "$(row).insertAfter('#orders').fadeIn('slow');");
+                        }
+
+                        //update trades count
+                        update(handler, tradesCount, traderBean.getOrderHistoryCount(startDay, OrderStatus.CLOSED).toString());
                     } else if (payload instanceof Futures) {
                         Futures futures = (Futures) payload;
 
