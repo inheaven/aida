@@ -102,7 +102,7 @@ public class TraderList extends AbstractPage{
     private int chart3Index2 = 1;
 
     Date startDay = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24);
-    Date startDate = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 2);
+    Date startDate = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 7);
     long startWeekDate = System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 7;
     long pageInitTime = System.currentTimeMillis();
 
@@ -381,7 +381,7 @@ public class TraderList extends AbstractPage{
                         update(handler, profitMap.get(ep), traderService.getOrderStatProfit(ep, startDay), false, true);
 
                         //update total
-                        if (System.currentTimeMillis() - lastChart4Time > 60000*5) {
+                        if (System.currentTimeMillis() - lastChart4Time > 60000*15) {
                             lastChart4Time = System.currentTimeMillis();
 
                             OrderVolume orderVolume = traderService.getOrderVolumeRate(startDate);
@@ -686,7 +686,7 @@ public class TraderList extends AbstractPage{
 
             long time = 0L;
             for (Equity equity : equities){
-                if (equity.getDate().getTime() - time > 1000*60*5){
+                if (equity.getDate().getTime() - time > 60000*15){
                     data.add(new Point(equity.getDate().getTime(), equity.getVolume()));
                     time = equity.getDate().getTime();
                 }
@@ -698,7 +698,7 @@ public class TraderList extends AbstractPage{
 
             time = 0L;
             for (TickerHistory tickerHistory : tickerHistories){
-                if (tickerHistory.getDate().getTime() - time > 1000*60*5){
+                if (tickerHistory.getDate().getTime() - time > 60000*15){
                     data2.add(new Point(tickerHistory.getDate().getTime(), tickerHistory.getPrice()));
 
                     BigDecimal predictionIndex = tickerHistory.getPrediction();
@@ -728,7 +728,7 @@ public class TraderList extends AbstractPage{
         long time = 0L;
 
         for (OrderVolume orderVolume : orderVolumes){
-            if (orderVolume.getDate().getTime() - time > 60000){
+            if (orderVolume.getDate().getTime() - time > 60000*15){
                 filteredOrderVolumes.add(orderVolume);
                 time = orderVolume.getDate().getTime();
             }
