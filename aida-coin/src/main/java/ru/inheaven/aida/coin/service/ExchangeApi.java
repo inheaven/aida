@@ -34,8 +34,8 @@ public class ExchangeApi {
         setUserName("inheaven");
 
         if (debug) {
-            setApiKey("HmmrODz0Jprink3Eoq8evh1U5MM");
-            setSecretKey("ThF2ugrKLJTJCkv84F7gcfTHbo");
+            setApiKey("56HuxIXjkl3WpDK1ijLgW0SA0o");
+            setSecretKey("0tcR16Mce3V1eLCpXRjMnPuHbs");
         } else {
             setApiKey("0rt9tOzQG2rGfZfGxsx1CtR9JA");
             setSecretKey("5ZpuaGOfpFdn96JisyCfR6wQvc");
