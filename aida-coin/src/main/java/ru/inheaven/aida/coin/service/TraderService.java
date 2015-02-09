@@ -98,8 +98,7 @@ public class TraderService {
         }
     }
 
-    @Schedule(second = "*/5", minute="*", hour="*", persistent=false)
-    @Lock(LockType.READ)
+    @Schedule(second = "*", minute="*", hour="*", persistent=false)
     public void scheduleTradeFuture(){
         trade(OKCOIN);
     }
@@ -294,6 +293,7 @@ public class TraderService {
         }
     }
 
+    @Asynchronous
     public void trade(ExchangeType exchangeType){
         try {
             long time = System.currentTimeMillis();
