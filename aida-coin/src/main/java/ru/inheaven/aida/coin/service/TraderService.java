@@ -98,7 +98,7 @@ public class TraderService {
         }
     }
 
-    @Schedule(second = "*/3", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/5", minute="*", hour="*", persistent=false)
     @Lock(LockType.READ)
     public void scheduleTradeFuture(){
         trade(OKCOIN);
@@ -109,7 +109,7 @@ public class TraderService {
         update(OKCOIN);
     }
 
-    @Schedule(second = "*", minute="*/1", hour="*", persistent=false)
+    @Schedule(second = "*", minute="*/5", hour="*", persistent=false)
     public void scheduleTrade(){
         updateAndTrade(BITTREX);
         updateAndTrade(CRYPTSY);
