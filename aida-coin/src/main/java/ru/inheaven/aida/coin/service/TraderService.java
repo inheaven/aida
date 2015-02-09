@@ -924,10 +924,13 @@ public class TraderService {
                             shift += predictionIndex.compareTo(ZERO) > 0 ? 1 :  -1;
                         }
                         if (index > 2 && average.compareTo(ZERO) != 0 && avgPosition.compareTo(ZERO) != 0){
-                            shift += average.compareTo(avgPosition) > 0 ? 1 : - 1;
-                        }
-                        if (index > 2 && trader.isFuture()){
-                            shift += SHORT.equals(trader.getType()) ? 2 : - 2;
+                            if (trader.isFuture()) {
+                                shift += avgPosition.compareTo(average) > 0
+                                        ? LONG.equals(trader.getType()) ? -2 : 2
+                                        : LONG.equals(trader.getType()) ? 2 : -2;
+                            }else{
+                                shift += average.compareTo(avgPosition) > 0 ? 1 : - 1;
+                            }
                         }
 
                         //random ask delta
