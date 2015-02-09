@@ -2,24 +2,12 @@ package com.xeiam.xchange.okcoin;
 
 import com.xeiam.xchange.BaseExchange;
 import com.xeiam.xchange.ExchangeSpecification;
-import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.okcoin.service.polling.OkCoinAccountService;
 import com.xeiam.xchange.okcoin.service.polling.OkCoinMarketDataService;
 import com.xeiam.xchange.okcoin.service.polling.OkCoinTradeService;
 import si.mazi.rescu.SynchronizedValueFactory;
 
-import java.util.Arrays;
-import java.util.List;
-
 public class OkCoinExchange extends BaseExchange {
-
-    /**
-     * The parameter name of the symbols that will focus on.
-     */
-
-    private static final List<CurrencyPair> SYMBOLS = Arrays.asList(CurrencyPair.BTC_CNY, CurrencyPair.LTC_CNY);
-    private static final List<CurrencyPair> INTL_SYMBOLS = Arrays.asList(CurrencyPair.BTC_USD, CurrencyPair.LTC_USD);
-
     @Override
     public void applySpecification(ExchangeSpecification exchangeSpecification) {
         super.applySpecification(exchangeSpecification);
@@ -28,6 +16,11 @@ public class OkCoinExchange extends BaseExchange {
         if (exchangeSpecification.getApiKey() != null) {
             this.pollingAccountService = new OkCoinAccountService(this);
             this.pollingTradeService = new OkCoinTradeService(this);
+        }
+
+        if (exchangeSpecification.getExchangeSpecificParametersItem("Use_Intl").equals(true)) {
+            exchangeSpecification.setSslUri("https://www.okcoin.com/api");
+            exchangeSpecification.setHost("www.okcoin.com");
         }
     }
 
