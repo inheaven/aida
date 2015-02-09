@@ -39,6 +39,7 @@ public final class CryptsyCurrencyUtils {
       put(49, new CurrencyPair("BTE", "BTC"));
       put(50, new CurrencyPair("BTG", "BTC"));
       put(102, new CurrencyPair("BUK", "BTC"));
+            put(300, new CurrencyPair("CANN", "BTC"));
       put(154, new CurrencyPair("CACH", "BTC"));
       put(221, new CurrencyPair("CAIx", "BTC"));
       put(53, new CurrencyPair("CAP", "BTC"));
@@ -101,6 +102,7 @@ public final class CryptsyCurrencyUtils {
       put(202, new CurrencyPair("LTB", "BTC"));
       put(3, new CurrencyPair("LTC", "BTC"));
       put(233, new CurrencyPair("LTCX", "BTC"));
+            put(295, new CurrencyPair("LSD", "BTC"));
       put(177, new CurrencyPair("LYC", "BTC"));
       put(152, new CurrencyPair("MAX", "BTC"));
       put(45, new CurrencyPair("MEC", "BTC"));
@@ -289,6 +291,7 @@ public final class CryptsyCurrencyUtils {
       put(new CurrencyPair("BTE", "BTC"), 49);
       put(new CurrencyPair("BTG", "BTC"), 50);
       put(new CurrencyPair("BUK", "BTC"), 102);
+            put(new CurrencyPair("CANN", "BTC"), 300);
       put(new CurrencyPair("CACH", "BTC"), 154);
       put(new CurrencyPair("CAIx", "BTC"), 221);
       put(new CurrencyPair("CAP", "BTC"), 53);
@@ -352,6 +355,7 @@ public final class CryptsyCurrencyUtils {
       put(new CurrencyPair("LTC", "BTC"), 3);
       put(new CurrencyPair("LTCD", "BTC"), 294);
       put(new CurrencyPair("LTCX", "BTC"), 233);
+            put(new CurrencyPair("LSD", "BTC"), 295);
       put(new CurrencyPair("LYC", "BTC"), 177);
       put(new CurrencyPair("MAX", "BTC"), 152);
       put(new CurrencyPair("MEC", "BTC"), 45);
