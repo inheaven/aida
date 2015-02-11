@@ -64,6 +64,13 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+        <repository>
+            <id>MarketceteraRepo</id>
+            <url>http://repo.marketcetera.org/maven</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
     </repositories>
 
     <pluginRepositories>
@@ -279,22 +286,22 @@
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
-                <version>1.6.1</version>
+                <version>1.7.10</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-simple</artifactId>
-                <version>1.6.1</version>
+                <version>1.7.10</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>jul-to-slf4j</artifactId>
-                <version>1.6.1</version>
+                <version>1.7.10</version>
             </dependency>
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
-                <version>1.0.6</version>
+                <version>1.1.2</version>
             </dependency>
 
             <!--JNA-->
@@ -429,6 +436,18 @@
                 <artifactId>gs-algo</artifactId>
                 <groupId>org.graphstream</groupId>
                 <version>1.2</version>
+            </dependency>
+
+            <!--QuickFixJ-->
+            <dependency>
+                <groupId>quickfixj</groupId>
+                <artifactId>quickfixj-core</artifactId>
+                <version>1.5.3-bd</version>
+            </dependency>
+            <dependency>
+                <groupId>quickfixj</groupId>
+                <artifactId>quickfixj-msg-fix44</artifactId>
+                <version>1.5.3-bd</version>
             </dependency>
 
         </dependencies>
