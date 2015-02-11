@@ -73,7 +73,7 @@ public class ExchangeApi {
     }});
 
     private static Exchange okcoinExchange = INSTANCE.createExchange(new ExchangeSpecification(OkCoinExchange.class){{
-        setApiKey("2017677");
+        setApiKey("5e94fb8e-73dc-11e4-8382-d8490bd27a4b");
         setSecretKey("F41C04C8917B62967D12030DA66DF202");
         setExchangeSpecificParametersItem("Use_Intl", true);
     }});
