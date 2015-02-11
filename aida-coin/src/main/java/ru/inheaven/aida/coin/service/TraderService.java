@@ -937,12 +937,14 @@ public class TraderService {
                         switch (shift){
                             case -3: randomAskShift = random100(spread).negate(); break;
                             case -2: randomAskShift = random80(spread).negate(); break;
-                            case -1: randomAskShift = random50(spread).negate(); break;
-                            case 1:
+                            case -1:
                                 if (index > 1) {
-                                    randomAskShift = random50(spread);
+                                    randomAskShift = random50(spread).negate();
+                                }else {
+                                    randomAskShift = randomMinus100(spread);
                                 }
                                 break;
+                            case 1: randomAskShift = random50(spread); break;
                             case 2: randomAskShift = random80(spread); break;
                             case 3: randomAskShift = random100(spread); break;
                         }
@@ -968,12 +970,14 @@ public class TraderService {
                         switch (shift){
                             case -3: randomBidShift = random100(spread); break;
                             case -2: randomBidShift = random80(spread); break;
-                            case -1:
+                            case -1: randomBidShift = random50(spread); break;
+                            case 1:
                                 if (index > 1) {
-                                    randomBidShift = random50(spread);
+                                    randomBidShift = random50(spread).negate();
+                                }else {
+                                    randomBidShift = randomMinus100(spread);
                                 }
                                 break;
-                            case 1: randomBidShift = random50(spread).negate(); break;
                             case 2: randomBidShift = random80(spread).negate(); break;
                             case 3: randomBidShift = random100(spread).negate(); break;
                         }
