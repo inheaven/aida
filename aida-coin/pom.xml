@@ -137,6 +137,15 @@
             <groupId>quickfixj</groupId>
             <artifactId>quickfixj-msg-fix44</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.mina</groupId>
+            <artifactId>mina-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.mina</groupId>
+            <artifactId>mina-filter-ssl</artifactId>
+        </dependency>
+
     </dependencies>
 
     <profiles>
