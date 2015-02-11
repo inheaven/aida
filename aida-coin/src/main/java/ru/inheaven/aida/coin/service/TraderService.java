@@ -98,12 +98,12 @@ public class TraderService {
         }
     }
 
-    @Schedule(second = "*", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/5", minute="*", hour="*", persistent=false)
     public void scheduleTradeFuture(){
         trade(OKCOIN);
     }
 
-    @Schedule(second = "*/5", minute="*", hour="*", persistent=false)
+    @Schedule(second = "*/10", minute="*", hour="*", persistent=false)
     public void scheduleUpdateFuture(){
         update(OKCOIN);
     }
