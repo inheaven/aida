@@ -89,7 +89,7 @@ public class OkcoinFixService {
             };
 
             SessionSettings settings;
-            try (InputStream inputStream = getClass().getResourceAsStream("ru/inheaven/aida/coin/service/client.cfg")) {
+            try (InputStream inputStream = getClass().getResourceAsStream("client.cfg")) {
                 settings = new SessionSettings(inputStream);
             }
 
