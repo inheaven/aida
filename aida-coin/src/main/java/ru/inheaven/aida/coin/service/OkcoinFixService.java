@@ -108,7 +108,7 @@ public class OkcoinFixService {
 
             //request
             String mdReqId = UUID.randomUUID().toString();
-            String symbol = "BTC/USD";
+            String symbol = "LTC/USD";
             char subscriptionRequestType = SubscriptionRequestType.SNAPSHOT;
             int marketDepth = 0;
             int mdUpdateType = MDUpdateType.FULL_REFRESH;
