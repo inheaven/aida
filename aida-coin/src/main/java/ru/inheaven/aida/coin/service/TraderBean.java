@@ -87,7 +87,7 @@ public class TraderBean {
     public BigDecimal getSigma(ExchangePair exchangePair){
         try {
             return new BigDecimal((Double) em.createNativeQuery("select std(price) from ticker_history " +
-                    "where exchangetype = ? and pair = ? and `date` >  DATE_SUB(NOW(), INTERVAL 12 HOUR)")
+                    "where exchange_type = ? and pair = ? and `date` >  DATE_SUB(NOW(), INTERVAL 12 HOUR)")
                     .setParameter(1, exchangePair.getExchangeType().name())
                     .setParameter(2, exchangePair.getPair())
                     .getSingleResult());
@@ -99,7 +99,7 @@ public class TraderBean {
     public BigDecimal getAverage(ExchangePair exchangePair){
         try {
             return (BigDecimal) em.createNativeQuery("select avg(price) from ticker_history " +
-                    "where exchangetype = ? and pair = ? and `date` >  DATE_SUB(NOW(), INTERVAL 72 HOUR)")
+                    "where exchange_type = ? and pair = ? and `date` >  DATE_SUB(NOW(), INTERVAL 72 HOUR)")
                     .setParameter(1, exchangePair.getExchangeType().name())
                     .setParameter(2, exchangePair.getPair())
                     .getSingleResult();
@@ -186,7 +186,7 @@ public class TraderBean {
     public List<OrderStat> getOrderStats(Date startDate) {
         return em.createNativeQuery("SELECT id, sum(PRICE * FILLEDAMOUNT)/sum(FILLEDAMOUNT) AS avgPrice, " +
                 "sum(FILLEDAMOUNT) AS sumAmount, type, exchangeType, pair FROM order_history " +
-                "WHERE status='CLOSED' and CLOSED > ? GROUP BY pair, exchangetype, type", OrderStat.class)
+                "WHERE status='CLOSED' and CLOSED > ? GROUP BY pair, exchange_type, type", OrderStat.class)
                 .setParameter(1, startDate)
                 .getResultList();
     }
@@ -195,7 +195,7 @@ public class TraderBean {
     public List<OrderStat> getOrderStats(ExchangePair exchangePair, Date startDate) {
         return em.createNativeQuery("SELECT id, sum(PRICE * FILLEDAMOUNT)/sum(FILLEDAMOUNT) AS avgPrice, " +
                 "sum(FILLEDAMOUNT) AS sumAmount, type, exchangeType, pair FROM order_history " +
-                "WHERE exchangetype = ? and pair = ? and status='CLOSED' and CLOSED > ? GROUP BY type", OrderStat.class)
+                "WHERE exchange_type = ? and pair = ? and status='CLOSED' and CLOSED > ? GROUP BY type", OrderStat.class)
                 .setParameter(1, exchangePair.getExchangeType().name())
                 .setParameter(2, exchangePair.getPair())
                 .setParameter(3, startDate)
@@ -206,7 +206,7 @@ public class TraderBean {
     public List<OrderStat> getOrderStatVolume(ExchangePair exchangePair, Date startDate){
         return em.createNativeQuery("select id, round(price,2) as avgPrice, " +
                 "sum(FILLEDAMOUNT) as sumAmount, type, exchangeType, pair FROM order_history " +
-                "WHERE exchangetype = ? and pair = ? and status='CLOSED' and CLOSED > ? GROUP BY round(price, 2)", OrderStat.class)
+                "WHERE exchange_type = ? and pair = ? and status='CLOSED' and CLOSED > ? GROUP BY round(price, 2)", OrderStat.class)
                 .setParameter(1, exchangePair.getExchangeType().name())
                 .setParameter(2, exchangePair.getPair())
                 .setParameter(3, startDate)
