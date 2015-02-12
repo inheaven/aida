@@ -7,8 +7,6 @@ import com.xeiam.xchange.dto.trade.LimitOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.*;
-import quickfix.field.MDUpdateType;
-import quickfix.field.SubscriptionRequestType;
 import ru.inheaven.aida.fix.OKCoinApplication;
 import ru.inheaven.aida.fix.OKCoinXChangeApplication;
 import ru.inheaven.aida.fix.fix44.OKCoinMessageFactory;
@@ -110,22 +108,11 @@ public class OkcoinFixService {
             sessionId = initiator.getSessions().get(0);
 
             //request
-            String mdReqId = UUID.randomUUID().toString();
             String symbol = "LTC/USD";
-            char subscriptionRequestType = SubscriptionRequestType.SNAPSHOT;
-            int marketDepth = 0;
-            int mdUpdateType = MDUpdateType.FULL_REFRESH;
 
-            application.requestOrderBook(mdReqId, symbol, subscriptionRequestType, marketDepth, mdUpdateType, sessionId);
+            application.request24HTicker(UUID.randomUUID().toString(), symbol, sessionId);
 
-            mdReqId = UUID.randomUUID().toString();
-            application.requestLiveTrades(mdReqId, symbol, sessionId);
-
-            mdReqId = UUID.randomUUID().toString();
-            application.request24HTicker(mdReqId, symbol, sessionId);
-
-            String accReqId = UUID.randomUUID().toString();
-            application.requestAccountInfo(accReqId, sessionId);
+            application.requestAccountInfo(UUID.randomUUID().toString(), sessionId);
         } catch (Exception e) {
             log.error("Error okcoin fix start", e);
         }

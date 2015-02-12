@@ -15,6 +15,6 @@ public class ExchangeTypeConverter implements AttributeConverter<ExchangeType, S
 
     @Override
     public ExchangeType convertToEntityAttribute(String s) {
-        return ExchangeType.valueOf(s);
+        return  s != null ? ExchangeType.valueOf(s) : null;
     }
 }
