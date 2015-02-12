@@ -1,6 +1,9 @@
 package ru.inheaven.aida.coin.entity;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -9,7 +12,7 @@ import java.util.Date;
  */
 @Entity
 public class Equity extends AbstractEntity{
-    @Column @Enumerated
+    @Column
     private ExchangeType exchangeType;
 
     @Column(nullable = false, precision = 19, scale = 8)

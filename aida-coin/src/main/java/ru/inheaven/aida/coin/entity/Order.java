@@ -20,14 +20,12 @@ public class Order extends AbstractEntity {
     private String orderId;
 
     @Column(nullable = false)
-    @Enumerated
     private ExchangeType exchangeType;
 
     @Column(nullable = false)
     private String pair;
 
     @Column(nullable = false)
-    @Enumerated
     private OrderType type;
 
     @Column(nullable = false, precision = 19, scale = 8)
@@ -46,7 +44,6 @@ public class Order extends AbstractEntity {
     private Date closed;
 
     @Column(nullable = false)
-    @Enumerated
     private OrderStatus status;
 
     public Order() {

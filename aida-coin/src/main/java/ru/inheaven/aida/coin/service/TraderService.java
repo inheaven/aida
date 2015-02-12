@@ -527,8 +527,8 @@ public class TraderService {
 
                 if (!tradesHash.contains(key)){
                     TradeHistory tradeHistory = new TradeHistory(exchangeType, TraderUtil.getPair(t.getCurrencyPair()),
-                            t.getType(), t.getTradableAmount(), t.getPrice(), t.getTimestamp(), t.getId(), t.getOrderId(),
-                            t.getFeeAmount(), t.getFeeCurrency());
+                            OrderType.valueOf(t.getType().name()), t.getTradableAmount(), t.getPrice(), t.getTimestamp(),
+                            t.getId(), t.getOrderId(), t.getFeeAmount(), t.getFeeCurrency());
 
                     try {
                         traderBean.save(tradeHistory);

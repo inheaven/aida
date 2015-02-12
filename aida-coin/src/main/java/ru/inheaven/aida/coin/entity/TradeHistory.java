@@ -1,7 +1,5 @@
 package ru.inheaven.aida.coin.entity;
 
-import com.xeiam.xchange.dto.Order;
-
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -13,14 +11,14 @@ import java.util.Date;
 @Entity
 @Table(name = "trade_history")
 public class TradeHistory extends AbstractEntity {
-    @Column(nullable = false) @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private ExchangeType exchangeType;
 
     @Column(nullable = false)
     private String pair;
 
-    @Column(nullable = false) @Enumerated(EnumType.STRING)
-    private Order.OrderType type;
+    @Column(nullable = false)
+    private OrderType type;
 
     @Column(nullable = false, precision = 19, scale = 8)
     protected BigDecimal tradableAmount;
@@ -46,7 +44,7 @@ public class TradeHistory extends AbstractEntity {
     public TradeHistory() {
     }
 
-    public TradeHistory(ExchangeType exchangeType, String pair, Order.OrderType type, BigDecimal tradableAmount,
+    public TradeHistory(ExchangeType exchangeType, String pair, OrderType type, BigDecimal tradableAmount,
                         BigDecimal price, Date date, String tradeId, String orderId, BigDecimal feeAmount,
                         String feeCurrency) {
         this.exchangeType = exchangeType;
@@ -77,11 +75,11 @@ public class TradeHistory extends AbstractEntity {
         this.pair = pair;
     }
 
-    public Order.OrderType getType() {
+    public OrderType getType() {
         return type;
     }
 
-    public void setType(Order.OrderType type) {
+    public void setType(OrderType type) {
         this.type = type;
     }
 

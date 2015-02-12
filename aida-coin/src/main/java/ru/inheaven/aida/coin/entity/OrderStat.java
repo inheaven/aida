@@ -2,7 +2,6 @@ package ru.inheaven.aida.coin.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.Enumerated;
 import java.math.BigDecimal;
 
 /**
@@ -11,14 +10,12 @@ import java.math.BigDecimal;
 @Entity
 public class OrderStat extends AbstractEntity{
     @Column(nullable = false)
-    @Enumerated
     private ExchangeType exchangeType;
 
     @Column(nullable = false)
     private String pair;
 
     @Column(nullable = false)
-    @Enumerated
     private OrderType type;
 
     @Column(nullable = false, precision = 19, scale = 8)

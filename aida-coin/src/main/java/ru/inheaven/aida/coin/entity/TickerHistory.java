@@ -11,7 +11,7 @@ import java.util.Date;
 @Entity
 @Table(name = "ticker_history")
 public class TickerHistory extends AbstractEntity{
-    @Column(nullable = false) @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private ExchangeType exchangeType;
 
     @Column(nullable = false)

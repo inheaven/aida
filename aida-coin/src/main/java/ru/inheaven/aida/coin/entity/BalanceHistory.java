@@ -12,7 +12,6 @@ import java.util.Date;
 @Table(name = "balance_history")
 public class BalanceHistory extends AbstractEntity{
     @Column(nullable = false)
-    @Enumerated
     private ExchangeType exchangeType;
 
     @Column(nullable = false)
