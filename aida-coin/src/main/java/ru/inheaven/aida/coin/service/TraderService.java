@@ -1350,15 +1350,15 @@ public class TraderService {
         if (exchangePair.getExchangeType().equals(OKCOIN)){
             int contract = exchangePair.getPair().contains("BTC/") ? 100 :10;
 
-            return BigDecimal.valueOf((contract/map.get(BID).getAvgPrice().doubleValue() - contract/map.get(ASK).getAvgPrice().doubleValue())
-                    * (map.get(ASK).getSumAmount().add(map.get(BID).getSumAmount()).intValue())).setScale(8, HALF_UP);
+            return BigDecimal.valueOf((contract/map.get(OrderType.BID).getAvgPrice().doubleValue() - contract/map.get(OrderType.ASK).getAvgPrice().doubleValue())
+                    * (map.get(OrderType.ASK).getSumAmount().add(map.get(OrderType.BID).getSumAmount()).intValue())).setScale(8, HALF_UP);
         }
 
         BigDecimal priceDiff = ZERO;
         BigDecimal minAmount = ZERO;
 
         for (OrderStat orderStat : orderStats){
-            priceDiff = orderStat.getType().equals(ASK)
+            priceDiff = orderStat.getType().equals(OrderType.ASK)
                     ? priceDiff.add(orderStat.getAvgPrice())
                     : priceDiff.subtract(orderStat.getAvgPrice());
 
