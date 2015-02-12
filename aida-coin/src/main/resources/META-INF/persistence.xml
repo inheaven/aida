@@ -9,6 +9,7 @@
             <property name="hibernate.hbm2ddl.auto" value = "update"/>
             <property name="hibernate.transaction.jta.platform" value="org.hibernate.service.jta.platform.internal.SunOneJtaPlatform" />
             <property name="hibernate.ejb.naming_strategy" value="org.hibernate.cfg.ImprovedNamingStrategy"/>
+            <property name="packagesToScan" value="ru.inheaven.aida.coin.entity" />
         </properties>
     </persistence-unit>
 </persistence>
