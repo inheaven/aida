@@ -203,6 +203,6 @@ public class DateUtil {
     }
 
     public static String getTimeString(Date date){
-        return simpleTimeFormat().format(date);
+        return date != null ? simpleTimeFormat().format(date) : "";
     }
 }
