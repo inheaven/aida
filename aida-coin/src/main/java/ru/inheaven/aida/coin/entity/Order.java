@@ -62,10 +62,12 @@ public class Order extends AbstractEntity {
         this.status = OrderStatus.OPENED;
     }
 
+    @Transient
     public void setPriceScale(int scale){
         price = price.setScale(scale, RoundingMode.HALF_UP);
     }
 
+    @Transient
     public void setFilledAmountScale(int scale){
         filledAmount = filledAmount.setScale(scale, RoundingMode.HALF_UP);
     }
