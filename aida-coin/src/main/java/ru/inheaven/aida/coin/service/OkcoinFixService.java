@@ -14,6 +14,7 @@ import ru.inheaven.aida.fix.OKCoinXChangeApplication;
 import ru.inheaven.aida.fix.fix44.OKCoinMessageFactory;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.ejb.Asynchronous;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
@@ -128,5 +129,10 @@ public class OkcoinFixService {
         } catch (Exception e) {
             log.error("Error okcoin fix start", e);
         }
+    }
+
+    @PreDestroy
+    public void redeploy(){
+        initiator.stop();
     }
 }
