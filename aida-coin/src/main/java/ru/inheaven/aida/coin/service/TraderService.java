@@ -1339,11 +1339,11 @@ public class TraderService {
         }
 
 
-        Map<com.xeiam.xchange.dto.Order.OrderType, OrderStat> map = Maps.uniqueIndex(orderStats, new Function<OrderStat, com.xeiam.xchange.dto.Order.OrderType>() {
+        Map<OrderType, OrderStat> map = Maps.uniqueIndex(orderStats, new Function<OrderStat, OrderType>() {
             @Nullable
             @Override
-            public com.xeiam.xchange.dto.Order.OrderType apply(@Nullable OrderStat input) {
-                return input != null ? com.xeiam.xchange.dto.Order.OrderType.valueOf(input.getType().name()) : null;
+            public OrderType apply(@Nullable OrderStat input) {
+                return input != null ? input.getType() : null;
             }
         });
 
