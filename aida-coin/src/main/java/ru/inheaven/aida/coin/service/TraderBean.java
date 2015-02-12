@@ -74,7 +74,7 @@ public class TraderBean {
             return em.createQuery("select h from BalanceHistory h where h.pair = :pair and h.exchangeType = :exchangeType " +
                     "and h.date >= :startDate order by h.date asc", BalanceHistory.class)
                     .setParameter("pair", exchangePair.getPair())
-                    .setParameter("exchangeType", exchangePair.getExchangeType().name())
+                    .setParameter("exchangeType", exchangePair.getExchangeType())
                     .setParameter("startDate", startDate)
                     .getResultList();
         }else {
@@ -112,7 +112,7 @@ public class TraderBean {
         List<TickerHistory> list =  em.createQuery("select th from TickerHistory th where th.pair = :pair and th.exchangeType = :exchangeType " +
                 "order by th.date desc", TickerHistory.class)
                 .setParameter("pair", exchangePair.getPair())
-                .setParameter("exchangeType", exchangePair.getExchangeType().name())
+                .setParameter("exchangeType", exchangePair.getExchangeType())
                 .setMaxResults(count)
                 .getResultList();
 
@@ -125,7 +125,7 @@ public class TraderBean {
         return em.createQuery("select th from TickerHistory th where th.pair = :pair " +
                 "and th.exchangeType = :exchangeType and th.date > :startDate", TickerHistory.class)
                 .setParameter("pair", exchangePair.getPair())
-                .setParameter("exchangeType", exchangePair.getExchangeType().name())
+                .setParameter("exchangeType", exchangePair.getExchangeType())
                 .setParameter("startDate", startDate)
                 .getResultList();
     }
@@ -134,7 +134,7 @@ public class TraderBean {
         return em.createQuery("select h from Order h where h.exchangeType = :exchangeType and " +
                 "h.pair = :pair and  h.status = :status and " +
                 "(h.opened > :startDate or (h.closed is not null and h.closed > :startDate))", Order.class)
-                .setParameter("exchangeType", exchangePair.getExchangeType().name())
+                .setParameter("exchangeType", exchangePair.getExchangeType())
                 .setParameter("pair", exchangePair.getPair())
                 .setParameter("status", status)
                 .setParameter("startDate", startDate)
@@ -144,7 +144,7 @@ public class TraderBean {
     public List<Order> getOrderHistories(ExchangeType exchangeType, OrderStatus status){
         return em.createQuery("select h from Order h where h.exchangeType = :exchangeType and " +
                 "h.status = :status", Order.class)
-                .setParameter("exchangeType", exchangeType.name())
+                .setParameter("exchangeType", exchangeType)
                 .setParameter("status", status)
                 .getResultList();
     }
@@ -221,7 +221,7 @@ public class TraderBean {
 
     public List<Equity> getEquities(ExchangeType exchangeType, Date startDate){
         return em.createQuery("select e from Equity e where e.date > :startDate and e.exchangeType = :exchangeType", Equity.class)
-                .setParameter("exchangeType", exchangeType.name())
+                .setParameter("exchangeType", exchangeType)
                 .setParameter("startDate", startDate)
                 .getResultList();
     }
