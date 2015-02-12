@@ -11,12 +11,12 @@ import java.io.Serializable;
  *         Date: 07.01.14 19:42
  */
 @MappedSuperclass
-public class AbstractEntity implements Serializable {
+public abstract class AbstractEntity implements Serializable {
     public AbstractEntity() {
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected Long id;
 
     public Long getId() {
