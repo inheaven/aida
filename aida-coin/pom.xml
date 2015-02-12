@@ -146,11 +146,11 @@
             <artifactId>mina-filter-ssl</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-entitymanager</artifactId>
+        <!--<dependency>-->
+            <!--<groupId>org.hibernate</groupId>-->
+            <!--<artifactId>hibernate-entitymanager</artifactId>-->
             <!--<scope>provided</scope>-->
-        </dependency>
+        <!--</dependency>-->
     </dependencies>
 
     <profiles>

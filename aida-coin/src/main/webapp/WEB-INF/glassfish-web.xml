@@ -9,6 +9,6 @@
         <group-name>inheaven</group-name>
     </security-role-mapping>
 
-    <!--<keep-state>true</keep-state>-->
+    <keep-state>true</keep-state>
 
 </glassfish-web-app>
