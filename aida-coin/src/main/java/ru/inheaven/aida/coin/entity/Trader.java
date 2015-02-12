@@ -13,8 +13,12 @@ import java.util.Date;
 @Entity
 public class Trader extends AbstractEntity{
     @Column(nullable = false)
-    @Enumerated(EnumType.ORDINAL)
+    @Enumerated(EnumType.STRING)
     private ExchangeType exchangeType;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private ExchangeType exchangeTypeTest;
 
     @Column(nullable = false)
     private String pair;
