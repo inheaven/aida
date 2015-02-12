@@ -14,7 +14,7 @@ import java.util.Date;
 public class Trader extends AbstractEntity{
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private ExchangeType exchange;
+    private ExchangeType exchangeType;
 
     @Column(nullable = false)
     private String pair;
@@ -58,11 +58,11 @@ public class Trader extends AbstractEntity{
     }
 
     public boolean isFuture(){
-        return ExchangeType.OKCOIN.equals(exchange);
+        return ExchangeType.OKCOIN.equals(exchangeType);
     }
 
     public ExchangePair getExchangePair(){
-        return new ExchangePair(exchange, pair, type);
+        return new ExchangePair(exchangeType, pair, type);
     }
 
     public String getCurrency(){
@@ -73,12 +73,12 @@ public class Trader extends AbstractEntity{
         return TraderUtil.getCounterSymbol(pair);
     }
 
-    public ExchangeType getExchange() {
-        return exchange;
+    public ExchangeType getExchangeType() {
+        return exchangeType;
     }
 
-    public void setExchange(ExchangeType exchange) {
-        this.exchange = exchange;
+    public void setExchangeType(ExchangeType exchange) {
+        this.exchangeType = exchange;
     }
 
     public String getPair() {

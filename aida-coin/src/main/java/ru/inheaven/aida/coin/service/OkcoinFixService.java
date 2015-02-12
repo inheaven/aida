@@ -14,6 +14,7 @@ import ru.inheaven.aida.fix.OKCoinXChangeApplication;
 import ru.inheaven.aida.fix.fix44.OKCoinMessageFactory;
 
 import javax.annotation.PostConstruct;
+import javax.ejb.Asynchronous;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import java.io.InputStream;
@@ -34,6 +35,7 @@ public class OkcoinFixService {
     private Initiator initiator;
 
     @PostConstruct
+    @Asynchronous
     public void start(){
         try {
             application = new OKCoinXChangeApplication("5e94fb8e-73dc-11e4-8382-d8490bd27a4b", "F41C04C8917B62967D12030DA66DF202") {

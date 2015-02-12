@@ -38,7 +38,7 @@ public class GraphService {
         wallets.forEach(graph::addNode);
 
         for (Trader trader : traders){
-            String id = trader.getExchange().name() + "/" + trader.getPair();
+            String id = trader.getExchangeType().name() + "/" + trader.getPair();
             graph.addEdge(id + "/ASK", trader.getCurrency(), trader.getCounterSymbol());
             graph.addEdge(id + "/BID", trader.getCounterSymbol(), trader.getCurrency());
         }

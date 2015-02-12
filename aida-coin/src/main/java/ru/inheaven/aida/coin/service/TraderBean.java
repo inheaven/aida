@@ -25,7 +25,7 @@ public class TraderBean {
     }
 
     public List<Trader> getTraders(ExchangeType exchangeType){
-        List<Trader>  traders = em.createQuery("select t from Trader t where t.exchange = :exchangeType", Trader.class)
+        List<Trader>  traders = em.createQuery("select t from Trader t where t.exchangeType = :exchangeType", Trader.class)
                 .setParameter("exchangeType", exchangeType)
                 .getResultList();
 
@@ -40,7 +40,7 @@ public class TraderBean {
     }
 
     public List<String> getTraderPairs(ExchangeType exchangeType){
-        return em.createQuery("select t.pair from Trader t where t.exchange = :exchangeType", String.class)
+        return em.createQuery("select t.pair from Trader t where t.exchangeType = :exchangeType", String.class)
                 .setParameter("exchangeType", exchangeType)
                 .getResultList();
     }
@@ -130,10 +130,10 @@ public class TraderBean {
                 .getResultList();
     }
 
-    public List<OrderHistory> getOrderHistories(ExchangePair exchangePair, OrderStatus status, Date startDate){
-        return em.createQuery("select h from OrderHistory h where h.exchangeType = :exchangeType and " +
+    public List<Order> getOrderHistories(ExchangePair exchangePair, OrderStatus status, Date startDate){
+        return em.createQuery("select h from Order h where h.exchangeType = :exchangeType and " +
                 "h.pair = :pair and  h.status = :status and " +
-                "(h.opened > :startDate or (h.closed is not null and h.closed > :startDate))", OrderHistory.class)
+                "(h.opened > :startDate or (h.closed is not null and h.closed > :startDate))", Order.class)
                 .setParameter("exchangeType", exchangePair.getExchangeType())
                 .setParameter("pair", exchangePair.getPair())
                 .setParameter("status", status)
@@ -141,40 +141,40 @@ public class TraderBean {
                 .getResultList();
     }
 
-    public List<OrderHistory> getOrderHistories(ExchangeType exchangeType, OrderStatus status){
-        return em.createQuery("select h from OrderHistory h where h.exchangeType = :exchangeType and " +
-                "h.status = :status", OrderHistory.class)
+    public List<Order> getOrderHistories(ExchangeType exchangeType, OrderStatus status){
+        return em.createQuery("select h from Order h where h.exchangeType = :exchangeType and " +
+                "h.status = :status", Order.class)
                 .setParameter("exchangeType", exchangeType)
                 .setParameter("status", status)
                 .getResultList();
     }
 
     public Long getOrderHistoryCount(Date startDate, OrderStatus status){
-        return em.createQuery("select count(h) from OrderHistory h where (h.opened > :startDate or (h.closed is not null and " +
+        return em.createQuery("select count(h) from Order h where (h.opened > :startDate or (h.closed is not null and " +
                 "h.closed > :startDate)) and h.status = :status", Long.class)
                 .setParameter("startDate", startDate)
                 .setParameter("status", status)
                 .getSingleResult();
     }
 
-    public List<OrderHistory> getOrderHistories(Date startDate){
-        return em.createQuery("select h from OrderHistory h where h.opened > :startDate or (h.closed is not null and " +
-                "h.closed > :startDate)", OrderHistory.class)
+    public List<Order> getOrderHistories(Date startDate){
+        return em.createQuery("select h from Order h where h.opened > :startDate or (h.closed is not null and " +
+                "h.closed > :startDate)", Order.class)
                 .setParameter("startDate", startDate)
                 .getResultList();
     }
 
-    public List<OrderHistory> getOrderHistories(OrderStatus status, Date startDate){
-        return em.createQuery("select h from OrderHistory h where (h.opened > :startDate or (h.closed is not null and " +
-                "h.closed > :startDate)) and h.status = :status", OrderHistory.class)
+    public List<Order> getOrderHistories(OrderStatus status, Date startDate){
+        return em.createQuery("select h from Order h where (h.opened > :startDate or (h.closed is not null and " +
+                "h.closed > :startDate)) and h.status = :status", Order.class)
                 .setParameter("startDate", startDate)
                 .setParameter("status", status)
                 .getResultList();
     }
 
-    public OrderHistory getOrderHistory(String orderId){
+    public Order getOrderHistory(String orderId){
         try {
-            return em.createQuery("select h from OrderHistory h where h.orderId = :orderId", OrderHistory.class)
+            return em.createQuery("select h from Order h where h.orderId = :orderId", Order.class)
                     .setParameter("orderId", orderId)
                     .getSingleResult();
         } catch (Exception e) {

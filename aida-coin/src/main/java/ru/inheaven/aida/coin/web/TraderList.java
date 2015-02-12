@@ -9,7 +9,6 @@ import com.googlecode.wickedcharts.highcharts.options.series.PointSeries;
 import com.googlecode.wickedcharts.highcharts.theme.GrayTheme;
 import com.googlecode.wickedcharts.wicket6.highcharts.Chart;
 import com.googlecode.wickedcharts.wicket6.highcharts.JsonRendererFactory;
-import com.xeiam.xchange.dto.Order;
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.dto.trade.LimitOrder;
@@ -176,7 +175,7 @@ public class TraderList extends AbstractPage{
             public void populateItem(Item<ICellPopulator<Trader>> cellItem, String componentId, IModel<Trader> rowModel) {
                 final Trader trader = rowModel.getObject();
 
-                String name = trader.getExchange().getShortName() + " " + trader.getPair()
+                String name = trader.getExchangeType().getShortName() + " " + trader.getPair()
                         + (trader.getType().equals(TraderType.SHORT) ? " ☯" : "");
 
                 cellItem.add(new NavbarAjaxLink<String>(componentId, Model.of(name)) {
@@ -237,11 +236,11 @@ public class TraderList extends AbstractPage{
                 Collections.sort(traders, new Comparator<Trader>() {
                     @Override
                     public int compare(Trader t1, Trader t2) {
-                        if (t2.getExchange().equals(OKCOIN) && !t1.getExchange().equals(OKCOIN)){
+                        if (t2.getExchangeType().equals(OKCOIN) && !t1.getExchangeType().equals(OKCOIN)){
                             return 1;
                         }
 
-                        if (!t2.getExchange().equals(OKCOIN) && t1.getExchange().equals(OKCOIN)){
+                        if (!t2.getExchangeType().equals(OKCOIN) && t1.getExchangeType().equals(OKCOIN)){
                             return -1;
                         }
 
@@ -505,25 +504,25 @@ public class TraderList extends AbstractPage{
                                 }
                             }
                         });
-                    } else if (payload instanceof OrderHistory) {
-                        OrderHistory orderHistory = (OrderHistory) payload;
+                    } else if (payload instanceof Order) {
+                        Order order = (Order) payload;
 
-                        if (orderHistory.getExchangeType().equals(OKCOIN)) {
-                            orderHistory.setFilledAmountScale(0);
+                        if (order.getExchangeType().equals(OKCOIN)) {
+                            order.setFilledAmountScale(0);
 
-                            if (orderHistory.getPair().contains("LTC/")) {
-                                orderHistory.setPriceScale(3);
-                            } else if (orderHistory.getPair().contains("BTC/")) {
-                                orderHistory.setPriceScale(2);
+                            if (order.getPair().contains("LTC/")) {
+                                order.setPriceScale(3);
+                            } else if (order.getPair().contains("BTC/")) {
+                                order.setPriceScale(2);
                             }
                         }
 
-                        handler.add(notificationLabel3.setDefaultModelObject(orderHistory.toString()));
+                        handler.add(notificationLabel3.setDefaultModelObject(order.toString()));
 
-                        if (orderHistory.getStatus().equals(OrderStatus.CLOSED)) {
-                            String style = "style= \"color: " + (orderHistory.getType().equals(Order.OrderType.ASK)
+                        if (order.getStatus().equals(OrderStatus.CLOSED)) {
+                            String style = "style= \"color: " + (order.getType().equals(com.xeiam.xchange.dto.Order.OrderType.ASK)
                                     ? "#62c462" : "#ee5f5b") + "; display: none\"";
-                            String row = "var row = '<tr " + style + "><td>" + orderHistory.toString() + "</td></tr>';";
+                            String row = "var row = '<tr " + style + "><td>" + order.toString() + "</td></tr>';";
 
                             handler.appendJavaScript(row + "$(row).insertAfter('#orders').fadeIn('slow');");
                         }
@@ -640,26 +639,26 @@ public class TraderList extends AbstractPage{
         });
 
         //Orders
-        List<OrderHistory> orderHistories = traderBean.getOrderHistories(OrderStatus.CLOSED, new Date(System.currentTimeMillis() - 1000*60*60));
+        List<Order> orderHistories = traderBean.getOrderHistories(OrderStatus.CLOSED, new Date(System.currentTimeMillis() - 1000*60*60));
         orderHistories.sort((o1, o2) -> o2.getClosed().compareTo(o1.getClosed()));
 
-        add(orders = new BootstrapListView<OrderHistory>("orders", orderHistories) {
+        add(orders = new BootstrapListView<Order>("orders", orderHistories) {
             @Override
-            protected void populateItem(ListItem<OrderHistory> item) {
-                OrderHistory orderHistory = item.getModelObject();
+            protected void populateItem(ListItem<Order> item) {
+                Order order = item.getModelObject();
 
-                if (orderHistory.getExchangeType().equals(OKCOIN)){
-                    orderHistory.setFilledAmountScale(0);
+                if (order.getExchangeType().equals(OKCOIN)){
+                    order.setFilledAmountScale(0);
 
-                    if (orderHistory.getPair().contains("LTC/")){
-                        orderHistory.setPriceScale(3);
-                    }else if (orderHistory.getPair().contains("BTC/")){
-                        orderHistory.setPriceScale(2);
+                    if (order.getPair().contains("LTC/")){
+                        order.setPriceScale(3);
+                    }else if (order.getPair().contains("BTC/")){
+                        order.setPriceScale(2);
                     }
                 }
 
-                item.add(new AttributeModifier("style", "color: " + (orderHistory.getType().equals(Order.OrderType.ASK) ? "#62c462" : "#ee5f5b")));
-                item.add(new Label("order", Model.of(orderHistory.toString())));
+                item.add(new AttributeModifier("style", "color: " + (order.getType().equals(com.xeiam.xchange.dto.Order.OrderType.ASK) ? "#62c462" : "#ee5f5b")));
+                item.add(new Label("order", Model.of(order.toString())));
             }
         });
 

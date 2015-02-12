@@ -1,6 +1,5 @@
 package ru.inheaven.aida.coin.entity;
 
-import com.xeiam.xchange.dto.Order;
 import ru.inhell.aida.common.util.DateUtil;
 
 import javax.persistence.*;
@@ -14,9 +13,9 @@ import java.util.Date;
  *         Date: 09.11.2014 14:06
  */
 @Entity
-@Table(name = "order_history")
+@Table(name = "order")
 @XmlRootElement
-public class OrderHistory extends AbstractEntity {
+public class Order extends AbstractEntity {
     @Column(nullable = false)
     private String orderId;
 
@@ -27,7 +26,7 @@ public class OrderHistory extends AbstractEntity {
     private String pair;
 
     @Column(nullable = false) @Enumerated(EnumType.STRING)
-    private Order.OrderType type;
+    private com.xeiam.xchange.dto.Order.OrderType type;
 
     @Column(nullable = false, precision = 19, scale = 8)
     private BigDecimal tradableAmount;
@@ -47,11 +46,11 @@ public class OrderHistory extends AbstractEntity {
     @Column(nullable = false) @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
-    public OrderHistory() {
+    public Order() {
     }
 
-    public OrderHistory(String orderId, ExchangeType exchangeType, String pair, com.xeiam.xchange.dto.Order.OrderType type,
-                        BigDecimal tradableAmount, BigDecimal price, Date opened) {
+    public Order(String orderId, ExchangeType exchangeType, String pair, com.xeiam.xchange.dto.Order.OrderType type,
+                 BigDecimal tradableAmount, BigDecimal price, Date opened) {
         this.orderId = orderId;
         this.exchangeType = exchangeType;
         this.pair = pair;

@@ -5,7 +5,6 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 import com.xeiam.xchange.cryptsy.CryptsyExchange;
 import com.xeiam.xchange.currency.CurrencyPair;
-import com.xeiam.xchange.dto.Order;
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.marketdata.OrderBook;
 import com.xeiam.xchange.dto.marketdata.Ticker;
@@ -55,7 +54,6 @@ import static ru.inheaven.aida.coin.util.TraderUtil.*;
 @Singleton
 @Lock(LockType.READ)
 @ConcurrencyManagement(ConcurrencyManagementType.BEAN)
-@TransactionManagement(TransactionManagementType.BEAN)
 public class TraderService {
     private Logger log = LoggerFactory.getLogger(TraderService.class);
 
@@ -275,15 +273,15 @@ public class TraderService {
                             ? ticker.getBid().multiply(BigDecimal.valueOf(0.99))
                             : ticker.getAsk().multiply(BigDecimal.valueOf(1.01));
 
-                    Order.OrderType orderType = _short ? ASK : BID;
+                    com.xeiam.xchange.dto.Order.OrderType orderType = _short ? ASK : BID;
 
                     String id = tradeService.placeLimitOrder(new LimitOrder(orderType, a1, getCurrencyPair(pair),
                             _short ? "LONG" : "SHORT", new Date(), price));
-                    traderBean.save(new OrderHistory(id, OKCOIN, pair, orderType, a1, price, new Date()));
+                    traderBean.save(new Order(id, OKCOIN, pair, orderType, a1, price, new Date()));
 
                     id = tradeService.placeLimitOrder(new LimitOrder(orderType, a1, getCurrencyPair(pair),
                             _short ? "SHORT" : "LONG", new Date(), price));
-                    traderBean.save(new OrderHistory(id, OKCOIN, pair, orderType, a1, price, new Date()));
+                    traderBean.save(new Order(id, OKCOIN, pair, orderType, a1, price, new Date()));
                 }
             }
         } catch (Exception e) {
@@ -390,7 +388,7 @@ public class TraderService {
                             if (previous != null &&  h.getPrice() != null){
                                 boolean changed;
 
-                                if (OKCOIN.equals(trader.getExchange())){
+                                if (OKCOIN.equals(trader.getExchangeType())){
                                     double p1 = previous.getBalance().doubleValue();
                                     double p2 = h.getBalance().doubleValue();
 
@@ -552,7 +550,7 @@ public class TraderService {
     public void updateClosedOrders(ExchangeType exchangeType){
         OpenOrders openOrders = getOpenOrders(exchangeType);
 
-        for (OrderHistory h : traderBean.getOrderHistories(exchangeType, OPENED)) {
+        for (Order h : traderBean.getOrderHistories(exchangeType, OPENED)) {
             if (openOrders == null || System.currentTimeMillis() - h.getOpened().getTime() < 60000){
                 continue;
             }
@@ -817,7 +815,7 @@ public class TraderService {
                             String orderId = order.getId().split("&")[0];
 
                             //update order status
-                            OrderHistory h = traderBean.getOrderHistory(orderId);
+                            Order h = traderBean.getOrderHistory(orderId);
 
                             if (h != null){
                                 h.setStatus(CANCELED);
@@ -844,7 +842,7 @@ public class TraderService {
                     //avg position
                     BigDecimal avgPosition = ZERO;
 
-                    if (OKCOIN.equals(trader.getExchange())){
+                    if (OKCOIN.equals(trader.getExchangeType())){
                         OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN)
                                 .getPollingTradeService()).getCrossPosition("ltc_usd", "this_week");
 
@@ -855,7 +853,7 @@ public class TraderService {
                     //create order
                     for (int index = 1; index <= 11; ++index) {
                         //btc-e spread
-                        if (BTCE.equals(trader.getExchange())){
+                        if (BTCE.equals(trader.getExchangeType())){
                             if (spread.compareTo(new BigDecimal("0.00002")) < 0){
                                 spread = new BigDecimal("0.00002").setScale(5, ROUND_UP);
                             }
@@ -956,7 +954,7 @@ public class TraderService {
                                     ? new BigDecimal("0.01")
                                     : new BigDecimal("0.00000001");
                         }else {
-                            if (trader.getExchange().equals(OKCOIN) && trader.getPair().contains("LTC/")){
+                            if (trader.getExchangeType().equals(OKCOIN) && trader.getPair().contains("LTC/")){
                                 randomAskSpread = randomAskSpread.setScale(3, HALF_UP);
                             }else {
                                 randomAskSpread = "USD".equals(currencyPair.counterSymbol)
@@ -989,7 +987,7 @@ public class TraderService {
                                     ? new BigDecimal("0.01")
                                     : new BigDecimal("0.00000001");
                         }else {
-                            if (trader.getExchange().equals(OKCOIN) && trader.getPair().contains("LTC/")){
+                            if (trader.getExchangeType().equals(OKCOIN) && trader.getPair().contains("LTC/")){
                                 randomBidSpread = randomBidSpread.setScale(3, HALF_UP);
                             }else {
                                 randomBidSpread = "USD".equals(currencyPair.counterSymbol)
@@ -1002,7 +1000,7 @@ public class TraderService {
                         ticker = getTicker(exchangePair);
                         middlePrice = ticker.getAsk().add(ticker.getBid()).divide(BigDecimal.valueOf(2), 8, HALF_UP);
 
-                        if (trader.getExchange().equals(OKCOIN) && trader.getPair().contains("LTC/")){
+                        if (trader.getExchangeType().equals(OKCOIN) && trader.getPair().contains("LTC/")){
                             middlePrice = middlePrice.setScale(3, HALF_UP);
                         }else if (trader.getPair().contains("/USD")){
                             middlePrice = middlePrice.setScale(2, HALF_UP);
@@ -1019,11 +1017,11 @@ public class TraderService {
                         if (trader.getType().equals(SHORT)){
                             //ASK
                             String id = tradeService.placeLimitOrder(new LimitOrder(ASK, askAmount, currencyPair, trader.getType().name(), new Date(), askPrice));
-                            traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), ASK, askAmount, askPrice, new Date()));
+                            traderBean.save(new Order(id, exchangeType, exchangePair.getPair(), ASK, askAmount, askPrice, new Date()));
 
                             //BID
                             id = tradeService.placeLimitOrder(new LimitOrder(BID, bidAmount, currencyPair, trader.getType().name(), new Date(), bidPrice));
-                            traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), BID, bidAmount, bidPrice, new Date()));
+                            traderBean.save(new Order(id, exchangeType, exchangePair.getPair(), BID, bidAmount, bidPrice, new Date()));
                         }else{
                             //BID
                             if (bidPrice.compareTo(ZERO) < 0){
@@ -1031,11 +1029,11 @@ public class TraderService {
                             }
 
                             String id = tradeService.placeLimitOrder(new LimitOrder(BID, bidAmount, currencyPair, trader.getType().name(), new Date(), bidPrice));
-                            traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), BID, bidAmount, bidPrice, new Date()));
+                            traderBean.save(new Order(id, exchangeType, exchangePair.getPair(), BID, bidAmount, bidPrice, new Date()));
 
                             //ASK
                             id = tradeService.placeLimitOrder(new LimitOrder(ASK, askAmount, currencyPair, trader.getType().name(), new Date(), askPrice));
-                            traderBean.save(new OrderHistory(id, exchangeType, exchangePair.getPair(), ASK, askAmount, askPrice, new Date()));
+                            traderBean.save(new Order(id, exchangeType, exchangePair.getPair(), ASK, askAmount, askPrice, new Date()));
                         }
 
                         //notification
@@ -1163,11 +1161,11 @@ public class TraderService {
     public List<Volume> getVolumes(ExchangePair exchangePair, Date startDate){
         List<Volume> volumes = new ArrayList<>();
 
-        List<OrderHistory> orders = exchangePair != null
+        List<Order> orders = exchangePair != null
                 ? traderBean.getOrderHistories(exchangePair, CLOSED, startDate)
                 : traderBean.getOrderHistories(CLOSED, startDate);
 
-        for (OrderHistory order : orders){
+        for (Order order : orders){
             volumes.add(new Volume(getBTCVolume(ExchangePair.of(order.getExchangeType(), order.getPair()),
                     order.getTradableAmount(), order.getPrice()).multiply(BigDecimal.valueOf(ASK.equals(order.getType()) ? 1 : -1)),
                     order.getClosed()));
@@ -1340,10 +1338,10 @@ public class TraderService {
         }
 
 
-        Map<Order.OrderType, OrderStat> map = Maps.uniqueIndex(orderStats, new Function<OrderStat, Order.OrderType>() {
+        Map<com.xeiam.xchange.dto.Order.OrderType, OrderStat> map = Maps.uniqueIndex(orderStats, new Function<OrderStat, com.xeiam.xchange.dto.Order.OrderType>() {
             @Nullable
             @Override
-            public Order.OrderType apply(@Nullable OrderStat input) {
+            public com.xeiam.xchange.dto.Order.OrderType apply(@Nullable OrderStat input) {
                 return input != null ? input.getType() : null;
             }
         });

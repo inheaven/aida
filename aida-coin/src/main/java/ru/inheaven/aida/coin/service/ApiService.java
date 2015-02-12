@@ -1,6 +1,6 @@
 package ru.inheaven.aida.coin.service;
 
-import ru.inheaven.aida.coin.entity.OrderHistory;
+import ru.inheaven.aida.coin.entity.Order;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -24,7 +24,7 @@ public class ApiService {
     @GET
     @Path("getOrders/{startDate}")
     @Produces("application/json")
-    public List<OrderHistory> getOrderHistory(@PathParam("startDate") long startDate){
+    public List<Order> getOrderHistory(@PathParam("startDate") long startDate){
         return traderBean.getOrderHistories(new Date(startDate));
     }
 
