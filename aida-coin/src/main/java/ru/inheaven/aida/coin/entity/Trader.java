@@ -13,7 +13,7 @@ import java.util.Date;
 @Entity
 public class Trader extends AbstractEntity{
     @Column(nullable = false)
-    @Enumerated
+    @Enumerated(EnumType.ORDINAL)
     private ExchangeType exchangeType;
 
     @Column(nullable = false)
