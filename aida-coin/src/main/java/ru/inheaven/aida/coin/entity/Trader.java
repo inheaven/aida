@@ -21,6 +21,10 @@ public class Trader extends AbstractEntity{
     private ExchangeType exchangeTypeTest;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.ORDINAL)
+    private ExchangeType exchangeTypeTest2;
+
+    @Column(nullable = false)
     private String pair;
 
     @Column(nullable = false, precision = 19, scale = 8)
