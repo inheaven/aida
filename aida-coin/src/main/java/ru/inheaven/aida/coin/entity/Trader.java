@@ -13,7 +13,7 @@ import java.util.Date;
 @Entity
 public class Trader extends AbstractEntity{
     @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
+    @Enumerated
     private ExchangeType exchangeType;
 
     @Column(nullable = false)
@@ -45,7 +45,7 @@ public class Trader extends AbstractEntity{
     private boolean predicting = false;
 
     @Column(nullable = true)
-    @Enumerated(EnumType.STRING)
+    @Enumerated
     private TraderType type = TraderType.LONG;
 
     @Transient

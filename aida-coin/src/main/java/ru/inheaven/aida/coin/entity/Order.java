@@ -19,14 +19,16 @@ public class Order extends AbstractEntity {
     @Column(nullable = false)
     private String orderId;
 
-    @Column(nullable = false) @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Enumerated
     private ExchangeType exchangeType;
 
     @Column(nullable = false)
     private String pair;
 
-    @Column(nullable = false) @Enumerated(EnumType.STRING)
-    private com.xeiam.xchange.dto.Order.OrderType type;
+    @Column(nullable = false)
+    @Enumerated
+    private OrderType type;
 
     @Column(nullable = false, precision = 19, scale = 8)
     private BigDecimal tradableAmount;
@@ -43,13 +45,14 @@ public class Order extends AbstractEntity {
     @Column(nullable = true) @Temporal(TemporalType.TIMESTAMP)
     private Date closed;
 
-    @Column(nullable = false) @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Enumerated
     private OrderStatus status;
 
     public Order() {
     }
 
-    public Order(String orderId, ExchangeType exchangeType, String pair, com.xeiam.xchange.dto.Order.OrderType type,
+    public Order(String orderId, ExchangeType exchangeType, String pair, OrderType type,
                  BigDecimal tradableAmount, BigDecimal price, Date opened) {
         this.orderId = orderId;
         this.exchangeType = exchangeType;
@@ -94,11 +97,11 @@ public class Order extends AbstractEntity {
         this.pair = pair;
     }
 
-    public com.xeiam.xchange.dto.Order.OrderType getType() {
+    public OrderType getType() {
         return type;
     }
 
-    public void setType(com.xeiam.xchange.dto.Order.OrderType type) {
+    public void setType(OrderType type) {
         this.type = type;
     }
 

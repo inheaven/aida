@@ -54,6 +54,7 @@ import static ru.inheaven.aida.coin.util.TraderUtil.*;
 @Singleton
 @Lock(LockType.READ)
 @ConcurrencyManagement(ConcurrencyManagementType.BEAN)
+@TransactionManagement(TransactionManagementType.BEAN)
 public class TraderService {
     private Logger log = LoggerFactory.getLogger(TraderService.class);
 
@@ -277,11 +278,11 @@ public class TraderService {
 
                     String id = tradeService.placeLimitOrder(new LimitOrder(orderType, a1, getCurrencyPair(pair),
                             _short ? "LONG" : "SHORT", new Date(), price));
-                    traderBean.save(new Order(id, OKCOIN, pair, orderType, a1, price, new Date()));
+                    traderBean.save(new Order(id, OKCOIN, pair, OrderType.valueOf(orderType.name()), a1, price, new Date()));
 
                     id = tradeService.placeLimitOrder(new LimitOrder(orderType, a1, getCurrencyPair(pair),
                             _short ? "SHORT" : "LONG", new Date(), price));
-                    traderBean.save(new Order(id, OKCOIN, pair, orderType, a1, price, new Date()));
+                    traderBean.save(new Order(id, OKCOIN, pair, OrderType.valueOf(orderType.name()), a1, price, new Date()));
                 }
             }
         } catch (Exception e) {
@@ -1017,11 +1018,11 @@ public class TraderService {
                         if (trader.getType().equals(SHORT)){
                             //ASK
                             String id = tradeService.placeLimitOrder(new LimitOrder(ASK, askAmount, currencyPair, trader.getType().name(), new Date(), askPrice));
-                            traderBean.save(new Order(id, exchangeType, exchangePair.getPair(), ASK, askAmount, askPrice, new Date()));
+                            traderBean.save(new Order(id, exchangeType, exchangePair.getPair(), OrderType.ASK, askAmount, askPrice, new Date()));
 
                             //BID
                             id = tradeService.placeLimitOrder(new LimitOrder(BID, bidAmount, currencyPair, trader.getType().name(), new Date(), bidPrice));
-                            traderBean.save(new Order(id, exchangeType, exchangePair.getPair(), BID, bidAmount, bidPrice, new Date()));
+                            traderBean.save(new Order(id, exchangeType, exchangePair.getPair(), OrderType.BID, bidAmount, bidPrice, new Date()));
                         }else{
                             //BID
                             if (bidPrice.compareTo(ZERO) < 0){
@@ -1029,11 +1030,11 @@ public class TraderService {
                             }
 
                             String id = tradeService.placeLimitOrder(new LimitOrder(BID, bidAmount, currencyPair, trader.getType().name(), new Date(), bidPrice));
-                            traderBean.save(new Order(id, exchangeType, exchangePair.getPair(), BID, bidAmount, bidPrice, new Date()));
+                            traderBean.save(new Order(id, exchangeType, exchangePair.getPair(), OrderType.BID, bidAmount, bidPrice, new Date()));
 
                             //ASK
                             id = tradeService.placeLimitOrder(new LimitOrder(ASK, askAmount, currencyPair, trader.getType().name(), new Date(), askPrice));
-                            traderBean.save(new Order(id, exchangeType, exchangePair.getPair(), ASK, askAmount, askPrice, new Date()));
+                            traderBean.save(new Order(id, exchangeType, exchangePair.getPair(), OrderType.ASK, askAmount, askPrice, new Date()));
                         }
 
                         //notification
@@ -1342,7 +1343,7 @@ public class TraderService {
             @Nullable
             @Override
             public com.xeiam.xchange.dto.Order.OrderType apply(@Nullable OrderStat input) {
-                return input != null ? input.getType() : null;
+                return input != null ? com.xeiam.xchange.dto.Order.OrderType.valueOf(input.getType().name()) : null;
             }
         });
 

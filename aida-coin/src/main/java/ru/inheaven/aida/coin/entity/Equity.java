@@ -9,7 +9,7 @@ import java.util.Date;
  */
 @Entity
 public class Equity extends AbstractEntity{
-    @Column @Enumerated(EnumType.STRING)
+    @Column @Enumerated
     private ExchangeType exchangeType;
 
     @Column(nullable = false, precision = 19, scale = 8)

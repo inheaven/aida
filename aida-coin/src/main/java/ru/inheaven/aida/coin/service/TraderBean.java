@@ -26,7 +26,7 @@ public class TraderBean {
 
     public List<Trader> getTraders(ExchangeType exchangeType){
         List<Trader>  traders = em.createQuery("select t from Trader t where t.exchangeType = :exchangeType", Trader.class)
-                .setParameter("exchangeType", exchangeType.name())
+                .setParameter("exchangeType", exchangeType)
                 .getResultList();
 
         traders.forEach(new Consumer<Trader>() {
@@ -41,7 +41,7 @@ public class TraderBean {
 
     public List<String> getTraderPairs(ExchangeType exchangeType){
         return em.createQuery("select t.pair from Trader t where t.exchangeType = :exchangeType", String.class)
-                .setParameter("exchangeType", exchangeType.name())
+                .setParameter("exchangeType", exchangeType)
                 .getResultList();
     }
 

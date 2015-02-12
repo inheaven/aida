@@ -1,8 +1,8 @@
 package ru.inheaven.aida.coin.entity;
 
-import com.xeiam.xchange.dto.Order;
-
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Enumerated;
 import java.math.BigDecimal;
 
 /**
@@ -10,14 +10,16 @@ import java.math.BigDecimal;
  */
 @Entity
 public class OrderStat extends AbstractEntity{
-    @Column(nullable = false) @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Enumerated
     private ExchangeType exchangeType;
 
     @Column(nullable = false)
     private String pair;
 
-    @Column(nullable = false) @Enumerated(EnumType.STRING)
-    private Order.OrderType type;
+    @Column(nullable = false)
+    @Enumerated
+    private OrderType type;
 
     @Column(nullable = false, precision = 19, scale = 8)
     private BigDecimal sumAmount;
@@ -41,11 +43,11 @@ public class OrderStat extends AbstractEntity{
         this.pair = pair;
     }
 
-    public Order.OrderType getType() {
+    public OrderType getType() {
         return type;
     }
 
-    public void setType(Order.OrderType type) {
+    public void setType(OrderType type) {
         this.type = type;
     }
 

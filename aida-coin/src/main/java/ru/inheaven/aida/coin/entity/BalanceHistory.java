@@ -4,8 +4,6 @@ import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
 
-import static java.math.BigDecimal.ROUND_HALF_UP;
-
 /**
  * @author Anatoly Ivanov
  *         Date: 17.08.2014 19:18
@@ -13,7 +11,8 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
 @Entity
 @Table(name = "balance_history")
 public class BalanceHistory extends AbstractEntity{
-    @Column(nullable = false) @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Enumerated
     private ExchangeType exchangeType;
 
     @Column(nullable = false)
