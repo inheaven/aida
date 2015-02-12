@@ -10,7 +10,7 @@ import javax.persistence.Converter;
 public class ExchangeTypeConverter implements AttributeConverter<ExchangeType, String> {
     @Override
     public String convertToDatabaseColumn(ExchangeType exchangeType) {
-        return exchangeType.name();
+        return exchangeType != null ? exchangeType.name() : null;
     }
 
     @Override
