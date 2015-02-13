@@ -520,7 +520,7 @@ public class TraderList extends AbstractPage{
                         handler.add(notificationLabel3.setDefaultModelObject(order.toString()));
 
                         if (order.getStatus().equals(OrderStatus.CLOSED)) {
-                            String style = "style= \"color: " + (order.getType().equals(com.xeiam.xchange.dto.Order.OrderType.ASK)
+                            String style = "style= \"color: " + (order.getType().equals(OrderType.ASK)
                                     ? "#62c462" : "#ee5f5b") + "; display: none\"";
                             String row = "var row = '<tr " + style + "><td>" + order.toString() + "</td></tr>';";
 
