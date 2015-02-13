@@ -184,8 +184,8 @@ public class TraderBean {
 
     @SuppressWarnings("unchecked")
     public List<OrderStat> getOrderStats(Date startDate) {
-        return em.createNativeQuery("SELECT id, sum(price * filled_amount)/sum(filled_amount) AS avgPrice, " +
-                "sum(filled_amount) AS sumAmount, type, exchange_type as exchangeType, pair FROM `order` " +
+        return em.createNativeQuery("SELECT id, sum(price * filled_amount)/sum(filled_amount) AS avg_price, " +
+                "sum(filled_amount) AS sum_amount, type, exchange_type, pair FROM `order` " +
                 "WHERE status='CLOSED' and CLOSED > ? GROUP BY pair, exchange_type, type", OrderStat.class)
                 .setParameter(1, startDate)
                 .getResultList();
@@ -193,8 +193,8 @@ public class TraderBean {
 
     @SuppressWarnings("unchecked")
     public List<OrderStat> getOrderStats(ExchangePair exchangePair, Date startDate) {
-        return em.createNativeQuery("SELECT id, sum(price * filled_amount)/sum(filled_amount) AS avgPrice, " +
-                "sum(filled_amount) AS sumAmount, type, exchange_type as exchangeType, pair FROM `order` " +
+        return em.createNativeQuery("SELECT id, sum(price * filled_amount)/sum(filled_amount) AS avg_price, " +
+                "sum(filled_amount) AS sum_amount, type, exchange_type, pair FROM `order` " +
                 "WHERE exchange_type = ? and pair = ? and status='CLOSED' and CLOSED > ? GROUP BY type", OrderStat.class)
                 .setParameter(1, exchangePair.getExchangeType().name())
                 .setParameter(2, exchangePair.getPair())
@@ -204,8 +204,8 @@ public class TraderBean {
 
     @SuppressWarnings("unchecked")
     public List<OrderStat> getOrderStatVolume(ExchangePair exchangePair, Date startDate){
-        return em.createNativeQuery("select id, round(price,2) as avgPrice, " +
-                "sum(filled_amount) as sumAmount, type, exchange_type as exchangeType, pair FROM `order` " +
+        return em.createNativeQuery("select id, round(price,2) as avg_price, " +
+                "sum(filled_amount) as sum_amount, type, exchange_type, pair FROM `order` " +
                 "WHERE exchange_type = ? and pair = ? and status='CLOSED' and CLOSED > ? GROUP BY round(price, 2)", OrderStat.class)
                 .setParameter(1, exchangePair.getExchangeType().name())
                 .setParameter(2, exchangePair.getPair())
