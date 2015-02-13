@@ -657,7 +657,7 @@ public class TraderList extends AbstractPage{
                     }
                 }
 
-                item.add(new AttributeModifier("style", "color: " + (order.getType().equals(com.xeiam.xchange.dto.Order.OrderType.ASK) ? "#62c462" : "#ee5f5b")));
+                item.add(new AttributeModifier("style", "color: " + (order.getType().equals(OrderType.ASK) ? "#62c462" : "#ee5f5b")));
                 item.add(new Label("order", Model.of(order.toString())));
             }
         });
