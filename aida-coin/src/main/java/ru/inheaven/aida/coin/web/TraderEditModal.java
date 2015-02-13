@@ -45,7 +45,7 @@ public class TraderEditModal extends Modal {
         add(form);
 
         form.add(new FormGroup("exchange", of("Exchange")).add(new DropDownChoice<>("exchange",
-                new PropertyModel<>(traderModel, "exchange"),
+                new PropertyModel<>(traderModel, "exchangeType"),
                 Arrays.asList(ExchangeType.values())).setRequired(true)));
 
         form.add(new FormGroup("pair", of("Pair")).add(new RequiredTextField<>("pair", new PropertyModel<>(traderModel, "pair"))));
