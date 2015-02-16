@@ -622,10 +622,12 @@ public class TraderService {
             Equity e = equityMap.get(exchangeType);
 
             if(e == null){
-                return;
+                if (!exchangeType.equals(BTER)) {
+                    return;
+                }
+            }else{
+                volume = volume.add(e.getVolume());
             }
-
-            volume = volume.add(e.getVolume());
         }
 
         equity = new Equity(volume);
