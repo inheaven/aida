@@ -109,10 +109,10 @@ public class TraderService {
 
     @Schedule(second = "*", minute="*/5", hour="*", persistent=false)
     public void scheduleTrade(){
-        updateAndTrade(BITTREX);
+        //updateAndTrade(BITTREX);
         updateAndTrade(CRYPTSY);
         updateAndTrade(BTCE);
-        updateAndTrade(BTER);
+        //updateAndTrade(BTER);
         updateAndTrade(CEXIO);
         updateAndTrade(BITFINEX);
     }
@@ -622,7 +622,7 @@ public class TraderService {
             Equity e = equityMap.get(exchangeType);
 
             if(e == null){
-                if (!exchangeType.equals(BTER)) {
+                if (!exchangeType.equals(BTER) || !exchangeType.equals(BITTREX)) {
                     return;
                 }
             }else{
