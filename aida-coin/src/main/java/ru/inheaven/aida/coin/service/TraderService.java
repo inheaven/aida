@@ -622,7 +622,7 @@ public class TraderService {
             Equity e = equityMap.get(exchangeType);
 
             if(e == null){
-                if (!exchangeType.equals(BTER) || !exchangeType.equals(BITTREX)) {
+                if (!exchangeType.equals(BTER) && !exchangeType.equals(BITTREX)) {
                     return;
                 }
             }else{
