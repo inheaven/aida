@@ -5,7 +5,6 @@ import ru.inheaven.aida.coin.entity.*;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -59,16 +58,6 @@ public class TraderBean {
         return em.createQuery("select t from Trader t where t.id = :id", Trader.class).setParameter("id", id).getSingleResult();
     }
 
-    public void save(AbstractEntity abstractEntity){
-        if (abstractEntity.getId() == null) {
-            em.persist(abstractEntity);
-        }else {
-            em.merge(abstractEntity);
-            em.flush();
-            em.clear();
-        }
-    }
-
     public List<BalanceHistory> getBalanceHistories(ExchangePair exchangePair, Date startDate){
         if (exchangePair != null){
             return em.createQuery("select h from BalanceHistory h where h.pair = :pair and h.exchangeType = :exchangeType " +
@@ -84,29 +73,7 @@ public class TraderBean {
         }
     }
 
-    public BigDecimal getSigma(ExchangePair exchangePair){
-        try {
-            return new BigDecimal((Double) em.createNativeQuery("select std(price) from ticker_history " +
-                    "where exchange_type = ? and pair = ? and `date` >  DATE_SUB(NOW(), INTERVAL 12 HOUR)")
-                    .setParameter(1, exchangePair.getExchangeType().name())
-                    .setParameter(2, exchangePair.getPair())
-                    .getSingleResult());
-        } catch (Exception e) {
-            return BigDecimal.ZERO;
-        }
-    }
 
-    public BigDecimal getAverage(ExchangePair exchangePair){
-        try {
-            return (BigDecimal) em.createNativeQuery("select avg(price) from ticker_history " +
-                    "where exchange_type = ? and pair = ? and `date` >  DATE_SUB(NOW(), INTERVAL 72 HOUR)")
-                    .setParameter(1, exchangePair.getExchangeType().name())
-                    .setParameter(2, exchangePair.getPair())
-                    .getSingleResult();
-        } catch (Exception e) {
-            return BigDecimal.ZERO;
-        }
-    }
 
     public List<TickerHistory> getTickerHistories(ExchangePair exchangePair, int count){
         List<TickerHistory> list =  em.createQuery("select th from TickerHistory th where th.pair = :pair and th.exchangeType = :exchangeType " +
