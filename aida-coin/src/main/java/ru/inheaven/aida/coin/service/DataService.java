@@ -3,9 +3,10 @@ package ru.inheaven.aida.coin.service;
 import com.xeiam.xchange.cryptsy.CryptsyExchange;
 import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.dto.marketdata.Ticker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.coin.entity.ExchangePair;
 import ru.inheaven.aida.coin.entity.ExchangeType;
-import ru.inheaven.aida.coin.entity.TickerHistory;
 import ru.inheaven.aida.coin.entity.Trader;
 
 import javax.ejb.*;
@@ -26,15 +27,19 @@ import static ru.inheaven.aida.coin.util.TraderUtil.getCurrencyPair;
 @Singleton
 @ConcurrencyManagement(ConcurrencyManagementType.BEAN)
 @TransactionManagement(TransactionManagementType.BEAN)
-public class MarketDataService {
+public class DataService extends AbstractService{
+    private Logger log = LoggerFactory.getLogger(DataService.class);
+
     @EJB
     private EntityBean entityBean;
 
     @EJB
-    private MarketStatService marketStatService;
+    private StatService statService;
+
+    @EJB
+    private TraderBean traderBean;
 
     private Map<ExchangePair, Ticker> tickerMap = new ConcurrentHashMap<>();
-
 
     public Ticker getTicker(ExchangePair exchangePair){
         return tickerMap.get(exchangePair);
@@ -63,18 +68,19 @@ public class MarketDataService {
 
                         //ticker history
                         if (save) {
-                            TickerHistory tickerHistory = new TickerHistory(exchangeType, trader.getPair(), ticker.getLast(),
-                                    ticker.getBid(), ticker.getAsk(), ticker.getVolume(),
-                                    getVolatilityIndex(ep), getPredictionIndex(ep));
-
-                            if (previous == null || previous.getLast().compareTo(ticker.getLast()) != 0){
-                                entityBean.save(tickerHistory);
-                            }
-
-                            if (previous == null || previous.getAsk().compareTo(ticker.getAsk()) != 0
-                                    || previous.getBid().compareTo(ticker.getBid()) != 0){
-                                broadcast(exchangeType, tickerHistory);
-                            }
+                            //todo move to stat service
+//                            TickerHistory tickerHistory = new TickerHistory(exchangeType, trader.getPair(), ticker.getLast(),
+//                                    ticker.getBid(), ticker.getAsk(), ticker.getVolume(),
+//                                    getVolatilityIndex(ep), getPredictionIndex(ep));
+//
+//                            if (previous == null || previous.getLast().compareTo(ticker.getLast()) != 0){
+//                                entityBean.save(tickerHistory);
+//                            }
+//
+//                            if (previous == null || previous.getAsk().compareTo(ticker.getAsk()) != 0
+//                                    || previous.getBid().compareTo(ticker.getBid()) != 0){
+//                                broadcast(exchangeType, tickerHistory);
+//                            }
                         }
                     }
                 }

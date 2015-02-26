@@ -5,7 +5,6 @@ import ru.inheaven.aida.coin.entity.*;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
@@ -48,14 +47,14 @@ public class TraderBean {
         return em.createQuery("select count(t) from Trader t", Long.class).getSingleResult();
     }
 
+    public Trader getTrader(Long id){
+        return em.createQuery("select t from Trader t where t.id = :id", Trader.class).setParameter("id", id).getSingleResult();
+    }
+
     public Long getBalanceHistoryCount(Date startDate){
         return em.createQuery("select count(h) from BalanceHistory h where h.date >= :startDate", Long.class)
                 .setParameter("startDate", startDate)
                 .getSingleResult();
-    }
-
-    public Trader getTrader(Long id){
-        return em.createQuery("select t from Trader t where t.id = :id", Trader.class).setParameter("id", id).getSingleResult();
     }
 
     public List<BalanceHistory> getBalanceHistories(ExchangePair exchangePair, Date startDate){
@@ -75,27 +74,6 @@ public class TraderBean {
 
 
 
-    public List<TickerHistory> getTickerHistories(ExchangePair exchangePair, int count){
-        List<TickerHistory> list =  em.createQuery("select th from TickerHistory th where th.pair = :pair and th.exchangeType = :exchangeType " +
-                "order by th.date desc", TickerHistory.class)
-                .setParameter("pair", exchangePair.getPair())
-                .setParameter("exchangeType", exchangePair.getExchangeType())
-                .setMaxResults(count)
-                .getResultList();
-
-        Collections.reverse(list);
-
-        return list;
-    }
-
-    public List<TickerHistory> getTickerHistories(ExchangePair exchangePair, Date startDate){
-        return em.createQuery("select th from TickerHistory th where th.pair = :pair " +
-                "and th.exchangeType = :exchangeType and th.date > :startDate", TickerHistory.class)
-                .setParameter("pair", exchangePair.getPair())
-                .setParameter("exchangeType", exchangePair.getExchangeType())
-                .setParameter("startDate", startDate)
-                .getResultList();
-    }
 
     public List<Order> getOrderHistories(ExchangePair exchangePair, OrderStatus status, Date startDate){
         return em.createQuery("select h from Order h where h.exchangeType = :exchangeType and " +

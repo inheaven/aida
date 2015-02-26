@@ -39,8 +39,7 @@ import org.apache.wicket.util.convert.converter.BigDecimalConverter;
 import org.odlabs.wiquery.core.javascript.JsStatement;
 import org.odlabs.wiquery.ui.effects.HighlightEffectJavaScriptResourceReference;
 import ru.inheaven.aida.coin.entity.*;
-import ru.inheaven.aida.coin.service.TraderBean;
-import ru.inheaven.aida.coin.service.TraderService;
+import ru.inheaven.aida.coin.service.*;
 
 import javax.ejb.EJB;
 import java.math.BigDecimal;
@@ -63,6 +62,15 @@ public class TraderList extends AbstractPage{
 
     @EJB
     private TraderService traderService;
+
+    @EJB
+    private StatService statService;
+
+    @EJB
+    private DataService dataService;
+
+    @EJB
+    private AccountService accountService;
 
     private Map<ExchangePair, Component> lastMap = new HashMap<>();
     private Map<ExchangePair, Component> estimateMap = new HashMap<>();
@@ -204,14 +212,14 @@ public class TraderList extends AbstractPage{
         list.add(new TraderColumn(of("Last"), lastMap){
             @Override
             protected String getInitValue(Trader trader) {
-                return traderService.getTickerNotNull(trader.getExchangePair()).getBid().toPlainString();
+                return dataService.getTicker(trader.getExchangePair()).getBid().toPlainString();
             }
         });
         list.add(new TraderColumn(of("Average"), averageMap));
         list.add(new TraderColumn(of("Volatility"), volatilityMap){
             @Override
             protected String getInitValue(Trader trader) {
-                return traderService.getVolatilityIndex(trader.getExchangePair()).toPlainString() + "%";
+                return BigDecimal.valueOf(100).multiply(statService.getVolatilitySigma(trader.getExchangePair())).toPlainString() + "%";
             }
         });
         list.add(new TraderColumn(of("Prediction"), predictionMap));
@@ -219,7 +227,7 @@ public class TraderList extends AbstractPage{
         list.add(new TraderColumn(of("Day"), profitMap){
             @Override
             protected String getInitValue(Trader trader) {
-                return traderService.getOrderStatProfit(trader.getExchangePair(), startDay).toPlainString();
+                return statService.getOrderStatProfit(trader.getExchangePair(), startDay).toPlainString();
             }
         });
         list.add(new PropertyColumn<>(of("Week"), "weekProfit"));
@@ -230,7 +238,7 @@ public class TraderList extends AbstractPage{
                 List<Trader> traders = traderBean.getTraders();
 
                 for (Trader trader : traders){
-                    trader.setWeekProfit(traderService.getOrderStatProfit(trader.getExchangePair(), new Date(startWeekDate)));
+                    trader.setWeekProfit(statService.getOrderStatProfit(trader.getExchangePair(), new Date(startWeekDate)));
                 }
 
                 Collections.sort(traders, new Comparator<Trader>() {
@@ -326,14 +334,14 @@ public class TraderList extends AbstractPage{
                             }
                         } else {
                             update(handler, sumEstimate, equity.getVolume());
-                            handler.add(rubEstimate.setDefaultModelObject(equity.getVolume().multiply(traderService.getTicker(
+                            handler.add(rubEstimate.setDefaultModelObject(equity.getVolume().multiply(dataService.getTicker(
                                     ExchangePair.of(BTCE, "BTC/RUR")).getLast()).setScale(2, ROUND_UP).toString() + "\u20BD"));
 
                             //update chart balance
                             if (lastChartValue.compareTo(equity.getVolume()) != 0) {
                                 ExchangePair exchangePair = ExchangePair.of(OKCOIN, "BTC/USD");
-                                Ticker ticker = traderService.getTicker(exchangePair);
-                                BigDecimal predictionIndex = traderService.getPredictionIndex(exchangePair);
+                                Ticker ticker = dataService.getTicker(exchangePair);
+                                BigDecimal predictionIndex = statService.getPredictionIndex(exchangePair);
                                 if (predictionIndex.abs().doubleValue() > 0.05){
                                     predictionIndex = BigDecimal.valueOf(0.05);
                                 }
@@ -374,16 +382,16 @@ public class TraderList extends AbstractPage{
                         BalanceHistory bh = (BalanceHistory) payload;
                         ExchangePair ep = ExchangePair.of(bh.getExchangeType(), bh.getPair());
 
-                        update(handler, profitMap.get(ep), traderService.getOrderStatProfit(ep, startDay), false, true);
+                        update(handler, profitMap.get(ep), statService.getOrderStatProfit(ep, startDay), false, true);
 
                         ep = new ExchangePair(bh.getExchangeType(), bh.getPair(), TraderType.SHORT);
-                        update(handler, profitMap.get(ep), traderService.getOrderStatProfit(ep, startDay), false, true);
+                        update(handler, profitMap.get(ep), statService.getOrderStatProfit(ep, startDay), false, true);
 
                         //update total
                         if (System.currentTimeMillis() - lastChart4Time > 60000*15) {
                             lastChart4Time = System.currentTimeMillis();
 
-                            OrderVolume orderVolume = traderService.getOrderVolumeRate(startDate);
+                            OrderVolume orderVolume = statService.getOrderVolumeRate(startDate);
 
                             JsonRenderer renderer = JsonRendererFactory.getInstance().getRenderer();
 
@@ -427,7 +435,7 @@ public class TraderList extends AbstractPage{
                         update(handler, predictionMap.get(ep2), prediction, true, true);
 
                         //prediction test
-                        BigDecimal average = traderService.getAverage(ep);
+                        BigDecimal average = statService.getAverage(ep);
                         update(handler, averageMap.get(ep), average);
                         update(handler, averageMap.get(ep2), average);
                     } else if (payload instanceof OpenOrders) {
@@ -463,10 +471,10 @@ public class TraderList extends AbstractPage{
                         countBuyMap.forEach(new BiConsumer<ExchangePair, BigDecimal>() {
                             @Override
                             public void accept(ExchangePair ep, BigDecimal amount) {
-                                Ticker ticker = traderService.getTickerNotNull(ep);
+                                Ticker ticker = dataService.getTicker(ep);
 
                                 if (ticker != null) {
-                                    update(handler, buyMap.get(ep), traderService.getBTCVolume(ep, amount, ticker.getLast()));
+                                    update(handler, buyMap.get(ep), statService.getBTCVolume(ep, amount, ticker.getLast()));
                                 }
                             }
                         });
@@ -474,20 +482,20 @@ public class TraderList extends AbstractPage{
                         countSellMap.forEach(new BiConsumer<ExchangePair, BigDecimal>() {
                             @Override
                             public void accept(ExchangePair ep, BigDecimal amount) {
-                                Ticker ticker = traderService.getTickerNotNull(ep);
+                                Ticker ticker = dataService.getTicker(ep);
 
                                 if (ticker != null) {
-                                    update(handler, sellMap.get(ep), traderService.getBTCVolume(
+                                    update(handler, sellMap.get(ep), statService.getBTCVolume(
                                             ep, amount, ticker.getLast()));
 
                                     //estimate
-                                    BigDecimal balance = traderService.getAccountInfo(exchangeMessage.getExchangeType()).getBalance(ep.getCurrency());
+                                    BigDecimal balance = accountService.getAccountInfo(exchangeMessage.getExchangeType()).getBalance(ep.getCurrency());
 
                                     if (!ep.getExchangeType().equals(OKCOIN)) {
                                         balance = balance.add(amount);
                                     }
 
-                                    update(handler, estimateMap.get(ep), traderService.getEstimateBalance(
+                                    update(handler, estimateMap.get(ep), statService.getEstimateBalance(
                                             ep.getExchangeType(), ep.getCurrency(), balance));
 
                                     //position
@@ -540,9 +548,9 @@ public class TraderList extends AbstractPage{
                         //volume
                         ExchangePair ltcUsd = ExchangePair.of(OKCOIN, "LTC/USD");
                         List<OrderStat> orderStats = traderBean.getOrderStatVolume(ltcUsd, startDate);
-                        BigDecimal last = traderService.getTicker(ltcUsd).getLast().setScale(2, ROUND_UP);
+                        BigDecimal last = dataService.getTicker(ltcUsd).getLast().setScale(2, ROUND_UP);
 
-                        BigDecimal predictionPrice = ONE.add(traderService.getPredictionIndex(ltcUsd))
+                        BigDecimal predictionPrice = ONE.add(statService.getPredictionIndex(ltcUsd))
                                 .multiply(last).setScale(4, ROUND_UP);
 
                         for (OrderStat s : orderStats) {
@@ -569,8 +577,8 @@ public class TraderList extends AbstractPage{
 
                         int size = futures.getAsks().size();
 
-                        BigDecimal avg = traderService.getAverage(ltcUsd);
-                        BigDecimal ltcEquity = traderService.getAccountInfo(OKCOIN).getBalance("LTC");
+                        BigDecimal avg = statService.getAverage(ltcUsd);
+                        BigDecimal ltcEquity = accountService.getAccountInfo(OKCOIN).getBalance("LTC");
 
                         for (int i = 0; i < size; ++i) {
                             //noinspection unchecked
@@ -693,7 +701,7 @@ public class TraderList extends AbstractPage{
 
             List<Point> data2 = new ArrayList<>();
             List<Point> data3 = new ArrayList<>();
-            List<TickerHistory> tickerHistories = traderBean.getTickerHistories(ExchangePair.of(OKCOIN, "BTC/USD"), startDate);
+            List<TickerHistory> tickerHistories = statService.getTickerHistories(ExchangePair.of(OKCOIN, "BTC/USD"), startDate);
 
             time = 0L;
             for (TickerHistory tickerHistory : tickerHistories){
@@ -721,7 +729,7 @@ public class TraderList extends AbstractPage{
         }
 
         //Chart 2
-        List<OrderVolume> orderVolumes = traderService.getOrderVolumeRates(null, startDate);
+        List<OrderVolume> orderVolumes = statService.getOrderVolumeRates(null, startDate);
 
         List<OrderVolume> filteredOrderVolumes = new ArrayList<>();
         long time = 0L;
