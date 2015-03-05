@@ -37,14 +37,20 @@ public class Order extends AbstractEntity {
     @Column(nullable = false, precision = 19, scale = 8)
     private BigDecimal price;
 
-    @Column(nullable = false) @Temporal(TemporalType.TIMESTAMP)
+    @Column(nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
     private Date opened;
 
-    @Column(nullable = true) @Temporal(TemporalType.TIMESTAMP)
+    @Column(nullable = true)
+    @Temporal(TemporalType.TIMESTAMP)
     private Date closed;
 
     @Column(nullable = false)
     private OrderStatus status;
+
+    @ManyToOne
+    @JoinColumn(name = "trader_id")
+    private Trader trader;
 
     public Order() {
     }
@@ -148,6 +154,14 @@ public class Order extends AbstractEntity {
 
     public void setStatus(OrderStatus status) {
         this.status = status;
+    }
+
+    public Trader getTrader() {
+        return trader;
+    }
+
+    public void setTrader(Trader trader) {
+        this.trader = trader;
     }
 
     @Override
