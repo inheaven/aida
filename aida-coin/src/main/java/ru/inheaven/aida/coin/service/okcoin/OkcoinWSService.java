@@ -17,14 +17,17 @@ import rx.Observer;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.ejb.*;
-import javax.json.JsonArray;
-import javax.json.JsonObject;
-import javax.json.JsonValue;
+import javax.json.*;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import static java.time.LocalDate.now;
 import static java.time.ZoneOffset.ofHours;
@@ -110,6 +113,8 @@ public class OkcoinWSService {
                     })
                     .subscribe(depthService.getDepthObserver());
 
+            //todo receive order info
+
             //debug
             marketDataEndpoint.getObservable().subscribe(new Observer<String>() {
                 @Override
@@ -130,6 +135,29 @@ public class OkcoinWSService {
 
         } catch (Exception e) {
             log.error("error connect to server", e);
+        }
+    }
+
+    public void orderInfo(String apiKey, String secretKey, String symbol, String orderId, String contractType,
+                          String status, String currentPage, String pageLength){
+        try {
+            JsonObjectBuilder parameters = Json.createObjectBuilder()
+                    .add("api_key", apiKey)
+                    .add("symbol", symbol)
+                    .add("order_id", orderId)
+                    .add("contract_type", contractType)
+                    .add("status", status)
+                    .add("current_page", currentPage)
+                    .add("page_length", pageLength);
+
+            parameters.add("sign", getMD5String(parameters.build(), secretKey));
+
+            tradingEndpoint.getSession().getBasicRemote().sendText(Json.createObjectBuilder()
+                    .add("event", "addChannel")
+                    .add("channel", "ok_futureusd_order_info")
+                    .add("parameters", parameters).build().toString());
+        } catch (IOException e) {
+            log.error("order info error", e);
         }
     }
 
@@ -165,13 +193,36 @@ public class OkcoinWSService {
         }
     }
 
+    private static final char HEX_DIGITS[] = {
+            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+    };
 
-    /*
-    * websocket.send("{'event':'addChannel', 'channel':'ok_futureusd_order_info', 'parameters':{ 'api_key':'XXXX',
-     * 'symbol':'XXXX', 'order_id':'XXXX', 'contract_type':'XXXXXX', 'status':'XXXX', 'current_page':'XXXX',
-      * 'page_length':'XXXX', sign':'XXXX'} }")
-    * */
+    public String getMD5String(JsonObject parameters, String secretKey) {
+        try {
+            List<String> keys = new ArrayList<>(parameters.keySet());
+            Collections.sort(keys);
+            String str = "";
 
+            for (String key : keys) {
+                str += key + "=" + ((JsonString) parameters.get(key)).getString() + "&";
+            }
 
+            str = str + "secret_key=" + secretKey;
 
+            byte[] bytes = str.getBytes();
+            MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+            messageDigest.update(bytes);
+            bytes = messageDigest.digest();
+            StringBuilder sb = new StringBuilder();
+            for (byte aByte : bytes) {
+                sb.append(HEX_DIGITS[(aByte & 0xf0) >> 4]).append("").append(HEX_DIGITS[aByte & 0xf]);
+            }
+
+            return sb.toString();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
 }
