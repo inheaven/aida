@@ -3,7 +3,11 @@ package ru.inhell.aida.common.rx;
 import rx.Observable;
 import rx.subjects.PublishSubject;
 
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonValue;
 import javax.websocket.*;
+import java.io.StringReader;
 
 /**
  * @author inheaven on 01.05.2015 3:36.
@@ -48,6 +52,12 @@ public class ObservableEndpoint extends Endpoint{
 
     public Observable<String> getObservable(){
         return subject;
+    }
+
+    public Observable<JsonObject> getJsonObservable(){
+        return subject.flatMapIterable(s -> Json.createReader(new StringReader(s)).readArray())
+                .filter(j -> j.getValueType().equals(JsonValue.ValueType.OBJECT))
+                .map(j -> (JsonObject)j);
     }
 
 }

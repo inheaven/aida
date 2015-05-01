@@ -1,4 +1,4 @@
-package ru.inheaven.aida.coin.service;
+package ru.inheaven.aida.coin.service.okcoin;
 
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.marketdata.OrderBook;
