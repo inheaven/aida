@@ -23,7 +23,6 @@ public class Trade extends AbstractEntity{
     @Enumerated(EnumType.STRING)
     private OrderType orderType;
 
-
     @Column(nullable = false, precision = 19, scale = 8)
     private BigDecimal price;
 

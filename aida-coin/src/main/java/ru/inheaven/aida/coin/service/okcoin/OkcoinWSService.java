@@ -18,6 +18,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.ejb.*;
 import javax.json.JsonArray;
+import javax.json.JsonObject;
 import javax.json.JsonValue;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -50,6 +51,16 @@ public class OkcoinWSService {
     private ObservableEndpoint marketDataEndpoint = ObservableEndpoint.create();
     private ObservableEndpoint tradingEndpoint = ObservableEndpoint.create();
 
+    private class JsonData{
+        private String channel;
+        private JsonValue value;
+
+        public JsonData(String channel, JsonValue value) {
+            this.channel = channel;
+            this.value = value;
+        }
+    }
+
     @PostConstruct
     public void start(){
         client.getProperties().put(ClientProperties.LOG_HTTP_UPGRADE, true);
@@ -64,11 +75,40 @@ public class OkcoinWSService {
                             "{'event':'addChannel','channel':'ok_ltcusd_future_depth_this_week_60'}]"
             );
 
-            subscribeTrade("ok_btcusd_future_trade_v1_this_week", "BTC/USD", SymbolType.THIS_WEEK);
-            subscribeTrade("ok_ltcusd_future_trade_v1_this_week", "LTC/USD", SymbolType.THIS_WEEK);
+            marketDataEndpoint.getJsonObservable()
+                    .filter(j -> j.getString("channel").contains("_future_trade_v1_"))
+                    .flatMapIterable(j -> j.getJsonArray("data"), (o, v) -> new JsonData(o.getString("channel"), v))
+                    .map(j -> {
+                        JsonArray a = (JsonArray) j.value;
 
-            subscribeDepth("ok_btcusd_future_depth_this_week_60", "BTC/USD", SymbolType.THIS_WEEK);
-            subscribeDepth("ok_ltcusd_future_depth_this_week_60", "LTC/USD", SymbolType.THIS_WEEK);
+                        Trade trade = new Trade();
+
+                        trade.setTradeId(a.getString(0));
+                        trade.setSymbol(getSymbol(j.channel));
+                        trade.setSymbolType(getSymbolType(j.channel));
+                        trade.setPrice(new BigDecimal(a.getString(1)));
+                        trade.setAmount(new BigDecimal(a.getString(2)));
+                        trade.setDate(Date.from(LocalTime.parse(a.getString(3)).atDate(now()).toInstant(ofHours(8))));
+                        trade.setOrderType(OrderType.valueOf(a.getString(4).toUpperCase()));
+
+                        return trade;
+                    })
+                    .subscribe(tradeService.getTradeObserver());
+
+            marketDataEndpoint.getJsonObservable()
+                    .filter(j -> j.getString("channel").contains("_future_depth_"))
+                    .map(j -> new JsonData(j.getString("channel"), j.getJsonObject("data")))
+                    .map(j -> {
+                        Depth depth = new Depth();
+
+                        depth.setSymbol(getSymbol(j.channel));
+                        depth.setSymbolType(getSymbolType(j.channel));
+                        depth.setDate(new Date(Long.parseLong(((JsonObject)j.value).getString("timestamp"))));
+                        depth.setData(j.value.toString());
+
+                        return depth;
+                    })
+                    .subscribe(depthService.getDepthObserver());
 
             //debug
             marketDataEndpoint.getObservable().subscribe(new Observer<String>() {
@@ -93,43 +133,26 @@ public class OkcoinWSService {
         }
     }
 
-    private void subscribeTrade(String channel, String symbol, SymbolType symbolType){
-        marketDataEndpoint.getJsonObservable()
-                .filter(j -> j.getString("channel").equals(channel))
-                .flatMapIterable(j -> j.getJsonArray("data"))
-                .filter(j -> j.getValueType() == JsonValue.ValueType.ARRAY).map(j -> (JsonArray) j)
-                .map(j -> {
-                    Trade trade = new Trade();
+    public String getSymbol(String channel){
+        if (channel.contains("_btcusd_")){
+            return "BTC/USD";
+        }else if (channel.contains("_ltcusd_")){
+            return "LTC/USD";
+        }
 
-                    trade.setTradeId(j.getString(0));
-                    trade.setPrice(new BigDecimal(j.getString(1)));
-                    trade.setAmount(new BigDecimal(j.getString(2)));
-                    trade.setDate(Date.from(LocalTime.parse(j.getString(3)).atDate(now()).toInstant(ofHours(8))));
-                    trade.setOrderType(OrderType.valueOf(j.getString(4).toUpperCase()));
-                    trade.setSymbolType(symbolType);
-                    trade.setSymbol(symbol);
-
-                    return trade;
-                })
-                .subscribe(tradeService.getTradeObserver());
+        return null;
     }
 
-    private void subscribeDepth(String channel, String symbol, SymbolType symbolType){
-        marketDataEndpoint.getJsonObservable()
-                .filter(j -> j.getString("channel").equals(channel))
-                .map(j -> j.getJsonObject("data"))
-                .map(j -> {
-                    Depth depth = new Depth();
+    public SymbolType getSymbolType(String channel){
+        if (channel.contains("this_week")){
+            return  SymbolType.THIS_WEEK;
+        }else if (channel.contains("next_week")){
+            return  SymbolType.NEXT_WEEK;
+        }else if (channel.contains("quarter")){
+            return  SymbolType.QUARTER;
+        }
 
-                    depth.setDate(new Date(Long.parseLong(j.getString("timestamp"))));
-                    depth.setData(j.toString());
-                    depth.setSymbolType(symbolType);
-                    depth.setSymbol(symbol);
-
-
-                    return depth;
-                })
-                .subscribe(depthService.getDepthObserver());
+        return null;
     }
 
     @PreDestroy
