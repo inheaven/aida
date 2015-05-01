@@ -12,6 +12,18 @@ public class Trade extends AbstractEntity{
     @Column(nullable = false)
     private String tradeId;
 
+    @Column(nullable = false)
+    private String symbol;
+
+    @Column(nullable = true)
+    @Enumerated(EnumType.STRING)
+    private SymbolType symbolType;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private OrderType orderType;
+
+
     @Column(nullable = false, precision = 19, scale = 8)
     private BigDecimal price;
 
@@ -23,15 +35,8 @@ public class Trade extends AbstractEntity{
     private Date date;
 
     @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private OrderType orderType;
-
-    @Column(nullable = true)
-    @Enumerated(EnumType.STRING)
-    private SymbolType symbolType;
-
-    @Column(nullable = false)
-    private String symbol;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date created = new Date();
 
     public Trade() {
     }
@@ -75,6 +80,14 @@ public class Trade extends AbstractEntity{
 
     public void setDate(Date date) {
         this.date = date;
+    }
+
+    public Date getCreated() {
+        return created;
+    }
+
+    public void setCreated(Date created) {
+        this.created = created;
     }
 
     public OrderType getOrderType() {

@@ -5,11 +5,14 @@ import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.container.jdk.client.JdkClientContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.inheaven.aida.coin.entity.Depth;
 import ru.inheaven.aida.coin.entity.OrderType;
 import ru.inheaven.aida.coin.entity.SymbolType;
 import ru.inheaven.aida.coin.entity.Trade;
+import ru.inheaven.aida.coin.service.DepthService;
 import ru.inheaven.aida.coin.service.TradeService;
 import ru.inhell.aida.common.rx.ObservableEndpoint;
+import rx.Observer;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -37,6 +40,9 @@ public class OkcoinWSService {
     @EJB
     private TradeService tradeService;
 
+    @EJB
+    private DepthService depthService;
+
     private final static String OKCOIN_WSS = "wss://real.okcoin.com:10440/websocket/okcoinapi";
 
     ClientManager client = ClientManager.createClient(JdkClientContainer.class.getName());
@@ -54,25 +60,43 @@ public class OkcoinWSService {
             marketDataEndpoint.getSession().getBasicRemote().sendText("[" +
                             "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_this_week'}," +
                             "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_this_week'}," +
-                            "{'event':'addChannel','channel':'ok_btcusd_future_depth_this_week'}]"
+                            "{'event':'addChannel','channel':'ok_btcusd_future_depth_this_week_60'}," +
+                            "{'event':'addChannel','channel':'ok_ltcusd_future_depth_this_week_60'}]"
             );
 
-            publishTrade("ok_ltcusd_future_trade_v1_this_week", "LTC/USD", SymbolType.THIS_WEEK);
-            publishTrade("ok_btcusd_future_trade_v1_this_week", "BTC/USD", SymbolType.THIS_WEEK);
+            subscribeTrade("ok_btcusd_future_trade_v1_this_week", "BTC/USD", SymbolType.THIS_WEEK);
+            subscribeTrade("ok_ltcusd_future_trade_v1_this_week", "LTC/USD", SymbolType.THIS_WEEK);
+
+            subscribeDepth("ok_btcusd_future_depth_this_week_60", "BTC/USD", SymbolType.THIS_WEEK);
+            subscribeDepth("ok_ltcusd_future_depth_this_week_60", "LTC/USD", SymbolType.THIS_WEEK);
+
+            //debug
+            marketDataEndpoint.getObservable().subscribe(new Observer<String>() {
+                @Override
+                public void onCompleted() {
+                    System.out.println("marketDataEndpoint::onCompleted");
+                }
+
+                @Override
+                public void onError(Throwable e) {
+                    e.printStackTrace();
+                }
+
+                @Override
+                public void onNext(String s) {
+                    System.out.println(s);
+                }
+            });
 
         } catch (Exception e) {
             log.error("error connect to server", e);
         }
     }
 
-    private void publishTrade(String channel, String symbol, SymbolType symbolType){
+    private void subscribeTrade(String channel, String symbol, SymbolType symbolType){
         marketDataEndpoint.getJsonObservable()
                 .filter(j -> j.getString("channel").equals(channel))
-                .flatMapIterable(j -> {
-                    System.out.println(j.toString());
-
-                    return j.getJsonArray("data");
-                })
+                .flatMapIterable(j -> j.getJsonArray("data"))
                 .filter(j -> j.getValueType() == JsonValue.ValueType.ARRAY).map(j -> (JsonArray) j)
                 .map(j -> {
                     Trade trade = new Trade();
@@ -88,6 +112,24 @@ public class OkcoinWSService {
                     return trade;
                 })
                 .subscribe(tradeService.getTradeObserver());
+    }
+
+    private void subscribeDepth(String channel, String symbol, SymbolType symbolType){
+        marketDataEndpoint.getJsonObservable()
+                .filter(j -> j.getString("channel").equals(channel))
+                .map(j -> j.getJsonObject("data"))
+                .map(j -> {
+                    Depth depth = new Depth();
+
+                    depth.setDate(new Date(Long.parseLong(j.getString("timestamp"))));
+                    depth.setData(j.toString());
+                    depth.setSymbolType(symbolType);
+                    depth.setSymbol(symbol);
+
+
+                    return depth;
+                })
+                .subscribe(depthService.getDepthObserver());
     }
 
     @PreDestroy
