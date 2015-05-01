@@ -48,8 +48,8 @@ public class Order extends AbstractEntity {
     @Column(nullable = false)
     private OrderStatus status;
 
-    @ManyToOne
-    @JoinColumn(name = "trader_id")
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "trader_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Trader trader;
 
     public Order() {

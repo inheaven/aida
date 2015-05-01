@@ -53,7 +53,7 @@ public class AccountService extends AbstractService{
     private Equity equity;
 
 
-    @Schedule(second = "*/42", minute="*", hour="*", persistent=false)
+    //@Schedule(second = "*/42", minute="*", hour="*", persistent=false)
     public void scheduleAccounts(){
         for (ExchangeType exchangeType : ExchangeType.values()) {
             try {

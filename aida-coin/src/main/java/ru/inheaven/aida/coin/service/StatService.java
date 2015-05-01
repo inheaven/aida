@@ -40,7 +40,7 @@ public class StatService {
     private Map<ExchangePair, BigDecimal> volatilitySigmaMap = new ConcurrentHashMap<>();
     private Map<ExchangePair, BigDecimal> averageMap = new ConcurrentHashMap<>();
 
-    @Schedule(second = "*/42", minute="*", hour="*", persistent=false)
+    //@Schedule(second = "*/42", minute="*", hour="*", persistent=false)
     public void scheduleStats(){
         traderBean.getTraders().stream().filter(Trader::isRunning).forEach(trader -> {
             if (trader.isPredicting()) {

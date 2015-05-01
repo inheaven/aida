@@ -11,11 +11,9 @@ import ru.inheaven.aida.fix.OKCoinApplication;
 import ru.inheaven.aida.fix.OKCoinXChangeApplication;
 import ru.inheaven.aida.fix.fix44.OKCoinMessageFactory;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.ejb.Asynchronous;
 import javax.ejb.Singleton;
-import javax.ejb.Startup;
 import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
@@ -25,7 +23,6 @@ import java.util.concurrent.TimeUnit;
  * @author inheaven on 12.02.2015 1:19.
  */
 @Singleton
-@Startup
 public class OkcoinFixService {
     private static final Logger log = LoggerFactory.getLogger(OkcoinFixService.class);
 
@@ -33,7 +30,6 @@ public class OkcoinFixService {
     private SessionID sessionId;
     private Initiator initiator;
 
-    @PostConstruct
     @Asynchronous
     public void start(){
         try {

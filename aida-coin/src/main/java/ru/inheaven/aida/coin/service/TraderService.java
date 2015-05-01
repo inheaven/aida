@@ -66,7 +66,7 @@ public class TraderService extends AbstractService{
     private Map<ExchangePair,Integer> errorMap = new ConcurrentHashMap<>();
     private Map<ExchangePair,  Long> errorTimeMap = new ConcurrentHashMap<>();
 
-    @Schedule(second = "*/5", minute="*", hour="*", persistent=false)
+    //@Schedule(second = "*/5", minute="*", hour="*", persistent=false)
     public void scheduleFuturePosition(){
         try {
             //balance
