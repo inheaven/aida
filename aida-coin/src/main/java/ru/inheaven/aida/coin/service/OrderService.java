@@ -1,71 +1,96 @@
 package ru.inheaven.aida.coin.service;
 
-import com.xeiam.xchange.dto.trade.OpenOrders;
-import ru.inheaven.aida.coin.entity.ExchangeType;
 import ru.inheaven.aida.coin.entity.Order;
+import ru.inheaven.aida.coin.entity.OrderStatus;
+import rx.Observer;
+import rx.subjects.PublishSubject;
 
-import javax.ejb.ConcurrencyManagement;
-import javax.ejb.ConcurrencyManagementType;
-import javax.ejb.Singleton;
+import javax.annotation.PostConstruct;
+import javax.ejb.*;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author inheaven on 12.02.2015 21:06.
  */
+@Startup
 @Singleton
 @ConcurrencyManagement(ConcurrencyManagementType.BEAN)
 public class OrderService extends AbstractService{
-    private Map<Long, Map<String, Order>> orderMap = new ConcurrentHashMap<>();
+    @EJB
+    private OrderBean orderBean;
 
-    public Map<String, Order> getOrders(Long traderId){
-        return orderMap.get(traderId);
+    @EJB
+    private XChangeService xChangeService;
+
+    private PublishSubject<Order> orderSubject = PublishSubject.create();
+
+    private Map<Long, Map<String, Order>> openOrderCache = new ConcurrentHashMap<>();
+
+    @PostConstruct
+    public void start(){
+        //init cache
+        orderBean.getOrders(OrderStatus.OPEN).forEach(this::putOpenOrderCache);
+
+        //update status
+        orderSubject
+                .filter(o -> !o.getStatus().equals(OrderStatus.OPEN))
+                .subscribe(o -> {
+                    openOrderCache.forEach((i, m) -> m.remove(o.getOrderId()));
+
+                    Order order = orderBean.getOrder(o.getOrderId());
+
+                    if (order != null){
+                        order.setName(o.getName());
+                        order.setCreated(o.getCreated());
+                        order.setFilledAmount(o.getFilledAmount());
+                        order.setAvgPrice(o.getAvgPrice());
+                        order.setStatus(o.getStatus());
+                        orderBean.save(order);
+                    }
+                });
+
+
+
     }
 
-    public OpenOrders getOpenOrders(ExchangeType exchangeType){
-        return null; //todo implement open orders by exchange type
+    public Observer<Order> getOrderObserver(){
+        return orderSubject;
     }
 
-    private void updateOpenOrders(ExchangeType exchangeType) throws IOException {
-//        OpenOrders openOrders = getExchange(exchangeType).getPollingTradeService().getOpenOrders();
-//        openOrdersMap.put(exchangeType, openOrders);
-//
-//        broadcast(exchangeType, openOrders);
+    public Collection<Order> getOpenOrders(Long strategyId){
+        return Collections.unmodifiableCollection(getOpenOrderMap(strategyId).values());
     }
 
-    public void updateClosedOrders(ExchangeType exchangeType){
-//        OpenOrders openOrders = getOpenOrders(exchangeType);
-//
-//        for (Order h : traderBean.getOrderHistories(exchangeType, OPENED)) {
-//            if (openOrders == null || System.currentTimeMillis() - h.getOpened().getTime() < 60000){
-//                continue;
-//            }
-//
-//            try {
-//                boolean found = false;
-//
-//                for (LimitOrder o : openOrders.getOpenOrders()){
-//                    if (o.getId().split("&")[0].equals(h.getOrderId())){
-//                        found = true;
-//                        break;
-//                    }
-//                }
-//
-//                if (!found){
-//                    h.setStatus(CLOSED);
-//                    h.setFilledAmount(h.getTradableAmount());
-//                    h.setClosed(new Date());
-//
-//                    entityBean.save(h);
-//                    broadcast(exchangeType, h);
-//                }
-//            } catch (Exception e) {
-//                log.error("updateClosedOrders error", e);
-//
-//                //noinspection ThrowableResultOfMethodCallIgnored
-//                broadcast(exchangeType, exchangeType.name() + ": " + Throwables.getRootCause(e).getMessage());
-//            }
-//        }
+    public void placeLimitOrder(Order order) throws IOException {
+        xChangeService.placeLimitOrder(order);
+
+        putOpenOrderCache(order);
+
+        orderBean.save(order);
+    }
+
+    public void cancelLimitOrder(Order order) throws IOException {
+        xChangeService.cancelLimitOrder(order);
+
+        getOpenOrderMap(order.getStrategy().getId()).remove(order.getOrderId());
+    }
+
+    private Map<String, Order> getOpenOrderMap(Long strategyId){
+        Map<String, Order> map = openOrderCache.get(strategyId);
+
+        if (map == null){
+            map = new ConcurrentHashMap<>();
+            openOrderCache.put(strategyId, map);
+        }
+
+        return map;
+    }
+
+    private void putOpenOrderCache(Order order){
+        getOpenOrderMap(order.getStrategy().getId()).put(order.getOrderId(), order);
     }
 }

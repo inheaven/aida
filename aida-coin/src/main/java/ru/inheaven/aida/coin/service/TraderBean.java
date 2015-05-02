@@ -78,7 +78,7 @@ public class TraderBean {
     public List<Order> getOrderHistories(ExchangePair exchangePair, OrderStatus status, Date startDate){
         return em.createQuery("select h from Order h where h.exchangeType = :exchangeType and " +
                 "h.pair = :pair and  h.status = :status and " +
-                "(h.opened > :startDate or (h.closed is not null and h.closed > :startDate))", Order.class)
+                "(h.open > :startDate or (h.closed is not null and h.closed > :startDate))", Order.class)
                 .setParameter("exchangeType", exchangePair.getExchangeType())
                 .setParameter("pair", exchangePair.getPair())
                 .setParameter("status", status)
@@ -95,7 +95,7 @@ public class TraderBean {
     }
 
     public Long getOrderHistoryCount(Date startDate, OrderStatus status){
-        return em.createQuery("select count(h) from Order h where (h.opened > :startDate or (h.closed is not null and " +
+        return em.createQuery("select count(h) from Order h where (h.open > :startDate or (h.closed is not null and " +
                 "h.closed > :startDate)) and h.status = :status", Long.class)
                 .setParameter("startDate", startDate)
                 .setParameter("status", status)
@@ -103,14 +103,14 @@ public class TraderBean {
     }
 
     public List<Order> getOrderHistories(Date startDate){
-        return em.createQuery("select h from Order h where h.opened > :startDate or (h.closed is not null and " +
+        return em.createQuery("select h from Order h where h.open > :startDate or (h.closed is not null and " +
                 "h.closed > :startDate)", Order.class)
                 .setParameter("startDate", startDate)
                 .getResultList();
     }
 
     public List<Order> getOrderHistories(OrderStatus status, Date startDate){
-        return em.createQuery("select h from Order h where (h.opened > :startDate or (h.closed is not null and " +
+        return em.createQuery("select h from Order h where (h.open > :startDate or (h.closed is not null and " +
                 "h.closed > :startDate)) and h.status = :status", Order.class)
                 .setParameter("startDate", startDate)
                 .setParameter("status", status)

@@ -23,5 +23,4 @@ public class EntityBean {
             em.clear();
         }
     }
-
 }

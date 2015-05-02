@@ -9,8 +9,12 @@ import ru.inheaven.aida.predictor.service.PredictorService;
 import javax.annotation.Nullable;
 import javax.ejb.*;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
@@ -251,18 +255,11 @@ public class StatService {
                 ? traderBean.getOrderHistories(exchangePair, CLOSED, startDate)
                 : traderBean.getOrderHistories(CLOSED, startDate);
 
-        for (Order order : orders){
-            volumes.add(new Volume(getBTCVolume(ExchangePair.of(order.getExchangeType(), order.getPair()),
-                    order.getTradableAmount(), order.getPrice()).multiply(BigDecimal.valueOf(OrderType.ASK.equals(order.getType()) ? 1 : -1)),
-                    order.getClosed()));
-        }
+        volumes.addAll(orders.stream().map(order -> new Volume(getBTCVolume(ExchangePair.of(order.getExchangeType(), order.getSymbol()),
+                order.getAmount(), order.getPrice()).multiply(BigDecimal.valueOf(OrderType.ASK.equals(order.getType()) ? 1 : -1)),
+                order.getClosed())).collect(Collectors.toList()));
 
-        volumes.sort(new Comparator<Volume>() {
-            @Override
-            public int compare(Volume o1, Volume o2) {
-                return o1.getDate().compareTo(o2.getDate());
-            }
-        });
+        volumes.sort((o1, o2) -> o1.getDate().compareTo(o2.getDate()));
 
         return volumes;
     }

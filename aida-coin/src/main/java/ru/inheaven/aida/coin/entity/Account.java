@@ -2,7 +2,6 @@ package ru.inheaven.aida.coin.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 /**
@@ -20,8 +19,8 @@ public class Account extends AbstractEntity{
     private String secretKey;
 
     @ManyToOne
-    @JoinColumn(name = "client_id")
     private Client client;
+
 
     public ExchangeType getExchangeType() {
         return exchangeType;

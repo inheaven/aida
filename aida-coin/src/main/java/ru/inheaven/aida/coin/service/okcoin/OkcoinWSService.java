@@ -5,11 +5,9 @@ import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.container.jdk.client.JdkClientContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.inheaven.aida.coin.entity.Depth;
-import ru.inheaven.aida.coin.entity.OrderType;
-import ru.inheaven.aida.coin.entity.SymbolType;
-import ru.inheaven.aida.coin.entity.Trade;
+import ru.inheaven.aida.coin.entity.*;
 import ru.inheaven.aida.coin.service.DepthService;
+import ru.inheaven.aida.coin.service.OrderService;
 import ru.inheaven.aida.coin.service.TradeService;
 import ru.inhell.aida.common.rx.ObservableEndpoint;
 import rx.Observer;
@@ -47,6 +45,9 @@ public class OkcoinWSService {
     @EJB
     private DepthService depthService;
 
+    @EJB
+    private OrderService orderService;
+
     private final static String OKCOIN_WSS = "wss://real.okcoin.com:10440/websocket/okcoinapi";
 
     ClientManager client = ClientManager.createClient(JdkClientContainer.class.getName());
@@ -78,9 +79,11 @@ public class OkcoinWSService {
                             "{'event':'addChannel','channel':'ok_ltcusd_future_depth_this_week_60'}]"
             );
 
+            //trade
             marketDataEndpoint.getJsonObservable()
                     .filter(j -> j.getString("channel").contains("_future_trade_v1_"))
                     .flatMapIterable(j -> j.getJsonArray("data"), (o, v) -> new JsonData(o.getString("channel"), v))
+                    .filter(d -> d.value.getValueType().equals(JsonValue.ValueType.ARRAY))
                     .map(j -> {
                         JsonArray a = (JsonArray) j.value;
 
@@ -95,9 +98,9 @@ public class OkcoinWSService {
                         trade.setOrderType(OrderType.valueOf(a.getString(4).toUpperCase()));
 
                         return trade;
-                    })
-                    .subscribe(tradeService.getTradeObserver());
+                    }).subscribe(tradeService.getTradeObserver());
 
+            //depth
             marketDataEndpoint.getJsonObservable()
                     .filter(j -> j.getString("channel").contains("_future_depth_"))
                     .map(j -> new JsonData(j.getString("channel"), j.getJsonObject("data")))
@@ -110,10 +113,58 @@ public class OkcoinWSService {
                         depth.setData(j.value.toString());
 
                         return depth;
-                    })
-                    .subscribe(depthService.getDepthObserver());
+                    }).subscribe(depthService.getDepthObserver());
 
-            //todo receive order info
+            //order info
+            tradingEndpoint.getJsonObservable()
+                    .filter(j -> j.getString("channel").equals("ok_futureusd_order_info"))
+                    .map(j -> j.getJsonObject("data"))
+                    .filter(j -> j.getBoolean("result"))
+                    .flatMapIterable(j -> j.getJsonArray("orders"))
+                    .filter(j -> j.getValueType().equals(JsonValue.ValueType.OBJECT)).map(j -> (JsonObject) j)
+                    .map(j -> {
+                        Order order = new Order();
+
+                        order.setAmount(BigDecimal.valueOf(j.getJsonNumber("amount").doubleValue()));
+                        order.setName(j.getString("contract_name"));
+                        order.setCreated(new Date(j.getJsonNumber("create_date").longValue()));
+                        order.setFilledAmount(BigDecimal.valueOf(j.getJsonNumber("deal_amount").doubleValue()));
+                        order.setFee(BigDecimal.valueOf(j.getJsonNumber("fee").doubleValue()));
+                        order.setOrderId(j.getJsonNumber("order_id").toString());
+                        order.setPrice(BigDecimal.valueOf(j.getJsonNumber("price").doubleValue()));
+                        order.setAvgPrice(BigDecimal.valueOf(j.getJsonNumber("price_avg").doubleValue()));
+                        order.setSymbol(j.getString("symbol"));
+
+                        switch (j.getInt("status")) {
+                            case -1:
+                            case 4:
+                                order.setStatus(OrderStatus.CANCELED);
+                                break;
+                            case 2:
+                                order.setStatus(OrderStatus.CLOSED);
+                                break;
+                            default:
+                                order.setStatus(OrderStatus.OPEN);
+                                break;
+                        }
+
+                        switch (j.getInt("type")) {
+                            case 1:
+                                order.setType(OrderType.OPEN_LONG);
+                                break;
+                            case 2:
+                                order.setType(OrderType.OPEN_SHORT);
+                                break;
+                            case 3:
+                                order.setType(OrderType.CLOSE_LONG);
+                                break;
+                            case 4:
+                                order.setType(OrderType.CLOSE_SHORT);
+                                break;
+                        }
+
+                        return order;
+                    }).subscribe(orderService.getOrderObserver());
 
             //debug
             marketDataEndpoint.getObservable().subscribe(new Observer<String>() {

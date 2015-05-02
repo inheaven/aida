@@ -515,15 +515,6 @@ public class TraderList extends AbstractPage{
                     } else if (payload instanceof Order) {
                         Order order = (Order) payload;
 
-                        if (order.getExchangeType().equals(OKCOIN)) {
-                            order.setFilledAmountScale(0);
-
-                            if (order.getPair().contains("LTC/")) {
-                                order.setPriceScale(3);
-                            } else if (order.getPair().contains("BTC/")) {
-                                order.setPriceScale(2);
-                            }
-                        }
 
                         handler.add(notificationLabel3.setDefaultModelObject(order.toString()));
 
@@ -654,16 +645,6 @@ public class TraderList extends AbstractPage{
             @Override
             protected void populateItem(ListItem<Order> item) {
                 Order order = item.getModelObject();
-
-                if (order.getExchangeType().equals(OKCOIN)){
-                    order.setFilledAmountScale(0);
-
-                    if (order.getPair().contains("LTC/")){
-                        order.setPriceScale(3);
-                    }else if (order.getPair().contains("BTC/")){
-                        order.setPriceScale(2);
-                    }
-                }
 
                 item.add(new AttributeModifier("style", "color: " + (order.getType().equals(OrderType.ASK) ? "#62c462" : "#ee5f5b")));
                 item.add(new Label("order", Model.of(order.toString())));
