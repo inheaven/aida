@@ -1,10 +1,8 @@
 package ru.inheaven.aida.coin.service;
 
 import ru.inheaven.aida.coin.entity.Order;
-import ru.inheaven.aida.coin.entity.OrderStatus;
-import ru.inheaven.aida.coin.entity.OrderType;
-import rx.Observer;
 import rx.subjects.PublishSubject;
+import rx.subjects.Subject;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.*;
@@ -15,6 +13,11 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+
+import static ru.inheaven.aida.coin.entity.OrderStatus.CLOSED;
+import static ru.inheaven.aida.coin.entity.OrderStatus.OPEN;
+import static ru.inheaven.aida.coin.entity.OrderType.BUY;
+import static ru.inheaven.aida.coin.entity.OrderType.SELL;
 
 /**
  * @author inheaven on 12.02.2015 21:06.
@@ -39,52 +42,53 @@ public class OrderService extends AbstractService{
     @PostConstruct
     public void start(){
         //init cache
-        orderBean.getOrders(OrderStatus.OPEN).forEach(this::putOpenOrderCache);
+        orderBean.getOrders(OPEN).forEach(this::putOpenOrderCache);
 
         //update status
         orderSubject
-                .filter(o -> !o.getStatus().equals(OrderStatus.OPEN))
+                .filter(o -> !o.getStatus().equals(OPEN))
                 .subscribe(o -> {
-                    openOrderCache.forEach((i, m) -> m.remove(o.getOrderId()));
+                    openOrderCache.forEach((i, m) -> {
+                        Order order = m.remove(o.getOrderId());
 
-                    Order order = orderBean.getOrder(o.getOrderId());
+                        if (order != null) {
+                            order.setName(o.getName());
+                            order.setCreated(o.getCreated());
+                            o.setClosed(new Date());
+                            order.setFilledAmount(o.getFilledAmount());
+                            order.setAvgPrice(o.getAvgPrice());
+                            order.setStatus(o.getStatus());
 
-                    if (order != null) {
-                        order.setName(o.getName());
-                        order.setCreated(o.getCreated());
-                        order.setFilledAmount(o.getFilledAmount());
-                        order.setAvgPrice(o.getAvgPrice());
-                        order.setStatus(o.getStatus());
-                        orderBean.save(order);
-                    }
+                            orderBean.save(order);
+                        }
+                    });
                 });
 
-        //close order by trade price
+        //close by trade price
         tradeService.getTradeSubject()
                 .groupBy(t -> t.getExchangeType().name() + ":" + t.getSymbol())
                 .map(o -> o.sample(1, TimeUnit.MINUTES))
                 .subscribe(observable -> {
                     observable.subscribe(t -> {
-                        openOrderCache.forEach((i, m) -> {
-                            m.values().stream()
-                                    .filter(o -> o.getExchangeType() == t.getExchangeType())
-                                    .filter(o -> o.getSymbol().equals(t.getSymbol()))
-                                    .filter(o -> o.getPrice().compareTo(t.getPrice()) > 0 && OrderType.BUY.contains(o.getType()))
-                                    .filter(o -> o.getPrice().compareTo(t.getPrice()) < 0 && OrderType.SELL.contains(o.getType()))
-                                    .forEach(o -> {
-                                        m.remove(o.getOrderId());
+                        openOrderCache.forEach((i, m) -> m.values().stream()
+                                .filter(o -> o.getExchangeType() == t.getExchangeType())
+                                .filter(o -> o.getSymbol().equals(t.getSymbol()))
+                                .filter(o -> o.getPrice().compareTo(t.getPrice()) > 0 && BUY.contains(o.getType()))
+                                .filter(o -> o.getPrice().compareTo(t.getPrice()) < 0 && SELL.contains(o.getType()))
+                                .forEach(o -> {
+                                    o.setStatus(CLOSED);
 
-                                        o.setStatus(OrderStatus.CLOSED);
-                                        o.setClosed(new Date());
-                                        orderBean.save(o);
-                                    });
-
-                        });
+                                    orderSubject.onNext(o);
+                                }));
                     });
                 });
+
+        //close by real trade
+
     }
 
-    public Observer<Order> getOrderObserver(){
+    //todo ejb async
+    public Subject<Order, Order> getOrderSubject(){
         return orderSubject;
     }
 

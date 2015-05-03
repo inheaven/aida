@@ -164,7 +164,7 @@ public class OkcoinWSService {
                         }
 
                         return order;
-                    }).subscribe(orderService.getOrderObserver());
+                    }).subscribe(orderService.getOrderSubject());
 
         } catch (Exception e) {
             log.error("error connect to server", e);
