@@ -255,7 +255,7 @@ public class StatService {
                 ? traderBean.getOrderHistories(exchangePair, CLOSED, startDate)
                 : traderBean.getOrderHistories(CLOSED, startDate);
 
-        volumes.addAll(orders.stream().map(order -> new Volume(getBTCVolume(ExchangePair.of(order.getExchangeType(), order.getSymbol()),
+        volumes.addAll(orders.stream().map(order -> new Volume(getBTCVolume(ExchangePair.of(order.getAccount().getExchangeType(), order.getSymbol()),
                 order.getAmount(), order.getPrice()).multiply(BigDecimal.valueOf(OrderType.ASK.equals(order.getType()) ? 1 : -1)),
                 order.getClosed())).collect(Collectors.toList()));
 

@@ -25,6 +25,9 @@ public class Order extends AbstractEntity {
     private Account account;
 
     @Column(nullable = false)
+    private ExchangeType exchangeType;
+
+    @Column(nullable = false)
     private OrderType type;
 
     @Column(nullable = false)
@@ -93,6 +96,22 @@ public class Order extends AbstractEntity {
         this.account = account;
     }
 
+    public ExchangeType getExchangeType() {
+        return exchangeType;
+    }
+
+    public void setExchangeType(ExchangeType exchangeType) {
+        this.exchangeType = exchangeType;
+    }
+
+    public OrderType getType() {
+        return type;
+    }
+
+    public void setType(OrderType type) {
+        this.type = type;
+    }
+
     public String getSymbol() {
         return symbol;
     }
@@ -107,14 +126,6 @@ public class Order extends AbstractEntity {
 
     public void setSymbolType(SymbolType symbolType) {
         this.symbolType = symbolType;
-    }
-
-    public OrderType getType() {
-        return type;
-    }
-
-    public void setType(OrderType type) {
-        this.type = type;
     }
 
     public BigDecimal getPrice() {

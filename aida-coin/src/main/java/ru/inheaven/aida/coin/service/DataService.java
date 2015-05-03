@@ -1,6 +1,5 @@
 package ru.inheaven.aida.coin.service;
 
-import com.xeiam.xchange.cryptsy.CryptsyExchange;
 import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.dto.marketdata.Ticker;
 import org.slf4j.Logger;
@@ -53,10 +52,10 @@ public class DataService extends AbstractService{
                 CurrencyPair currencyPair = getCurrencyPair(trader.getPair());
 
                 if (currencyPair != null && trader.getType().equals(LONG)) {
-                    Ticker ticker;
+                    Ticker ticker = null;
 
                     if (CRYPTSY.equals(exchangeType)) {
-                        ticker = ((CryptsyExchange)getExchange(exchangeType)).getPollingPublicMarketDataService().getTicker(currencyPair);
+                        //ticker = ((CryptsyExchange)getExchange(exchangeType)).getPollingPublicMarketDataService().getTicker(currencyPair);
                     }else{
                         ticker = getExchange(exchangeType).getPollingMarketDataService().getTicker(currencyPair);
                     }

@@ -10,7 +10,6 @@ import ru.inheaven.aida.coin.service.DepthService;
 import ru.inheaven.aida.coin.service.OrderService;
 import ru.inheaven.aida.coin.service.TradeService;
 import ru.inhell.aida.common.rx.ObservableEndpoint;
-import rx.Observer;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -96,9 +95,10 @@ public class OkcoinWSService {
                         trade.setAmount(new BigDecimal(a.getString(2)));
                         trade.setDate(Date.from(LocalTime.parse(a.getString(3)).atDate(now()).toInstant(ofHours(8))));
                         trade.setOrderType(OrderType.valueOf(a.getString(4).toUpperCase()));
+                        trade.setExchangeType(ExchangeType.OKCOIN_FUTURES);
 
                         return trade;
-                    }).subscribe(tradeService.getTradeObserver());
+                    }).subscribe(tradeService.getTradeSubject());
 
             //depth
             marketDataEndpoint.getJsonObservable()
@@ -165,24 +165,6 @@ public class OkcoinWSService {
 
                         return order;
                     }).subscribe(orderService.getOrderObserver());
-
-            //debug
-            marketDataEndpoint.getObservable().subscribe(new Observer<String>() {
-                @Override
-                public void onCompleted() {
-                    System.out.println("marketDataEndpoint::onCompleted");
-                }
-
-                @Override
-                public void onError(Throwable e) {
-                    e.printStackTrace();
-                }
-
-                @Override
-                public void onNext(String s) {
-                    System.out.println(s);
-                }
-            });
 
         } catch (Exception e) {
             log.error("error connect to server", e);

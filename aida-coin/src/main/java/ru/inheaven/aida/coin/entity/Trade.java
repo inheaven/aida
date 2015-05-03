@@ -13,6 +13,9 @@ public class Trade extends AbstractEntity{
     private String tradeId;
 
     @Column(nullable = false)
+    private ExchangeType exchangeType;
+
+    @Column(nullable = false)
     private String symbol;
 
     @Column(nullable = true)
@@ -40,21 +43,20 @@ public class Trade extends AbstractEntity{
     public Trade() {
     }
 
-    public Trade(String tradeId, BigDecimal price, BigDecimal amount, Date date, OrderType orderType, SymbolType symbolType) {
-        this.tradeId = tradeId;
-        this.price = price;
-        this.amount = amount;
-        this.date = date;
-        this.orderType = orderType;
-        this.symbolType = symbolType;
-    }
-
     public String getTradeId() {
         return tradeId;
     }
 
     public void setTradeId(String tradeId) {
         this.tradeId = tradeId;
+    }
+
+    public ExchangeType getExchangeType() {
+        return exchangeType;
+    }
+
+    public void setExchangeType(ExchangeType exchangeType) {
+        this.exchangeType = exchangeType;
     }
 
     public BigDecimal getPrice() {

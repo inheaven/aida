@@ -1,8 +1,8 @@
 package ru.inheaven.aida.coin.service;
 
 import ru.inheaven.aida.coin.entity.Trade;
-import rx.Observer;
 import rx.subjects.PublishSubject;
+import rx.subjects.Subject;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
@@ -23,7 +23,7 @@ public class TradeService {
         tradeSubject.subscribe(entityBean::save);
     }
 
-    public Observer<Trade> getTradeObserver(){
+    public Subject<Trade, Trade> getTradeSubject(){
         return tradeSubject;
     }
 }

@@ -12,7 +12,7 @@ import javax.persistence.PersistenceContext;
 @Stateless
 public class EntityBean {
     @PersistenceContext
-    private EntityManager em;
+    protected EntityManager em;
 
     public void save(AbstractEntity abstractEntity){
         if (abstractEntity.getId() == null) {

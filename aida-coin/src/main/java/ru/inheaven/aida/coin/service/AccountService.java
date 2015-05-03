@@ -72,7 +72,8 @@ public class AccountService extends AbstractService{
         try {
             for (ExchangeType exchangeType : ExchangeType.values()){
                 AccountInfo accountInfo = getAccountInfo(exchangeType);
-                OpenOrders openOrders = orderService.getOpenOrders(exchangeType);
+                //OpenOrders openOrders = orderService.getOpenOrders(exchangeType);
+                OpenOrders openOrders = null;
 
                 if (accountInfo != null && openOrders != null){
                     //check ask amount
@@ -180,11 +181,11 @@ public class AccountService extends AbstractService{
             }
 
             if (BTCE.equals(exchangeType)){ //do check it
-                for (LimitOrder limitOrder : orderService.getOpenOrders(ExchangeType.BTCE).getOpenOrders()){
-                    volume = volume.add(statService.getBTCVolume(
-                            ExchangePair.of(ExchangeType.BTCE, TraderUtil.getPair(limitOrder.getCurrencyPair())),
-                            limitOrder.getTradableAmount(), limitOrder.getLimitPrice()));
-                }
+//                for (LimitOrder limitOrder : orderService.getOpenOrders(ExchangeType.BTCE).getOpenOrders()){
+//                    volume = volume.add(statService.getBTCVolume(
+//                            ExchangePair.of(ExchangeType.BTCE, TraderUtil.getPair(limitOrder.getCurrencyPair())),
+//                            limitOrder.getTradableAmount(), limitOrder.getLimitPrice()));
+//                }
             }
 
             Equity equity = equityMap.get(exchangeType);

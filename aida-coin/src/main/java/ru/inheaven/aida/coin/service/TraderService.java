@@ -5,13 +5,13 @@ import com.xeiam.xchange.currency.CurrencyPair;
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.dto.trade.LimitOrder;
-import com.xeiam.xchange.okcoin.dto.trade.OkCoinCrossPosition;
-import com.xeiam.xchange.okcoin.dto.trade.OkCoinCrossPositionResult;
-import com.xeiam.xchange.okcoin.service.polling.OkCoinTradeServiceRaw;
 import com.xeiam.xchange.service.polling.trade.PollingTradeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.inheaven.aida.coin.entity.*;
+import ru.inheaven.aida.coin.entity.ExchangePair;
+import ru.inheaven.aida.coin.entity.ExchangeType;
+import ru.inheaven.aida.coin.entity.Order;
+import ru.inheaven.aida.coin.entity.Trader;
 import ru.inheaven.aida.coin.util.TraderUtil;
 
 import javax.ejb.*;
@@ -22,8 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.xeiam.xchange.dto.Order.OrderType.ASK;
-import static com.xeiam.xchange.dto.Order.OrderType.BID;
 import static java.math.BigDecimal.*;
 import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.coin.entity.ExchangeType.*;
@@ -67,160 +65,160 @@ public class TraderService extends AbstractService{
     private Map<ExchangePair,  Long> errorTimeMap = new ConcurrentHashMap<>();
 
     //@Schedule(second = "*/5", minute="*", hour="*", persistent=false)
-    public void scheduleFuturePosition(){
-        try {
-            //balance
-            //balanceOKCoinWeekPosition("BTC/USD");
-            balanceOKCoinWeekPosition("LTC/USD");
+//    public void scheduleFuturePosition(){
+//        try {
+//            //balance
+//            //balanceOKCoinWeekPosition("BTC/USD");
+//            balanceOKCoinWeekPosition("LTC/USD");
+//
+//            int levels = 150;
+//            int balancing = 11;
+//
+//            double spread;
+//            try {
+//                spread = getSpread(ExchangePair.of(OKCOIN, "LTC/USD")).doubleValue();
+//            } catch (Exception e) {
+//                return;
+//            }
+//
+//            OkCoinCrossPositionResult week = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("ltc_usd", "this_week");
+//
+//            OkCoinCrossPositionResult quarter = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("ltc_usd", "quarter");
+//
+//            double last = dataService.getTicker(ExchangePair.of(OKCOIN, "LTC/USD")).getLast().doubleValue();
+//            double delta = spread / last;
+//
+//            Futures futures = new Futures();
+//
+//            OkCoinCrossPosition p = week.getPositions()[0];
+//            OkCoinCrossPosition q = quarter.getPositions()[0];
+//
+//            //long
+//
+//            double buyProfit = 0;
+//            double sellProfit = 0;
+//
+//            int buyAmount = p.getBuyAmount().intValue() +  q.getBuyAmount().intValue();
+//            int sellAmount = p.getSellAmount().intValue() + q.getSellAmount().intValue();
+//
+//            futures.setMargin(BigDecimal.valueOf(buyProfit + sellProfit));
+//            futures.setRealProfit(p.getBuyProfitReal().add(p.getSellProfitReal()));
+//            futures.setAvgPosition(BigDecimal.valueOf(last).add(p.getBuyAmount().subtract(p.getSellAmount()).multiply(BigDecimal.valueOf(spread))));
+//
+//            double price0 = last;
+//            double price = last * (1 + delta);
+//
+//            for (int i = 1; i < levels; ++i){
+//                buyProfit += (buyAmount - i) * (10/price0 - 10/price);
+//                futures.getBids().add(new Position(buyProfit, price));
+//
+//                sellProfit -= (sellAmount + i) * (10/price0 - 10/price);
+//                futures.getAsks().add(new Position(sellProfit, price));
+//
+//                if (buyAmount - i < balancing){
+//                    double b = (buyAmount + sellAmount)*0.6;
+//                    buyAmount += b;
+//                    sellAmount -= b;
+//                }
+//
+//                price0 = price;
+//                price *= (1 + delta);
+//            }
+//
+//            //short
+//
+//            buyProfit =  0;
+//            sellProfit =  0;
+//
+//            buyAmount = p.getBuyAmount().intValue() +  q.getBuyAmount().intValue();
+//            sellAmount = p.getSellAmount().intValue() + q.getSellAmount().intValue();
+//
+//            price0 = last;
+//            price = last * (1 - delta);
+//
+//            for (int i = -1; i > -levels; --i){
+//                buyProfit += (buyAmount - i) * (10/price0 - 10/price);
+//                futures.getBids().add(new Position(buyProfit, price));
+//
+//                sellProfit -= (sellAmount + i) * (10/price0 - 10/price);
+//                futures.getAsks().add(new Position(sellProfit, price));
+//
+//                if (sellAmount + i < balancing){
+//                    double b = (buyAmount + sellAmount)*0.6;
+//                    buyAmount -= b;
+//                    sellAmount += b;
+//                }
+//
+//                price0 = price;
+//                price *= (1 - delta);
+//            }
+//
+//            //sort
+//            futures.getAsks().sort((o1, o2) -> o1.getPrice().compareTo(o2.getPrice()));
+//            futures.getBids().sort((o1, o2) -> o1.getPrice().compareTo(o2.getPrice()));
+//
+//            for (int i = 0; i < 2*levels - 2; ++i){
+//                Position bid = futures.getBids().get(i);
+//                Position ask = futures.getAsks().get(i);
+//
+//                futures.getEquity().add(new Position(ask.getAmount().add(bid.getAmount()).setScale(4, ROUND_UP),
+//                        ask.getPrice().add(bid.getPrice()).divide(BigDecimal.valueOf(2), 4, ROUND_UP)));
+//            }
+//
+//            //broadcast
+//            broadcast(OKCOIN, futures);
+//        } catch (IOException e) {
+//            log.error("scheduleFuturePosition error", e);
+//
+//            broadcast(OKCOIN, e);
+//        }
+//    }
 
-            int levels = 150;
-            int balancing = 11;
 
-            double spread;
-            try {
-                spread = getSpread(ExchangePair.of(OKCOIN, "LTC/USD")).doubleValue();
-            } catch (Exception e) {
-                return;
-            }
-
-            OkCoinCrossPositionResult week = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("ltc_usd", "this_week");
-
-            OkCoinCrossPositionResult quarter = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("ltc_usd", "quarter");
-
-            double last = dataService.getTicker(ExchangePair.of(OKCOIN, "LTC/USD")).getLast().doubleValue();
-            double delta = spread / last;
-
-            Futures futures = new Futures();
-
-            OkCoinCrossPosition p = week.getPositions()[0];
-            OkCoinCrossPosition q = quarter.getPositions()[0];
-
-            //long
-
-            double buyProfit = 0;
-            double sellProfit = 0;
-
-            int buyAmount = p.getBuyAmount().intValue() +  q.getBuyAmount().intValue();
-            int sellAmount = p.getSellAmount().intValue() + q.getSellAmount().intValue();
-
-            futures.setMargin(BigDecimal.valueOf(buyProfit + sellProfit));
-            futures.setRealProfit(p.getBuyProfitReal().add(p.getSellProfitReal()));
-            futures.setAvgPosition(BigDecimal.valueOf(last).add(p.getBuyAmount().subtract(p.getSellAmount()).multiply(BigDecimal.valueOf(spread))));
-
-            double price0 = last;
-            double price = last * (1 + delta);
-
-            for (int i = 1; i < levels; ++i){
-                buyProfit += (buyAmount - i) * (10/price0 - 10/price);
-                futures.getBids().add(new Position(buyProfit, price));
-
-                sellProfit -= (sellAmount + i) * (10/price0 - 10/price);
-                futures.getAsks().add(new Position(sellProfit, price));
-
-                if (buyAmount - i < balancing){
-                    double b = (buyAmount + sellAmount)*0.6;
-                    buyAmount += b;
-                    sellAmount -= b;
-                }
-
-                price0 = price;
-                price *= (1 + delta);
-            }
-
-            //short
-
-            buyProfit =  0;
-            sellProfit =  0;
-
-            buyAmount = p.getBuyAmount().intValue() +  q.getBuyAmount().intValue();
-            sellAmount = p.getSellAmount().intValue() + q.getSellAmount().intValue();
-
-            price0 = last;
-            price = last * (1 - delta);
-
-            for (int i = -1; i > -levels; --i){
-                buyProfit += (buyAmount - i) * (10/price0 - 10/price);
-                futures.getBids().add(new Position(buyProfit, price));
-
-                sellProfit -= (sellAmount + i) * (10/price0 - 10/price);
-                futures.getAsks().add(new Position(sellProfit, price));
-
-                if (sellAmount + i < balancing){
-                    double b = (buyAmount + sellAmount)*0.6;
-                    buyAmount -= b;
-                    sellAmount += b;
-                }
-
-                price0 = price;
-                price *= (1 - delta);
-            }
-
-            //sort
-            futures.getAsks().sort((o1, o2) -> o1.getPrice().compareTo(o2.getPrice()));
-            futures.getBids().sort((o1, o2) -> o1.getPrice().compareTo(o2.getPrice()));
-
-            for (int i = 0; i < 2*levels - 2; ++i){
-                Position bid = futures.getBids().get(i);
-                Position ask = futures.getAsks().get(i);
-
-                futures.getEquity().add(new Position(ask.getAmount().add(bid.getAmount()).setScale(4, ROUND_UP),
-                        ask.getPrice().add(bid.getPrice()).divide(BigDecimal.valueOf(2), 4, ROUND_UP)));
-            }
-
-            //broadcast
-            broadcast(OKCOIN, futures);
-        } catch (IOException e) {
-            log.error("scheduleFuturePosition error", e);
-
-            broadcast(OKCOIN, e);
-        }
-    }
-
-
-    private void balanceOKCoinWeekPosition(String pair) {
-        int minAmount = 11;
-
-        try {
-            OkCoinCrossPositionResult thisWeek = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService())
-                    .getCrossPosition(pair.toLowerCase().replace("/", "_"), "this_week");
-
-            if (thisWeek.getPositions().length > 0){
-                OkCoinCrossPosition tw = thisWeek.getPositions()[0];
-
-                PollingTradeService tradeService = getExchange(OKCOIN).getPollingTradeService();
-                Ticker ticker = dataService.getTicker(ExchangePair.of(OKCOIN, pair));
-
-                boolean _short = tw.getSellAmount().intValue() < minAmount;
-
-                BigDecimal sumAmount = tw.getSellAmount().add(tw.getBuyAmount());
-
-                BigDecimal a1 = sumAmount.multiply(BigDecimal.valueOf(0.22));
-
-                if ((tw.getBuyAmount().intValue() < minAmount && tw.getSellAmount().intValue() > 2*minAmount)
-                        || (tw.getSellAmount().intValue() < minAmount && tw.getBuyAmount().intValue() > 2*minAmount)){
-
-                    //balance
-                    BigDecimal price = _short
-                            ? ticker.getBid().multiply(BigDecimal.valueOf(0.99))
-                            : ticker.getAsk().multiply(BigDecimal.valueOf(1.01));
-
-                    com.xeiam.xchange.dto.Order.OrderType orderType = _short ? ASK : BID;
-
-                    String id = tradeService.placeLimitOrder(new LimitOrder(orderType, a1, getCurrencyPair(pair),
-                            _short ? "LONG" : "SHORT", new Date(), price));
-                    entityBean.save(new Order(id, OKCOIN, pair, OrderType.valueOf(orderType.name()), a1, price, new Date()));
-
-                    id = tradeService.placeLimitOrder(new LimitOrder(orderType, a1, getCurrencyPair(pair),
-                            _short ? "SHORT" : "LONG", new Date(), price));
-                    entityBean.save(new Order(id, OKCOIN, pair, OrderType.valueOf(orderType.name()), a1, price, new Date()));
-                }
-            }
-        } catch (Exception e) {
-            log.error("balanceOKCoinWeekPosition error", e);
-
-            broadcast(OKCOIN, e);
-        }
-    }
+//    private void balanceOKCoinWeekPosition(String pair) {
+//        int minAmount = 11;
+//
+//        try {
+//            OkCoinCrossPositionResult thisWeek = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService())
+//                    .getCrossPosition(pair.toLowerCase().replace("/", "_"), "this_week");
+//
+//            if (thisWeek.getPositions().length > 0){
+//                OkCoinCrossPosition tw = thisWeek.getPositions()[0];
+//
+//                PollingTradeService tradeService = getExchange(OKCOIN).getPollingTradeService();
+//                Ticker ticker = dataService.getTicker(ExchangePair.of(OKCOIN, pair));
+//
+//                boolean _short = tw.getSellAmount().intValue() < minAmount;
+//
+//                BigDecimal sumAmount = tw.getSellAmount().add(tw.getBuyAmount());
+//
+//                BigDecimal a1 = sumAmount.multiply(BigDecimal.valueOf(0.22));
+//
+//                if ((tw.getBuyAmount().intValue() < minAmount && tw.getSellAmount().intValue() > 2*minAmount)
+//                        || (tw.getSellAmount().intValue() < minAmount && tw.getBuyAmount().intValue() > 2*minAmount)){
+//
+//                    //balance
+//                    BigDecimal price = _short
+//                            ? ticker.getBid().multiply(BigDecimal.valueOf(0.99))
+//                            : ticker.getAsk().multiply(BigDecimal.valueOf(1.01));
+//
+//                    com.xeiam.xchange.dto.Order.OrderType orderType = _short ? ASK : BID;
+//
+//                    String id = tradeService.placeLimitOrder(new LimitOrder(orderType, a1, getCurrencyPair(pair),
+//                            _short ? "LONG" : "SHORT", new Date(), price));
+//                    entityBean.save(new Order(id, OKCOIN, pair, OrderType.valueOf(orderType.name()), a1, price, new Date()));
+//
+//                    id = tradeService.placeLimitOrder(new LimitOrder(orderType, a1, getCurrencyPair(pair),
+//                            _short ? "SHORT" : "LONG", new Date(), price));
+//                    entityBean.save(new Order(id, OKCOIN, pair, OrderType.valueOf(orderType.name()), a1, price, new Date()));
+//                }
+//            }
+//        } catch (Exception e) {
+//            log.error("balanceOKCoinWeekPosition error", e);
+//
+//            broadcast(OKCOIN, e);
+//        }
+//    }
 
     public BigDecimal getSpread(ExchangePair exchangePair){
         BigDecimal spread;
@@ -380,7 +378,8 @@ public class TraderService extends AbstractService{
                 BigDecimal orderAmount = getOrderAmount(trader, ticker);
 
                 //open orders
-                List<LimitOrder> openOrders = orderService.getOpenOrders(exchangeType).getOpenOrders();
+//                List<LimitOrder> openOrders = orderService.getOpenOrders(exchangeType).getOpenOrders();
+                List<LimitOrder> openOrders = null;
 
                 //cancel orders
                 for (LimitOrder order : openOrders) {
@@ -422,13 +421,13 @@ public class TraderService extends AbstractService{
                 //avg position
                 BigDecimal avgPosition = ZERO;
 
-                if (OKCOIN.equals(trader.getExchangeType())){
-                    OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN)
-                            .getPollingTradeService()).getCrossPosition("ltc_usd", "this_week");
-
-                    OkCoinCrossPosition p = positions.getPositions()[0];
-                    avgPosition = middlePrice.add(p.getBuyAmount().subtract(p.getSellAmount()).multiply(spread));
-                }
+//                if (OKCOIN.equals(trader.getExchangeType())){
+//                    OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN)
+//                            .getPollingTradeService()).getCrossPosition("ltc_usd", "this_week");
+//
+//                    OkCoinCrossPosition p = positions.getPositions()[0];
+//                    avgPosition = middlePrice.add(p.getBuyAmount().subtract(p.getSellAmount()).multiply(spread));
+//                }
 
                 //create order
                 for (int index = 1; index <= 11; ++index) {
@@ -594,27 +593,27 @@ public class TraderService extends AbstractService{
                     //internal amount
                     internalAmount = internalAmount.add(askAmount).add(bidAmount);
 
-                    if (trader.getType().equals(SHORT)){
-                        //ASK
-                        String id = tradeService.placeLimitOrder(new LimitOrder(ASK, askAmount, currencyPair, trader.getType().name(), new Date(), askPrice));
-                        entityBean.save(new Order(id, exchangeType, exchangePair.getPair(), OrderType.ASK, askAmount, askPrice, new Date()));
-
-                        //BID
-                        id = tradeService.placeLimitOrder(new LimitOrder(BID, bidAmount, currencyPair, trader.getType().name(), new Date(), bidPrice));
-                        entityBean.save(new Order(id, exchangeType, exchangePair.getPair(), OrderType.BID, bidAmount, bidPrice, new Date()));
-                    }else{
-                        //BID
-                        if (bidPrice.compareTo(ZERO) < 0){
-                            return;
-                        }
-
-                        String id = tradeService.placeLimitOrder(new LimitOrder(BID, bidAmount, currencyPair, trader.getType().name(), new Date(), bidPrice));
-                        entityBean.save(new Order(id, exchangeType, exchangePair.getPair(), OrderType.BID, bidAmount, bidPrice, new Date()));
-
-                        //ASK
-                        id = tradeService.placeLimitOrder(new LimitOrder(ASK, askAmount, currencyPair, trader.getType().name(), new Date(), askPrice));
-                        entityBean.save(new Order(id, exchangeType, exchangePair.getPair(), OrderType.ASK, askAmount, askPrice, new Date()));
-                    }
+//                    if (trader.getType().equals(SHORT)){
+//                        //ASK
+//                        String id = tradeService.placeLimitOrder(new LimitOrder(ASK, askAmount, currencyPair, trader.getType().name(), new Date(), askPrice));
+//                        entityBean.save(new Order(id, exchangeType, exchangePair.getPair(), OrderType.ASK, askAmount, askPrice, new Date()));
+//
+//                        //BID
+//                        id = tradeService.placeLimitOrder(new LimitOrder(BID, bidAmount, currencyPair, trader.getType().name(), new Date(), bidPrice));
+//                        entityBean.save(new Order(id, exchangeType, exchangePair.getPair(), OrderType.BID, bidAmount, bidPrice, new Date()));
+//                    }else{
+//                        //BID
+//                        if (bidPrice.compareTo(ZERO) < 0){
+//                            return;
+//                        }
+//
+//                        String id = tradeService.placeLimitOrder(new LimitOrder(BID, bidAmount, currencyPair, trader.getType().name(), new Date(), bidPrice));
+//                        entityBean.save(new Order(id, exchangeType, exchangePair.getPair(), OrderType.BID, bidAmount, bidPrice, new Date()));
+//
+//                        //ASK
+//                        id = tradeService.placeLimitOrder(new LimitOrder(ASK, askAmount, currencyPair, trader.getType().name(), new Date(), askPrice));
+//                        entityBean.save(new Order(id, exchangeType, exchangePair.getPair(), OrderType.ASK, askAmount, askPrice, new Date()));
+//                    }
 
                     //notification
                     broadcast(exchangeType, exchangeType.name() + " " + trader.getPair() + ": " +
