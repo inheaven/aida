@@ -31,7 +31,7 @@ public class XChangeService {
 
         if (exchange == null){
             switch (account.getExchangeType()){
-                case OKCOIN:
+                case OKCOIN_SPOT:
                     exchange = ExchangeFactory.INSTANCE.createExchange(new ExchangeSpecification(OkCoinExchange.class));
                     break;
             }

@@ -50,7 +50,7 @@ import java.util.function.BiConsumer;
 import static java.math.BigDecimal.*;
 import static org.apache.wicket.model.Model.of;
 import static ru.inheaven.aida.coin.entity.ExchangeType.BTCE;
-import static ru.inheaven.aida.coin.entity.ExchangeType.OKCOIN;
+import static ru.inheaven.aida.coin.entity.ExchangeType.OKCOIN_SPOT;
 
 /**
  * @author Anatoly Ivanov java@inheaven.ru
@@ -244,11 +244,11 @@ public class TraderList extends AbstractPage{
                 Collections.sort(traders, new Comparator<Trader>() {
                     @Override
                     public int compare(Trader t1, Trader t2) {
-                        if (t2.getExchangeType().equals(OKCOIN) && !t1.getExchangeType().equals(OKCOIN)){
+                        if (t2.getExchangeType().equals(OKCOIN_SPOT) && !t1.getExchangeType().equals(OKCOIN_SPOT)){
                             return 1;
                         }
 
-                        if (!t2.getExchangeType().equals(OKCOIN) && t1.getExchangeType().equals(OKCOIN)){
+                        if (!t2.getExchangeType().equals(OKCOIN_SPOT) && t1.getExchangeType().equals(OKCOIN_SPOT)){
                             return -1;
                         }
 
@@ -301,7 +301,7 @@ public class TraderList extends AbstractPage{
                             case BITFINEX:
                                 update(handler, bitfinexBTC, accountInfo.getBalance("BTC"));
                                 break;
-                            case OKCOIN:
+                            case OKCOIN_SPOT:
                                 update(handler, okcoinBTC, accountInfo.getBalance("BTC"));
                                 break;
                         }
@@ -328,7 +328,7 @@ public class TraderList extends AbstractPage{
                                 case BITFINEX:
                                     update(handler, bitfinexCoins, equity.getVolume());
                                     break;
-                                case OKCOIN:
+                                case OKCOIN_SPOT:
                                     update(handler, okcoinCoins, equity.getVolume());
                                     break;
                             }
@@ -339,7 +339,7 @@ public class TraderList extends AbstractPage{
 
                             //update chart balance
                             if (lastChartValue.compareTo(equity.getVolume()) != 0) {
-                                ExchangePair exchangePair = ExchangePair.of(OKCOIN, "BTC/USD");
+                                ExchangePair exchangePair = ExchangePair.of(OKCOIN_SPOT, "BTC/USD");
                                 Ticker ticker = dataService.getTicker(exchangePair);
                                 BigDecimal predictionIndex = statService.getPredictionIndex(exchangePair);
                                 if (predictionIndex.abs().doubleValue() > 0.05){
@@ -491,7 +491,7 @@ public class TraderList extends AbstractPage{
                                     //estimate
                                     BigDecimal balance = accountService.getAccountInfo(exchangeMessage.getExchangeType()).getBalance(ep.getCurrency());
 
-                                    if (!ep.getExchangeType().equals(OKCOIN)) {
+                                    if (!ep.getExchangeType().equals(OKCOIN_SPOT)) {
                                         balance = balance.add(amount);
                                     }
 
@@ -537,7 +537,7 @@ public class TraderList extends AbstractPage{
                         List<Point> data3 = new ArrayList<>();
 
                         //volume
-                        ExchangePair ltcUsd = ExchangePair.of(OKCOIN, "LTC/USD");
+                        ExchangePair ltcUsd = ExchangePair.of(OKCOIN_SPOT, "LTC/USD");
                         List<OrderStat> orderStats = traderBean.getOrderStatVolume(ltcUsd, startDate);
                         BigDecimal last = dataService.getTicker(ltcUsd).getLast().setScale(2, ROUND_UP);
 
@@ -569,7 +569,7 @@ public class TraderList extends AbstractPage{
                         int size = futures.getAsks().size();
 
                         BigDecimal avg = statService.getAverage(ltcUsd);
-                        BigDecimal ltcEquity = accountService.getAccountInfo(OKCOIN).getBalance("LTC");
+                        BigDecimal ltcEquity = accountService.getAccountInfo(OKCOIN_SPOT).getBalance("LTC");
 
                         for (int i = 0; i < size; ++i) {
                             //noinspection unchecked
@@ -682,7 +682,7 @@ public class TraderList extends AbstractPage{
 
             List<Point> data2 = new ArrayList<>();
             List<Point> data3 = new ArrayList<>();
-            List<TickerHistory> tickerHistories = statService.getTickerHistories(ExchangePair.of(OKCOIN, "BTC/USD"), startDate);
+            List<TickerHistory> tickerHistories = statService.getTickerHistories(ExchangePair.of(OKCOIN_SPOT, "BTC/USD"), startDate);
 
             time = 0L;
             for (TickerHistory tickerHistory : tickerHistories){

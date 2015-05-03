@@ -86,7 +86,7 @@ public class ExchangeApi {
 //                return bterExchange;
 //            case BITFINEX:
 //                return bitfinexExchange;
-            case OKCOIN:
+            case OKCOIN_SPOT:
                 return okcoinExchange;
         }
 

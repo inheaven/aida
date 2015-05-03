@@ -76,16 +76,16 @@ public class TraderService extends AbstractService{
 //
 //            double spread;
 //            try {
-//                spread = getSpread(ExchangePair.of(OKCOIN, "LTC/USD")).doubleValue();
+//                spread = getSpread(ExchangePair.of(OKCOIN_SPOT, "LTC/USD")).doubleValue();
 //            } catch (Exception e) {
 //                return;
 //            }
 //
-//            OkCoinCrossPositionResult week = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("ltc_usd", "this_week");
+//            OkCoinCrossPositionResult week = ((OkCoinTradeServiceRaw)getExchange(OKCOIN_SPOT).getPollingTradeService()).getCrossPosition("ltc_usd", "this_week");
 //
-//            OkCoinCrossPositionResult quarter = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService()).getCrossPosition("ltc_usd", "quarter");
+//            OkCoinCrossPositionResult quarter = ((OkCoinTradeServiceRaw)getExchange(OKCOIN_SPOT).getPollingTradeService()).getCrossPosition("ltc_usd", "quarter");
 //
-//            double last = dataService.getTicker(ExchangePair.of(OKCOIN, "LTC/USD")).getLast().doubleValue();
+//            double last = dataService.getTicker(ExchangePair.of(OKCOIN_SPOT, "LTC/USD")).getLast().doubleValue();
 //            double delta = spread / last;
 //
 //            Futures futures = new Futures();
@@ -166,11 +166,11 @@ public class TraderService extends AbstractService{
 //            }
 //
 //            //broadcast
-//            broadcast(OKCOIN, futures);
+//            broadcast(OKCOIN_SPOT, futures);
 //        } catch (IOException e) {
 //            log.error("scheduleFuturePosition error", e);
 //
-//            broadcast(OKCOIN, e);
+//            broadcast(OKCOIN_SPOT, e);
 //        }
 //    }
 
@@ -179,14 +179,14 @@ public class TraderService extends AbstractService{
 //        int minAmount = 11;
 //
 //        try {
-//            OkCoinCrossPositionResult thisWeek = ((OkCoinTradeServiceRaw)getExchange(OKCOIN).getPollingTradeService())
+//            OkCoinCrossPositionResult thisWeek = ((OkCoinTradeServiceRaw)getExchange(OKCOIN_SPOT).getPollingTradeService())
 //                    .getCrossPosition(pair.toLowerCase().replace("/", "_"), "this_week");
 //
 //            if (thisWeek.getPositions().length > 0){
 //                OkCoinCrossPosition tw = thisWeek.getPositions()[0];
 //
-//                PollingTradeService tradeService = getExchange(OKCOIN).getPollingTradeService();
-//                Ticker ticker = dataService.getTicker(ExchangePair.of(OKCOIN, pair));
+//                PollingTradeService tradeService = getExchange(OKCOIN_SPOT).getPollingTradeService();
+//                Ticker ticker = dataService.getTicker(ExchangePair.of(OKCOIN_SPOT, pair));
 //
 //                boolean _short = tw.getSellAmount().intValue() < minAmount;
 //
@@ -206,17 +206,17 @@ public class TraderService extends AbstractService{
 //
 //                    String id = tradeService.placeLimitOrder(new LimitOrder(orderType, a1, getCurrencyPair(pair),
 //                            _short ? "LONG" : "SHORT", new Date(), price));
-//                    entityBean.save(new Order(id, OKCOIN, pair, OrderType.valueOf(orderType.name()), a1, price, new Date()));
+//                    entityBean.save(new Order(id, OKCOIN_SPOT, pair, OrderType.valueOf(orderType.name()), a1, price, new Date()));
 //
 //                    id = tradeService.placeLimitOrder(new LimitOrder(orderType, a1, getCurrencyPair(pair),
 //                            _short ? "SHORT" : "LONG", new Date(), price));
-//                    entityBean.save(new Order(id, OKCOIN, pair, OrderType.valueOf(orderType.name()), a1, price, new Date()));
+//                    entityBean.save(new Order(id, OKCOIN_SPOT, pair, OrderType.valueOf(orderType.name()), a1, price, new Date()));
 //                }
 //            }
 //        } catch (Exception e) {
 //            log.error("balanceOKCoinWeekPosition error", e);
 //
-//            broadcast(OKCOIN, e);
+//            broadcast(OKCOIN_SPOT, e);
 //        }
 //    }
 
@@ -231,7 +231,7 @@ public class TraderService extends AbstractService{
             case BITFINEX:
                 spread = price.multiply(new BigDecimal("0.004")).setScale(8, HALF_UP);
                 break;
-            case OKCOIN:
+            case OKCOIN_SPOT:
                 if (exchangePair.getPair().contains("LTC/")){
                     spread = price.multiply(new BigDecimal("0.0022")).setScale(8, HALF_UP);
                 }else{
@@ -244,7 +244,7 @@ public class TraderService extends AbstractService{
         }
 
         //min spread scale
-        if (!exchangePair.getExchangeType().equals(OKCOIN) && exchangePair.getPair().contains("/USD")){
+        if (!exchangePair.getExchangeType().equals(OKCOIN_SPOT) && exchangePair.getPair().contains("/USD")){
             if (spread.compareTo(new BigDecimal("0.03")) < 0){
                 spread = new BigDecimal("0.02").setScale(2, HALF_UP);
             }
@@ -260,7 +260,7 @@ public class TraderService extends AbstractService{
         }
 
         //ticker spread
-        if (!exchangePair.getExchangeType().equals(OKCOIN)) {
+        if (!exchangePair.getExchangeType().equals(OKCOIN_SPOT)) {
             BigDecimal tickerSpread = ticker.getAsk().subtract(ticker.getBid()).abs();
             if (tickerSpread.compareTo(spread) > 0){
                 spread = tickerSpread;
@@ -421,8 +421,8 @@ public class TraderService extends AbstractService{
                 //avg position
                 BigDecimal avgPosition = ZERO;
 
-//                if (OKCOIN.equals(trader.getExchangeType())){
-//                    OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN)
+//                if (OKCOIN_SPOT.equals(trader.getExchangeType())){
+//                    OkCoinCrossPositionResult positions = ((OkCoinTradeServiceRaw)getExchange(OKCOIN_SPOT)
 //                            .getPollingTradeService()).getCrossPosition("ltc_usd", "this_week");
 //
 //                    OkCoinCrossPosition p = positions.getPositions()[0];
@@ -533,7 +533,7 @@ public class TraderService extends AbstractService{
                                 ? new BigDecimal("0.01")
                                 : new BigDecimal("0.00000001");
                     }else {
-                        if (trader.getExchangeType().equals(OKCOIN) && trader.getPair().contains("LTC/")){
+                        if (trader.getExchangeType().equals(OKCOIN_SPOT) && trader.getPair().contains("LTC/")){
                             randomAskSpread = randomAskSpread.setScale(3, HALF_UP);
                         }else {
                             randomAskSpread = "USD".equals(currencyPair.counterSymbol)
@@ -566,7 +566,7 @@ public class TraderService extends AbstractService{
                                 ? new BigDecimal("0.01")
                                 : new BigDecimal("0.00000001");
                     }else {
-                        if (trader.getExchangeType().equals(OKCOIN) && trader.getPair().contains("LTC/")){
+                        if (trader.getExchangeType().equals(OKCOIN_SPOT) && trader.getPair().contains("LTC/")){
                             randomBidSpread = randomBidSpread.setScale(3, HALF_UP);
                         }else {
                             randomBidSpread = "USD".equals(currencyPair.counterSymbol)
@@ -579,7 +579,7 @@ public class TraderService extends AbstractService{
                     ticker = dataService.getTicker(exchangePair);
                     middlePrice = ticker.getAsk().add(ticker.getBid()).divide(BigDecimal.valueOf(2), 8, HALF_UP);
 
-                    if (trader.getExchangeType().equals(OKCOIN) && trader.getPair().contains("LTC/")){
+                    if (trader.getExchangeType().equals(OKCOIN_SPOT) && trader.getPair().contains("LTC/")){
                         middlePrice = middlePrice.setScale(3, HALF_UP);
                     }else if (trader.getPair().contains("/USD")){
                         middlePrice = middlePrice.setScale(2, HALF_UP);

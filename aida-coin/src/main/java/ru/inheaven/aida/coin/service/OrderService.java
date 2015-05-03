@@ -3,7 +3,6 @@ package ru.inheaven.aida.coin.service;
 import ru.inheaven.aida.coin.entity.Order;
 import ru.inheaven.aida.coin.entity.OrderStatus;
 import ru.inheaven.aida.coin.entity.OrderType;
-import ru.inheaven.aida.coin.entity.Trade;
 import rx.Observer;
 import rx.subjects.PublishSubject;
 
@@ -62,7 +61,7 @@ public class OrderService extends AbstractService{
 
         //close order by trade price
         tradeService.getTradeSubject()
-                .groupBy(Trade::getSymbol)
+                .groupBy(t -> t.getExchangeType().name() + ":" + t.getSymbol())
                 .map(o -> o.sample(1, TimeUnit.MINUTES))
                 .subscribe(observable -> {
                     observable.subscribe(t -> {

@@ -128,7 +128,7 @@ public class AccountService extends AbstractService{
                             if (previous != null &&  h.getPrice() != null){
                                 boolean changed;
 
-                                if (OKCOIN.equals(trader.getExchangeType())){
+                                if (OKCOIN_SPOT.equals(trader.getExchangeType())){
                                     double p1 = previous.getBalance().doubleValue();
                                     double p2 = h.getBalance().doubleValue();
 

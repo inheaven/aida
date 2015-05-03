@@ -133,11 +133,11 @@ public class StatService {
     public BigDecimal getBTCVolume(ExchangePair ep, BigDecimal amount, BigDecimal price){
         try {
 
-            if (OKCOIN.equals(ep.getExchangeType())){
+            if (OKCOIN_SPOT.equals(ep.getExchangeType())){
                 if ("BTC".equals(ep.getCurrency())) {
-                    amount =  amount.multiply(BigDecimal.valueOf(10)).divide(dataService.getTicker(ExchangePair.of(OKCOIN, "BTC/USD")).getLast(), 8 , HALF_UP);
+                    amount =  amount.multiply(BigDecimal.valueOf(10)).divide(dataService.getTicker(ExchangePair.of(OKCOIN_SPOT, "BTC/USD")).getLast(), 8 , HALF_UP);
                 }else if ("LTC".equals(ep.getCurrency())){
-                    amount = amount.multiply(BigDecimal.valueOf(1)).divide(dataService.getTicker(ExchangePair.of(OKCOIN, "LTC/USD")).getLast(), 8, HALF_UP);
+                    amount = amount.multiply(BigDecimal.valueOf(1)).divide(dataService.getTicker(ExchangePair.of(OKCOIN_SPOT, "LTC/USD")).getLast(), 8, HALF_UP);
                 }
             }
 
@@ -182,7 +182,7 @@ public class StatService {
                     return balance.multiply(ticker.getLast()).setScale(8, HALF_UP);
             }
         } catch (Exception e) {
-            if (OKCOIN.equals(exchangeType)) {
+            if (OKCOIN_SPOT.equals(exchangeType)) {
                 throw e;
             } else {
                 return ZERO;
@@ -265,7 +265,7 @@ public class StatService {
     }
 
     public Volume getVolume(BalanceHistory history){
-        if (OKCOIN.equals(history.getExchangeType())) {
+        if (OKCOIN_SPOT.equals(history.getExchangeType())) {
             return new Volume(history.getPrevious().getBalance().subtract(history.getBalance()), history.getDate());
         } else {
             return new Volume(getBTCVolume(ExchangePair.of(history.getExchangeType(), history.getPair()),
@@ -295,7 +295,7 @@ public class StatService {
             }
         });
 
-        if (exchangePair.getExchangeType().equals(OKCOIN)){
+        if (exchangePair.getExchangeType().equals(OKCOIN_SPOT)){
             int contract = exchangePair.getPair().contains("BTC/") ? 100 :10;
 
             return BigDecimal.valueOf((contract/map.get(OrderType.BID).getAvgPrice().doubleValue() - contract/map.get(OrderType.ASK).getAvgPrice().doubleValue())
