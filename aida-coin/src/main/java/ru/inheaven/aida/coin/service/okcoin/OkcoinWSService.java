@@ -166,6 +166,10 @@ public class OkcoinWSService {
                         return order;
                     }).subscribe(orderService.getOrderSubject());
 
+            //real trade todo
+
+
+
         } catch (Exception e) {
             log.error("error connect to server", e);
         }
