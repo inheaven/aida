@@ -116,7 +116,7 @@
             <dependency>
                 <groupId>ru.inhell.aida</groupId>
                 <artifactId>aida-charts</artifactId>
-                <version>1.0</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>ru.inhell.aida</groupId>
@@ -146,6 +146,11 @@
              <dependency>
                 <groupId>ru.inhell.aida</groupId>
                 <artifactId>aida-coin</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.inhell.aida</groupId>
+                <artifactId>aida-happy-trading</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
