@@ -18,12 +18,27 @@ public class StatusService {
     }
 
     @Inject
-    public StatusService(OkcoinService okcoinService) {
+    public StatusService(OkcoinService okcoinService, BroadcastService broadcastService) {
         this.okcoinService = okcoinService;
 
-        okcoinService.getTradeObservable().subscribe(trade -> tradeCount++);
-        okcoinService.getDepthObservable().subscribe(depth -> depthCount++);
-        okcoinService.getOrderObservable().subscribe(order -> orderCount++);
+        okcoinService.getTradeObservable().subscribe(trade -> {
+            tradeCount++;
+
+            broadcastService.broadcast(StatusService.class, "UPDATE_TRADE");
+        });
+
+        okcoinService.getDepthObservable().subscribe(depth -> {
+            depthCount++;
+
+            broadcastService.broadcast(StatusService.class, "UPDATE_DEPTH");
+
+        });
+
+        okcoinService.getOrderObservable().subscribe(order -> {
+            orderCount++;
+
+            broadcastService.broadcast(StatusService.class, "UPDATE_ORDER");
+        });
     }
 
     public boolean isMarketDataEndpointOpen(){

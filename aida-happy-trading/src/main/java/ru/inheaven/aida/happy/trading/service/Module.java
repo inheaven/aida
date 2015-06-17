@@ -12,8 +12,6 @@ public class Module extends XMLMyBatisModule{
 
     @Override
     protected void initialize() {
-        bind(StatusService.class);
-        bind(OkcoinService.class);
 
     }
 
