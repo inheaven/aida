@@ -8,7 +8,6 @@ import javax.inject.Singleton;
  */
 @Singleton
 public class StatusService {
-    @Inject
     private OkcoinService okcoinService;
 
     private long tradeCount = 0;
@@ -16,6 +15,12 @@ public class StatusService {
     private long orderCount = 0;
 
     public StatusService() {
+    }
+
+    @Inject
+    public StatusService(OkcoinService okcoinService) {
+        this.okcoinService = okcoinService;
+
         okcoinService.getTradeObservable().subscribe(trade -> tradeCount++);
         okcoinService.getDepthObservable().subscribe(depth -> depthCount++);
         okcoinService.getOrderObservable().subscribe(order -> orderCount++);
@@ -27,5 +32,17 @@ public class StatusService {
 
     public boolean isTradingEndpointOpen(){
         return okcoinService.getTradingEndpoint().getSession().isOpen();
+    }
+
+    public long getTradeCount() {
+        return tradeCount;
+    }
+
+    public long getDepthCount() {
+        return depthCount;
+    }
+
+    public long getOrderCount() {
+        return orderCount;
     }
 }

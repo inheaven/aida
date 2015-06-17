@@ -13,8 +13,8 @@
         <filter-class>org.apache.wicket.protocol.ws.javax.JavaxWebSocketFilter</filter-class>
 
         <init-param>
-            <param-name>applicationClassName</param-name>
-            <param-value>ru.inheaven.aida.happy.trading.web.AidaHappyTradingApplication</param-value>
+            <param-name>applicationFactoryClassName</param-name>
+            <param-value>ru.inheaven.aida.happy.trading.web.AidaHappyTradingApplicationFactory</param-value>
         </init-param>
     </filter>
 

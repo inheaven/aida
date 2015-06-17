@@ -51,8 +51,8 @@ public class OkcoinWSService {
 
     ClientManager client = ClientManager.createClient(JdkClientContainer.class.getName());
 
-    private JsonObservableEndpoint marketDataEndpoint = JsonObservableEndpoint.create();
-    private JsonObservableEndpoint tradingEndpoint = JsonObservableEndpoint.create();
+    private JsonObservableEndpoint marketDataEndpoint = new JsonObservableEndpoint();
+    private JsonObservableEndpoint tradingEndpoint = new JsonObservableEndpoint();
 
     private class JsonData{
         private String channel;

@@ -2,10 +2,8 @@ package ru.inheaven.aida.happy.trading.web.admin;
 
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import ru.inheaven.aida.happy.trading.service.StatusService;
-import ru.inheaven.aida.happy.trading.service.TestService;
+import ru.inhell.aida.common.wicket.AjaxLabel;
 
 import javax.inject.Inject;
 
@@ -17,24 +15,19 @@ public class ServiceStatusPage extends WebPage{
     private StatusService statusService;
 
     public ServiceStatusPage() {
-        Label marketDataEndpointOpen = new Label("marketDataEndpointOpen", new LoadableDetachableModel<Boolean>() {
-            @Override
-            protected Boolean load() {
-                return statusService.isMarketDataEndpointOpen();
-            }
-        });
-
+        Label marketDataEndpointOpen = new AjaxLabel<>("marketDataEndpointOpen", statusService::isMarketDataEndpointOpen);
         add(marketDataEndpointOpen);
 
-        Label tradingEndpointOpen = new Label("tradingEndpointOpen", statusService.isTradingEndpointOpen());
+        Label tradingEndpointOpen = new AjaxLabel<>("tradingEndpointOpen", statusService::isTradingEndpointOpen);
         add(tradingEndpointOpen);
 
+        Label tradeCount = new AjaxLabel<>("tradeCount", statusService::getTradeCount);
+        add(tradeCount);
 
-        add(new Label("testLabel", new AbstractReadOnlyModel<String>() {
-            @Override
-            public String getObject() {
-                return testService.getCurrentHelloWorld();
-            }
-        }));
+        Label depthCount = new AjaxLabel<>("depthCount", statusService::getDepthCount);
+        add(depthCount);
+
+        Label orderCount = new AjaxLabel<>("orderCount", statusService::getOrderCount);
+        add(orderCount);
     }
 }
