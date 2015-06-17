@@ -1,10 +1,29 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <head>
-
+    <title>Service Status</title>
 </head>
+
 <body>
-Wicket + Guice + MyBatis: <span wicket:id="testLabel"></span>
+<div>
+    Market data endpoint open: <span wicket:id="marketDataEndpointOpen"></span>
+</div>
+
+<div>
+    Trading endpoint open: <span wicket:id="tradingEndpointOpen"></span>
+</div>
+
+<div>
+    Trade message count: <span wicket:id="tradeCount"></span>
+</div>
+
+<div>
+    Depth message count: <span wicket:id="depthCount"></span>
+</div>
+
+<div>
+    Order message count: <span wicket:id="orderCount"></span>
+</div>
 </body>
 
 </html>

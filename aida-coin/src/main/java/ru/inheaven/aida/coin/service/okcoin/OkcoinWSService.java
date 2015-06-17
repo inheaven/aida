@@ -9,7 +9,7 @@ import ru.inheaven.aida.coin.entity.*;
 import ru.inheaven.aida.coin.service.DepthService;
 import ru.inheaven.aida.coin.service.OrderService;
 import ru.inheaven.aida.coin.service.TradeService;
-import ru.inhell.aida.common.rx.ObservableEndpoint;
+import ru.inhell.aida.common.rx.JsonObservableEndpoint;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -51,8 +51,8 @@ public class OkcoinWSService {
 
     ClientManager client = ClientManager.createClient(JdkClientContainer.class.getName());
 
-    private ObservableEndpoint marketDataEndpoint = ObservableEndpoint.create();
-    private ObservableEndpoint tradingEndpoint = ObservableEndpoint.create();
+    private JsonObservableEndpoint marketDataEndpoint = JsonObservableEndpoint.create();
+    private JsonObservableEndpoint tradingEndpoint = JsonObservableEndpoint.create();
 
     private class JsonData{
         private String channel;
