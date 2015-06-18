@@ -47,6 +47,8 @@ public class JsonObservableEndpoint extends Endpoint{
                 subject.onNext(message);
             }
         });
+
+        log.info("connection open {} {}", session.getRequestURI(), session.getId());
     }
 
     @Override

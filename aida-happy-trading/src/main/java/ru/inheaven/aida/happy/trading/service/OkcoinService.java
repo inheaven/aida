@@ -64,23 +64,24 @@ public class OkcoinService {
             ClientManager client = ClientManager.createClient(JdkClientContainer.class.getName());
 
             ClientManager.ReconnectHandler reconnectHandler = new ClientManager.ReconnectHandler(){
+                private int reconnectCount = 0;
+
                 @Override
                 public boolean onDisconnect(CloseReason closeReason) {
-                    log.warn("{} reconnect", closeReason.toString());
+                    log.warn("reconnect {}", closeReason.toString());
 
                     return true;
                 }
 
                 @Override
                 public boolean onConnectFailure(Exception exception) {
-                    log.error("connection failure", exception);
+                    log.warn("connection failure {}", reconnectCount++);
 
-                    return false;
+                    return true;
                 }
             };
 
             client.getProperties().put(ClientProperties.RECONNECT_HANDLER, reconnectHandler);
-            client.getProperties().put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE, true);
 
             marketDataEndpoint = new JsonObservableEndpoint(){
                 @Override
@@ -117,14 +118,18 @@ public class OkcoinService {
             //heartbeat
             Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
                 try {
-                    marketDataEndpoint.getSession().getBasicRemote().sendText("{'event':'ping'}");
-                } catch (IOException e) {
+                    if (marketDataEndpoint.getSession().isOpen()) {
+                        marketDataEndpoint.getSession().getBasicRemote().sendText("{'event':'ping'}");
+                    }
+                } catch (Exception e) {
                     log.error("marketDataEndpoint heartbeat error", e);
                 }
 
                 try {
-                    tradingEndpoint.getSession().getBasicRemote().sendText("{'event':'ping'}");
-                } catch (IOException e) {
+                    if (tradingEndpoint.getSession().isOpen()) {
+                        tradingEndpoint.getSession().getBasicRemote().sendText("{'event':'ping'}");
+                    }
+                } catch (Exception e) {
                     log.error("tradingEndpoint heartbeat error", e);
                 }
             }, 0, 1, TimeUnit.SECONDS);

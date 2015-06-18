@@ -32,6 +32,10 @@ public class BroadcastService {
 
             broadcaster.broadcastAll(application, new BroadcastPayload(producer, key, payload));
         } catch (Exception e) {
+            if (e instanceof IllegalStateException && e.getMessage().contains("TEXT_FULL_WRITING")){
+                return;
+            }
+
             log.error("broadcast error", e);
         }
     }
