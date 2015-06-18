@@ -2,7 +2,6 @@ package ru.inheaven.aida.happy.trading.entity;
 
 import ru.inhell.aida.common.entity.AbstractEntity;
 
-import javax.persistence.OneToMany;
 import java.util.List;
 
 /**
@@ -10,9 +9,7 @@ import java.util.List;
  */
 public class Client extends AbstractEntity {
     private String name;
-
     private String login;
-
     private String password;
 
     private List<Account> accounts;
