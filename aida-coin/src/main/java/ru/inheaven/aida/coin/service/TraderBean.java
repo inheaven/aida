@@ -5,8 +5,6 @@ import ru.inheaven.aida.coin.entity.*;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
@@ -49,24 +47,14 @@ public class TraderBean {
         return em.createQuery("select count(t) from Trader t", Long.class).getSingleResult();
     }
 
-    public Long getBalanceHistoryCount(Date startDate){
-        return em.createQuery("select count(h) from BalanceHistory h where h.date >= :startDate", Long.class)
-                .setParameter("startDate", startDate)
-                .getSingleResult();
-    }
-
     public Trader getTrader(Long id){
         return em.createQuery("select t from Trader t where t.id = :id", Trader.class).setParameter("id", id).getSingleResult();
     }
 
-    public void save(AbstractEntity abstractEntity){
-        if (abstractEntity.getId() == null) {
-            em.persist(abstractEntity);
-        }else {
-            em.merge(abstractEntity);
-            em.flush();
-            em.clear();
-        }
+    public Long getBalanceHistoryCount(Date startDate){
+        return em.createQuery("select count(h) from BalanceHistory h where h.date >= :startDate", Long.class)
+                .setParameter("startDate", startDate)
+                .getSingleResult();
     }
 
     public List<BalanceHistory> getBalanceHistories(ExchangePair exchangePair, Date startDate){
@@ -84,56 +72,13 @@ public class TraderBean {
         }
     }
 
-    public BigDecimal getSigma(ExchangePair exchangePair){
-        try {
-            return new BigDecimal((Double) em.createNativeQuery("select std(price) from ticker_history " +
-                    "where exchange_type = ? and pair = ? and `date` >  DATE_SUB(NOW(), INTERVAL 12 HOUR)")
-                    .setParameter(1, exchangePair.getExchangeType().name())
-                    .setParameter(2, exchangePair.getPair())
-                    .getSingleResult());
-        } catch (Exception e) {
-            return BigDecimal.ZERO;
-        }
-    }
 
-    public BigDecimal getAverage(ExchangePair exchangePair){
-        try {
-            return (BigDecimal) em.createNativeQuery("select avg(price) from ticker_history " +
-                    "where exchange_type = ? and pair = ? and `date` >  DATE_SUB(NOW(), INTERVAL 72 HOUR)")
-                    .setParameter(1, exchangePair.getExchangeType().name())
-                    .setParameter(2, exchangePair.getPair())
-                    .getSingleResult();
-        } catch (Exception e) {
-            return BigDecimal.ZERO;
-        }
-    }
 
-    public List<TickerHistory> getTickerHistories(ExchangePair exchangePair, int count){
-        List<TickerHistory> list =  em.createQuery("select th from TickerHistory th where th.pair = :pair and th.exchangeType = :exchangeType " +
-                "order by th.date desc", TickerHistory.class)
-                .setParameter("pair", exchangePair.getPair())
-                .setParameter("exchangeType", exchangePair.getExchangeType())
-                .setMaxResults(count)
-                .getResultList();
-
-        Collections.reverse(list);
-
-        return list;
-    }
-
-    public List<TickerHistory> getTickerHistories(ExchangePair exchangePair, Date startDate){
-        return em.createQuery("select th from TickerHistory th where th.pair = :pair " +
-                "and th.exchangeType = :exchangeType and th.date > :startDate", TickerHistory.class)
-                .setParameter("pair", exchangePair.getPair())
-                .setParameter("exchangeType", exchangePair.getExchangeType())
-                .setParameter("startDate", startDate)
-                .getResultList();
-    }
 
     public List<Order> getOrderHistories(ExchangePair exchangePair, OrderStatus status, Date startDate){
         return em.createQuery("select h from Order h where h.exchangeType = :exchangeType and " +
                 "h.pair = :pair and  h.status = :status and " +
-                "(h.opened > :startDate or (h.closed is not null and h.closed > :startDate))", Order.class)
+                "(h.open > :startDate or (h.closed is not null and h.closed > :startDate))", Order.class)
                 .setParameter("exchangeType", exchangePair.getExchangeType())
                 .setParameter("pair", exchangePair.getPair())
                 .setParameter("status", status)
@@ -150,7 +95,7 @@ public class TraderBean {
     }
 
     public Long getOrderHistoryCount(Date startDate, OrderStatus status){
-        return em.createQuery("select count(h) from Order h where (h.opened > :startDate or (h.closed is not null and " +
+        return em.createQuery("select count(h) from Order h where (h.open > :startDate or (h.closed is not null and " +
                 "h.closed > :startDate)) and h.status = :status", Long.class)
                 .setParameter("startDate", startDate)
                 .setParameter("status", status)
@@ -158,14 +103,14 @@ public class TraderBean {
     }
 
     public List<Order> getOrderHistories(Date startDate){
-        return em.createQuery("select h from Order h where h.opened > :startDate or (h.closed is not null and " +
+        return em.createQuery("select h from Order h where h.open > :startDate or (h.closed is not null and " +
                 "h.closed > :startDate)", Order.class)
                 .setParameter("startDate", startDate)
                 .getResultList();
     }
 
     public List<Order> getOrderHistories(OrderStatus status, Date startDate){
-        return em.createQuery("select h from Order h where (h.opened > :startDate or (h.closed is not null and " +
+        return em.createQuery("select h from Order h where (h.open > :startDate or (h.closed is not null and " +
                 "h.closed > :startDate)) and h.status = :status", Order.class)
                 .setParameter("startDate", startDate)
                 .setParameter("status", status)

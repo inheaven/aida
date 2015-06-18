@@ -102,6 +102,7 @@
         <module>aida-mybatis</module>
         <module>aida-level</module>
         <module>aida-coin</module>
+        <module>aida-happy-trading</module>
     </modules>
 
     <dependencyManagement>
@@ -115,7 +116,7 @@
             <dependency>
                 <groupId>ru.inhell.aida</groupId>
                 <artifactId>aida-charts</artifactId>
-                <version>1.0</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>ru.inhell.aida</groupId>
@@ -145,6 +146,11 @@
              <dependency>
                 <groupId>ru.inhell.aida</groupId>
                 <artifactId>aida-coin</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.inhell.aida</groupId>
+                <artifactId>aida-happy-trading</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -179,7 +185,22 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.wicket</groupId>
+                <artifactId>wicket-guice</artifactId>
+                <version>${wicket.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.wicket</groupId>
                 <artifactId>wicket-native-websocket-core</artifactId>
+                <version>${wicket.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.wicket</groupId>
+                <artifactId>wicket-native-websocket-javax</artifactId>
+                <version>${wicket.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.wicket</groupId>
+                <artifactId>wicket-native-websocket-tomcat</artifactId>
                 <version>${wicket.version}</version>
             </dependency>
             <dependency>
@@ -187,6 +208,7 @@
                 <artifactId>wicket-extensions</artifactId>
                 <version>${wicket.version}</version>
             </dependency>
+
 
             <!--ATMOSPHERE-->
             <dependency>
@@ -233,20 +255,26 @@
             <dependency>
                 <groupId>de.agilecoders.wicket</groupId>
                 <artifactId>wicket-bootstrap-core</artifactId>
-                <version>0.9.7</version>
+                <version>0.10.1</version>
             </dependency>
 
             <dependency>
                 <groupId>de.agilecoders.wicket</groupId>
                 <artifactId>wicket-bootstrap-themes</artifactId>
-                <version>0.9.7</version>
+                <version>0.10.1</version>
             </dependency>
 
             <!--MYBATIS-->
             <dependency>
                 <groupId>org.mybatis</groupId>
                 <artifactId>mybatis</artifactId>
-                <version>3.2.7</version>
+                <version>3.3.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mybatis</groupId>
+                <artifactId>mybatis-guice</artifactId>
+                <version>3.6</version>
             </dependency>
 
             <!--Hibernate-->
@@ -299,6 +327,11 @@
                 <version>1.7.10</version>
             </dependency>
             <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jcl-over-slf4j</artifactId>
+                <version>1.7.10</version>
+            </dependency>
+            <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
                 <version>1.1.2</version>
@@ -332,7 +365,7 @@
             <dependency>
                 <groupId>com.google.inject</groupId>
                 <artifactId>guice</artifactId>
-                <version>3.0</version>
+                <version>4.0</version>
             </dependency>
 
             <dependency>
@@ -350,7 +383,7 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>17.0</version>
+                <version>18.0</version>
             </dependency>
 
             <dependency>
@@ -377,6 +410,13 @@
                 <version>7.0</version>
             </dependency>
 
+            <dependency>
+                <groupId>javax.servlet</groupId>
+                <artifactId>javax.servlet-api</artifactId>
+                <version>3.1.0</version>
+            </dependency>
+
+
             <!--OSGi-->
             <dependency>
                 <groupId>org.osgi</groupId>
@@ -384,10 +424,56 @@
                 <version>4.3.0</version>
             </dependency>
 
+            <!-- XChange -->
+
             <dependency>
                 <groupId>com.xeiam.xchange</groupId>
                 <artifactId>xchange-core</artifactId>
                 <version>3.0.1-SNAPSHOT</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.xeiam.xchange</groupId>
+                <artifactId>xchange-okcoin</artifactId>
+                <version>3.0.1-SNAPSHOT</version>
+            </dependency>
+
+            <!-- RxJava-->
+            <dependency>
+                <groupId>io.reactivex</groupId>
+                <artifactId>rxjava</artifactId>
+                <version>1.0.9</version>
+            </dependency>
+            <dependency>
+                <groupId>io.reactivex</groupId>
+                <artifactId>rxjava-reactive-streams</artifactId>
+                <version>0.3.0</version>
+            </dependency>
+            <dependency>
+                <groupId>io.reactivex</groupId>
+                <artifactId>rxjava-debug</artifactId>
+                <version>1.0.1</version>
+            </dependency>
+            <dependency>
+                <groupId>io.reactivex</groupId>
+                <artifactId>rxjava-joins</artifactId>
+                <version>0.22.0</version>
+            </dependency>
+            <dependency>
+                <groupId>io.reactivex</groupId>
+                <artifactId>rxjava-math</artifactId>
+                <version>1.0.0</version>
+            </dependency>
+            <dependency>
+                <groupId>io.reactivex</groupId>
+                <artifactId>rxjava-string</artifactId>
+                <version>0.22.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.reactivex</groupId>
+                <artifactId>rxjava-async-util</artifactId>
+                <version>0.21.0</version>
             </dependency>
 
             <dependency>
@@ -472,6 +558,34 @@
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-entitymanager</artifactId>
                 <version>4.3.8.Final</version>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.websocket</groupId>
+                <artifactId>javax.websocket-api</artifactId>
+                <version>1.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.tyrus</groupId>
+                <artifactId>tyrus-client</artifactId>
+                <version>1.10</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.tyrus</groupId>
+                <artifactId>tyrus-container-jdk-client</artifactId>
+                <version>1.10</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>2.5.3</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.glassfish</groupId>
+                <artifactId>javax.json</artifactId>
+                <version>1.0.4</version>
             </dependency>
         </dependencies>
 

@@ -56,7 +56,7 @@ public class Trader extends AbstractEntity{
     }
 
     public boolean isFuture(){
-        return ExchangeType.OKCOIN.equals(exchangeType);
+        return ExchangeType.OKCOIN_FUTURES.equals(exchangeType);
     }
 
     public ExchangePair getExchangePair(){

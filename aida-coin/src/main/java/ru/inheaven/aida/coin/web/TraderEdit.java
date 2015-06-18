@@ -15,6 +15,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import ru.inheaven.aida.coin.entity.ExchangeType;
 import ru.inheaven.aida.coin.entity.Trader;
 import ru.inheaven.aida.coin.entity.TraderType;
+import ru.inheaven.aida.coin.service.EntityBean;
 import ru.inheaven.aida.coin.service.TraderBean;
 
 import javax.ejb.EJB;
@@ -29,6 +30,9 @@ import static org.apache.wicket.model.Model.of;
 public class TraderEdit extends AbstractPage{
     @EJB
     private TraderBean traderBean;
+
+    @EJB
+    private EntityBean entityBean;
 
     public TraderEdit(PageParameters pageParameters) {
         Long id = pageParameters.get("id").toOptionalLong();
@@ -70,7 +74,7 @@ public class TraderEdit extends AbstractPage{
         form.add(new BootstrapButton("save", of("Save"), Buttons.Type.Primary){
             @Override
             public void onSubmit() {
-                traderBean.save(traderModel.getObject());
+                entityBean.save(traderModel.getObject());
 
                 setResponsePage(TraderList.class);
             }

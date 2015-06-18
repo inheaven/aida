@@ -14,7 +14,7 @@ import org.apache.wicket.model.PropertyModel;
 import ru.inheaven.aida.coin.entity.ExchangeType;
 import ru.inheaven.aida.coin.entity.Trader;
 import ru.inheaven.aida.coin.entity.TraderType;
-import ru.inheaven.aida.coin.service.TraderBean;
+import ru.inheaven.aida.coin.service.EntityBean;
 
 import javax.ejb.EJB;
 import java.util.Arrays;
@@ -26,7 +26,7 @@ import static org.apache.wicket.model.Model.of;
  */
 public class TraderEditModal extends Modal {
     @EJB
-    private TraderBean traderBean;
+    private EntityBean entityBean;
 
     private IModel<Trader> traderModel = new CompoundPropertyModel<>(new Trader());
 
@@ -79,7 +79,7 @@ public class TraderEditModal extends Modal {
         form.add(new BootstrapAjaxButton("save", of("Save"), Buttons.Type.Primary){
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                traderBean.save(traderModel.getObject());
+                entityBean.save(traderModel.getObject());
 
                 onSave(target);
 
