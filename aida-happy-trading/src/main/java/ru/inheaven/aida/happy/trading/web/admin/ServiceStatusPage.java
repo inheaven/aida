@@ -1,13 +1,11 @@
 package ru.inheaven.aida.happy.trading.web.admin;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.protocol.ws.api.WebSocketBehavior;
 import org.apache.wicket.protocol.ws.api.WebSocketRequestHandler;
-import org.apache.wicket.protocol.ws.api.message.IWebSocketPushMessage;
-import ru.inheaven.aida.happy.trading.entity.BroadcastPayload;
 import ru.inheaven.aida.happy.trading.service.StatusService;
-import ru.inhell.aida.common.wicket.AjaxLabel;
+import ru.inhell.aida.common.wicket.BroadcastBehavior;
 
 import javax.inject.Inject;
 
@@ -19,32 +17,34 @@ public class ServiceStatusPage extends WebPage{
     private StatusService statusService;
 
     public ServiceStatusPage() {
-        Label marketDataEndpointOpen = new AjaxLabel<>("marketDataEndpointOpen", statusService::isMarketDataEndpointOpen);
+        Component marketDataEndpointOpen = new Label("marketDataEndpointOpen", statusService.isMarketDataEndpointOpen()).setOutputMarkupId(true);
         add(marketDataEndpointOpen);
 
-        Label tradingEndpointOpen = new AjaxLabel<>("tradingEndpointOpen", statusService::isTradingEndpointOpen);
+        Component tradingEndpointOpen = new Label("tradingEndpointOpen", statusService.isTradingEndpointOpen()).setOutputMarkupId(true);
         add(tradingEndpointOpen);
 
-        Label tradeCount = new AjaxLabel<>("tradeCount", statusService::getTradeCount);
+        Component tradeCount = new Label("tradeCount", statusService.getTradeCount()).setOutputMarkupId(true);
         add(tradeCount);
 
-        Label depthCount = new AjaxLabel<>("depthCount", statusService::getDepthCount);
+        Component depthCount = new Label("depthCount", statusService.getDepthCount()).setOutputMarkupId(true);
         add(depthCount);
 
-        Label orderCount = new AjaxLabel<>("orderCount", statusService::getOrderCount);
+        Component orderCount = new Label("orderCount", statusService.getOrderCount()).setOutputMarkupId(true);
         add(orderCount);
 
-        add(new WebSocketBehavior(){
+        add(new BroadcastBehavior(StatusService.class) {
             @Override
-            protected void onPush(WebSocketRequestHandler handler, IWebSocketPushMessage message) {
-                if (message instanceof BroadcastPayload){
-                    if (((BroadcastPayload) message).getProducer().equals(StatusService.class)){
-                        switch ((String)((BroadcastPayload) message).getPayload()){
-                            case "UPDATE_TRADE": handler.add(tradeCount); break;
-                            case "UPDATE_DEPTH": handler.add(depthCount); break;
-                            case "UPDATE_ORDER": handler.add(orderCount); break;
-                        }
-                    }
+            protected void onBroadcast(WebSocketRequestHandler handler, String key, Object payload) {
+                switch (key){
+                    case "UPDATE_TRADE":
+                        handler.add(tradeCount.setDefaultModelObject(payload));
+                        break;
+                    case "UPDATE_DEPTH":
+                        handler.add(depthCount.setDefaultModelObject(payload));
+                        break;
+                    case "UPDATE_ORDER":
+                        handler.add(orderCount.setDefaultModelObject(payload));
+                        break;
                 }
             }
         });

@@ -1,13 +1,12 @@
 package ru.inheaven.aida.happy.trading.service;
 
 import com.google.common.util.concurrent.AbstractService;
-import org.apache.wicket.protocol.ws.IWebSocketSettings;
 import org.apache.wicket.protocol.ws.WebSocketSettings;
 import org.apache.wicket.protocol.ws.api.WebSocketPushBroadcaster;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.inheaven.aida.happy.trading.entity.BroadcastPayload;
 import ru.inheaven.aida.happy.trading.web.AidaHappyTradingApplication;
+import ru.inhell.aida.common.wicket.BroadcastPayload;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -24,14 +23,14 @@ public class BroadcastService {
     @Inject
     private AidaHappyTradingApplication application;
 
-    public void broadcast(Class producer, Object payload){
+    public void broadcast(Class producer, String key, Object payload){
         try {
-            if (broadcaster == null && payload != null){
-                IWebSocketSettings webSocketSettings = WebSocketSettings.Holder.get(application);
+            if (broadcaster == null){
+                WebSocketSettings webSocketSettings = WebSocketSettings.Holder.get(application);
                 broadcaster = new WebSocketPushBroadcaster(webSocketSettings.getConnectionRegistry());
             }
 
-            broadcaster.broadcastAll(application, new BroadcastPayload(producer, payload));
+            broadcaster.broadcastAll(application, new BroadcastPayload(producer, key, payload));
         } catch (Exception e) {
             log.error("broadcast error", e);
         }

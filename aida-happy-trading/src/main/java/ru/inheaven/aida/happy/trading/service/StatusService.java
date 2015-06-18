@@ -24,20 +24,20 @@ public class StatusService {
         okcoinService.getTradeObservable().subscribe(trade -> {
             tradeCount++;
 
-            broadcastService.broadcast(StatusService.class, "UPDATE_TRADE");
+            broadcastService.broadcast(StatusService.class, "UPDATE_TRADE", tradeCount);
         });
 
         okcoinService.getDepthObservable().subscribe(depth -> {
             depthCount++;
 
-            broadcastService.broadcast(StatusService.class, "UPDATE_DEPTH");
+            broadcastService.broadcast(StatusService.class, "UPDATE_DEPTH", depthCount);
 
         });
 
         okcoinService.getOrderObservable().subscribe(order -> {
             orderCount++;
 
-            broadcastService.broadcast(StatusService.class, "UPDATE_ORDER");
+            broadcastService.broadcast(StatusService.class, "UPDATE_ORDER", orderCount);
         });
     }
 

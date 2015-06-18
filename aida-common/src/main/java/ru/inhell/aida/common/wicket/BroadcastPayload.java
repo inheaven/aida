@@ -1,4 +1,4 @@
-package ru.inheaven.aida.happy.trading.entity;
+package ru.inhell.aida.common.wicket;
 
 import org.apache.wicket.protocol.ws.api.message.IWebSocketPushMessage;
 
@@ -9,15 +9,21 @@ import java.io.Serializable;
  */
 public class BroadcastPayload implements IWebSocketPushMessage, Serializable {
     private Class producer;
+    private String key;
     private Object payload;
 
-    public BroadcastPayload(Class producer, Object payload) {
+    public BroadcastPayload(Class producer, String key, Object payload) {
         this.producer = producer;
+        this.key = key;
         this.payload = payload;
     }
 
     public Class getProducer() {
         return producer;
+    }
+
+    public String getKey() {
+        return key;
     }
 
     public Object getPayload() {
