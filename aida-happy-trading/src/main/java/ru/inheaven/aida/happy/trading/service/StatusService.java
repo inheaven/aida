@@ -14,6 +14,7 @@ public class StatusService {
     private long depthCount = 0;
     private long orderCount = 0;
 
+
     public StatusService() {
     }
 
@@ -21,33 +22,34 @@ public class StatusService {
     public StatusService(OkcoinService okcoinService, BroadcastService broadcastService) {
         this.okcoinService = okcoinService;
 
+        okcoinService.getMarketDataHeartbeatObservable().subscribe(l -> {
+            broadcastService.broadcast(StatusService.class, "update_market", l);
+        });
+
+        okcoinService.getTradingHeartbeatObservable().subscribe(l -> {
+            broadcastService.broadcast(StatusService.class, "update_trading", l);
+        });
+
         okcoinService.getTradeObservable().subscribe(trade -> {
             tradeCount++;
 
-            broadcastService.broadcast(StatusService.class, "UPDATE_TRADE", tradeCount);
+            broadcastService.broadcast(StatusService.class, "update_trade", tradeCount);
         });
 
         okcoinService.getDepthObservable().subscribe(depth -> {
             depthCount++;
 
-            broadcastService.broadcast(StatusService.class, "UPDATE_DEPTH", depthCount);
+            broadcastService.broadcast(StatusService.class, "update_depth", depthCount);
 
         });
 
         okcoinService.getOrderObservable().subscribe(order -> {
             orderCount++;
 
-            broadcastService.broadcast(StatusService.class, "UPDATE_ORDER", orderCount);
+            broadcastService.broadcast(StatusService.class, "update_order", orderCount);
         });
     }
 
-    public boolean isMarketDataEndpointOpen(){
-        return okcoinService.getMarketDataEndpoint().getSession().isOpen();
-    }
-
-    public boolean isTradingEndpointOpen(){
-        return okcoinService.getTradingEndpoint().getSession().isOpen();
-    }
 
     public long getTradeCount() {
         return tradeCount;

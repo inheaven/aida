@@ -5,13 +5,13 @@ import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.subjects.PublishSubject;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonValue;
+import javax.json.*;
 import javax.websocket.*;
 import java.io.StringReader;
+import java.util.Collections;
 
 /**
+
  * @author inheaven on 01.05.2015 3:36.
  */
 public class JsonObservableEndpoint extends Endpoint{
@@ -23,13 +23,23 @@ public class JsonObservableEndpoint extends Endpoint{
     private Session session;
 
     public JsonObservableEndpoint() {
+        subject = PublishSubject.create();
+
+        jsonObservable = subject
+                .flatMapIterable(s -> {
+                    JsonStructure j = Json.createReader(new StringReader(s)).read();
+
+                    return j.getValueType().equals(JsonValue.ValueType.ARRAY)
+                            ? (JsonArray) j
+                            : Collections.singletonList(j);
+                })
+                .filter(j -> j.getValueType().equals(JsonValue.ValueType.OBJECT))
+                .map(j -> (JsonObject)j);
     }
 
     @Override
     public void onOpen(Session session, EndpointConfig config) {
         this.session = session;
-
-        subject = PublishSubject.create();
 
         session.addMessageHandler(new MessageHandler.Whole<String>() {
             @Override
@@ -37,24 +47,18 @@ public class JsonObservableEndpoint extends Endpoint{
                 subject.onNext(message);
             }
         });
-
-        jsonObservable = subject.flatMapIterable(s -> Json.createReader(new StringReader(s)).readArray())
-                .filter(j -> j.getValueType().equals(JsonValue.ValueType.OBJECT))
-                .map(j -> (JsonObject)j);
     }
 
     @Override
     public void onClose(Session session, CloseReason closeReason) {
-        subject.onCompleted();
-
         log.warn("json observable endpoint close {} ", closeReason);
     }
 
     @Override
     public void onError(Session session, Throwable thr) {
-        subject.onError(thr);
-
         log.error("json observable endpoint error", thr);
+
+        subject.onError(thr);
     }
 
     public Session getSession() {

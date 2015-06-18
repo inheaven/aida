@@ -5,9 +5,11 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.protocol.ws.api.WebSocketRequestHandler;
 import ru.inheaven.aida.happy.trading.service.StatusService;
+import ru.inhell.aida.common.util.DateUtil;
 import ru.inhell.aida.common.wicket.BroadcastBehavior;
 
 import javax.inject.Inject;
+import java.util.Date;
 
 /**
  * @author inheaven on 16.06.2015 19:45.
@@ -17,11 +19,11 @@ public class ServiceStatusPage extends WebPage{
     private StatusService statusService;
 
     public ServiceStatusPage() {
-        Component marketDataEndpointOpen = new Label("marketDataEndpointOpen", statusService.isMarketDataEndpointOpen()).setOutputMarkupId(true);
-        add(marketDataEndpointOpen);
+        Component marketOpen = new Label("marketOpen", 0).setOutputMarkupId(true);
+        add(marketOpen);
 
-        Component tradingEndpointOpen = new Label("tradingEndpointOpen", statusService.isTradingEndpointOpen()).setOutputMarkupId(true);
-        add(tradingEndpointOpen);
+        Component tradingOpen = new Label("tradingOpen", 0).setOutputMarkupId(true);
+        add(tradingOpen);
 
         Component tradeCount = new Label("tradeCount", statusService.getTradeCount()).setOutputMarkupId(true);
         add(tradeCount);
@@ -36,13 +38,19 @@ public class ServiceStatusPage extends WebPage{
             @Override
             protected void onBroadcast(WebSocketRequestHandler handler, String key, Object payload) {
                 switch (key){
-                    case "UPDATE_TRADE":
+                    case "update_market":
+                        handler.add(marketOpen.setDefaultModelObject(DateUtil.getTimeString(new Date((Long) payload))));
+                        break;
+                    case "update_trading":
+                        handler.add(tradingOpen.setDefaultModelObject(DateUtil.getTimeString(new Date((Long)payload))));
+                        break;
+                    case "update_trade":
                         handler.add(tradeCount.setDefaultModelObject(payload));
                         break;
-                    case "UPDATE_DEPTH":
+                    case "update_depth":
                         handler.add(depthCount.setDefaultModelObject(payload));
                         break;
-                    case "UPDATE_ORDER":
+                    case "update_order":
                         handler.add(orderCount.setDefaultModelObject(payload));
                         break;
                 }

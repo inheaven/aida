@@ -1,6 +1,7 @@
 package ru.inheaven.aida.happy.trading.service;
 
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.container.jdk.client.JdkClientContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +11,9 @@ import rx.Observable;
 
 import javax.inject.Singleton;
 import javax.json.*;
-import javax.websocket.DeploymentException;
+import javax.websocket.CloseReason;
+import javax.websocket.EndpointConfig;
+import javax.websocket.Session;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
@@ -21,6 +24,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static java.time.LocalDate.now;
 import static java.time.ZoneOffset.ofHours;
@@ -34,14 +39,15 @@ public class OkcoinService {
 
     private final static String OKCOIN_WSS = "wss://real.okcoin.com:10440/websocket/okcoinapi";
 
-    private ClientManager client = ClientManager.createClient(JdkClientContainer.class.getName());
-
     private JsonObservableEndpoint marketDataEndpoint;
     private JsonObservableEndpoint tradingEndpoint;
 
     private Observable<Trade> tradeObservable;
     private Observable<Depth> depthObservable;
     private Observable<Order> orderObservable;
+
+    private Observable<Long> marketDataHeartbeatObservable;
+    private Observable<Long> tradingHeartbeatObservable;
 
     private class JsonData{
         private String channel;
@@ -55,7 +61,49 @@ public class OkcoinService {
 
     public OkcoinService(){
         try {
-            open();
+            ClientManager client = ClientManager.createClient(JdkClientContainer.class.getName());
+
+            ClientManager.ReconnectHandler reconnectHandler = new ClientManager.ReconnectHandler(){
+                @Override
+                public boolean onDisconnect(CloseReason closeReason) {
+                    log.warn("{} reconnect", closeReason.toString());
+
+                    return true;
+                }
+
+                @Override
+                public boolean onConnectFailure(Exception exception) {
+                    log.error("connection failure", exception);
+
+                    return false;
+                }
+            };
+
+            client.getProperties().put(ClientProperties.RECONNECT_HANDLER, reconnectHandler);
+            client.getProperties().put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE, true);
+
+            marketDataEndpoint = new JsonObservableEndpoint(){
+                @Override
+                public void onOpen(Session session, EndpointConfig config) {
+                    super.onOpen(session, config);
+
+                    try {
+                        session.getBasicRemote().sendText("[" +
+                                        "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_this_week'}," +
+                                        "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_this_week'}," +
+                                        "{'event':'addChannel','channel':'ok_btcusd_future_depth_this_week_60'}," +
+                                        "{'event':'addChannel','channel':'ok_ltcusd_future_depth_this_week_60'}]"
+                        );
+                    } catch (IOException e) {
+                        log.error("error add channel", e);
+                    }
+                }
+            };
+
+            tradingEndpoint = new JsonObservableEndpoint();
+
+            client.connectToServer(marketDataEndpoint, URI.create(OKCOIN_WSS));
+            client.connectToServer(tradingEndpoint, URI.create(OKCOIN_WSS));
 
             //trade
             tradeObservable = createTradeObservable(marketDataEndpoint);
@@ -65,39 +113,31 @@ public class OkcoinService {
 
             //order info
             orderObservable = createOrderObservable(tradingEndpoint);
+
+            //heartbeat
+            Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
+                try {
+                    marketDataEndpoint.getSession().getBasicRemote().sendText("{'event':'ping'}");
+                } catch (IOException e) {
+                    log.error("marketDataEndpoint heartbeat error", e);
+                }
+
+                try {
+                    tradingEndpoint.getSession().getBasicRemote().sendText("{'event':'ping'}");
+                } catch (IOException e) {
+                    log.error("tradingEndpoint heartbeat error", e);
+                }
+            }, 0, 1, TimeUnit.SECONDS);
+
+            marketDataHeartbeatObservable = marketDataEndpoint.getJsonObservable()
+                    .filter(j -> j.getString("event", "").equals("pong"))
+                    .map(j -> System.currentTimeMillis());
+
+            tradingHeartbeatObservable = tradingEndpoint.getJsonObservable()
+                    .filter(j -> j.getString("event", "").equals("pong"))
+                    .map(j -> System.currentTimeMillis());
         } catch (Exception e) {
             log.error("error connect to server", e);
-        }
-    }
-
-    private void open() throws IOException, DeploymentException {
-        marketDataEndpoint = new JsonObservableEndpoint();
-        tradingEndpoint = new JsonObservableEndpoint();
-
-        client.connectToServer(marketDataEndpoint, URI.create(OKCOIN_WSS));
-        client.connectToServer(tradingEndpoint, URI.create(OKCOIN_WSS));
-
-        marketDataEndpoint.getSession().getBasicRemote().sendText("[" +
-                        "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_this_week'}," +
-                        "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_this_week'}," +
-                        "{'event':'addChannel','channel':'ok_btcusd_future_depth_this_week_60'}," +
-                        "{'event':'addChannel','channel':'ok_ltcusd_future_depth_this_week_60'}]"
-        );
-    }
-
-    public void restart(){
-        try {
-            if (marketDataEndpoint != null && marketDataEndpoint.getSession().isOpen()){
-                marketDataEndpoint.getSession().close();
-            }
-
-            if (tradingEndpoint != null && tradingEndpoint.getSession().isOpen()){
-                tradingEndpoint.getSession().close();
-            }
-
-            open();
-        } catch (Exception e) {
-            log.error("reopen error", e);
         }
     }
 
@@ -113,6 +153,14 @@ public class OkcoinService {
         return orderObservable;
     }
 
+    public Observable<Long> getMarketDataHeartbeatObservable() {
+        return marketDataHeartbeatObservable;
+    }
+
+    public Observable<Long> getTradingHeartbeatObservable() {
+        return tradingHeartbeatObservable;
+    }
+
     public JsonObservableEndpoint getMarketDataEndpoint() {
         return marketDataEndpoint;
     }
@@ -123,7 +171,7 @@ public class OkcoinService {
 
     private Observable<Order> createOrderObservable(JsonObservableEndpoint tradingEndpoint) {
         return tradingEndpoint.getJsonObservable()
-                .filter(j -> j.getString("channel").equals("ok_futureusd_order_info"))
+                .filter(j -> j.getString("channel", "").equals("ok_futureusd_order_info"))
                 .map(j -> j.getJsonObject("data"))
                 .filter(j -> j.getBoolean("result"))
                 .flatMapIterable(j -> j.getJsonArray("orders"))
@@ -175,7 +223,7 @@ public class OkcoinService {
 
     private Observable<Depth> createDepthObservable(JsonObservableEndpoint marketDataEndpoint) {
         return marketDataEndpoint.getJsonObservable()
-                .filter(j -> j.getString("channel").contains("_future_depth_"))
+                .filter(j -> j.getString("channel", "").contains("_future_depth_"))
                 .map(j -> new JsonData(j.getString("channel"), j.getJsonObject("data")))
                 .map(j -> {
                     Depth depth = new Depth();
@@ -191,7 +239,7 @@ public class OkcoinService {
 
     private Observable<Trade> createTradeObservable(JsonObservableEndpoint marketDataEndpoint) {
         return marketDataEndpoint.getJsonObservable()
-                .filter(j -> j.getString("channel").contains("_future_trade_v1_"))
+                .filter(j -> j.getString("channel", "").contains("_future_trade_v1_"))
                 .flatMapIterable(j -> j.getJsonArray("data"), (o, v) -> new JsonData(o.getString("channel"), v))
                 .filter(d -> d.value.getValueType().equals(JsonValue.ValueType.ARRAY))
                 .map(j -> {
