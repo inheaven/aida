@@ -7,6 +7,7 @@ import de.agilecoders.wicket.themes.markup.html.bootswatch.BootswatchThemeProvid
 import org.apache.wicket.Application;
 import org.apache.wicket.Page;
 import org.apache.wicket.protocol.http.WebApplication;
+import ru.inheaven.aida.happy.trading.web.admin.ClientListPage;
 import ru.inheaven.aida.happy.trading.web.admin.ServiceStatusPage;
 
 import javax.inject.Singleton;
@@ -23,6 +24,9 @@ public class AidaHappyTradingApplication extends WebApplication{
 
         getMarkupSettings().setCompressWhitespace(true);
         getMarkupSettings().setDefaultMarkupEncoding("UTF-8");
+
+        mountPage("status", ServiceStatusPage.class);
+        mountPage("clients", ClientListPage.class);
     }
 
     @Override

@@ -13,6 +13,7 @@ public class Client extends AbstractEntity {
     private String password;
 
     private List<Account> accounts;
+    private List<Strategy> strategies;
 
     public String getName() {
         return name;
@@ -44,5 +45,13 @@ public class Client extends AbstractEntity {
 
     public void setAccounts(List<Account> accounts) {
         this.accounts = accounts;
+    }
+
+    public List<Strategy> getStrategies() {
+        return strategies;
+    }
+
+    public void setStrategies(List<Strategy> strategies) {
+        this.strategies = strategies;
     }
 }
