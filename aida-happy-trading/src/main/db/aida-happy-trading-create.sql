@@ -10,7 +10,7 @@ CREATE TABLE account
 (
   id BIGINT PRIMARY KEY NOT NULL AUTO_INCREMENT,
   api_key VARCHAR(255) NOT NULL,
-  exchange_type INT NOT NULL,
+  exchange_type VARCHAR(255) NOT NULL,
   secret_key VARCHAR(255) NOT NULL,
   client_id BIGINT,
   KEY `key_client_id` (client_id),

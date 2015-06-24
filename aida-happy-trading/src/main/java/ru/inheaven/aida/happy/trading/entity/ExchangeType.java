@@ -5,15 +5,5 @@ package ru.inheaven.aida.happy.trading.entity;
  *         Date: 29.05.2014 4:12
  */
 public enum ExchangeType {
-    CEXIO("CX"), CRYPTSY("CS"), BITTREX("BT"), BTCE("BE"), BTER("BR"), BITFINEX("BF"), OKCOIN_SPOT("OK"), OKCOIN_FUTURES("OF");
-
-    private String shortName;
-
-    ExchangeType(String shortName) {
-        this.shortName = shortName;
-    }
-
-    public String getShortName() {
-        return shortName;
-    }
+    CEXIO, CRYPTSY, BITTREX, BTCE, BTER, BITFINEX, OKCOIN_SPOT, OKCOIN_FUTURES
 }

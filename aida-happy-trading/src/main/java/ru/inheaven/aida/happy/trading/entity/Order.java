@@ -1,7 +1,6 @@
 package ru.inheaven.aida.happy.trading.entity;
 
 import ru.inhell.aida.common.entity.AbstractEntity;
-import ru.inhell.aida.common.util.DateUtil;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -168,11 +167,5 @@ public class Order extends AbstractEntity {
         this.name = name;
     }
 
-    @Override
-    public String toString() {
-        return DateUtil.getTimeString(closed) + " " + account.getExchangeType().getShortName() + " " +
-                symbol + " " + filledAmount.toString() + " @ " +
-                price.toString() + " " + type.name() + " " +
-                (!status.equals(OrderStatus.CLOSED) ? status.name() : "");
-    }
+
 }

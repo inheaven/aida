@@ -6,10 +6,10 @@ import ru.inhell.aida.common.entity.AbstractEntity;
  * @author inheaven on 01.05.2015 9:12.
  */
 public class Account extends AbstractEntity {
+    private Long clientId;
     private ExchangeType exchangeType;
     private String apiKey;
     private String secretKey;
-    private Client client;
 
     public ExchangeType getExchangeType() {
         return exchangeType;
@@ -35,11 +35,11 @@ public class Account extends AbstractEntity {
         this.secretKey = secretKey;
     }
 
-    public Client getClient() {
-        return client;
+    public Long getClientId() {
+        return clientId;
     }
 
-    public void setClient(Client client) {
-        this.client = client;
+    public void setClientId(Long clientId) {
+        this.clientId = clientId;
     }
 }

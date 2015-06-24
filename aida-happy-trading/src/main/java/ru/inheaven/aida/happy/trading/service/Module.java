@@ -12,7 +12,6 @@ public class Module extends XMLMyBatisModule{
 
     @Override
     protected void initialize() {
-
     }
 
     public static Injector getInjector() {

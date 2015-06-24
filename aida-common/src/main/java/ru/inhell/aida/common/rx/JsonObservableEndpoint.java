@@ -48,17 +48,17 @@ public class JsonObservableEndpoint extends Endpoint{
             }
         });
 
-        log.info("connection open {} {}", session.getRequestURI(), session.getId());
+        log.info("connection open -> {} {}", session.getRequestURI(), session.getId());
     }
 
     @Override
     public void onClose(Session session, CloseReason closeReason) {
-        log.warn("json observable endpoint close {} ", closeReason);
+        log.warn("json observable endpoint close -> {} ", closeReason);
     }
 
     @Override
     public void onError(Session session, Throwable thr) {
-        log.error("json observable endpoint error", thr);
+        log.error("json observable endpoint error ->", thr);
 
         subject.onError(thr);
     }

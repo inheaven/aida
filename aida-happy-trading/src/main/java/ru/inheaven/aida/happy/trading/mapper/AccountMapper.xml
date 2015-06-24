@@ -1,0 +1,27 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ru.inheaven.aida.happy.trading.mapper.AccountMapper">
+    <resultMap id="account" type="ru.inheaven.aida.happy.trading.entity.Account">
+        <id column="id" property="id"/>
+        <result column="client_id" property="clientId"/>
+        <result column="exchange_type" property="exchangeType"/>
+        <result column="api_key" property="apiKey"/>
+        <result column="secret_key" property="secretKey"/>
+    </resultMap>
+
+    <insert id="insertAccount" parameterType="ru.inheaven.aida.happy.trading.entity.Account">
+        insert into account (client_id, exchange_type, api_key, secret_key)
+            value (#{clientId}, #{exchangeType}, #{apiKey}, #{secretKey});
+    </insert>
+
+    <update id="updateAccount" parameterType="ru.inheaven.aida.happy.trading.entity.Account">
+        update account set client_id = #{clientId}, exchange_type = #{exchangeType},
+            api_key = #{apiKey}, secret_key = #{secretKey}
+        where id = #{id}
+    </update>
+
+    <delete id="deleteAccount" parameterType="ru.inheaven.aida.happy.trading.entity.Account">
+        delete from account where id = #{id}
+    </delete>
+</mapper>

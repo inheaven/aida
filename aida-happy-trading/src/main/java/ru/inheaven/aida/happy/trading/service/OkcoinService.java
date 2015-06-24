@@ -68,14 +68,14 @@ public class OkcoinService {
 
                 @Override
                 public boolean onDisconnect(CloseReason closeReason) {
-                    log.warn("reconnect {}", closeReason.toString());
+                    log.warn("reconnect -> {}", closeReason.toString());
 
                     return true;
                 }
 
                 @Override
                 public boolean onConnectFailure(Exception exception) {
-                    log.warn("connection failure {}", reconnectCount++);
+                    log.warn("connection failure -> {}", reconnectCount++);
 
                     return true;
                 }
@@ -96,7 +96,7 @@ public class OkcoinService {
                                         "{'event':'addChannel','channel':'ok_ltcusd_future_depth_this_week_60'}]"
                         );
                     } catch (IOException e) {
-                        log.error("error add channel", e);
+                        log.error("error add channel ->", e);
                     }
                 }
             };
@@ -122,15 +122,17 @@ public class OkcoinService {
                         marketDataEndpoint.getSession().getBasicRemote().sendText("{'event':'ping'}");
                     }
                 } catch (Exception e) {
-                    log.error("marketDataEndpoint heartbeat error", e);
+                    log.error("marketDataEndpoint heartbeat error ->", e);
                 }
+            }, 0, 1, TimeUnit.SECONDS);
 
+            Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
                 try {
                     if (tradingEndpoint.getSession().isOpen()) {
                         tradingEndpoint.getSession().getBasicRemote().sendText("{'event':'ping'}");
                     }
                 } catch (Exception e) {
-                    log.error("tradingEndpoint heartbeat error", e);
+                    log.error("tradingEndpoint heartbeat error ->", e);
                 }
             }, 0, 1, TimeUnit.SECONDS);
 
@@ -142,7 +144,7 @@ public class OkcoinService {
                     .filter(j -> j.getString("event", "").equals("pong"))
                     .map(j -> System.currentTimeMillis());
         } catch (Exception e) {
-            log.error("error connect to server", e);
+            log.error("error connect to server ->", e);
         }
     }
 

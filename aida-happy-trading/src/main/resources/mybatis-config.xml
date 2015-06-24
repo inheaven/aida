@@ -3,6 +3,13 @@
         PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
+    <properties>
+        <property name="mapUnderscoreToCamelCase" value="true"/>
+        <property name="defaultExecutorType" value="REUSE"/>
+        <property name="useGeneratedKeys" value="true"/>
+        <property name="autoMappingBehavior" value="true"/>
+    </properties>
+
     <environments default="development">
         <environment id="development">
             <transactionManager type="JDBC"/>
@@ -14,4 +21,9 @@
             </dataSource>
         </environment>
     </environments>
+
+    <mappers>
+        <mapper resource="ru/inheaven/aida/happy/trading/mapper/ClientMapper.xml"/>
+        <mapper resource="ru/inheaven/aida/happy/trading/mapper/AccountMapper.xml"/>
+    </mappers>
 </configuration>

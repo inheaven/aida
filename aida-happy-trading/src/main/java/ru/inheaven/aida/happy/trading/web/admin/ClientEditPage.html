@@ -1,0 +1,40 @@
+<!DOCTYPE html PUBLIC>
+<wicket:extend xmlns:wicket="http://wicket.apache.org">
+    <form wicket:id="form">
+        <div wicket:id="name">
+            <input type="text" wicket:id="name"/>
+        </div>
+
+        <div wicket:id="login">
+            <input type="text" wicket:id="login"/>
+        </div>
+        <div wicket:id="password">
+            <input type="text" wicket:id="password"/>
+        </div>
+
+        <div>
+            <table class="table">
+            	<tbody wicket:id="accountsContainer">
+            		<tr wicket:id="accounts" class="form-group, form-inline">
+            			<td>
+                            <select wicket:id="exchangeType"></select>
+                            <div wicket:id="apiKey"><input type="text" wicket:id="apiKey"/></div>
+                            <div wicket:id="secretKey"><input type="text" wicket:id="secretKey"/></div>
+                            <div><a wicket:id="delete">Delete</a></div>
+                        </td>
+            		</tr>
+            	</tbody>
+            </table>
+            <div>
+                <a wicket:id="add">Add account</a>
+            </div>
+
+        </div>
+
+        <div style="margin-top: 20px">
+            <button wicket:id="save"></button>
+            <button wicket:id="cancel"></button>
+        </div>
+    </form>
+
+</wicket:extend>
