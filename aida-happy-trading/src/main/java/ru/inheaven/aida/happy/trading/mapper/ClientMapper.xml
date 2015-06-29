@@ -28,7 +28,8 @@
     </insert>
 
     <update id="updateClient" parameterType="ru.inheaven.aida.happy.trading.entity.Client">
-        update client set login = #{login}, `name` = #{name}, `password` = #{password} where id = #{id}
+        update client set login = #{login}, `name` = #{name}, `password` = #{password}
+        where id = #{id}
     </update>
 
 

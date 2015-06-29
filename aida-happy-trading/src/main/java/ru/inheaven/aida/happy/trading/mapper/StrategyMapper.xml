@@ -20,6 +20,7 @@
     <update id="updateStrategy" parameterType="ru.inheaven.aida.happy.trading.entity.Strategy">
         update strategy set `name` = #{name}, type = #{type}, account_id = #{accountId}, level_lot = #{levelLot},
             level_spread = #{levelSpread}, level_size = #{levelSize}
+        where id = #{id}
     </update>
 
     <delete id="deleteStrategy" parameterType="ru.inheaven.aida.happy.trading.entity.Strategy">
