@@ -10,6 +10,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.RequiredTextField;
@@ -85,7 +86,10 @@ public class ClientEditPage extends BasePage{
         accountsContainer.add(new ListView<Account>("accounts") {
             @Override
             protected void populateItem(ListItem<Account> item) {
-                item.add(new DropDownChoice<>("exchangeType", Arrays.asList(ExchangeType.values())).setRequired(true));
+                item.add(new Label("index", Model.of(item.getIndex() + 1)));
+                item.add(new FormGroup("name", Model.of("Name")).add(new RequiredTextField("name")));
+                item.add(new FormGroup("exchangeType", Model.of("Exchange type")).add(new DropDownChoice<>("exchangeType",
+                        Arrays.asList(ExchangeType.values())).setRequired(true)));
                 item.add(new FormGroup("apiKey", Model.of("API key")).add(new RequiredTextField("apiKey")));
                 item.add(new FormGroup("secretKey", Model.of("Secret key")).add(new RequiredTextField("secretKey")));
                 item.add(new BootstrapAjaxLink<Account>("delete", item.getModel(), Buttons.Type.Link) {
@@ -110,7 +114,7 @@ public class ClientEditPage extends BasePage{
             protected IModel<Account> getListItemModel(IModel<? extends List<Account>> listViewModel, int index) {
                 return new CompoundPropertyModel<>(super.getListItemModel(listViewModel, index));
             }
-        });
+        }.setReuseItems(true));
 
         form.add(new AjaxLink("add") {
             @Override

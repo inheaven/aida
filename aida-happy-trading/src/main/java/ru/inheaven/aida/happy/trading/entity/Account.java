@@ -7,9 +7,27 @@ import ru.inhell.aida.common.entity.AbstractEntity;
  */
 public class Account extends AbstractEntity {
     private Long clientId;
+    private String name;
     private ExchangeType exchangeType;
     private String apiKey;
     private String secretKey;
+
+
+    public Long getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(Long clientId) {
+        this.clientId = clientId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public ExchangeType getExchangeType() {
         return exchangeType;
@@ -33,13 +51,5 @@ public class Account extends AbstractEntity {
 
     public void setSecretKey(String secretKey) {
         this.secretKey = secretKey;
-    }
-
-    public Long getClientId() {
-        return clientId;
-    }
-
-    public void setClientId(Long clientId) {
-        this.clientId = clientId;
     }
 }
