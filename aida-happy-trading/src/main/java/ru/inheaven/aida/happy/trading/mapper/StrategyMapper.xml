@@ -1,0 +1,32 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ru.inheaven.aida.happy.trading.mapper.StrategyMapper">
+    <resultMap id="strategy" type="ru.inheaven.aida.happy.trading.entity.Strategy">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="type" property="type"/>
+        <result column="account_id" property="accountId"/>
+        <result column="level_lot" property="levelLot"/>
+        <result column="level_spread" property="levelSpread"/>
+        <result column="level_size" property="levelSize"/>
+    </resultMap>
+
+    <insert id="insertStrategy" parameterType="ru.inheaven.aida.happy.trading.entity.Strategy" keyProperty="id">
+        insert into strategy (`name`, type, account_id, level_lot, level_spread, level_size)
+            value (#{name}, #{type}, #{accountId}, #{levelLot}, #{levelSpread}, #{levelSize})
+    </insert>
+
+    <update id="updateStrategy" parameterType="ru.inheaven.aida.happy.trading.entity.Strategy">
+        update strategy set `name` = #{name}, type = #{type}, account_id = #{accountId}, level_lot = #{levelLot},
+            level_spread = #{levelSpread}, level_size = #{levelSize}
+    </update>
+
+    <delete id="deleteStrategy" parameterType="ru.inheaven.aida.happy.trading.entity.Strategy">
+        delete FROM strategy where id = #{id}
+    </delete>
+
+    <select id="selectStrategiesByAccount" resultMap="strategy" parameterType="long">
+        select * from strategy where account_id = #{accountId}
+    </select>
+</mapper>

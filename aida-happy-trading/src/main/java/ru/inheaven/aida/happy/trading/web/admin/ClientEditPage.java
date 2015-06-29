@@ -20,9 +20,7 @@ import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import ru.inheaven.aida.happy.trading.entity.Account;
-import ru.inheaven.aida.happy.trading.entity.Client;
-import ru.inheaven.aida.happy.trading.entity.ExchangeType;
+import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.ClientMapper;
 import ru.inheaven.aida.happy.trading.web.BasePage;
 
@@ -53,7 +51,6 @@ public class ClientEditPage extends BasePage{
 
         if (client.getId() == null){
             client.setAccounts(new ArrayList<>());
-            client.setStrategies(new ArrayList<>());
         }
 
         BootstrapForm<Client> form = new BootstrapForm<>("form", new CompoundPropertyModel<>(client));
@@ -67,8 +64,6 @@ public class ClientEditPage extends BasePage{
             @Override
             public void onSubmit() {
                 clientMapper.save(client);
-
-                setResponsePage(ClientListPage.class);
             }
         }.setLabel(Model.of("Save")));
 
@@ -79,6 +74,9 @@ public class ClientEditPage extends BasePage{
             }
         }.setLabel(Model.of("Cancel")));
 
+
+        //Accounts
+
         WebMarkupContainer accountsContainer = new WebMarkupContainer("accountsContainer");
         accountsContainer.setOutputMarkupId(true);
         form.add(accountsContainer);
@@ -86,20 +84,21 @@ public class ClientEditPage extends BasePage{
         accountsContainer.add(new ListView<Account>("accounts") {
             @Override
             protected void populateItem(ListItem<Account> item) {
+                Account account = item.getModelObject();
+
                 item.add(new Label("index", Model.of(item.getIndex() + 1)));
-                item.add(new FormGroup("name", Model.of("Name")).add(new RequiredTextField("name")));
-                item.add(new FormGroup("exchangeType", Model.of("Exchange type")).add(new DropDownChoice<>("exchangeType",
+                item.add(new FormGroup("name", Model.of("Account Name")).add(new RequiredTextField("name")));
+                item.add(new FormGroup("exchangeType", Model.of("Exchange Type")).add(new DropDownChoice<>("exchangeType",
                         Arrays.asList(ExchangeType.values())).setRequired(true)));
-                item.add(new FormGroup("apiKey", Model.of("API key")).add(new RequiredTextField("apiKey")));
-                item.add(new FormGroup("secretKey", Model.of("Secret key")).add(new RequiredTextField("secretKey")));
+                item.add(new FormGroup("apiKey", Model.of("API Key")).add(new RequiredTextField("apiKey")));
+                item.add(new FormGroup("secretKey", Model.of("Secret Key")).add(new RequiredTextField("secretKey")));
                 item.add(new BootstrapAjaxLink<Account>("delete", item.getModel(), Buttons.Type.Link) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         client.getAccounts().remove(getModelObject());
-
                         target.add(accountsContainer);
                     }
-                }.setLabel(Model.of("delete")));
+                }.setLabel(Model.of("delete")).setVisible(account.getId() == null));
 
                 item.visitChildren(FormComponent.class, (component, visit) -> {
                     component.add(new OnChangeAjaxBehavior() {
@@ -107,6 +106,54 @@ public class ClientEditPage extends BasePage{
                         protected void onUpdate(AjaxRequestTarget target) {
                         }
                     });
+                });
+
+                //Strategies
+
+                WebMarkupContainer strategiesContainer = new WebMarkupContainer("strategiesContainer");
+                strategiesContainer.setOutputMarkupId(true);
+                item.add(strategiesContainer);
+
+                strategiesContainer.add(new ListView<Strategy>("strategies") {
+                    @Override
+                    protected void populateItem(ListItem<Strategy> item) {
+                        item.add(new Label("index", Model.of(item.getIndex() + 1)));
+                        item.add(new FormGroup("name", Model.of("Strategy Name")).add(new RequiredTextField("name")));
+                        item.add(new FormGroup("type", Model.of("Type")).add(new DropDownChoice<>("type",
+                                Arrays.asList(StrategyType.values())).setRequired(true)));
+                        item.add(new FormGroup("levelLot", Model.of("Level Lot")).add(new RequiredTextField("levelLot")));
+                        item.add(new FormGroup("levelSpread", Model.of("Level Spread")).add(new RequiredTextField("levelSpread")));
+                        item.add(new FormGroup("levelSize", Model.of("Level Size")).add(new RequiredTextField("levelSize")));
+
+                        item.add(new BootstrapAjaxLink<Strategy>("delete", item.getModel(), Buttons.Type.Link) {
+                            @Override
+                            public void onClick(AjaxRequestTarget target) {
+                                account.getStrategies().remove(getModelObject());
+                                target.add(strategiesContainer);
+                            }
+                        }.setLabel(Model.of("delete")).setVisible(item.getModelObject().getId() == null));
+
+                        item.visitChildren(FormComponent.class, (component, visit) -> {
+                            component.add(new OnChangeAjaxBehavior() {
+                                @Override
+                                protected void onUpdate(AjaxRequestTarget target) {
+                                }
+                            });
+                        });
+                    }
+
+                    @Override
+                    protected IModel<Strategy> getListItemModel(IModel<? extends List<Strategy>> listViewModel, int index) {
+                        return new CompoundPropertyModel<>(super.getListItemModel(listViewModel, index));
+                    }
+                }.setReuseItems(true));
+
+                item.add(new AjaxLink<Account>("add_strategy", item.getModel()) {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        getModelObject().getStrategies().add(new Strategy());
+                        target.add(strategiesContainer);
+                    }
                 });
             }
 
@@ -116,14 +163,12 @@ public class ClientEditPage extends BasePage{
             }
         }.setReuseItems(true));
 
-        form.add(new AjaxLink("add") {
+        form.add(new AjaxLink("add_account") {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 client.getAccounts().add(new Account());
-
                 target.add(accountsContainer);
             }
         });
-
     }
 }

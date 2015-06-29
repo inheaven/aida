@@ -8,11 +8,20 @@ import java.math.BigDecimal;
  * @author inheaven on 02.05.2015 23:48.
  */
 public class Strategy extends AbstractEntity {
+    private String name;
     private StrategyType type;
-    private Account account;
+    private Long accountId;
     private BigDecimal levelLot;
     private BigDecimal levelSpread;
     private BigDecimal levelSize;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public StrategyType getType() {
         return type;
@@ -22,12 +31,12 @@ public class Strategy extends AbstractEntity {
         this.type = type;
     }
 
-    public Account getAccount() {
-        return account;
+    public Long getAccountId() {
+        return accountId;
     }
 
-    public void setAccount(Account account) {
-        this.account = account;
+    public void setAccountId(Long accountId) {
+        this.accountId = accountId;
     }
 
     public BigDecimal getLevelLot() {

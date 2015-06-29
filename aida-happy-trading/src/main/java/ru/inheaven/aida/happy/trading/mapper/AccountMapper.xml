@@ -9,9 +9,15 @@
         <result column="exchange_type" property="exchangeType"/>
         <result column="api_key" property="apiKey"/>
         <result column="secret_key" property="secretKey"/>
+
+        <collection property="strategies" select="ru.inheaven.aida.happy.trading.mapper.StrategyMapper.selectStrategiesByAccount" column="id"/>
     </resultMap>
 
-    <insert id="insertAccount" parameterType="ru.inheaven.aida.happy.trading.entity.Account">
+    <select id="selectAccount" parameterType="long" resultMap="account">
+        select * from account where id = #{id}
+    </select>
+
+    <insert id="insertAccount" parameterType="ru.inheaven.aida.happy.trading.entity.Account" keyProperty="id">
         insert into account (client_id, `name`, exchange_type, api_key, secret_key)
             value (#{clientId}, #{name}, #{exchangeType}, #{apiKey}, #{secretKey});
     </insert>
@@ -25,4 +31,8 @@
     <delete id="deleteAccount" parameterType="ru.inheaven.aida.happy.trading.entity.Account">
         delete from account where id = #{id}
     </delete>
+
+    <select id="selectAccountsByClient" parameterType="long" resultMap="account">
+        select * from account where client_id = #{clientId}
+    </select>
 </mapper>

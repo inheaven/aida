@@ -3,19 +3,12 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="ru.inheaven.aida.happy.trading.mapper.ClientMapper">
     <resultMap id="client" type="ru.inheaven.aida.happy.trading.entity.Client">
-        <id column="c_id" property="id"/>
-        <result column="client_name" property="name"/>
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
         <result column="login" property="login"/>
         <result column="password" property="password"/>
 
-        <collection property="accounts" ofType="ru.inheaven.aida.happy.trading.entity.Account" column="client_id">
-            <id column="a_id" property="id"/>
-            <result column="client_id" property="clientId"/>
-            <result column="account_name" property="name"/>
-            <result column="exchange_type" property="exchangeType"/>
-            <result column="api_key" property="apiKey"/>
-            <result column="secret_key" property="secretKey"/>
-        </collection>
+        <collection property="accounts" select="ru.inheaven.aida.happy.trading.mapper.AccountMapper.selectAccountsByClient" column="id"/>
     </resultMap>
 
     <select id="selectClients" resultType="ru.inheaven.aida.happy.trading.entity.Client">
@@ -27,17 +20,14 @@
     </select>
 
     <select id="selectClient" parameterType="long" resultMap="client">
-        select `client`.id as c_id, account.id as a_id, account.name as account_name, client.name as client_name,
-            `client`.*, account.*
-        from `client`
-            left join account on account.client_id = `client`.id where `client`.id = #{id}
+        select * from `client` where id = #{id}
     </select>
 
     <insert id="insertClient" parameterType="ru.inheaven.aida.happy.trading.entity.Client" keyProperty="id">
         insert into client (login, `name`, `password`) value (#{login}, #{name}, #{password})
     </insert>
 
-    <update id="updateClient" parameterType="ru.inheaven.aida.happy.trading.entity.Client" keyProperty="id">
+    <update id="updateClient" parameterType="ru.inheaven.aida.happy.trading.entity.Client">
         update client set login = #{login}, `name` = #{name}, `password` = #{password} where id = #{id}
     </update>
 
