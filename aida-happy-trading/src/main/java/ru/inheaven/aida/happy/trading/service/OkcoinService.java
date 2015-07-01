@@ -187,7 +187,6 @@ public class OkcoinService {
                     Order order = new Order();
 
                     order.setAmount(BigDecimal.valueOf(j.getJsonNumber("amount").doubleValue()));
-                    order.setName(j.getString("contract_name"));
                     order.setCreated(new Date(j.getJsonNumber("create_date").longValue()));
                     order.setFilledAmount(BigDecimal.valueOf(j.getJsonNumber("deal_amount").doubleValue()));
                     order.setFee(BigDecimal.valueOf(j.getJsonNumber("fee").doubleValue()));
@@ -270,21 +269,31 @@ public class OkcoinService {
     public void orderInfo(String apiKey, String secretKey, String symbol, String orderId, String contractType,
                           String status, String currentPage, String pageLength){
         try {
-            JsonObjectBuilder parameters = Json.createObjectBuilder()
+            JsonObject parameters = Json.createObjectBuilder()
                     .add("api_key", apiKey)
-                    .add("symbol", symbol)
-                    .add("order_id", orderId)
                     .add("contract_type", contractType)
-                    .add("status", status)
                     .add("current_page", currentPage)
-                    .add("page_length", pageLength);
+                    .add("order_id", orderId)
+                    .add("page_length", pageLength)
+                    .add("status", status)
+                    .add("symbol", symbol)
+                    .build();
 
-            parameters.add("sign", getMD5String(parameters.build(), secretKey));
+            JsonObject parametersSing = Json.createObjectBuilder()
+                    .add("api_key", apiKey)
+                    .add("contract_type", contractType)
+                    .add("current_page", currentPage)
+                    .add("order_id", orderId)
+                    .add("page_length", pageLength)
+                    .add("status", status)
+                    .add("symbol", symbol)
+                    .add("sign", getMD5String(parameters, secretKey))
+                    .build();
 
             tradingEndpoint.getSession().getBasicRemote().sendText(Json.createObjectBuilder()
                     .add("event", "addChannel")
                     .add("channel", "ok_futureusd_order_info")
-                    .add("parameters", parameters).build().toString());
+                    .add("parameters", parametersSing).build().toString());
         } catch (IOException e) {
             log.error("order info error", e);
         }

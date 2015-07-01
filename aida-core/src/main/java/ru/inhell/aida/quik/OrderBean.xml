@@ -16,7 +16,9 @@
     </resultMap>
 
     <select id="selectOrdersByDate" resultMap="orderResultMap" parameterType="map">
-        select * from `order` where `symbol` = #{symbol} and `date` = #{date}
+        select *
+        from order_old
+        where `symbol` = #{symbol} and `date` = #{date}
     </select>
 
 </mapper>

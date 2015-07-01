@@ -12,7 +12,7 @@ import java.util.Date;
  *         Date: 09.11.2014 14:06
  */
 @Entity
-@Table(name = "\"order\"")
+@Table(name = "\"order_old\"")
 @XmlRootElement
 public class Order extends AbstractEntity {
     @Column(nullable = false, unique = true)

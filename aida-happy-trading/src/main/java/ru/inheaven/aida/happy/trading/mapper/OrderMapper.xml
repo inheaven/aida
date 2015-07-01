@@ -1,0 +1,41 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ru.inheaven.aida.happy.trading.mapper.OrderMapper">
+    <resultMap id="order" type="ru.inheaven.aida.happy.trading.entity.Order">
+        <id column="id" property="id"/>
+        <result column="order_id" property="orderId"/>
+        <result column="strategy_id" property="strategyId"/>
+        <result column="exchange_type" property="exchangeType"/>
+        <result column="type" property="type"/>
+        <result column="symbol" property="symbol"/>
+        <result column="symbol_type" property="symbolType"/>
+        <result column="price" property="price"/>
+        <result column="amount" property="amount"/>
+        <result column="filled_amount" property="filledAmount"/>
+        <result column="avg_price" property="avgPrice"/>
+        <result column="fee" property="fee"/>
+        <result column="created" property="created"/>
+        <result column="open" property="open"/>
+        <result column="closed" property="closed"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <insert id="insertOrder" parameterType="ru.inheaven.aida.happy.trading.entity.Order" keyProperty="id">
+        insert into `order` (order_id, strategy_id, exchange_type, type, symbol, symbol_type, price, amount,
+                             filled_amount, avg_price, fee, created, `open`, closed, `status`)
+        value (#{orderId}, #{strategyId}, #{exchangeType}, #{type}, #{symbol}, #{symbolType}, #{price}, #{amount},
+               #{filledAmount}, #{avgPrice}, #{fee}, #{created}, #{open}, #{closed}, #{status})
+    </insert>
+
+    <update id="updateOrder" parameterType="ru.inheaven.aida.happy.trading.entity.Order">
+        update `order` set order_id = #{orderId}, filled_amount = #{filledAmount}, avg_price = #{avgPrice},
+            fee = #{fee}, `open` = #{open}, closed = #{closed}, `status` = #{status}
+        where id = #{id}
+    </update>
+
+    <select id="selectOpenOrders" resultMap="order">
+        select * from `order` where closed is not null
+    </select>
+
+</mapper>

@@ -25,6 +25,7 @@
     <mappers>
         <mapper resource="ru/inheaven/aida/happy/trading/mapper/AccountMapper.xml"/>
         <mapper resource="ru/inheaven/aida/happy/trading/mapper/ClientMapper.xml"/>
+        <mapper resource="ru/inheaven/aida/happy/trading/mapper/OrderMapper.xml"/>
         <mapper resource="ru/inheaven/aida/happy/trading/mapper/StrategyMapper.xml"/>
     </mappers>
 </configuration>

@@ -28,6 +28,30 @@ CREATE TABLE strategy
   level_spread DECIMAL(19,8) NOT NULL,
   level_size INT NOT NULL,
   KEY `key_account_id` (account_id),
-  FOREIGN KEY (account_id) REFERENCES account (id) ON DELETE CASCADE
+  FOREIGN KEY (account_id) REFERENCES account (id)
 );
+
+CREATE TABLE `order`
+(
+  id BIGINT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+  order_id VARCHAR(32) NOT NULL,
+  strategy_id BIGINT NOT NULL,
+  exchange_type VARCHAR(32) NOT NULL,
+  type VARCHAR(32) NOT NULL,
+  symbol VARCHAR(32) NOT NULL,
+  symbol_type VARCHAR(32),
+  price DECIMAL(19,8) NOT NULL,
+  amount DECIMAL(19,8) NOT NULL,
+  filled_amount DECIMAL(19,8) NOT NULL,
+  avg_price DECIMAL(19,8) NOT NULL,
+  fee DECIMAL(19,8) NOT NULL,
+  created TIMESTAMP NOT NULL DEFAULT NOW(),
+  open TIMESTAMP NULL,
+  closed TIMESTAMP NULL,
+  status VARCHAR(32) NOT NULL,
+  KEY `key_strategy_id` (strategy_id),
+  FOREIGN KEY (strategy_id) REFERENCES strategy (id),
+  KEY `key_closed` (closed)
+);
+
 
