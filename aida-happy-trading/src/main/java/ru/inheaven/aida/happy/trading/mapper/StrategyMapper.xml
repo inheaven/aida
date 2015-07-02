@@ -30,4 +30,8 @@
     <select id="selectStrategiesByAccount" resultMap="strategy" parameterType="long">
         select * from strategy where account_id = #{accountId}
     </select>
+
+    <select id="selectActiveStrategies" resultMap="strategy">
+        select * from strategy where active = true
+    </select>
 </mapper>

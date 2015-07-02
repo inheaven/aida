@@ -1,7 +1,6 @@
 package ru.inheaven.aida.happy.trading.service;
 
-import ru.inheaven.aida.happy.trading.entity.ExchangeType;
-import ru.inheaven.aida.happy.trading.entity.SymbolType;
+import ru.inheaven.aida.happy.trading.entity.Strategy;
 import ru.inheaven.aida.happy.trading.entity.Trade;
 import rx.Observable;
 
@@ -21,10 +20,10 @@ public class TradeService {
         tradeObservable = okcoinService.getTradeObservable();
     }
 
-    public Observable<Trade> createTradeObserver(ExchangeType exchangeType, String symbol, SymbolType symbolType){
+    public Observable<Trade> createTradeObserver(Strategy strategy){
         return tradeObservable
-                .filter(t -> Objects.equals(exchangeType, t.getExchangeType()))
-                .filter(t -> Objects.equals(symbol, t.getSymbol()))
-                .filter(t -> Objects.equals(symbolType, t.getSymbolType()));
+                .filter(t -> Objects.equals(strategy.getExchangeType(), t.getExchangeType()))
+                .filter(t -> Objects.equals(strategy.getSymbol(), t.getSymbol()))
+                .filter(t -> Objects.equals(strategy.getSymbolType(), t.getSymbolType()));
     }
 }

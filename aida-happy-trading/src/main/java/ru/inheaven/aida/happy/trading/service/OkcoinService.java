@@ -20,10 +20,7 @@ import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -49,6 +46,9 @@ public class OkcoinService {
 
     private Observable<Long> marketDataHeartbeatObservable;
     private Observable<Long> tradingHeartbeatObservable;
+
+
+    private Set<String> tradesChannels = new HashSet<>();
 
     private class JsonData{
         private String channel;
@@ -102,22 +102,39 @@ public class OkcoinService {
                 }
             };
 
-            tradingEndpoint = new JsonObservableEndpoint();
+            tradingEndpoint = new JsonObservableEndpoint(){
+                @Override
+                public void onOpen(Session session, EndpointConfig config) {
+                    super.onOpen(session, config);
+
+                    tradesChannels.forEach(s -> {
+                        try {
+                            session.getBasicRemote().sendText(s);
+                        } catch (IOException e) {
+                            log.error("error add channel -> ", e);
+                        }
+                    });
+                }
+            };
 
             client.connectToServer(marketDataEndpoint, URI.create(OKCOIN_WSS));
             client.connectToServer(tradingEndpoint, URI.create(OKCOIN_WSS));
 
             //trade
-            tradeObservable = createTradeObservable(marketDataEndpoint);
+            tradeObservable = createTradeObservable();
 
             //depth
-            depthObservable = createDepthObservable(marketDataEndpoint);
+            depthObservable = createDepthObservable();
 
             //order info
-            orderObservable = createOrderObservable(tradingEndpoint);
+            orderObservable = createOrderObservable();
 
             //real trades
-            realTradesObservable = createRealTrades(tradingEndpoint);
+            realTradesObservable = createRealTrades();
+
+            //success
+            marketDataEndpoint.getJsonObservable().filter(j -> j.getString("success", null) != null).subscribe(System.out::println);
+            tradingEndpoint.getJsonObservable().filter(j -> j.getString("success", null) != null).subscribe(System.out::println);
 
             //heartbeat
             Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
@@ -147,6 +164,10 @@ public class OkcoinService {
             tradingHeartbeatObservable = tradingEndpoint.getJsonObservable()
                     .filter(j -> j.getString("event", "").equals("pong"))
                     .map(j -> System.currentTimeMillis());
+
+
+
+
         } catch (Exception e) {
             log.error("error connect to server ->", e);
         }
@@ -184,7 +205,7 @@ public class OkcoinService {
         return tradingEndpoint;
     }
 
-    private Observable<Order> createOrderObservable(JsonObservableEndpoint tradingEndpoint) {
+    private Observable<Order> createOrderObservable() {
         return tradingEndpoint.getJsonObservable()
                 .filter(j -> j.getString("channel", "").equals("ok_futureusd_order_info"))
                 .map(j -> j.getJsonObject("data"))
@@ -193,6 +214,7 @@ public class OkcoinService {
                 .filter(j -> j.getValueType().equals(JsonValue.ValueType.OBJECT)).map(j -> (JsonObject) j)
                 .map(j -> {
                     Order order = new Order();
+                    order.setExchangeType(ExchangeType.OKCOIN_FUTURES);
 
                     order.setAmount(BigDecimal.valueOf(j.getJsonNumber("amount").doubleValue()));
                     order.setCreated(new Date(j.getJsonNumber("create_date").longValue()));
@@ -235,17 +257,21 @@ public class OkcoinService {
                 });
     }
 
-    private Observable<Order> createRealTrades(JsonObservableEndpoint tradingEndpoint){
+    private Observable<Order> createRealTrades(){
         return tradingEndpoint.getJsonObservable()
-                .filter(j -> j.getString("channel", "").equals("ok_future_realtrades"))
+                .filter(j -> j.getString("channel", "").equals("ok_usd_future_realtrades"))
                 .map(j -> j.getJsonObject("data"))
-                .map(j ->{
+                .filter(j -> j != null)
+                .map(j -> {
                     Order order = new Order();
+                    order.setExchangeType(ExchangeType.OKCOIN_FUTURES);
 
                     order.setAmount(new BigDecimal(j.getString("amount")));
-                    order.setOrderId(j.getString("orderid"));
+                    order.setOrderId(j.getJsonNumber("orderid").toString());
                     order.setPrice(new BigDecimal(j.getString("price")));
                     order.setAvgPrice(new BigDecimal(j.getString("price_avg")));
+                    order.setFee(new BigDecimal(j.getString("fee")));
+                    order.setFilledAmount(new BigDecimal(j.getString("deal_amount")));
 
                     switch (j.getString("status")) {
                         case "-1":
@@ -275,12 +301,14 @@ public class OkcoinService {
                             break;
                     }
 
+                    //todo contract type & symbol
+
                     return order;
                 });
 
     }
 
-    private Observable<Depth> createDepthObservable(JsonObservableEndpoint marketDataEndpoint) {
+    private Observable<Depth> createDepthObservable() {
         return marketDataEndpoint.getJsonObservable()
                 .filter(j -> j.getString("channel", "").contains("_future_depth_"))
                 .map(j -> new JsonData(j.getString("channel"), j.getJsonObject("data")))
@@ -296,7 +324,7 @@ public class OkcoinService {
                 });
     }
 
-    private Observable<Trade> createTradeObservable(JsonObservableEndpoint marketDataEndpoint) {
+    private Observable<Trade> createTradeObservable() {
         return marketDataEndpoint.getJsonObservable()
                 .filter(j -> j.getString("channel", "").contains("_future_trade_v1_"))
                 .flatMapIterable(j -> j.getJsonArray("data"), (o, v) -> new JsonData(o.getString("channel"), v))
@@ -363,14 +391,20 @@ public class OkcoinService {
                     .add("sign", getMD5String(parameters, secretKey))
                     .build();
 
-            tradingEndpoint.getSession().getBasicRemote().sendText(Json.createObjectBuilder()
+            String channel = Json.createObjectBuilder()
                     .add("event", "addChannel")
-                    .add("channel", "ok_future_realtrades")
-                    .add("parameters", parametersSing).build().toString());
+                    .add("channel", "ok_usd_future_realtrades")
+                    .add("parameters", parametersSing).build().toString();
+            tradesChannels.add(channel);
+
+            tradingEndpoint.getSession().getBasicRemote().sendText(channel);
         } catch (Exception e) {
             log.error("real trades error", e);
         }
+    }
 
+    public void createOrder(Order order){
+        //todo create order
     }
 
     public String getSymbol(String channel){

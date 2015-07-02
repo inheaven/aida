@@ -20,6 +20,8 @@ public class Strategy extends AbstractEntity {
     private BigDecimal levelSpread;
     private BigDecimal levelSize;
 
+    private boolean active;
+
     public String getName() {
         return name;
     }
@@ -90,5 +92,13 @@ public class Strategy extends AbstractEntity {
 
     public void setLevelSize(BigDecimal levelSize) {
         this.levelSize = levelSize;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 }

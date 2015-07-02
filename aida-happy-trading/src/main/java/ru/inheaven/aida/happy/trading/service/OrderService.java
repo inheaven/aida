@@ -1,6 +1,9 @@
 package ru.inheaven.aida.happy.trading.service;
 
-import ru.inheaven.aida.happy.trading.entity.*;
+import ru.inheaven.aida.happy.trading.entity.Account;
+import ru.inheaven.aida.happy.trading.entity.ExchangeType;
+import ru.inheaven.aida.happy.trading.entity.Order;
+import ru.inheaven.aida.happy.trading.entity.Strategy;
 import ru.inheaven.aida.happy.trading.mapper.AccountMapper;
 import rx.Observable;
 
@@ -25,16 +28,21 @@ public class OrderService {
 
         orderObservable = okcoinService.getOrderObservable()
                 .mergeWith(okcoinService.getRealTradesObservable());
-
-        accountMapper.getAccounts(ExchangeType.OKCOIN_FUTURES)
-                .forEach(account -> okcoinService.realTrades(account.getApiKey(), account.getSecretKey()));
-                //todo reconnect
     }
 
-    public Observable<Order> createOrderObserver(ExchangeType exchangeType, String symbol, SymbolType symbolType){
+    public Observable<Order> createOrderObserver(Strategy strategy){
+        Account account = accountMapper.getAccount(strategy.getAccountId());
+        okcoinService.realTrades(account.getApiKey(), account.getSecretKey());
+
         return orderObservable
-                .filter(o -> Objects.equals(exchangeType, o.getExchangeType()))
-                .filter(o -> Objects.equals(symbol, o.getSymbol()))
-                .filter(o -> Objects.equals(symbolType, o.getSymbolType()));
+                .filter(o -> Objects.equals(strategy.getExchangeType(), o.getExchangeType()))
+                .filter(o -> Objects.equals(strategy.getSymbol(), o.getSymbol()))
+                .filter(o -> Objects.equals(strategy.getSymbolType(), o.getSymbolType()));
+    }
+
+    public void createOrder(Order order){
+        if (order.getExchangeType().equals(ExchangeType.OKCOIN_FUTURES)){
+            okcoinService.createOrder(order);
+        }
     }
 }
