@@ -10,6 +10,8 @@
         <result column="level_lot" property="levelLot"/>
         <result column="level_spread" property="levelSpread"/>
         <result column="level_size" property="levelSize"/>
+        <result column="api_key" property="apiKey"/>
+        <result column="secret_key" property="secretKey"/>
     </resultMap>
 
     <insert id="insertStrategy" parameterType="ru.inheaven.aida.happy.trading.entity.Strategy" keyProperty="id">
@@ -32,6 +34,8 @@
     </select>
 
     <select id="selectActiveStrategies" resultMap="strategy">
-        select * from strategy where active = true
+        select strategy.*, api_key, secret_key from strategy
+            left join account on account.id = strategy.account_id
+        where active = true
     </select>
 </mapper>

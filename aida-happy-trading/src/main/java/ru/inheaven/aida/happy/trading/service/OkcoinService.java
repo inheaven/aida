@@ -223,7 +223,13 @@ public class OkcoinService {
                     order.setOrderId(j.getJsonNumber("order_id").toString());
                     order.setPrice(BigDecimal.valueOf(j.getJsonNumber("price").doubleValue()));
                     order.setAvgPrice(BigDecimal.valueOf(j.getJsonNumber("price_avg").doubleValue()));
-                    order.setSymbol(j.getString("symbol"));
+
+                    String symbol = j.getString("symbol");
+                    if (symbol.contains("ltc")){
+                        order.setSymbol("LTC/USD");
+                    }else if (symbol.contains("btc")){
+                        order.setSymbol("BTC/USD");
+                    }
 
                     switch (j.getInt("status")) {
                         case -1:
@@ -273,6 +279,13 @@ public class OkcoinService {
                     order.setFee(new BigDecimal(j.getString("fee")));
                     order.setFilledAmount(new BigDecimal(j.getString("deal_amount")));
 
+                    String symbol = j.getString("contract_name");
+                    if (symbol.contains("LTC")){
+                        order.setSymbol("LTC/USD");
+                    }else if (symbol.contains("BTC")){
+                        order.setSymbol("BTC/USD");
+                    }
+
                     switch (j.getString("status")) {
                         case "-1":
                         case "4":
@@ -301,7 +314,17 @@ public class OkcoinService {
                             break;
                     }
 
-                    //todo contract type & symbol
+                    switch (j.getString("contract_type")){
+                        case "this_week":
+                            order.setSymbolType(SymbolType.THIS_WEEK);
+                            break;
+                        case "next_week":
+                            order.setSymbolType(SymbolType.NEXT_WEEK);
+                            break;
+                        case "quarter":
+                            order.setSymbolType(SymbolType.QUARTER);
+                            break;
+                    }
 
                     return order;
                 });
@@ -345,6 +368,11 @@ public class OkcoinService {
 
                     return trade;
                 });
+    }
+
+    public void orderInfo(String apiKey, String secretKey, Order order){
+        orderInfo(apiKey, secretKey, toSymbol(order.getSymbol()), order.getOrderId(),
+                toContractName(order.getSymbolType()), "2", "1", "50");
     }
 
     public void orderInfo(String apiKey, String secretKey, String symbol, String orderId, String contractType,
@@ -424,6 +452,26 @@ public class OkcoinService {
             return  SymbolType.NEXT_WEEK;
         }else if (channel.contains("quarter")){
             return  SymbolType.QUARTER;
+        }
+
+        return null;
+    }
+
+    public String toSymbol(String symbol){
+        if (symbol.equals("BTC/USD")){
+            return "btc_usd";
+        }else if (symbol.equals("LTC/USD")){
+            return "ltc_usd";
+        }
+
+        return null;
+    }
+
+    public String toContractName(SymbolType symbolType){
+        switch (symbolType){
+            case THIS_WEEK: return "this_week";
+            case NEXT_WEEK: return "next_week";
+            case QUARTER: return "quarter";
         }
 
         return null;

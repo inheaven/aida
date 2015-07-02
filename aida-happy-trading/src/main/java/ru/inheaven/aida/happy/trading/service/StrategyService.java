@@ -25,7 +25,10 @@ public class StrategyService {
 
         strategies.forEach(s -> {
             if (s.getType().equals(StrategyType.PARAGLIDER)){
-                baseStrategies.add(new ParagliderStrategy(s, orderService, orderMapper, tradeService));
+                ParagliderStrategy ps = new ParagliderStrategy(s, orderService, orderMapper, tradeService);
+                ps.start();
+
+                baseStrategies.add(ps);
             }
         });
     }

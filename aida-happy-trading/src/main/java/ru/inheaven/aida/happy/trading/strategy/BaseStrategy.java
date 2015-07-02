@@ -10,7 +10,6 @@ import ru.inheaven.aida.happy.trading.service.TradeService;
 import rx.Observable;
 import rx.Subscription;
 
-import javax.inject.Inject;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,7 +33,6 @@ public class BaseStrategy {
 
     private Strategy strategy;
 
-    @Inject
     public BaseStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService) {
         this.strategy = strategy;
         this.orderService = orderService;
@@ -51,13 +49,9 @@ public class BaseStrategy {
                 .filter(o -> o.getStatus().equals(OrderStatus.CLOSED) || o.getStatus().equals(OrderStatus.CANCELED));
 
         tradeObservable = tradeService.createTradeObserver(strategy);
-
-        if (strategy.isActive()){
-            start();
-        }
     }
 
-    protected void start(){
+    public void start(){
         if (strategy.isActive()){
             return;
         }
@@ -68,7 +62,7 @@ public class BaseStrategy {
         strategy.setActive(true);
     }
 
-    protected void stop(){
+    public void stop(){
         closeOrderSubscription.unsubscribe();
         tradeSubscription.unsubscribe();
 
@@ -91,7 +85,6 @@ public class BaseStrategy {
 
     protected void createOrder(Order order){
         orderService.createOrder(order);
-
         orderMap.put(order.getOrderId(), order);
 
         orderMapper.save(order);
