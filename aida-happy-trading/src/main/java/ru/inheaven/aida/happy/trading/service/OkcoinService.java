@@ -197,14 +197,6 @@ public class OkcoinService {
         return tradingHeartbeatObservable;
     }
 
-    public JsonObservableEndpoint getMarketDataEndpoint() {
-        return marketDataEndpoint;
-    }
-
-    public JsonObservableEndpoint getTradingEndpoint() {
-        return tradingEndpoint;
-    }
-
     private Observable<Order> createOrderObservable() {
         return tradingEndpoint.getJsonObservable()
                 .filter(j -> j.getString("channel", "").equals("ok_futureusd_order_info"))
@@ -213,6 +205,8 @@ public class OkcoinService {
                 .flatMapIterable(j -> j.getJsonArray("orders"))
                 .filter(j -> j.getValueType().equals(JsonValue.ValueType.OBJECT)).map(j -> (JsonObject) j)
                 .map(j -> {
+                    log.info(j.toString());
+
                     Order order = new Order();
                     order.setExchangeType(ExchangeType.OKCOIN_FUTURES);
 
@@ -269,6 +263,8 @@ public class OkcoinService {
                 .map(j -> j.getJsonObject("data"))
                 .filter(j -> j != null)
                 .map(j -> {
+                    log.info(j.toString());
+
                     Order order = new Order();
                     order.setExchangeType(ExchangeType.OKCOIN_FUTURES);
 

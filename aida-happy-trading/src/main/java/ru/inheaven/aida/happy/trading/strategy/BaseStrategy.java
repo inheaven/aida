@@ -1,9 +1,6 @@
 package ru.inheaven.aida.happy.trading.strategy;
 
-import ru.inheaven.aida.happy.trading.entity.Order;
-import ru.inheaven.aida.happy.trading.entity.OrderStatus;
-import ru.inheaven.aida.happy.trading.entity.Strategy;
-import ru.inheaven.aida.happy.trading.entity.Trade;
+import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.OrderService;
 import ru.inheaven.aida.happy.trading.service.TradeService;
@@ -12,6 +9,7 @@ import rx.Subscription;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author inheaven on 002 02.07.15 16:43
@@ -28,6 +26,7 @@ public class BaseStrategy {
 
     private Subscription closeOrderSubscription;
     private Subscription tradeSubscription;
+    private Subscription checkOrderSubscription;
 
     private Map<String, Order> orderMap = new ConcurrentHashMap<>();
 
@@ -58,6 +57,9 @@ public class BaseStrategy {
 
         closeOrderSubscription = closedOrderObservable.subscribe(this::onCloseOrder);
         tradeSubscription = tradeObservable.subscribe(this::onTrade);
+        checkOrderSubscription = tradeObservable.throttleLast(1, TimeUnit.MINUTES).subscribe(this::checkOrders);
+
+        orderMap.forEach((id, o) -> orderService.orderInfo(strategy, o));
 
         strategy.setActive(true);
     }
@@ -65,6 +67,7 @@ public class BaseStrategy {
     public void stop(){
         closeOrderSubscription.unsubscribe();
         tradeSubscription.unsubscribe();
+        checkOrderSubscription.unsubscribe();
 
         strategy.setActive(false);
     }
@@ -81,6 +84,13 @@ public class BaseStrategy {
 
     protected void onTrade(Trade trade){
 
+    }
+
+    protected void checkOrders(Trade trade){
+        orderMap.values().parallelStream()
+                .filter(o -> OrderType.BUY_SET.contains(o.getType()) && o.getPrice().compareTo(trade.getPrice()) > 1)
+                .filter(o -> OrderType.SELL_SET.contains(o.getType()) && o.getPrice().compareTo(trade.getPrice()) < 1)
+                .forEach(o -> orderService.orderInfo(strategy, o));
     }
 
     protected void createOrder(Order order){
