@@ -11,6 +11,11 @@ public class Strategy extends AbstractEntity {
     private String name;
     private StrategyType type;
     private Long accountId;
+
+    private ExchangeType exchangeType;
+    private String symbol;
+    private SymbolType symbolType;
+
     private BigDecimal levelLot;
     private BigDecimal levelSpread;
     private BigDecimal levelSize;
@@ -37,6 +42,30 @@ public class Strategy extends AbstractEntity {
 
     public void setAccountId(Long accountId) {
         this.accountId = accountId;
+    }
+
+    public ExchangeType getExchangeType() {
+        return exchangeType;
+    }
+
+    public void setExchangeType(ExchangeType exchangeType) {
+        this.exchangeType = exchangeType;
+    }
+
+    public String getSymbol() {
+        return symbol;
+    }
+
+    public void setSymbol(String symbol) {
+        this.symbol = symbol;
+    }
+
+    public SymbolType getSymbolType() {
+        return symbolType;
+    }
+
+    public void setSymbolType(SymbolType symbolType) {
+        this.symbolType = symbolType;
     }
 
     public BigDecimal getLevelLot() {

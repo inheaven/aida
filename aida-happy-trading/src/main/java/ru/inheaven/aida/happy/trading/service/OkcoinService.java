@@ -45,6 +45,7 @@ public class OkcoinService {
     private Observable<Trade> tradeObservable;
     private Observable<Depth> depthObservable;
     private Observable<Order> orderObservable;
+    private Observable<Order> realTradesObservable;
 
     private Observable<Long> marketDataHeartbeatObservable;
     private Observable<Long> tradingHeartbeatObservable;
@@ -115,6 +116,9 @@ public class OkcoinService {
             //order info
             orderObservable = createOrderObservable(tradingEndpoint);
 
+            //real trades
+            realTradesObservable = createRealTrades(tradingEndpoint);
+
             //heartbeat
             Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
                 try {
@@ -158,6 +162,10 @@ public class OkcoinService {
 
     public Observable<Order> getOrderObservable() {
         return orderObservable;
+    }
+
+    public Observable<Order> getRealTradesObservable() {
+        return realTradesObservable;
     }
 
     public Observable<Long> getMarketDataHeartbeatObservable() {
@@ -227,6 +235,51 @@ public class OkcoinService {
                 });
     }
 
+    private Observable<Order> createRealTrades(JsonObservableEndpoint tradingEndpoint){
+        return tradingEndpoint.getJsonObservable()
+                .filter(j -> j.getString("channel", "").equals("ok_future_realtrades"))
+                .map(j -> j.getJsonObject("data"))
+                .map(j ->{
+                    Order order = new Order();
+
+                    order.setAmount(new BigDecimal(j.getString("amount")));
+                    order.setOrderId(j.getString("orderid"));
+                    order.setPrice(new BigDecimal(j.getString("price")));
+                    order.setAvgPrice(new BigDecimal(j.getString("price_avg")));
+
+                    switch (j.getString("status")) {
+                        case "-1":
+                        case "4":
+                            order.setStatus(OrderStatus.CANCELED);
+                            break;
+                        case "2":
+                            order.setStatus(OrderStatus.CLOSED);
+                            break;
+                        default:
+                            order.setStatus(OrderStatus.OPEN);
+                            break;
+                    }
+
+                    switch (j.getString("type")) {
+                        case "1":
+                            order.setType(OrderType.OPEN_LONG);
+                            break;
+                        case "2":
+                            order.setType(OrderType.OPEN_SHORT);
+                            break;
+                        case "3":
+                            order.setType(OrderType.CLOSE_LONG);
+                            break;
+                        case "4":
+                            order.setType(OrderType.CLOSE_SHORT);
+                            break;
+                    }
+
+                    return order;
+                });
+
+    }
+
     private Observable<Depth> createDepthObservable(JsonObservableEndpoint marketDataEndpoint) {
         return marketDataEndpoint.getJsonObservable()
                 .filter(j -> j.getString("channel", "").contains("_future_depth_"))
@@ -294,9 +347,30 @@ public class OkcoinService {
                     .add("event", "addChannel")
                     .add("channel", "ok_futureusd_order_info")
                     .add("parameters", parametersSing).build().toString());
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("order info error", e);
         }
+    }
+
+    public void realTrades(String apiKey, String secretKey){
+        try {
+            JsonObject parameters = Json.createObjectBuilder()
+                    .add("api_key", apiKey)
+                    .build();
+
+            JsonObject parametersSing = Json.createObjectBuilder()
+                    .add("api_key", apiKey)
+                    .add("sign", getMD5String(parameters, secretKey))
+                    .build();
+
+            tradingEndpoint.getSession().getBasicRemote().sendText(Json.createObjectBuilder()
+                    .add("event", "addChannel")
+                    .add("channel", "ok_future_realtrades")
+                    .add("parameters", parametersSing).build().toString());
+        } catch (Exception e) {
+            log.error("real trades error", e);
+        }
+
     }
 
     public String getSymbol(String channel){

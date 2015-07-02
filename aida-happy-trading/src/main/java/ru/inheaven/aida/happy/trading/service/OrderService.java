@@ -1,75 +1,40 @@
 package ru.inheaven.aida.happy.trading.service;
 
-import ru.inheaven.aida.happy.trading.entity.ExchangeType;
-import ru.inheaven.aida.happy.trading.entity.Order;
-import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
+import ru.inheaven.aida.happy.trading.entity.*;
+import ru.inheaven.aida.happy.trading.mapper.AccountMapper;
+import rx.Observable;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Stream;
-
-import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CANCELED;
-import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CLOSED;
+import java.util.Objects;
 
 /**
  * @author inheaven on 29.06.2015 23:49.
  */
 @Singleton
 public class OrderService {
-    private Map<Long, Map<String, Order>> orderMap;
-    private Stream<Map<String, Order>> orderMapStream;
+    private Observable<Order> orderObservable;
+
+    private OkcoinService okcoinService;
+    private AccountMapper accountMapper;
 
     @Inject
-    public OrderService(OrderMapper orderMapper, OkcoinService okcoinService) {
-        orderMap = new ConcurrentHashMap<>();
-        orderMapStream = orderMap.values().parallelStream();
+    public OrderService(AccountMapper accountMapper, OkcoinService okcoinService) {
+        this.accountMapper = accountMapper;
+        this.okcoinService = okcoinService;
 
-        //init
-        orderMapper.getOpenOrders().forEach(order -> {
-            getOrders(order.getStrategyId()).put(order.getOrderId(), order);
-        });
+        orderObservable = okcoinService.getOrderObservable()
+                .mergeWith(okcoinService.getRealTradesObservable());
 
-        //order
-        okcoinService.getOrderObservable().subscribe(o -> {
-            if (o.getStatus().equals(CLOSED) || o.getStatus().equals(CANCELED)){
-                Order order = getOrder(ExchangeType.OKCOIN_FUTURES, o.getOrderId());
-
-                if (order != null){
-                    order.update(o);
-                    orderMap.get(order.getStrategyId()).remove(order.getOrderId());
-                    orderMapper.save(order);
-                }
-            }
-        });
-
-        //trade
-        okcoinService.getTradeObservable().subscribe(t -> {
-
-        });
+        accountMapper.getAccounts(ExchangeType.OKCOIN_FUTURES)
+                .forEach(account -> okcoinService.realTrades(account.getApiKey(), account.getSecretKey()));
+                //todo reconnect
     }
 
-    public Map<String, Order> getOrders(Long strategyId){
-        Map<String, Order> map = orderMap.get(strategyId);
-
-        if (map == null){
-            map = new ConcurrentHashMap<>();
-            orderMap.put(strategyId, map);
-        }
-
-        return map;
+    public Observable<Order> createOrderObserver(ExchangeType exchangeType, String symbol, SymbolType symbolType){
+        return orderObservable
+                .filter(o -> Objects.equals(exchangeType, o.getExchangeType()))
+                .filter(o -> Objects.equals(symbol, o.getSymbol()))
+                .filter(o -> Objects.equals(symbolType, o.getSymbolType()));
     }
-
-    public Order getOrder(ExchangeType exchangeType, String orderId){
-        return orderMapStream
-                .filter(m -> m.containsKey(orderId))
-                .map(m -> m.get(orderId))
-                .filter(o -> o.getExchangeType().equals(exchangeType))
-                .findAny()
-                .orElse(null);
-    }
-
-
-
 }

@@ -34,8 +34,8 @@
         where id = #{id}
     </update>
 
-    <select id="selectOpenOrders" resultMap="order">
-        select * from `order` where closed is not null
+    <select id="selectOpenOrders" resultMap="order" parameterType="long">
+        select * from `order` where closed is not null and strategy_id = #{strategyId}
     </select>
 
 </mapper>

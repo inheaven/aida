@@ -35,4 +35,8 @@
     <select id="selectAccountsByClient" parameterType="long" resultMap="account">
         select * from account where client_id = #{clientId}
     </select>
+
+    <select id="selectAccountsByExchange" parameterType="ru.inheaven.aida.happy.trading.entity.ExchangeType" resultMap="account">
+        select * from account where exchange_type = #{exchangeType}
+    </select>
 </mapper>
