@@ -11,6 +11,9 @@ public enum OrderType {
     public final static EnumSet<OrderType> SELL_SET = EnumSet.of(ASK, OPEN_SHORT, CLOSE_LONG);
     public final static EnumSet<OrderType> BUY_SET = EnumSet.of(BID, OPEN_LONG, CLOSE_SHORT);
 
+    public final static EnumSet<OrderType> LONG = EnumSet.of(OPEN_LONG, CLOSE_LONG);
+    public final static EnumSet<OrderType> SHORT = EnumSet.of(OPEN_SHORT, CLOSE_SHORT);
+
     private int code;
 
     OrderType() {

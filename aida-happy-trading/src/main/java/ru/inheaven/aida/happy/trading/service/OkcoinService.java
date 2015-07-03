@@ -354,13 +354,13 @@ public class OkcoinService {
                     Trade trade = new Trade();
 
                     trade.setTradeId(a.getString(0));
+                    trade.setExchangeType(ExchangeType.OKCOIN_FUTURES);
                     trade.setSymbol(getSymbol(j.channel));
                     trade.setSymbolType(getSymbolType(j.channel));
                     trade.setPrice(new BigDecimal(a.getString(1)));
                     trade.setAmount(new BigDecimal(a.getString(2)));
                     trade.setDate(Date.from(LocalTime.parse(a.getString(3)).atDate(now()).toInstant(ofHours(8))));
                     trade.setOrderType(OrderType.valueOf(a.getString(4).toUpperCase()));
-                    trade.setExchangeType(ExchangeType.OKCOIN_FUTURES);
 
                     return trade;
                 });
@@ -428,7 +428,7 @@ public class OkcoinService {
     }
 
     public void createOrder(Order order){
-        //todo create order
+        throw new RuntimeException("websocket create order not implemented");
     }
 
     public String getSymbol(String channel){

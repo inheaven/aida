@@ -148,6 +148,11 @@
             <artifactId>mybatis-guice</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+
         <!-- JSON -->
 
         <dependency>
@@ -185,14 +190,23 @@
         </dependency>
 
         <!-- TEST -->
+
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
         </dependency>
 
+
+        <!-- XChange -->
+
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
+            <groupId>com.xeiam.xchange</groupId>
+            <artifactId>xchange-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.xeiam.xchange</groupId>
+            <artifactId>xchange-okcoin</artifactId>
         </dependency>
     </dependencies>
 

@@ -9,6 +9,7 @@ import ru.inheaven.aida.happy.trading.strategy.ParagliderStrategy;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -16,7 +17,7 @@ import java.util.List;
  */
 @Singleton
 public class StrategyService {
-    private List<BaseStrategy> baseStrategies;
+    private List<BaseStrategy> baseStrategies = new ArrayList<>();
 
     @Inject
     public StrategyService(StrategyMapper strategyMapper, OrderService orderService, OrderMapper orderMapper,

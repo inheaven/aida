@@ -10,9 +10,7 @@ import java.math.BigDecimal;
 public class Strategy extends AbstractEntity {
     private String name;
     private StrategyType type;
-    private Long accountId;
 
-    private ExchangeType exchangeType;
     private String symbol;
     private SymbolType symbolType;
 
@@ -22,8 +20,7 @@ public class Strategy extends AbstractEntity {
 
     private boolean active;
 
-    private String apiKey;
-    private String secretKey;
+    private Account account;;
 
     public String getName() {
         return name;
@@ -39,22 +36,6 @@ public class Strategy extends AbstractEntity {
 
     public void setType(StrategyType type) {
         this.type = type;
-    }
-
-    public Long getAccountId() {
-        return accountId;
-    }
-
-    public void setAccountId(Long accountId) {
-        this.accountId = accountId;
-    }
-
-    public ExchangeType getExchangeType() {
-        return exchangeType;
-    }
-
-    public void setExchangeType(ExchangeType exchangeType) {
-        this.exchangeType = exchangeType;
     }
 
     public String getSymbol() {
@@ -105,19 +86,11 @@ public class Strategy extends AbstractEntity {
         this.active = active;
     }
 
-    public String getApiKey() {
-        return apiKey;
+    public Account getAccount() {
+        return account;
     }
 
-    public void setApiKey(String apiKey) {
-        this.apiKey = apiKey;
-    }
-
-    public String getSecretKey() {
-        return secretKey;
-    }
-
-    public void setSecretKey(String secretKey) {
-        this.secretKey = secretKey;
+    public void setAccount(Account account) {
+        this.account = account;
     }
 }

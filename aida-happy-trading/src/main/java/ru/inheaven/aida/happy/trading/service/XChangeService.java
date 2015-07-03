@@ -1,4 +1,4 @@
-package ru.inheaven.aida.coin.service;
+package ru.inheaven.aida.happy.trading.service;
 
 import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.ExchangeFactory;
@@ -8,50 +8,56 @@ import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.okcoin.FuturesContract;
 import com.xeiam.xchange.okcoin.OkCoinAdapters;
 import com.xeiam.xchange.okcoin.OkCoinExchange;
+import com.xeiam.xchange.okcoin.dto.trade.OkCoinTradeResult;
 import com.xeiam.xchange.okcoin.service.polling.OkCoinTradeServiceRaw;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.inheaven.aida.coin.entity.Account;
-import ru.inheaven.aida.coin.entity.ExchangeType;
-import ru.inheaven.aida.coin.entity.Order;
-import ru.inheaven.aida.coin.entity.OrderStatus;
+import ru.inheaven.aida.happy.trading.entity.Account;
+import ru.inheaven.aida.happy.trading.entity.ExchangeType;
+import ru.inheaven.aida.happy.trading.entity.Order;
+import ru.inheaven.aida.happy.trading.entity.OrderStatus;
+import ru.inheaven.aida.happy.trading.exception.CreateOrderException;
 
-import javax.ejb.Singleton;
-import java.io.IOException;
+import javax.inject.Singleton;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * @author inheaven on 03.05.2015 0:51.
+ * @author inheaven on 03.07.2015 22:20.
  */
 @Singleton
 public class XChangeService {
     private Logger log = LoggerFactory.getLogger(getClass());
 
-    private Map<Account, Exchange> exchangeMap = new ConcurrentHashMap<>();
+    private Map<Long, Exchange> exchangeMap = new ConcurrentHashMap<>();
 
     public Exchange getExchange(Account account){
-        Exchange exchange = exchangeMap.get(account);
+        Exchange exchange = exchangeMap.get(account.getId());
 
         if (exchange == null){
             switch (account.getExchangeType()){
-                case OKCOIN_SPOT:
-                    exchange = ExchangeFactory.INSTANCE.createExchange(new ExchangeSpecification(OkCoinExchange.class));
+                case OKCOIN_FUTURES:
+                    exchange = ExchangeFactory.INSTANCE.createExchange(new ExchangeSpecification(OkCoinExchange.class){{
+                        setApiKey(account.getApiKey());
+                        setSecretKey(account.getSecretKey());
+                        setExchangeSpecificParametersItem("Use_Intl", true);
+                    }});
                     break;
             }
 
-            exchangeMap.put(account, exchange);
+            exchangeMap.put(account.getId(), exchange);
         }
 
         return exchange;
     }
 
-    void placeLimitOrder(Order order) {
+    void placeLimitOrder(Account account, Order order) throws CreateOrderException {
         try {
             String orderId;
 
-            if (order.getAccount().getExchangeType().equals(ExchangeType.OKCOIN_FUTURES)){
-                OkCoinTradeServiceRaw tradeService = (OkCoinTradeServiceRaw) getExchange(order.getAccount()).getPollingTradeService();
+            if (order.getExchangeType().equals(ExchangeType.OKCOIN_FUTURES)){
+                OkCoinTradeServiceRaw tradeService = (OkCoinTradeServiceRaw) getExchange(account).getPollingTradeService();
 
                 FuturesContract futuresContract;
                 switch (order.getSymbolType()){
@@ -68,24 +74,24 @@ public class XChangeService {
                     default: throw new IllegalArgumentException();
                 }
 
-                orderId = String.valueOf(tradeService.futuresTrade(OkCoinAdapters.adaptSymbol(new CurrencyPair(order.getSymbol())),
+                OkCoinTradeResult result = tradeService.futuresTrade(OkCoinAdapters.adaptSymbol(new CurrencyPair(order.getSymbol())),
                         String.valueOf(order.getType().getCode()), order.getPrice().toPlainString(), order.getAmount().toPlainString(),
-                        futuresContract, 0, 10).getOrderId());
+                        futuresContract, 0, 10);
+
+                orderId = String.valueOf(result.getOrderId());
             }else{
-                orderId = getExchange(order.getAccount()).getPollingTradeService()
+                orderId = getExchange(account).getPollingTradeService()
                         .placeLimitOrder(new LimitOrder(com.xeiam.xchange.dto.Order.OrderType.valueOf(order.getType().name()),
                                 order.getAmount(), new CurrencyPair(order.getSymbol()), null, null, order.getPrice()));
             }
 
             order.setOrderId(orderId);
             order.setStatus(OrderStatus.OPEN);
-        } catch (IOException e) {
+            order.setOpen(new Date());
+        } catch (Exception e) {
             log.error("error place limit order -> ", e);
-        }
-    }
 
-    void cancelLimitOrder(Order order) throws IOException {
-        getExchange(order.getAccount()).getPollingTradeService().cancelOrder(order.getOrderId());
-        //todo okcoin future contract name
+            throw new CreateOrderException(e);
+        }
     }
 }

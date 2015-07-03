@@ -121,9 +121,14 @@ public class ClientEditPage extends BasePage{
                         item.add(new FormGroup("name", Model.of("Strategy Name")).add(new RequiredTextField("name")));
                         item.add(new FormGroup("type", Model.of("Type")).add(new DropDownChoice<>("type",
                                 Arrays.asList(StrategyType.values())).setRequired(true)));
-                        item.add(new FormGroup("levelLot", Model.of("Level Lot")).add(new RequiredTextField("levelLot")));
-                        item.add(new FormGroup("levelSpread", Model.of("Level Spread")).add(new RequiredTextField("levelSpread")));
-                        item.add(new FormGroup("levelSize", Model.of("Level Size")).add(new RequiredTextField("levelSize")));
+
+                        item.add(new FormGroup("symbol", Model.of("Symbol")).add(new RequiredTextField("symbol")));
+                        item.add(new FormGroup("symbolType", Model.of("Symbol Type")).add(new DropDownChoice<>("symbolType",
+                                Arrays.asList(SymbolType.values())).setRequired(true)));
+
+                        item.add(new FormGroup("levelLot", Model.of("Lot")).add(new RequiredTextField("levelLot")));
+                        item.add(new FormGroup("levelSpread", Model.of("Spread")).add(new RequiredTextField("levelSpread")));
+                        item.add(new FormGroup("levelSize", Model.of("Size")).add(new RequiredTextField("levelSize")));
 
                         item.add(new BootstrapAjaxLink<Strategy>("delete", item.getModel(), Buttons.Type.Link) {
                             @Override

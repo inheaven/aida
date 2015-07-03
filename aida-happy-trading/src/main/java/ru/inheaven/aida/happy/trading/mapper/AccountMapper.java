@@ -38,7 +38,7 @@ public class AccountMapper extends BaseMapper<Account> {
                 );
 
         account.getStrategies().forEach(s -> {
-            s.setAccountId(account.getId());
+            s.setAccount(account);
             strategyMapper.save(s);
         });
     }

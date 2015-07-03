@@ -1,8 +1,10 @@
 package ru.inheaven.aida.happy.trading.service;
 
+import ru.inheaven.aida.happy.trading.entity.Account;
 import ru.inheaven.aida.happy.trading.entity.ExchangeType;
 import ru.inheaven.aida.happy.trading.entity.Order;
 import ru.inheaven.aida.happy.trading.entity.Strategy;
+import ru.inheaven.aida.happy.trading.exception.CreateOrderException;
 import rx.Observable;
 
 import javax.inject.Inject;
@@ -17,32 +19,34 @@ public class OrderService {
     private Observable<Order> orderObservable;
 
     private OkcoinService okcoinService;
+    private XChangeService xChangeService;
 
     @Inject
-    public OrderService(OkcoinService okcoinService) {
+    public OrderService(OkcoinService okcoinService, XChangeService xChangeService) {
         this.okcoinService = okcoinService;
+        this.xChangeService = xChangeService;
 
         orderObservable = okcoinService.getOrderObservable()
                 .mergeWith(okcoinService.getRealTradesObservable());
     }
 
     public Observable<Order> createOrderObserver(Strategy strategy){
-        okcoinService.realTrades(strategy.getApiKey(), strategy.getSecretKey());
+        okcoinService.realTrades(strategy.getAccount().getApiKey(), strategy.getAccount().getSecretKey());
 
         return orderObservable
-                .filter(o -> Objects.equals(strategy.getExchangeType(), o.getExchangeType()))
+                .filter(o -> Objects.equals(strategy.getAccount().getExchangeType(), o.getExchangeType()))
                 .filter(o -> Objects.equals(strategy.getSymbol(), o.getSymbol()));
     }
 
-    public void createOrder(Order order){
+    public void createOrder(Account account, Order order) throws CreateOrderException {
         if (order.getExchangeType().equals(ExchangeType.OKCOIN_FUTURES)){
-            okcoinService.createOrder(order);
+            xChangeService.placeLimitOrder(account,order);
         }
     }
 
     public void orderInfo(Strategy strategy, Order order){
         if (order.getExchangeType().equals(ExchangeType.OKCOIN_FUTURES)){
-            okcoinService.orderInfo(strategy.getApiKey(), strategy.getSecretKey(), order);
+            okcoinService.orderInfo(strategy.getAccount().getApiKey(), strategy.getAccount().getSecretKey(), order);
         }
     }
 }

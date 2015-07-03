@@ -18,7 +18,7 @@ public class StatusService {
     }
 
     @Inject
-    public StatusService(OkcoinService okcoinService, BroadcastService broadcastService, OrderService orderService) {
+    public StatusService(OkcoinService okcoinService, BroadcastService broadcastService, StrategyService strategyService) {
         okcoinService.getMarketDataHeartbeatObservable().subscribe(l -> {
             broadcastService.broadcast(StatusService.class, "update_market", l);
         });
@@ -44,11 +44,6 @@ public class StatusService {
             orderCount++;
 
             broadcastService.broadcast(StatusService.class, "update_order", orderCount);
-        });
-
-        okcoinService.realTrades("5e94fb8e-73dc-11e4-8382-d8490bd27a4b", "F41C04C8917B62967D12030DA66DF202");
-        okcoinService.getRealTradesObservable().subscribe(o -> {
-            System.out.println(o.getOrderId());
         });
     }
 

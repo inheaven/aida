@@ -6,21 +6,26 @@
         <id column="id" property="id"/>
         <result column="name" property="name"/>
         <result column="type" property="type"/>
-        <result column="account_id" property="accountId"/>
+        <result column="symbol" property="symbol"/>
+        <result column="symbol_type" property="symbolType"/>
+
         <result column="level_lot" property="levelLot"/>
         <result column="level_spread" property="levelSpread"/>
         <result column="level_size" property="levelSize"/>
-        <result column="api_key" property="apiKey"/>
-        <result column="secret_key" property="secretKey"/>
+
+        <result column="active" property="active"/>
+
+        <association property="account" select="ru.inheaven.aida.happy.trading.mapper.AccountMapper.selectAccount"
+                     column="account_id"/>
     </resultMap>
 
     <insert id="insertStrategy" parameterType="ru.inheaven.aida.happy.trading.entity.Strategy" keyProperty="id">
         insert into strategy (`name`, type, account_id, level_lot, level_spread, level_size)
-            value (#{name}, #{type}, #{accountId}, #{levelLot}, #{levelSpread}, #{levelSize})
+            value (#{name}, #{type}, #{account.id}, #{levelLot}, #{levelSpread}, #{levelSize})
     </insert>
 
     <update id="updateStrategy" parameterType="ru.inheaven.aida.happy.trading.entity.Strategy">
-        update strategy set `name` = #{name}, type = #{type}, account_id = #{accountId}, level_lot = #{levelLot},
+        update strategy set `name` = #{name}, type = #{type}, account_id = #{account.id}, level_lot = #{levelLot},
             level_spread = #{levelSpread}, level_size = #{levelSize}
         where id = #{id}
     </update>
@@ -34,8 +39,6 @@
     </select>
 
     <select id="selectActiveStrategies" resultMap="strategy">
-        select strategy.*, api_key, secret_key from strategy
-            left join account on account.id = strategy.account_id
-        where active = true
+        select * from strategy where active = true
     </select>
 </mapper>
