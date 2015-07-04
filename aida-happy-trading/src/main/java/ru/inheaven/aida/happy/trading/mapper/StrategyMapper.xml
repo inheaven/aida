@@ -8,12 +8,11 @@
         <result column="type" property="type"/>
         <result column="symbol" property="symbol"/>
         <result column="symbol_type" property="symbolType"/>
-
         <result column="level_lot" property="levelLot"/>
         <result column="level_spread" property="levelSpread"/>
         <result column="level_size" property="levelSize"/>
-
         <result column="active" property="active"/>
+        <result column="session_start" property="sessionStart"/>
 
         <association property="account" select="ru.inheaven.aida.happy.trading.mapper.AccountMapper.selectAccount"
                      column="account_id"/>

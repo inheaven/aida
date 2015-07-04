@@ -63,6 +63,14 @@ public class BaseStrategy {
 
         closeOrderSubscription = closedOrderObservable.subscribe(o -> {
             try {
+                Order order = orderMap.get(o.getOrderId());
+
+                if (order != null) {
+                    order.close(o);
+                    orderMap.remove(order.getOrderId());
+                    orderMapper.save(order);
+                }
+
                 onCloseOrder(o);
             } catch (Exception e) {
                 log.error("error on close order -> ", e);
@@ -98,13 +106,7 @@ public class BaseStrategy {
     }
 
     protected void onCloseOrder(Order o){
-        Order order = orderMap.get(o.getOrderId());
 
-        if (order != null) {
-            order.close(o);
-            orderMap.remove(order.getOrderId());
-            orderMapper.save(order);
-        }
     }
 
     protected void onTrade(Trade trade){

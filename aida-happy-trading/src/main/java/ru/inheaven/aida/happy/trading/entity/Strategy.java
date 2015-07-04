@@ -3,6 +3,7 @@ package ru.inheaven.aida.happy.trading.entity;
 import ru.inhell.aida.common.entity.AbstractEntity;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * @author inheaven on 02.05.2015 23:48.
@@ -21,6 +22,8 @@ public class Strategy extends AbstractEntity {
     private boolean active;
 
     private Account account;;
+
+    private Date sessionStart;
 
     public String getName() {
         return name;
@@ -92,5 +95,13 @@ public class Strategy extends AbstractEntity {
 
     public void setAccount(Account account) {
         this.account = account;
+    }
+
+    public Date getSessionStart() {
+        return sessionStart;
+    }
+
+    public void setSessionStart(Date sessionStart) {
+        this.sessionStart = sessionStart;
     }
 }

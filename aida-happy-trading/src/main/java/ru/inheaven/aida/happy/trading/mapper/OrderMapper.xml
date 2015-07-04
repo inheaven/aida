@@ -35,7 +35,14 @@
     </update>
 
     <select id="selectOpenOrders" resultMap="order" parameterType="long">
-        select * from `order` where closed is not null and strategy_id = #{strategyId}
+        select * from `order` where status = 'CLOSED' and strategy_id = #{strategyId}
+    </select>
+
+    <select id="selectOrderPosition" parameterType="ru.inheaven.aida.happy.trading.entity.Strategy"
+            resultType="ru.inheaven.aida.happy.trading.entity.OrderPosition">
+        select `type`, count(id) as `count` from `order`
+          where strategy_id = #{id} and status = 'CLOSED' and `closed` > #{sessionStart}
+            group by `type`;
     </select>
 
 </mapper>
