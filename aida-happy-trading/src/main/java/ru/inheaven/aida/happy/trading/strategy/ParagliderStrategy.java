@@ -48,8 +48,7 @@ public class ParagliderStrategy extends BaseStrategy{
             }
         }
 
-        BigDecimal priceSpread = trade.getPrice()
-                .multiply(strategy.getLevelSpread());
+        BigDecimal priceSpread = trade.getPrice().multiply(strategy.getLevelSpread());
 
         if (!getOrderMap().values().parallelStream()
                 .filter(order -> order.getPrice().subtract(trade.getPrice()).abs().compareTo(priceSpread) < 0)
@@ -58,11 +57,11 @@ public class ParagliderStrategy extends BaseStrategy{
             try {
                 BigDecimal delta = priceSpread.divide(BigDecimal.valueOf(2), HALF_UP);
 
-                createOrder(new Order(strategy, OPEN_LONG, trade.getPrice().subtract(delta).add(getBalance(delta)), ONE));
-                createOrder(new Order(strategy, CLOSE_SHORT, trade.getPrice().subtract(delta).add(getBalance(delta)), ONE));
+                createOrder(new Order(strategy, OPEN_LONG, trade.getPrice().subtract(delta).subtract(getBalance(delta)), ONE));
+                createOrder(new Order(strategy, CLOSE_SHORT, trade.getPrice().subtract(delta).subtract(getBalance(delta)), ONE));
 
-                createOrder(new Order(strategy, OPEN_SHORT, trade.getPrice().add(delta).add(getBalance(delta)), ONE));
-                createOrder(new Order(strategy, CLOSE_LONG, trade.getPrice().add(delta).add(getBalance(delta)), ONE));
+                createOrder(new Order(strategy, OPEN_SHORT, trade.getPrice().add(delta).subtract(getBalance(delta)), ONE));
+                createOrder(new Order(strategy, CLOSE_LONG, trade.getPrice().add(delta).subtract(getBalance(delta)), ONE));
             } catch (CreateOrderException e) {
                 errorCount++;
                 errorTime = System.currentTimeMillis();

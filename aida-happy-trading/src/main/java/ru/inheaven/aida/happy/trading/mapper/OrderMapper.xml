@@ -35,7 +35,7 @@
     </update>
 
     <select id="selectOpenOrders" resultMap="order" parameterType="long">
-        select * from `order` where status = 'CLOSED' and strategy_id = #{strategyId}
+        select * from `order` where closed is null and strategy_id = #{strategyId}
     </select>
 
     <select id="selectOrderPosition" parameterType="ru.inheaven.aida.happy.trading.entity.Strategy"

@@ -206,7 +206,7 @@ public class OkcoinService {
                 .flatMapIterable(j -> j.getJsonArray("orders"))
                 .filter(j -> j.getValueType().equals(JsonValue.ValueType.OBJECT)).map(j -> (JsonObject) j)
                 .map(j -> {
-                    log.info(j.toString());
+                    log.info("ok_futureusd_order_info -> " + j.toString());
 
                     Order order = new Order();
                     order.setExchangeType(ExchangeType.OKCOIN_FUTURES);
@@ -264,7 +264,7 @@ public class OkcoinService {
                 .map(j -> j.getJsonObject("data"))
                 .filter(j -> j != null)
                 .map(j -> {
-                    log.info(j.toString());
+                    log.info("ok_usd_future_realtrades -> " + j.toString());
 
                     Order order = new Order();
                     order.setExchangeType(ExchangeType.OKCOIN_FUTURES);
