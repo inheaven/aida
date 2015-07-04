@@ -40,7 +40,9 @@ public class StatusService {
 
         });
 
-        okcoinService.getOrderObservable().subscribe(order -> {
+        okcoinService.getOrderObservable()
+                .mergeWith(okcoinService.getRealTradesObservable())
+                .subscribe(order -> {
             orderCount++;
 
             broadcastService.broadcast(StatusService.class, "update_order", orderCount);

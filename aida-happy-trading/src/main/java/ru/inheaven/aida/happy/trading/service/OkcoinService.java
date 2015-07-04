@@ -92,9 +92,10 @@ public class OkcoinService {
                     try {
                         session.getBasicRemote().sendText("[" +
                                         "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_this_week'}," +
-                                        "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_this_week'}," +
-                                        "{'event':'addChannel','channel':'ok_btcusd_future_depth_this_week_60'}," +
-                                        "{'event':'addChannel','channel':'ok_ltcusd_future_depth_this_week_60'}]"
+                                        "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_this_week'}" +
+//                                        "{'event':'addChannel','channel':'ok_btcusd_future_depth_this_week_60'}," +
+//                                        "{'event':'addChannel','channel':'ok_ltcusd_future_depth_this_week_60'}" +
+                                        "]"
                         );
                     } catch (IOException e) {
                         log.error("error add channel ->", e);

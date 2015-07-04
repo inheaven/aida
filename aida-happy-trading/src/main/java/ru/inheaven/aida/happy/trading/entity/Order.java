@@ -40,12 +40,11 @@ public class Order extends AbstractEntity {
         this.amount = amount;
     }
 
-    public void update(Order order){
+    public void close(Order order){
         filledAmount = order.filledAmount;
         avgPrice = order.avgPrice;
         fee = order.fee;
-        open  = order.open;
-        closed = order.closed;
+        closed = order.closed != null ? order.closed : new Date();
         status = order.status;
     }
 

@@ -101,8 +101,7 @@ public class BaseStrategy {
         Order order = orderMap.get(o.getOrderId());
 
         if (order != null) {
-            order.update(o);
-            order.setClosed(new Date());
+            order.close(o);
             orderMap.remove(order.getOrderId());
             orderMapper.save(order);
         }
