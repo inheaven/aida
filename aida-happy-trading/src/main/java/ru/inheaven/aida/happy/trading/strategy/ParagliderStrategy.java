@@ -48,29 +48,38 @@ public class ParagliderStrategy extends BaseStrategy{
             }
         }
 
-        BigDecimal priceSpread = trade.getPrice().multiply(strategy.getLevelSpread());
+        BigDecimal delta = trade.getPrice().multiply(strategy.getLevelSpread()).divide(BigDecimal.valueOf(2), HALF_UP);
 
-        if (!getOrderMap().values().parallelStream()
-                .filter(order -> order.getPrice().subtract(trade.getPrice()).abs().compareTo(priceSpread) < 0)
-                .findAny()
-                .isPresent()){
-            try {
-                BigDecimal delta = priceSpread.divide(BigDecimal.valueOf(2), HALF_UP);
-
-                createOrder(new Order(strategy, OPEN_LONG, trade.getPrice().subtract(delta).subtract(getBalance(delta)), ONE));
-                createOrder(new Order(strategy, CLOSE_SHORT, trade.getPrice().subtract(delta).subtract(getBalance(delta)), ONE));
-
-                createOrder(new Order(strategy, OPEN_SHORT, trade.getPrice().add(delta).subtract(getBalance(delta)), ONE));
-                createOrder(new Order(strategy, CLOSE_LONG, trade.getPrice().add(delta).subtract(getBalance(delta)), ONE));
-            } catch (CreateOrderException e) {
-                errorCount++;
-                errorTime = System.currentTimeMillis();
+        try {
+            if (!getOrderMap().values().parallelStream()
+                    .filter(order -> OrderType.LONG.contains(order.getType()))
+                    .filter(order -> order.getPrice().subtract(trade.getPrice()).abs()
+                            .compareTo(delta.multiply(BigDecimal.valueOf(1.25))) < 0)
+                    .findAny()
+                    .isPresent()){
+                BigDecimal balanceLong = getBalance(delta);
+                createOrder(new Order(strategy, OPEN_LONG, trade.getPrice().subtract(delta).subtract(balanceLong), ONE));
+                createOrder(new Order(strategy, CLOSE_LONG, trade.getPrice().add(delta).subtract(balanceLong), ONE));
             }
+
+            if (!getOrderMap().values().parallelStream()
+                    .filter(order -> OrderType.SHORT.contains(order.getType()))
+                    .filter(order -> order.getPrice().subtract(trade.getPrice()).abs()
+                            .compareTo(delta.multiply(BigDecimal.valueOf(1.25))) < 0)
+                    .findAny()
+                    .isPresent()){
+                BigDecimal balanceShort = getBalance(delta);
+                createOrder(new Order(strategy, OPEN_SHORT, trade.getPrice().add(delta).subtract(balanceShort), ONE));
+                createOrder(new Order(strategy, CLOSE_SHORT, trade.getPrice().subtract(delta).subtract(balanceShort), ONE));
+            }
+        } catch (CreateOrderException e) {
+            errorCount++;
+            errorTime = System.currentTimeMillis();
         }
     }
 
     private BigDecimal getBalance(BigDecimal delta){
-        return delta.multiply(BigDecimal.valueOf(random.nextDouble() * signum(orderPositionDelta)));
+        return delta.multiply(BigDecimal.valueOf(random.nextDouble() * signum(orderPositionDelta) / 2));
     }
 
     @Override

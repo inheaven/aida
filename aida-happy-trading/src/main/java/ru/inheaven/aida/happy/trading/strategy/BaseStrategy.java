@@ -2,7 +2,10 @@ package ru.inheaven.aida.happy.trading.strategy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.inheaven.aida.happy.trading.entity.*;
+import ru.inheaven.aida.happy.trading.entity.Order;
+import ru.inheaven.aida.happy.trading.entity.OrderStatus;
+import ru.inheaven.aida.happy.trading.entity.Strategy;
+import ru.inheaven.aida.happy.trading.entity.Trade;
 import ru.inheaven.aida.happy.trading.exception.CreateOrderException;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.OrderService;
@@ -14,6 +17,11 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+
+import static java.math.RoundingMode.HALF_UP;
+import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CREATED;
+import static ru.inheaven.aida.happy.trading.entity.OrderType.BUY_SET;
+import static ru.inheaven.aida.happy.trading.entity.OrderType.SELL_SET;
 
 /**
  * @author inheaven on 002 02.07.15 16:43
@@ -67,7 +75,7 @@ public class BaseStrategy {
 
                 if (order != null) {
                     order.close(o);
-                    orderMap.remove(order.getOrderId());
+                    orderMap.remove(o.getOrderId());
                     orderMapper.save(order);
                 }
 
@@ -114,24 +122,27 @@ public class BaseStrategy {
 
     protected void checkOrders(Trade trade){
         orderMap.values().parallelStream()
-                .filter(o -> OrderType.BUY_SET.contains(o.getType()) && o.getPrice().compareTo(trade.getPrice()) > 1)
-                .filter(o -> OrderType.SELL_SET.contains(o.getType()) && o.getPrice().compareTo(trade.getPrice()) < 1)
+                .filter(o -> (BUY_SET.contains(o.getType()) && o.getPrice().compareTo(trade.getPrice()) > 1)
+                                || SELL_SET.contains(o.getType()) && o.getPrice().compareTo(trade.getPrice()) < 1)
                 .forEach(o -> orderService.orderInfo(strategy, o));
     }
 
     protected void createOrder(Order order) throws CreateOrderException {
         order.setCreated(new Date());
-        order.setStatus(OrderStatus.CREATED);
+        order.setStatus(CREATED);
+        order.setPrice(order.getPrice().setScale(8, HALF_UP));
 
-        String createdOrderId = System.nanoTime() + "";
+        String createdOrderId = "CREATED->" + System.nanoTime();
+        order.setOrderId(createdOrderId);
         orderMap.put(createdOrderId, order);
 
-        orderService.createOrder(strategy.getAccount(), order);
-
-        orderMap.remove(createdOrderId);
-        orderMap.put(order.getOrderId(), order);
-
-        orderMapper.save(order);
+        try {
+            orderService.createOrder(strategy.getAccount(), order);
+            orderMap.put(order.getOrderId(), order);
+            orderMapper.save(order);
+        } finally {
+            orderMap.remove(createdOrderId);
+        }
     }
 
     public Map<String, Order> getOrderMap() {

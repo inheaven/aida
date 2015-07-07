@@ -18,7 +18,7 @@
                      column="account_id"/>
     </resultMap>
 
-    <insert id="insertStrategy" parameterType="ru.inheaven.aida.happy.trading.entity.Strategy" keyProperty="id">
+    <insert id="insertStrategy" parameterType="ru.inheaven.aida.happy.trading.entity.Strategy" keyProperty="id" useGeneratedKeys="true">
         insert into strategy (`name`, type, account_id, level_lot, level_spread, level_size)
             value (#{name}, #{type}, #{account.id}, #{levelLot}, #{levelSpread}, #{levelSize})
     </insert>

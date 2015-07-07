@@ -17,7 +17,7 @@
         select * from account where id = #{id}
     </select>
 
-    <insert id="insertAccount" parameterType="ru.inheaven.aida.happy.trading.entity.Account" keyProperty="id">
+    <insert id="insertAccount" parameterType="ru.inheaven.aida.happy.trading.entity.Account" keyProperty="id" useGeneratedKeys="true">
         insert into account (client_id, `name`, exchange_type, api_key, secret_key)
             value (#{clientId}, #{name}, #{exchangeType}, #{apiKey}, #{secretKey});
     </insert>

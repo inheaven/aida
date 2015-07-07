@@ -21,7 +21,7 @@
         <result column="status" property="status"/>
     </resultMap>
 
-    <insert id="insertOrder" parameterType="ru.inheaven.aida.happy.trading.entity.Order" keyProperty="id">
+    <insert id="insertOrder" parameterType="ru.inheaven.aida.happy.trading.entity.Order" keyProperty="id" useGeneratedKeys="true">
         insert into `order` (order_id, strategy_id, exchange_type, type, symbol, symbol_type, price, amount,
                              filled_amount, avg_price, fee, created, `open`, closed, `status`)
         value (#{orderId}, #{strategyId}, #{exchangeType}, #{type}, #{symbol}, #{symbolType}, #{price}, #{amount},

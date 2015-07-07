@@ -23,7 +23,7 @@
         select * from `client` where id = #{id}
     </select>
 
-    <insert id="insertClient" parameterType="ru.inheaven.aida.happy.trading.entity.Client" keyProperty="id">
+    <insert id="insertClient" parameterType="ru.inheaven.aida.happy.trading.entity.Client" keyProperty="id" useGeneratedKeys="true">
         insert into client (login, `name`, `password`) value (#{login}, #{name}, #{password})
     </insert>
 
