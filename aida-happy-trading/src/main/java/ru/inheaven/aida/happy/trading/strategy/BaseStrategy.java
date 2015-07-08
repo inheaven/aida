@@ -123,7 +123,7 @@ public class BaseStrategy {
     protected void checkOrders(Trade trade){
         orderMap.values().parallelStream()
                 .filter(o -> (BUY_SET.contains(o.getType()) && o.getPrice().compareTo(trade.getPrice()) > 1)
-                                || SELL_SET.contains(o.getType()) && o.getPrice().compareTo(trade.getPrice()) < 1)
+                                || (SELL_SET.contains(o.getType()) && o.getPrice().compareTo(trade.getPrice()) < 1))
                 .forEach(o -> orderService.orderInfo(strategy, o));
     }
 

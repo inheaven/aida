@@ -40,7 +40,7 @@ public class ParagliderStrategy extends BaseStrategy{
     @Override
     protected void onTrade(Trade trade) {
         if (errorCount > 10){
-            if (System.currentTimeMillis() - errorTime < 600000){
+            if (System.currentTimeMillis() - errorTime < 60000){
                 return;
             }else{
                 errorCount = 0;

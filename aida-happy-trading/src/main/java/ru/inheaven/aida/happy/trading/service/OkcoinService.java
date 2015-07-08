@@ -47,6 +47,8 @@ public class OkcoinService {
     private Observable<Long> marketDataHeartbeatObservable;
     private Observable<Long> tradingHeartbeatObservable;
 
+    private long lastTrade = System.currentTimeMillis();
+    private long lastOrder = System.currentTimeMillis();
 
     private Set<String> tradesChannels = new HashSet<>();
 
@@ -117,6 +119,32 @@ public class OkcoinService {
                     });
                 }
             };
+
+            Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(()->{
+                try {
+                    long now = System.currentTimeMillis();
+
+                    if (now - lastOrder > 600000 || now - lastTrade > 300000) {
+                        marketDataEndpoint.getSession().getBasicRemote().sendText("[" +
+                                        "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_this_week'}," +
+                                        "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_this_week'}" +
+                                        "]"
+                        );
+
+                        tradesChannels.forEach(s -> {
+                            try {
+                                tradingEndpoint.getSession().getBasicRemote().sendText(s);
+                            } catch (IOException e) {
+                                log.error("error add channel ->", e);
+                            }
+                        });
+
+                        log.info("add channels");
+                    }
+                } catch (IOException e) {
+                    log.error("error add channel ->", e);
+                }
+            }, 0, 1, TimeUnit.MINUTES);
 
             client.connectToServer(marketDataEndpoint, URI.create(OKCOIN_WSS));
             client.connectToServer(tradingEndpoint, URI.create(OKCOIN_WSS));
@@ -266,6 +294,8 @@ public class OkcoinService {
                 .map(j -> {
                     log.info("ok_usd_future_realtrades -> " + j.toString());
 
+                    lastOrder = System.currentTimeMillis();
+
                     Order order = new Order();
                     order.setExchangeType(ExchangeType.OKCOIN_FUTURES);
 
@@ -350,6 +380,8 @@ public class OkcoinService {
                 .flatMapIterable(j -> j.getJsonArray("data"), (o, v) -> new JsonData(o.getString("channel"), v))
                 .filter(d -> d.value.getValueType().equals(JsonValue.ValueType.ARRAY))
                 .map(j -> {
+                    lastTrade = System.currentTimeMillis();
+
                     JsonArray a = (JsonArray) j.value;
 
                     Trade trade = new Trade();

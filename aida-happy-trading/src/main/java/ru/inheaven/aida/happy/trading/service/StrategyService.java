@@ -1,10 +1,10 @@
 package ru.inheaven.aida.happy.trading.service;
 
 import ru.inheaven.aida.happy.trading.entity.Strategy;
-import ru.inheaven.aida.happy.trading.entity.StrategyType;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.mapper.StrategyMapper;
 import ru.inheaven.aida.happy.trading.strategy.BaseStrategy;
+import ru.inheaven.aida.happy.trading.strategy.LevelStrategy;
 import ru.inheaven.aida.happy.trading.strategy.ParagliderStrategy;
 
 import javax.inject.Inject;
@@ -25,12 +25,22 @@ public class StrategyService {
         List<Strategy> strategies = strategyMapper.getActiveStrategies();
 
         strategies.forEach(s -> {
-            if (s.getType().equals(StrategyType.PARAGLIDER)){
-                ParagliderStrategy ps = new ParagliderStrategy(s, orderService, orderMapper, tradeService);
-                ps.start();
+            BaseStrategy baseStrategy;
 
-                baseStrategies.add(ps);
+            switch (s.getType()){
+                case LEVEL:
+                    baseStrategy = new LevelStrategy(s, orderService, orderMapper, tradeService);
+                    baseStrategy.start();
+                    break;
+                case PARAGLIDER:
+                    baseStrategy = new ParagliderStrategy(s, orderService, orderMapper, tradeService);
+                    baseStrategy.start();
+                    break;
+                default:
+                    throw new IllegalArgumentException();
             }
+
+            baseStrategies.add(baseStrategy);
         });
     }
 
