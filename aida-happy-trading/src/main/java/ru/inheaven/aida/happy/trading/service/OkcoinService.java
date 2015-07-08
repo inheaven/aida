@@ -52,6 +52,8 @@ public class OkcoinService {
 
     private Set<String> tradesChannels = new HashSet<>();
 
+    private ClientManager client;
+
     private class JsonData{
         private String channel;
         private JsonValue value;
@@ -64,7 +66,7 @@ public class OkcoinService {
 
     public OkcoinService(){
         try {
-            ClientManager client = ClientManager.createClient(JdkClientContainer.class.getName());
+            client = ClientManager.createClient(JdkClientContainer.class.getName());
 
             ClientManager.ReconnectHandler reconnectHandler = new ClientManager.ReconnectHandler(){
                 private int reconnectCount = 0;
@@ -99,32 +101,42 @@ public class OkcoinService {
 //                                        "{'event':'addChannel','channel':'ok_ltcusd_future_depth_this_week_60'}" +
                                         "]"
                         );
+
+                        tradesChannels.forEach(s -> {
+                            try {
+                                session.getBasicRemote().sendText(s);
+                            } catch (IOException e) {
+                                log.error("error add channel -> ", e);
+                            }
+                        });
                     } catch (IOException e) {
                         log.error("error add channel ->", e);
                     }
                 }
             };
 
-            tradingEndpoint = new JsonObservableEndpoint(){
-                @Override
-                public void onOpen(Session session, EndpointConfig config) {
-                    super.onOpen(session, config);
+            tradingEndpoint = marketDataEndpoint;
 
-                    tradesChannels.forEach(s -> {
-                        try {
-                            session.getBasicRemote().sendText(s);
-                        } catch (IOException e) {
-                            log.error("error add channel -> ", e);
-                        }
-                    });
-                }
-            };
+//            tradingEndpoint = new JsonObservableEndpoint(){
+//                @Override
+//                public void onOpen(Session session, EndpointConfig config) {
+//                    super.onOpen(session, config);
+//
+//                    tradesChannels.forEach(s -> {
+//                        try {
+//                            session.getBasicRemote().sendText(s);
+//                        } catch (IOException e) {
+//                            log.error("error add channel -> ", e);
+//                        }
+//                    });
+//                }
+//            };
 
             Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(()->{
                 try {
                     long now = System.currentTimeMillis();
 
-                    if (now - lastOrder > 600000 || now - lastTrade > 300000) {
+                    if (now - lastOrder > 300000 || now - lastTrade > 300000) {
                         marketDataEndpoint.getSession().getBasicRemote().sendText("[" +
                                         "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_this_week'}," +
                                         "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_this_week'}" +
@@ -200,6 +212,11 @@ public class OkcoinService {
         } catch (Exception e) {
             log.error("error connect to server ->", e);
         }
+
+        //reconnect
+        tradingEndpoint.getJsonObservable()
+                .filter(j -> j.getString("errorcode", "").equals("20024"))
+                .subscribe(j -> reconnect());
     }
 
     public Observable<Trade> getTradeObservable() {
@@ -224,6 +241,15 @@ public class OkcoinService {
 
     public Observable<Long> getTradingHeartbeatObservable() {
         return tradingHeartbeatObservable;
+    }
+
+    private void reconnect(){
+        try {
+            marketDataEndpoint.getSession().close(new CloseReason(CloseReason.CloseCodes.SERVICE_RESTART, "restart"));
+            tradingEndpoint.getSession().close(new CloseReason(CloseReason.CloseCodes.SERVICE_RESTART, "restart"));
+        } catch (Exception e) {
+            log.error("error reconnect -> ", e);
+        }
     }
 
     private Observable<Order> createOrderObservable() {

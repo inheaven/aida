@@ -27,13 +27,18 @@ public class JsonObservableEndpoint extends Endpoint{
 
         jsonObservable = subject
                 .flatMapIterable(s -> {
-                    JsonStructure j = Json.createReader(new StringReader(s)).read();
+                    try {
+                        JsonStructure j = Json.createReader(new StringReader(s)).read();
 
-                    return j.getValueType().equals(JsonValue.ValueType.ARRAY)
-                            ? (JsonArray) j
-                            : Collections.singletonList(j);
+                        return j.getValueType().equals(JsonValue.ValueType.ARRAY)
+                                ? (JsonArray) j
+                                : Collections.singletonList(j);
+                    } catch (Exception e) {
+                        log.error("error parse -> {}", s);
+                        return null;
+                    }
                 })
-                .filter(j -> j.getValueType().equals(JsonValue.ValueType.OBJECT))
+                .filter(j -> j != null && j.getValueType().equals(JsonValue.ValueType.OBJECT))
                 .map(j -> (JsonObject)j);
     }
 

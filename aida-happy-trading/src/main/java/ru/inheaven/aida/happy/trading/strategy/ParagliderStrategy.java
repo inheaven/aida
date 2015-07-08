@@ -10,7 +10,6 @@ import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.Map;
 
-import static java.lang.Math.signum;
 import static java.math.BigDecimal.ONE;
 import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.*;
@@ -54,10 +53,10 @@ public class ParagliderStrategy extends BaseStrategy{
             if (!getOrderMap().values().parallelStream()
                     .filter(order -> OrderType.LONG.contains(order.getType()))
                     .filter(order -> order.getPrice().subtract(trade.getPrice()).abs()
-                            .compareTo(delta.multiply(BigDecimal.valueOf(1.25))) < 0)
+                            .compareTo(delta.multiply(BigDecimal.valueOf(3))) < 0)
                     .findAny()
                     .isPresent()){
-                BigDecimal balanceLong = getBalance(delta);
+                BigDecimal balanceLong = delta.multiply(BigDecimal.valueOf(1));
                 createOrder(new Order(strategy, OPEN_LONG, trade.getPrice().subtract(delta).subtract(balanceLong), ONE));
                 createOrder(new Order(strategy, CLOSE_LONG, trade.getPrice().add(delta).subtract(balanceLong), ONE));
             }
@@ -65,10 +64,10 @@ public class ParagliderStrategy extends BaseStrategy{
             if (!getOrderMap().values().parallelStream()
                     .filter(order -> OrderType.SHORT.contains(order.getType()))
                     .filter(order -> order.getPrice().subtract(trade.getPrice()).abs()
-                            .compareTo(delta.multiply(BigDecimal.valueOf(1.25))) < 0)
+                            .compareTo(delta.multiply(BigDecimal.valueOf(3))) < 0)
                     .findAny()
                     .isPresent()){
-                BigDecimal balanceShort = getBalance(delta);
+                BigDecimal balanceShort = delta.multiply(BigDecimal.valueOf(-1));
                 createOrder(new Order(strategy, OPEN_SHORT, trade.getPrice().add(delta).subtract(balanceShort), ONE));
                 createOrder(new Order(strategy, CLOSE_SHORT, trade.getPrice().subtract(delta).subtract(balanceShort), ONE));
             }
@@ -79,7 +78,7 @@ public class ParagliderStrategy extends BaseStrategy{
     }
 
     private BigDecimal getBalance(BigDecimal delta){
-        return delta.multiply(BigDecimal.valueOf(random.nextDouble() * signum(orderPositionDelta) / 2));
+        return delta.multiply(BigDecimal.valueOf(random.nextGaussian() * Math.signum(orderPositionDelta) / 2));
     }
 
     @Override
