@@ -54,6 +54,8 @@ public class OkcoinService {
 
     private ClientManager client;
 
+    private boolean destroy = false;
+
     private class JsonData{
         private String channel;
         private JsonValue value;
@@ -75,14 +77,14 @@ public class OkcoinService {
                 public boolean onDisconnect(CloseReason closeReason) {
                     log.warn("reconnect -> {}", closeReason.toString());
 
-                    return true;
+                    return !destroy;
                 }
 
                 @Override
                 public boolean onConnectFailure(Exception exception) {
                     log.warn("connection failure -> {}", reconnectCount++);
 
-                    return true;
+                    return !destroy;
                 }
             };
 
@@ -565,5 +567,18 @@ public class OkcoinService {
         }
 
         return null;
+    }
+
+    public void start(){
+
+    }
+
+    public void destroy(){
+        destroy = true;
+        try {
+            marketDataEndpoint.getSession().close();
+        } catch (IOException e) {
+            log.error("error close connection -> ", e);
+        }
     }
 }
