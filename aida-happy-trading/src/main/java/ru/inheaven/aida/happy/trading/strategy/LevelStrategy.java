@@ -45,18 +45,17 @@ public class LevelStrategy extends BaseStrategy{
             }
         }
 
-        BigDecimal delta = trade.getPrice().multiply(strategy.getLevelSpread()).divide(BigDecimal.valueOf(2), HALF_UP);
+        BigDecimal spread = trade.getPrice().multiply(strategy.getLevelSpread()).setScale(8, HALF_UP);
 
         try {
             if (!getOrderMap().values().parallelStream()
                     .filter(order -> OrderType.LONG.contains(order.getType()))
                     .filter(order -> order.getPrice().subtract(trade.getPrice()).abs()
-                            .compareTo(delta.multiply(BigDecimal.valueOf(1.25))) < 0)
+                            .compareTo(spread.multiply(BigDecimal.valueOf(2))) <= 0)
                     .findAny()
                     .isPresent()){
-                BigDecimal balanceLong = getBalance(delta);
-                createOrder(new Order(strategy, OPEN_LONG, trade.getPrice().subtract(delta).subtract(balanceLong), ONE));
-                createOrder(new Order(strategy, CLOSE_LONG, trade.getPrice().add(delta).subtract(balanceLong), ONE));
+                createOrder(new Order(strategy, OPEN_LONG, trade.getPrice().subtract(spread), ONE));
+                createOrder(new Order(strategy, CLOSE_LONG, trade.getPrice(), ONE));
             }
         } catch (CreateOrderException e) {
             errorCount++;

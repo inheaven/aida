@@ -23,6 +23,7 @@ public class TradeService {
     public Observable<Trade> createTradeObserver(Strategy strategy){
         return tradeObservable
                 .filter(t -> Objects.equals(strategy.getAccount().getExchangeType(), t.getExchangeType()))
-                .filter(t -> Objects.equals(strategy.getSymbol(), t.getSymbol()));
+                .filter(t -> Objects.equals(strategy.getSymbol(), t.getSymbol()))
+                .filter(t -> Objects.equals(strategy.getSymbolType(), t.getSymbolType()));
     }
 }

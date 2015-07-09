@@ -19,8 +19,8 @@
     </resultMap>
 
     <insert id="insertStrategy" parameterType="ru.inheaven.aida.happy.trading.entity.Strategy" keyProperty="id" useGeneratedKeys="true">
-        insert into strategy (`name`, type, account_id, level_lot, level_spread, level_size)
-            value (#{name}, #{type}, #{account.id}, #{levelLot}, #{levelSpread}, #{levelSize})
+        insert into strategy (`name`, type, account_id, symbol, symbol_type, level_lot, level_spread, level_size, active, session_start)
+            value (#{name}, #{type}, #{account.id}, #{symbol}, #{symbolType}, #{levelLot}, #{levelSpread}, #{levelSize}, #{active}, #{sessionStart})
     </insert>
 
     <update id="updateStrategy" parameterType="ru.inheaven.aida.happy.trading.entity.Strategy">

@@ -27,6 +27,7 @@ import ru.inheaven.aida.happy.trading.web.BasePage;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -156,7 +157,11 @@ public class ClientEditPage extends BasePage{
                 item.add(new AjaxLink<Account>("add_strategy", item.getModel()) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        getModelObject().getStrategies().add(new Strategy());
+                        Strategy strategy = new Strategy();
+                        strategy.setSessionStart(new Date());
+                        strategy.setActive(true);
+
+                        getModelObject().getStrategies().add(strategy);
                         target.add(strategiesContainer);
                     }
                 });

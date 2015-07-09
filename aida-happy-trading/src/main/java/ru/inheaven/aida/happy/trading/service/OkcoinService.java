@@ -132,14 +132,14 @@ public class OkcoinService {
 //                }
 //            };
 
-            Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(()->{
+            Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
                 try {
                     long now = System.currentTimeMillis();
 
                     if (now - lastOrder > 300000 || now - lastTrade > 300000) {
                         marketDataEndpoint.getSession().getBasicRemote().sendText("[" +
-                                        "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_this_week'}," +
-                                        "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_this_week'}" +
+                                        "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_this_week'}," +
+                                        "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_quarter'}" +
                                         "]"
                         );
 
@@ -159,7 +159,7 @@ public class OkcoinService {
             }, 0, 1, TimeUnit.MINUTES);
 
             client.connectToServer(marketDataEndpoint, URI.create(OKCOIN_WSS));
-            client.connectToServer(tradingEndpoint, URI.create(OKCOIN_WSS));
+            //client.connectToServer(tradingEndpoint, URI.create(OKCOIN_WSS));
 
             //trade
             tradeObservable = createTradeObservable();
@@ -245,8 +245,9 @@ public class OkcoinService {
 
     private void reconnect(){
         try {
-            marketDataEndpoint.getSession().close(new CloseReason(CloseReason.CloseCodes.SERVICE_RESTART, "restart"));
-            tradingEndpoint.getSession().close(new CloseReason(CloseReason.CloseCodes.SERVICE_RESTART, "restart"));
+            client.connectToServer(marketDataEndpoint, URI.create(OKCOIN_WSS));
+//            marketDataEndpoint.getSession().close(new CloseReason(CloseReason.CloseCodes.SERVICE_RESTART, "restart"));
+//            tradingEndpoint.getSession().close(new CloseReason(CloseReason.CloseCodes.SERVICE_RESTART, "restart"));
         } catch (Exception e) {
             log.error("error reconnect -> ", e);
         }
@@ -255,6 +256,7 @@ public class OkcoinService {
     private Observable<Order> createOrderObservable() {
         return tradingEndpoint.getJsonObservable()
                 .filter(j -> j.getString("channel", "").equals("ok_futureusd_order_info"))
+                .filter(j -> j.getJsonObject("data") != null)
                 .map(j -> j.getJsonObject("data"))
                 .filter(j -> j.getBoolean("result"))
                 .flatMapIterable(j -> j.getJsonArray("orders"))
@@ -274,9 +276,9 @@ public class OkcoinService {
                     order.setAvgPrice(BigDecimal.valueOf(j.getJsonNumber("price_avg").doubleValue()));
 
                     String symbol = j.getString("symbol");
-                    if (symbol.contains("ltc")){
+                    if (symbol.contains("ltc")) {
                         order.setSymbol("LTC/USD");
-                    }else if (symbol.contains("btc")){
+                    } else if (symbol.contains("btc")) {
                         order.setSymbol("BTC/USD");
                     }
 
