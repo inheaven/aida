@@ -52,7 +52,7 @@ public class OkcoinService {
 
     private Set<String> tradesChannels = new HashSet<>();
 
-    private ClientManager client;
+    private ClientManager client, client2;
 
     private boolean destroy = false;
 
@@ -66,9 +66,16 @@ public class OkcoinService {
         }
     }
 
+    private String markerChannels = "[" +
+            "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_this_week'}," +
+            "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_quarter'}" +
+            "]";
+
+
     public OkcoinService(){
         try {
             client = ClientManager.createClient(JdkClientContainer.class.getName());
+            client2 = ClientManager.createClient(JdkClientContainer.class.getName());
 
             ClientManager.ReconnectHandler reconnectHandler = new ClientManager.ReconnectHandler(){
                 private int reconnectCount = 0;
@@ -89,6 +96,8 @@ public class OkcoinService {
             };
 
             client.getProperties().put(ClientProperties.RECONNECT_HANDLER, reconnectHandler);
+            client2.getProperties().put(ClientProperties.RECONNECT_HANDLER, reconnectHandler);
+
 
             marketDataEndpoint = new JsonObservableEndpoint(){
                 @Override
@@ -96,54 +105,38 @@ public class OkcoinService {
                     super.onOpen(session, config);
 
                     try {
-                        session.getBasicRemote().sendText("[" +
-                                        "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_this_week'}," +
-                                        "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_this_week'}" +
-//                                        "{'event':'addChannel','channel':'ok_btcusd_future_depth_this_week_60'}," +
-//                                        "{'event':'addChannel','channel':'ok_ltcusd_future_depth_this_week_60'}" +
-                                        "]"
-                        );
-
-                        tradesChannels.forEach(s -> {
-                            try {
-                                session.getBasicRemote().sendText(s);
-                            } catch (IOException e) {
-                                log.error("error add channel -> ", e);
-                            }
-                        });
+                        session.getBasicRemote().sendText(markerChannels);
                     } catch (IOException e) {
                         log.error("error add channel ->", e);
                     }
                 }
             };
+            client.connectToServer(marketDataEndpoint, URI.create(OKCOIN_WSS));
 
-            tradingEndpoint = marketDataEndpoint;
+//            tradingEndpoint = marketDataEndpoint;
 
-//            tradingEndpoint = new JsonObservableEndpoint(){
-//                @Override
-//                public void onOpen(Session session, EndpointConfig config) {
-//                    super.onOpen(session, config);
-//
-//                    tradesChannels.forEach(s -> {
-//                        try {
-//                            session.getBasicRemote().sendText(s);
-//                        } catch (IOException e) {
-//                            log.error("error add channel -> ", e);
-//                        }
-//                    });
-//                }
-//            };
+            tradingEndpoint = new JsonObservableEndpoint(){
+                @Override
+                public void onOpen(Session session, EndpointConfig config) {
+                    super.onOpen(session, config);
+
+                    tradesChannels.forEach(s -> {
+                        try {
+                            session.getBasicRemote().sendText(s);
+                        } catch (IOException e) {
+                            log.error("error add channel -> ", e);
+                        }
+                    });
+                }
+            };
+            client2.connectToServer(tradingEndpoint, URI.create(OKCOIN_WSS));
 
             Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
                 try {
                     long now = System.currentTimeMillis();
 
                     if (now - lastOrder > 300000 || now - lastTrade > 300000) {
-                        marketDataEndpoint.getSession().getBasicRemote().sendText("[" +
-                                        "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_this_week'}," +
-                                        "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_quarter'}" +
-                                        "]"
-                        );
+                        marketDataEndpoint.getSession().getBasicRemote().sendText(markerChannels);
 
                         tradesChannels.forEach(s -> {
                             try {
@@ -159,9 +152,6 @@ public class OkcoinService {
                     log.error("error add channel ->", e);
                 }
             }, 0, 1, TimeUnit.MINUTES);
-
-            client.connectToServer(marketDataEndpoint, URI.create(OKCOIN_WSS));
-            //client.connectToServer(tradingEndpoint, URI.create(OKCOIN_WSS));
 
             //trade
             tradeObservable = createTradeObservable();
@@ -208,17 +198,22 @@ public class OkcoinService {
                     .filter(j -> j.getString("event", "").equals("pong"))
                     .map(j -> System.currentTimeMillis());
 
-
-
-
         } catch (Exception e) {
             log.error("error connect to server ->", e);
         }
 
         //reconnect
         tradingEndpoint.getJsonObservable()
-                .filter(j -> j.getString("errorcode", "").equals("20024"))
+                .filter(j -> !j.getString("errorcode", "").isEmpty())
                 .subscribe(j -> reconnect());
+
+        //log
+//        tradingEndpoint.getJsonObservable()
+//                .filter(j -> j.getString("channel", "").equals("ok_usd_future_realtrades"))
+//                .subscribe(j -> log.info(j.toString()));
+//        tradingEndpoint.getJsonObservable()
+//                .filter(j -> j.getString("channel", "").equals("ok_futureusd_order_info"))
+//                .subscribe(j -> log.info(j.toString()));
     }
 
     public Observable<Trade> getTradeObservable() {
@@ -246,13 +241,21 @@ public class OkcoinService {
     }
 
     private void reconnect(){
+        destroy = true;
+
         try {
-            client.connectToServer(marketDataEndpoint, URI.create(OKCOIN_WSS));
-//            marketDataEndpoint.getSession().close(new CloseReason(CloseReason.CloseCodes.SERVICE_RESTART, "restart"));
-//            tradingEndpoint.getSession().close(new CloseReason(CloseReason.CloseCodes.SERVICE_RESTART, "restart"));
+            try {
+                tradingEndpoint.getSession().close(new CloseReason(CloseReason.CloseCodes.SERVICE_RESTART, "restart"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            client2.connectToServer(tradingEndpoint, URI.create(OKCOIN_WSS));
         } catch (Exception e) {
             log.error("error reconnect -> ", e);
         }
+
+        destroy = false;
     }
 
     private Observable<Order> createOrderObservable() {
@@ -264,8 +267,6 @@ public class OkcoinService {
                 .flatMapIterable(j -> j.getJsonArray("orders"))
                 .filter(j -> j.getValueType().equals(JsonValue.ValueType.OBJECT)).map(j -> (JsonObject) j)
                 .map(j -> {
-                    log.info("ok_futureusd_order_info -> " + j.toString());
-
                     Order order = new Order();
                     order.setExchangeType(ExchangeType.OKCOIN_FUTURES);
 
@@ -322,8 +323,6 @@ public class OkcoinService {
                 .map(j -> j.getJsonObject("data"))
                 .filter(j -> j != null)
                 .map(j -> {
-                    log.info("ok_usd_future_realtrades -> " + j.toString());
-
                     lastOrder = System.currentTimeMillis();
 
                     Order order = new Order();
@@ -395,10 +394,35 @@ public class OkcoinService {
                 .map(j -> {
                     Depth depth = new Depth();
 
+                    depth.setExchangeType(ExchangeType.OKCOIN_FUTURES);
                     depth.setSymbol(getSymbol(j.channel));
                     depth.setSymbolType(getSymbolType(j.channel));
                     depth.setDate(new Date(Long.parseLong(((JsonObject) j.value).getString("timestamp"))));
                     depth.setData(j.value.toString());
+                    depth.setCreated(new Date());
+
+                    /*# Response
+                    [{
+                        "channel":"ok_ltcusd_future_depth_this_week",
+                                "data":{
+                            "asks":[
+                            [4.444,247],
+                            [4.443,90],
+                            [4.441,206],
+                            [4.44,141],
+                            [4.439,142]
+                            ],
+                            "bids":[
+                            [4.433,298],
+                            [4.429,78],
+                            [4.428,230],
+                            [4.426,124],
+                            [4.425,109]
+                            ],
+                            "timestamp":"1418636773053",
+                                    "unit_amount":10
+                        }
+                    }]*/
 
                     return depth;
                 });
@@ -424,6 +448,8 @@ public class OkcoinService {
                     trade.setAmount(new BigDecimal(a.getString(2)));
                     trade.setDate(Date.from(LocalTime.parse(a.getString(3)).atDate(now()).toInstant(ofHours(8))));
                     trade.setOrderType(OrderType.valueOf(a.getString(4).toUpperCase()));
+
+                    System.out.print(trade.getPrice() + " ");
 
                     return trade;
                 });
@@ -482,9 +508,12 @@ public class OkcoinService {
                     .add("event", "addChannel")
                     .add("channel", "ok_usd_future_realtrades")
                     .add("parameters", parametersSing).build().toString();
-            tradesChannels.add(channel);
 
-            tradingEndpoint.getSession().getBasicRemote().sendText(channel);
+            if (!tradesChannels.contains(channel)) {
+                tradingEndpoint.getSession().getBasicRemote().sendText(channel);
+
+                tradesChannels.add(channel);
+            }
         } catch (Exception e) {
             log.error("real trades error", e);
         }

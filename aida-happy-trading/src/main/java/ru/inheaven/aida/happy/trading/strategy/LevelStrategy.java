@@ -4,13 +4,13 @@ import ru.inheaven.aida.happy.trading.entity.Order;
 import ru.inheaven.aida.happy.trading.entity.OrderType;
 import ru.inheaven.aida.happy.trading.entity.Strategy;
 import ru.inheaven.aida.happy.trading.entity.Trade;
-import ru.inheaven.aida.happy.trading.exception.CreateOrderException;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.OrderService;
 import ru.inheaven.aida.happy.trading.service.TradeService;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
+import java.util.concurrent.Future;
 
 import static java.math.BigDecimal.ONE;
 import static java.math.RoundingMode.HALF_UP;
@@ -54,16 +54,21 @@ public class LevelStrategy extends BaseStrategy{
                             .compareTo(spread.multiply(BigDecimal.valueOf(2))) <= 0)
                     .findAny()
                     .isPresent()){
-                createOrder(new Order(strategy, OPEN_LONG, trade.getPrice().subtract(spread), ONE));
-                createOrder(new Order(strategy, CLOSE_LONG, trade.getPrice(), ONE));
+                BigDecimal delta = getBalance(spread);
+
+                Future<Order> open = createOrderAsync(new Order(strategy, OPEN_LONG, trade.getPrice().subtract(delta), ONE));
+                Future<Order> close = createOrderAsync(new Order(strategy, CLOSE_LONG, trade.getPrice().add(delta), ONE));
+
+                open.get();
+                close.get();
             }
-        } catch (CreateOrderException e) {
+        } catch (Exception e) {
             errorCount++;
             errorTime = System.currentTimeMillis();
         }
     }
 
-    private BigDecimal getBalance(BigDecimal delta){
-        return delta.multiply(BigDecimal.valueOf(random.nextDouble() * (random.nextBoolean() ? 1/2 : -1/2)));
+    private BigDecimal getBalance(BigDecimal spread){
+        return spread.multiply(BigDecimal.valueOf(1 + (random.nextDouble() * (random.nextBoolean() ? 1/2 : -1/2))));
     }
 }

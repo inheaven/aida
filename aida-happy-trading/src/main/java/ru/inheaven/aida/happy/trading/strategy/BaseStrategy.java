@@ -2,10 +2,7 @@ package ru.inheaven.aida.happy.trading.strategy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.inheaven.aida.happy.trading.entity.Order;
-import ru.inheaven.aida.happy.trading.entity.OrderStatus;
-import ru.inheaven.aida.happy.trading.entity.Strategy;
-import ru.inheaven.aida.happy.trading.entity.Trade;
+import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.exception.CreateOrderException;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.OrderService;
@@ -16,6 +13,8 @@ import rx.Subscription;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import static java.math.RoundingMode.HALF_UP;
@@ -77,6 +76,10 @@ public class BaseStrategy {
                     order.close(o);
                     orderMap.remove(o.getOrderId());
                     orderMapper.save(order);
+
+                    if (order.getSymbolType().equals(SymbolType.THIS_WEEK)) {
+                        System.out.println("[" + o.getPrice() + "] ");
+                    }
                 }
 
                 onCloseOrder(o);
@@ -92,7 +95,7 @@ public class BaseStrategy {
                 log.error("error on trader -> ", e);
             }
         });
-        checkOrderSubscription = tradeObservable.throttleLast(1, TimeUnit.MINUTES).subscribe(o -> {
+        checkOrderSubscription = tradeObservable.throttleLast(30, TimeUnit.SECONDS).subscribe(o -> {
             try {
                 checkOrders(o);
             } catch (Exception e) {
@@ -140,9 +143,21 @@ public class BaseStrategy {
             orderService.createOrder(strategy.getAccount(), order);
             orderMap.put(order.getOrderId(), order);
             orderMapper.save(order);
+
+            if (order.getSymbolType().equals(SymbolType.THIS_WEEK)) {
+                System.out.println("(" + order.getPrice() + ") ");
+            }
         } finally {
             orderMap.remove(createdOrderId);
         }
+    }
+
+    protected Future<Order> createOrderAsync(Order order){
+        return Executors.newCachedThreadPool().submit(() -> {
+            createOrder(order);
+
+            return order;
+        });
     }
 
     public Map<String, Order> getOrderMap() {

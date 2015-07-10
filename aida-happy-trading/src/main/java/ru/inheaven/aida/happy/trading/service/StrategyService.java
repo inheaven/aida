@@ -21,7 +21,7 @@ public class StrategyService {
 
     @Inject
     public StrategyService(StrategyMapper strategyMapper, OrderService orderService, OrderMapper orderMapper,
-                           TradeService tradeService) {
+                           TradeService tradeService, DepthService depthService) {
         List<Strategy> strategies = strategyMapper.getActiveStrategies();
 
         strategies.forEach(s -> {
@@ -33,7 +33,7 @@ public class StrategyService {
                     baseStrategy.start();
                     break;
                 case PARAGLIDER:
-                    baseStrategy = new ParagliderStrategy(s, orderService, orderMapper, tradeService);
+                    baseStrategy = new ParagliderStrategy(s, orderService, orderMapper, tradeService, depthService);
                     baseStrategy.start();
                     break;
                 default:

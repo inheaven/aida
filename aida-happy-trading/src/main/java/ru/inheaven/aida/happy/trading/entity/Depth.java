@@ -8,11 +8,20 @@ import java.util.Date;
  * @author inheaven on 01.05.2015 13:23.
  */
 public class Depth extends AbstractEntity {
+    private ExchangeType exchangeType;
     private SymbolType symbolType;
     private String symbol;
     private String data;
     private Date date;
     private Date created;
+
+    public ExchangeType getExchangeType() {
+        return exchangeType;
+    }
+
+    public void setExchangeType(ExchangeType exchangeType) {
+        this.exchangeType = exchangeType;
+    }
 
     public SymbolType getSymbolType() {
         return symbolType;
