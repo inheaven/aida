@@ -9,6 +9,7 @@ import org.apache.wicket.Page;
 import org.apache.wicket.protocol.http.WebApplication;
 import ru.inheaven.aida.happy.trading.web.admin.ClientEditPage;
 import ru.inheaven.aida.happy.trading.web.admin.ClientListPage;
+import ru.inheaven.aida.happy.trading.web.admin.OrderStreamPage;
 import ru.inheaven.aida.happy.trading.web.admin.ServiceStatusPage;
 
 import javax.inject.Singleton;
@@ -29,6 +30,7 @@ public class AidaHappyTradingApplication extends WebApplication{
         mountPage("status", ServiceStatusPage.class);
         mountPage("client", ClientListPage.class);
         mountPage("client_edit", ClientEditPage.class);
+        mountPage("order_stream", OrderStreamPage.class);
 
         getDebugSettings().setDevelopmentUtilitiesEnabled(true);
         getDebugSettings().setComponentUseCheck(true);
@@ -37,6 +39,6 @@ public class AidaHappyTradingApplication extends WebApplication{
 
     @Override
     public Class<? extends Page> getHomePage() {
-        return ClientListPage.class;
+        return OrderStreamPage.class;
     }
 }

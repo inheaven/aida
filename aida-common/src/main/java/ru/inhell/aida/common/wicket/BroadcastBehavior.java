@@ -8,7 +8,7 @@ import org.apache.wicket.protocol.ws.api.message.IWebSocketPushMessage;
  * @author inheaven on 18.06.2015 13:32.
  */
 public abstract class BroadcastBehavior extends WebSocketBehavior {
-    private Class producer;
+    private Class<?> producer;
 
     public BroadcastBehavior(Class producer) {
         this.producer = producer;
@@ -19,7 +19,7 @@ public abstract class BroadcastBehavior extends WebSocketBehavior {
         if (message instanceof BroadcastPayload){
             BroadcastPayload p = (BroadcastPayload) message;
 
-            if (producer.equals(p.getProducer())){
+            if (producer.isAssignableFrom(p.getProducer())){
                 onBroadcast(handler, p.getKey(), p.getPayload());
             }
         }

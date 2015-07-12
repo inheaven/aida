@@ -9,9 +9,9 @@ import ru.inheaven.aida.happy.trading.service.TradeService;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.Map;
-import java.util.concurrent.Future;
 
 import static java.math.BigDecimal.ONE;
+import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.*;
 
@@ -56,43 +56,40 @@ public class ParagliderStrategy extends BaseStrategy{
             }
         }
 
-        BigDecimal spread = trade.getPrice().multiply(strategy.getLevelSpread()).setScale(8, HALF_UP);
+        BigDecimal spread = strategy.getLevelSpread();
+        BigDecimal spreadX2 = spread.multiply(BigDecimal.valueOf(2)).setScale(8, HALF_UP);
+
+        BigDecimal step = BigDecimal.valueOf(0.001);
 
         try {
             if (!getOrderMap().values().parallelStream()
                     .filter(order -> OrderType.LONG.contains(order.getType()))
-                    .filter(order -> order.getPrice().subtract(trade.getPrice()).abs()
-                            .compareTo(spread.multiply(BigDecimal.valueOf(2))) <= 0)
+                    .map(order -> order.getPrice().subtract(trade.getPrice()))
+                    .filter(d ->
+                            (d.compareTo(ZERO) > 0 && d.compareTo(spread) < 0) ||
+                                    (d.compareTo(ZERO) <= 0 && d.abs().compareTo(spreadX2) < 0))
                     .findAny()
                     .isPresent()){
-                Future<Order> open = createOrderAsync(new Order(strategy, OPEN_LONG, trade.getPrice().subtract(spread), ONE));
-                Future<Order> close = createOrderAsync(new Order(strategy, CLOSE_LONG, trade.getPrice(), ONE));
-
-                open.get();
-                close.get();
+                createOrderAsync(new Order(strategy, OPEN_LONG, trade.getPrice().subtract(spread), ONE)).get();
+                createOrderAsync(new Order(strategy, CLOSE_LONG, trade.getPrice().subtract(step), ONE)).get();
             }
 
             if (!getOrderMap().values().parallelStream()
                     .filter(order -> OrderType.SHORT.contains(order.getType()))
-                    .filter(order -> order.getPrice().subtract(trade.getPrice()).abs()
-                            .compareTo(spread.multiply(BigDecimal.valueOf(2))) <= 0)
+                    .map(order -> order.getPrice().subtract(trade.getPrice()))
+                    .filter(d ->
+                            (d.compareTo(ZERO) > 0 && d.compareTo(spreadX2) < 0) ||
+                                    (d.compareTo(ZERO) <= 0 && d.abs().compareTo(spread) < 0))
                     .findAny()
                     .isPresent()){
 
-                Future<Order> open = createOrderAsync(new Order(strategy, OPEN_SHORT, trade.getPrice().add(spread), ONE));
-                Future<Order> close = createOrderAsync(new Order(strategy, CLOSE_SHORT, trade.getPrice(), ONE));
-
-                open.get();
-                close.get();
+                createOrderAsync(new Order(strategy, OPEN_SHORT, trade.getPrice().add(spread), ONE)).get();
+                createOrderAsync(new Order(strategy, CLOSE_SHORT, trade.getPrice().add(step), ONE)).get();
             }
         } catch (Exception e) {
             errorCount++;
             errorTime = System.currentTimeMillis();
         }
-    }
-
-    private BigDecimal getBalance(BigDecimal delta){
-        return delta.multiply(BigDecimal.valueOf(random.nextGaussian() * Math.signum(orderPositionDelta) / 2));
     }
 
     @Override

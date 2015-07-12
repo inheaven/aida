@@ -40,7 +40,7 @@
 
     <select id="selectOrderPosition" parameterType="ru.inheaven.aida.happy.trading.entity.Strategy"
             resultType="ru.inheaven.aida.happy.trading.entity.OrderPosition">
-        select `type`, count(id) as `count` from `order`
+        select `type`, count(id) as `count`, SUM(avg_price*amount)/SUM(amount) as avg from `order`
           where strategy_id = #{id} and status = 'CLOSED' and `closed` > #{sessionStart}
             group by `type`;
     </select>

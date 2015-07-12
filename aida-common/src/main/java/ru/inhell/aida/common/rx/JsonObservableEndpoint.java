@@ -20,10 +20,19 @@ public class JsonObservableEndpoint extends Endpoint{
     private PublishSubject<String> subject;
     private Observable<JsonObject> jsonObservable;
 
+    private MessageHandler messageHandler;
+
     private Session session;
 
     public JsonObservableEndpoint() {
         subject = PublishSubject.create();
+
+        messageHandler = new MessageHandler.Whole<String>() {
+            @Override
+            public void onMessage(String message) {
+                subject.onNext(message);
+            }
+        };
 
         jsonObservable = subject
                 .flatMapIterable(s -> {
@@ -46,12 +55,7 @@ public class JsonObservableEndpoint extends Endpoint{
     public void onOpen(Session session, EndpointConfig config) {
         this.session = session;
 
-        session.addMessageHandler(new MessageHandler.Whole<String>() {
-            @Override
-            public void onMessage(String message) {
-                subject.onNext(message);
-            }
-        });
+        session.addMessageHandler(messageHandler);
 
         log.info("connection open -> {} {}", session.getRequestURI(), session.getId());
     }

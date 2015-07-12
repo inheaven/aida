@@ -22,4 +22,27 @@
         <filter-name>aida-happy-trading</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
+
+
+    <login-config>
+        <auth-method>BASIC</auth-method>
+    </login-config>
+
+    <security-role>
+        <role-name>inheaven</role-name>
+    </security-role>
+
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>aida-happy-trading</web-resource-name>
+            <url-pattern>/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>inheaven</role-name>
+        </auth-constraint>
+    </security-constraint>
+
+    <session-config>
+        <session-timeout>720</session-timeout>
+    </session-config>
 </web-app>

@@ -5,11 +5,14 @@ import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.exception.CreateOrderException;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
+import ru.inheaven.aida.happy.trading.service.BroadcastService;
+import ru.inheaven.aida.happy.trading.service.Module;
 import ru.inheaven.aida.happy.trading.service.OrderService;
 import ru.inheaven.aida.happy.trading.service.TradeService;
 import rx.Observable;
 import rx.Subscription;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,10 +20,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import static java.math.BigDecimal.TEN;
+import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
+import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CLOSED;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CREATED;
-import static ru.inheaven.aida.happy.trading.entity.OrderType.BUY_SET;
-import static ru.inheaven.aida.happy.trading.entity.OrderType.SELL_SET;
+import static ru.inheaven.aida.happy.trading.entity.OrderType.*;
 
 /**
  * @author inheaven on 002 02.07.15 16:43
@@ -77,9 +82,16 @@ public class BaseStrategy {
                     orderMap.remove(o.getOrderId());
                     orderMapper.save(order);
 
-                    if (order.getSymbolType().equals(SymbolType.THIS_WEEK)) {
-                        System.out.println("[" + o.getPrice() + "] ");
+                    if (order.getStatus().equals(CLOSED)) {
+                        String message = "[" + o.getAvgPrice().setScale(3, HALF_UP)
+                                + (OrderType.BUY_SET.contains(order.getType()) ? "↑" : "↓") + "] ";
+
+                        Module.getInjector().getInstance(BroadcastService.class).broadcast(getClass(), "close_order_"
+                                + order.getSymbolType().name().toLowerCase(), message);
                     }
+
+                    //profit
+                    profit(order);
                 }
 
                 onCloseOrder(o);
@@ -90,6 +102,10 @@ public class BaseStrategy {
 
         tradeSubscription = tradeObservable.subscribe(t -> {
             try {
+                String message = t.getPrice().setScale(3, HALF_UP).toString();
+                Module.getInjector().getInstance(BroadcastService.class).broadcast(getClass(), "trade_"
+                        + t.getSymbolType().name().toLowerCase(), message);
+
                 onTrade(t);
             } catch (Exception e) {
                 log.error("error on trader -> ", e);
@@ -106,6 +122,63 @@ public class BaseStrategy {
         orderMap.forEach((id, o) -> orderService.orderInfo(strategy, o));
 
         flying = true;
+    }
+
+    protected void profit(Order order) {
+        Executors.newCachedThreadPool().submit(() -> {
+            Map<OrderType, OrderPosition> pos = orderMapper.getOrderPositionMap(strategy);
+                        
+
+            BigDecimal profitLong = ZERO;
+            BigDecimal equityLong = ZERO;
+            if (pos.get(OPEN_LONG) != null && pos.get(CLOSE_LONG) != null) {
+                profitLong = TEN.divide(pos.get(OPEN_LONG).getAvg(), 8, HALF_UP)
+                        .subtract(TEN.divide(pos.get(CLOSE_LONG).getAvg(), 8, HALF_UP))
+                        .multiply(BigDecimal.valueOf(Math.min(pos.get(CLOSE_LONG).getCount(), pos.get(OPEN_LONG).getCount())));
+
+                int amount = pos.get(OPEN_LONG).getCount() - pos.get(CLOSE_LONG).getCount();
+                if (amount > 0) {
+                    equityLong = TEN.divide(pos.get(OPEN_LONG).getAvg(), 8, HALF_UP)
+                            .subtract(TEN.divide(order.getAvgPrice(), 8, HALF_UP))
+                            .multiply(BigDecimal.valueOf(amount));
+                }else{
+                    equityLong = TEN.divide(pos.get(CLOSE_LONG).getAvg(), 8, HALF_UP)
+                            .subtract(TEN.divide(order.getAvgPrice(), 8, HALF_UP))
+                            .multiply(BigDecimal.valueOf(amount).abs());                    
+                }
+            }
+
+            BigDecimal profitShort = ZERO;
+            BigDecimal equityShort = ZERO;
+
+            if (pos.get(CLOSE_SHORT) != null && pos.get(OPEN_SHORT) != null) {
+                profitShort = TEN.divide(pos.get(CLOSE_SHORT).getAvg(), 8, HALF_UP)
+                        .subtract(TEN.divide(pos.get(OPEN_SHORT).getAvg(), 8, HALF_UP))
+                        .multiply(BigDecimal.valueOf(Math.min(pos.get(CLOSE_SHORT).getCount(), pos.get(OPEN_SHORT).getCount())));
+
+                int amount = pos.get(OPEN_SHORT).getCount() - pos.get(CLOSE_SHORT).getCount();
+                if (amount > 0) {
+                    equityShort = TEN.divide(order.getAvgPrice(), 8, HALF_UP)
+                            .subtract(TEN.divide(pos.get(OPEN_SHORT).getAvg(), 8, HALF_UP))
+                            .multiply(BigDecimal.valueOf(amount));
+                }else{
+                    equityShort = TEN.divide(pos.get(CLOSE_SHORT).getAvg(), 8, HALF_UP)
+                            .subtract(TEN.divide(order.getAvgPrice(), 8, HALF_UP))
+                            .multiply(BigDecimal.valueOf(amount).abs());
+                }
+            }
+
+
+            String message = "{" +
+                    profitLong.setScale(3, HALF_UP) + " " +
+                    equityLong.setScale(3, HALF_UP) + " " +
+                    profitShort.setScale(3, HALF_UP) + " " +
+                    equityShort.setScale(3, HALF_UP) +
+                    "}\t";
+
+            Module.getInjector().getInstance(BroadcastService.class).broadcast(getClass(), "profit_" +
+                    order.getSymbolType().name().toLowerCase(), message);
+        });
     }
 
     public void stop(){
@@ -125,8 +198,10 @@ public class BaseStrategy {
 
     protected void checkOrders(Trade trade){
         orderMap.values().parallelStream()
-                .filter(o -> (BUY_SET.contains(o.getType()) && o.getPrice().compareTo(trade.getPrice()) > 1)
-                                || (SELL_SET.contains(o.getType()) && o.getPrice().compareTo(trade.getPrice()) < 1))
+                .filter(o -> (BUY_SET.contains(o.getType()) && o.getPrice().compareTo(trade.getPrice()) > 1) ||
+                        (SELL_SET.contains(o.getType()) && o.getPrice().compareTo(trade.getPrice()) < 1) ||
+                        o.getPrice().subtract(trade.getPrice()).abs()
+                                .compareTo(strategy.getLevelSpread().multiply(BigDecimal.valueOf(2))) < 0)
                 .forEach(o -> orderService.orderInfo(strategy, o));
     }
 
@@ -144,9 +219,11 @@ public class BaseStrategy {
             orderMap.put(order.getOrderId(), order);
             orderMapper.save(order);
 
-            if (order.getSymbolType().equals(SymbolType.THIS_WEEK)) {
-                System.out.println("(" + order.getPrice() + ") ");
-            }
+            String message = "(" + order.getPrice().setScale(3, HALF_UP) +
+                    (OrderType.BUY_SET.contains(order.getType()) ? "↑":"↓") + ") ";
+
+            Module.getInjector().getInstance(BroadcastService.class).broadcast(getClass(), "create_order_" +
+                    order.getSymbolType().name().toLowerCase() , message);
         } finally {
             orderMap.remove(createdOrderId);
         }

@@ -10,9 +10,9 @@ import ru.inheaven.aida.happy.trading.service.TradeService;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
-import java.util.concurrent.Future;
 
 import static java.math.BigDecimal.ONE;
+import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.CLOSE_LONG;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.OPEN_LONG;
@@ -45,30 +45,25 @@ public class LevelStrategy extends BaseStrategy{
             }
         }
 
-        BigDecimal spread = trade.getPrice().multiply(strategy.getLevelSpread()).setScale(8, HALF_UP);
+        BigDecimal spread = strategy.getLevelSpread();
+        BigDecimal spreadX2 = spread.multiply(BigDecimal.valueOf(2)).setScale(8, HALF_UP);
+        BigDecimal step = BigDecimal.valueOf(0.001);
 
         try {
             if (!getOrderMap().values().parallelStream()
                     .filter(order -> OrderType.LONG.contains(order.getType()))
-                    .filter(order -> order.getPrice().subtract(trade.getPrice()).abs()
-                            .compareTo(spread.multiply(BigDecimal.valueOf(2))) <= 0)
+                    .map(order -> order.getPrice().subtract(trade.getPrice()))
+                    .filter(d ->
+                            (d.compareTo(ZERO) > 0 && d.compareTo(spread) < 0) ||
+                                    (d.compareTo(ZERO) <= 0 && d.abs().compareTo(spreadX2) < 0))
                     .findAny()
                     .isPresent()){
-                BigDecimal delta = getBalance(spread);
-
-                Future<Order> open = createOrderAsync(new Order(strategy, OPEN_LONG, trade.getPrice().subtract(delta), ONE));
-                Future<Order> close = createOrderAsync(new Order(strategy, CLOSE_LONG, trade.getPrice().add(delta), ONE));
-
-                open.get();
-                close.get();
+                createOrderAsync(new Order(strategy, OPEN_LONG, trade.getPrice().subtract(spread), ONE)).get();
+                createOrderAsync(new Order(strategy, CLOSE_LONG, trade.getPrice().subtract(step), ONE)).get();
             }
         } catch (Exception e) {
             errorCount++;
             errorTime = System.currentTimeMillis();
         }
-    }
-
-    private BigDecimal getBalance(BigDecimal spread){
-        return spread.multiply(BigDecimal.valueOf(1 + (random.nextDouble() * (random.nextBoolean() ? 1/2 : -1/2))));
     }
 }

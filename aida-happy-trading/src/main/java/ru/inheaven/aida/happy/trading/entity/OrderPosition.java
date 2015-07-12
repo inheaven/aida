@@ -1,11 +1,14 @@
 package ru.inheaven.aida.happy.trading.entity;
 
+import java.math.BigDecimal;
+
 /**
  * @author inheaven on 04.07.2015 22:23.
  */
 public class OrderPosition {
     private OrderType type;
     private Integer count;
+    private BigDecimal avg;
 
     public OrderType getType() {
         return type;
@@ -21,5 +24,13 @@ public class OrderPosition {
 
     public void setCount(Integer count) {
         this.count = count;
+    }
+
+    public BigDecimal getAvg() {
+        return avg;
+    }
+
+    public void setAvg(BigDecimal avg) {
+        this.avg = avg;
     }
 }

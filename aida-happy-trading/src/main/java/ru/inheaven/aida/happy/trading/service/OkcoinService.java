@@ -131,6 +131,8 @@ public class OkcoinService {
             };
             client2.connectToServer(tradingEndpoint, URI.create(OKCOIN_WSS));
 
+
+            //last order trade check
             Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
                 try {
                     long now = System.currentTimeMillis();
@@ -208,12 +210,12 @@ public class OkcoinService {
                 .subscribe(j -> reconnect());
 
         //log
-//        tradingEndpoint.getJsonObservable()
-//                .filter(j -> j.getString("channel", "").equals("ok_usd_future_realtrades"))
-//                .subscribe(j -> log.info(j.toString()));
-//        tradingEndpoint.getJsonObservable()
-//                .filter(j -> j.getString("channel", "").equals("ok_futureusd_order_info"))
-//                .subscribe(j -> log.info(j.toString()));
+        tradingEndpoint.getJsonObservable()
+                .filter(j -> j.getString("channel", "").equals("ok_usd_future_realtrades"))
+                .subscribe(j -> log.info(j.toString()));
+        tradingEndpoint.getJsonObservable()
+                .filter(j -> j.getString("channel", "").equals("ok_futureusd_order_info"))
+                .subscribe(j -> log.info(j.toString()));
     }
 
     public Observable<Trade> getTradeObservable() {
@@ -241,21 +243,20 @@ public class OkcoinService {
     }
 
     private void reconnect(){
-        destroy = true;
-
         try {
-            try {
-                tradingEndpoint.getSession().close(new CloseReason(CloseReason.CloseCodes.SERVICE_RESTART, "restart"));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            client2.connectToServer(tradingEndpoint, URI.create(OKCOIN_WSS));
-        } catch (Exception e) {
-            log.error("error reconnect -> ", e);
+            marketDataEndpoint.getSession().getBasicRemote().sendText(markerChannels);
+        } catch (IOException e) {
+            log.error("error add channel ->", e);
         }
 
-        destroy = false;
+
+        tradesChannels.forEach(s -> {
+            try {
+                tradingEndpoint.getSession().getBasicRemote().sendText(s);
+            } catch (IOException e) {
+                log.error("error add channel ->", e);
+            }
+        });
     }
 
     private Observable<Order> createOrderObservable() {
@@ -448,8 +449,6 @@ public class OkcoinService {
                     trade.setAmount(new BigDecimal(a.getString(2)));
                     trade.setDate(Date.from(LocalTime.parse(a.getString(3)).atDate(now()).toInstant(ofHours(8))));
                     trade.setOrderType(OrderType.valueOf(a.getString(4).toUpperCase()));
-
-                    System.out.print(trade.getPrice() + " ");
 
                     return trade;
                 });
