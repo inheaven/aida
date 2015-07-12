@@ -9,6 +9,7 @@ public class OrderPosition {
     private OrderType type;
     private Integer count;
     private BigDecimal avg;
+    private BigDecimal price;
 
     public OrderType getType() {
         return type;
@@ -32,5 +33,13 @@ public class OrderPosition {
 
     public void setAvg(BigDecimal avg) {
         this.avg = avg;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
     }
 }

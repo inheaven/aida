@@ -18,11 +18,13 @@ public class OrderStreamPage extends BasePage{
         String param = pageParameters.get("t").toString("this_week");
 
         add(new BroadcastBehavior(BaseStrategy.class) {
+            private int count = 0;
+
             @Override
             protected void onBroadcast(WebSocketRequestHandler handler, String key, Object payload) {
                 if (key.contains(param)) {
 
-                    String br = key.contains("profit") ?  "<br/><br/>" + LocalTime.now().toString() + "\t": "";
+                    String br = key.contains("profit") ?  "<br/><br/>" + count++ + ". " + LocalTime.now().toString() + " ": "";
 
                     handler.appendJavaScript("$('#order_stream').append(' "+ br + payload +"');");
 

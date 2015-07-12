@@ -20,7 +20,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import static java.math.BigDecimal.TEN;
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CLOSED;
@@ -127,49 +126,42 @@ public class BaseStrategy {
     protected void profit(Order order) {
         Executors.newCachedThreadPool().submit(() -> {
             Map<OrderType, OrderPosition> pos = orderMapper.getOrderPositionMap(strategy);
-                        
 
             BigDecimal profitLong = ZERO;
             BigDecimal equityLong = ZERO;
             if (pos.get(OPEN_LONG) != null && pos.get(CLOSE_LONG) != null) {
-                profitLong = TEN.divide(pos.get(OPEN_LONG).getAvg(), 8, HALF_UP)
-                        .subtract(TEN.divide(pos.get(CLOSE_LONG).getAvg(), 8, HALF_UP))
-                        .multiply(BigDecimal.valueOf(Math.min(pos.get(CLOSE_LONG).getCount(), pos.get(OPEN_LONG).getCount())));
+                profitLong = pos.get(OPEN_LONG).getAvg()
+                        .multiply(pos.get(CLOSE_LONG).getPrice().subtract(pos.get(OPEN_LONG).getPrice())
+                                .divide(pos.get(OPEN_LONG).getPrice(), 8, HALF_UP));
 
                 int amount = pos.get(OPEN_LONG).getCount() - pos.get(CLOSE_LONG).getCount();
-                if (amount > 0) {
-                    equityLong = TEN.divide(pos.get(OPEN_LONG).getAvg(), 8, HALF_UP)
-                            .subtract(TEN.divide(order.getAvgPrice(), 8, HALF_UP))
-                            .multiply(BigDecimal.valueOf(amount));
-                }else{
-                    equityLong = TEN.divide(pos.get(CLOSE_LONG).getAvg(), 8, HALF_UP)
-                            .subtract(TEN.divide(order.getAvgPrice(), 8, HALF_UP))
-                            .multiply(BigDecimal.valueOf(amount).abs());                    
-                }
+                OrderType orderType = amount > 0 ? OPEN_LONG : CLOSE_LONG;
+                equityLong = pos.get(orderType).getAvg()
+                        .multiply(BigDecimal.valueOf(amount))
+                        .divide(BigDecimal.valueOf(pos.get(orderType).getCount()), 8, HALF_UP)
+                        .multiply(order.getAvgPrice().subtract(pos.get(orderType).getPrice())
+                                .divide(pos.get(orderType).getPrice(), 8, HALF_UP));
             }
 
             BigDecimal profitShort = ZERO;
             BigDecimal equityShort = ZERO;
 
-            if (pos.get(CLOSE_SHORT) != null && pos.get(OPEN_SHORT) != null) {
-                profitShort = TEN.divide(pos.get(CLOSE_SHORT).getAvg(), 8, HALF_UP)
-                        .subtract(TEN.divide(pos.get(OPEN_SHORT).getAvg(), 8, HALF_UP))
-                        .multiply(BigDecimal.valueOf(Math.min(pos.get(CLOSE_SHORT).getCount(), pos.get(OPEN_SHORT).getCount())));
+            if (pos.get(OPEN_SHORT) != null && pos.get(CLOSE_SHORT) != null) {
+                profitShort = pos.get(OPEN_SHORT).getAvg()
+                        .multiply(pos.get(OPEN_SHORT).getPrice().subtract(pos.get(CLOSE_SHORT).getPrice())
+                                .divide(pos.get(OPEN_SHORT).getPrice(), 8, HALF_UP));
 
-                int amount = pos.get(OPEN_SHORT).getCount() - pos.get(CLOSE_SHORT).getCount();
-                if (amount > 0) {
-                    equityShort = TEN.divide(order.getAvgPrice(), 8, HALF_UP)
-                            .subtract(TEN.divide(pos.get(OPEN_SHORT).getAvg(), 8, HALF_UP))
-                            .multiply(BigDecimal.valueOf(amount));
-                }else{
-                    equityShort = TEN.divide(pos.get(CLOSE_SHORT).getAvg(), 8, HALF_UP)
-                            .subtract(TEN.divide(order.getAvgPrice(), 8, HALF_UP))
-                            .multiply(BigDecimal.valueOf(amount).abs());
-                }
+                int amount = pos.get(CLOSE_SHORT).getCount() - pos.get(OPEN_SHORT).getCount();
+                OrderType orderType = amount > 0 ? CLOSE_SHORT : OPEN_SHORT;
+                equityLong = pos.get(orderType).getAvg()
+                        .multiply(BigDecimal.valueOf(amount))
+                        .divide(BigDecimal.valueOf(pos.get(orderType).getCount()), 8, HALF_UP)
+                        .multiply(pos.get(orderType).getPrice().subtract(order.getAvgPrice())
+                                .divide(pos.get(orderType).getPrice(), 8, HALF_UP));
             }
 
-
             String message = "{" +
+                    profitLong.add(equityLong).add(profitShort).add(equityShort).setScale(3, HALF_UP) + " " +
                     profitLong.setScale(3, HALF_UP) + " " +
                     equityLong.setScale(3, HALF_UP) + " " +
                     profitShort.setScale(3, HALF_UP) + " " +
