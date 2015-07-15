@@ -15,10 +15,7 @@ import rx.Subscription;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
@@ -50,6 +47,8 @@ public class BaseStrategy {
 
     private boolean flying = false;
 
+    private String key;
+
     public BaseStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService) {
         this.strategy = strategy;
         this.orderService = orderService;
@@ -65,6 +64,15 @@ public class BaseStrategy {
                 .filter(o -> o.getStatus().equals(OrderStatus.CLOSED) || o.getStatus().equals(OrderStatus.CANCELED));
 
         tradeObservable = tradeService.createTradeObserver(strategy);
+
+        switch (strategy.getSymbol()){
+            case "BTC/USD":
+                key = "btc";
+                break;
+            case "LTC/USD":
+                key = "ltc";
+                break;
+        }
     }
 
     public void start(){
@@ -86,6 +94,7 @@ public class BaseStrategy {
                                 + (OrderType.BUY_SET.contains(order.getType()) ? "↑" : "↓") + "] ";
 
                         Module.getInjector().getInstance(BroadcastService.class).broadcast(getClass(), "close_order_"
+                                + key + "_"
                                 + order.getSymbolType().name().toLowerCase(), message);
                     }
 
@@ -101,10 +110,6 @@ public class BaseStrategy {
 
         tradeSubscription = tradeObservable.subscribe(t -> {
             try {
-                String message = t.getPrice().setScale(3, HALF_UP).toString();
-                Module.getInjector().getInstance(BroadcastService.class).broadcast(getClass(), "trade_"
-                        + t.getSymbolType().name().toLowerCase(), message);
-
                 onTrade(t);
             } catch (Exception e) {
                 log.error("error on trader -> ", e);
@@ -126,6 +131,8 @@ public class BaseStrategy {
     protected void profit(Order order) {
         Executors.newCachedThreadPool().submit(() -> {
             Map<OrderType, OrderPosition> pos = orderMapper.getOrderPositionMap(strategy);
+            int count = 0;
+            BigDecimal volume = ZERO;
 
             BigDecimal profitLong = ZERO;
             BigDecimal equityLong = ZERO;
@@ -134,41 +141,53 @@ public class BaseStrategy {
                         .multiply(pos.get(CLOSE_LONG).getPrice().subtract(pos.get(OPEN_LONG).getPrice())
                                 .divide(pos.get(OPEN_LONG).getPrice(), 8, HALF_UP));
 
-                int amount = pos.get(OPEN_LONG).getCount() - pos.get(CLOSE_LONG).getCount();
-                OrderType orderType = amount > 0 ? OPEN_LONG : CLOSE_LONG;
-                equityLong = pos.get(orderType).getAvg()
-                        .multiply(BigDecimal.valueOf(amount))
-                        .divide(BigDecimal.valueOf(pos.get(orderType).getCount()), 8, HALF_UP)
-                        .multiply(order.getAvgPrice().subtract(pos.get(orderType).getPrice())
-                                .divide(pos.get(orderType).getPrice(), 8, HALF_UP));
+//                int amount = pos.get(OPEN_LONG).getCount() - pos.get(CLOSE_LONG).getCount();
+//                OrderType orderType = amount > 0 ? CLOSE_LONG : OPEN_LONG;
+//                equityLong = pos.get(orderType).getAvg()
+//                        .multiply(BigDecimal.valueOf(amount))
+//                        .divide(BigDecimal.valueOf(pos.get(orderType).getCount()), 8, HALF_UP)
+//                        .multiply(order.getAvgPrice().subtract(pos.get(orderType).getPrice())
+//                                .divide(pos.get(orderType).getPrice(), 8, HALF_UP));
+
+                count += pos.get(OPEN_LONG).getCount() + pos.get(CLOSE_LONG).getCount();
+                volume = volume.add(pos.get(OPEN_LONG).getAvg().subtract(pos.get(CLOSE_LONG).getAvg()));
             }
 
             BigDecimal profitShort = ZERO;
             BigDecimal equityShort = ZERO;
 
-            if (pos.get(OPEN_SHORT) != null && pos.get(CLOSE_SHORT) != null) {
-                profitShort = pos.get(OPEN_SHORT).getAvg()
+            if (pos.get(OPEN_SHORT) != null && pos.get(CLOSE_SHORT) != null && strategy.getType().equals(StrategyType.PARAGLIDER)) {
+                profitShort = pos.get(CLOSE_SHORT).getAvg()
                         .multiply(pos.get(OPEN_SHORT).getPrice().subtract(pos.get(CLOSE_SHORT).getPrice())
                                 .divide(pos.get(OPEN_SHORT).getPrice(), 8, HALF_UP));
 
-                int amount = pos.get(CLOSE_SHORT).getCount() - pos.get(OPEN_SHORT).getCount();
-                OrderType orderType = amount > 0 ? CLOSE_SHORT : OPEN_SHORT;
-                equityLong = pos.get(orderType).getAvg()
-                        .multiply(BigDecimal.valueOf(amount))
-                        .divide(BigDecimal.valueOf(pos.get(orderType).getCount()), 8, HALF_UP)
-                        .multiply(pos.get(orderType).getPrice().subtract(order.getAvgPrice())
-                                .divide(pos.get(orderType).getPrice(), 8, HALF_UP));
+//                int amount = pos.get(CLOSE_SHORT).getCount() - pos.get(OPEN_SHORT).getCount();
+//                OrderType orderType = amount > 0 ? OPEN_SHORT : CLOSE_SHORT;
+//                equityShort = pos.get(orderType).getAvg()
+//                        .multiply(BigDecimal.valueOf(amount))
+//                        .divide(BigDecimal.valueOf(pos.get(orderType).getCount()), 8, HALF_UP)
+//                        .multiply(order.getAvgPrice().subtract(pos.get(orderType).getPrice())
+//                                .divide(pos.get(orderType).getPrice(), 8, HALF_UP));
+
+                count += pos.get(OPEN_SHORT).getCount() + pos.get(CLOSE_SHORT).getCount();
+                volume = volume.add(pos.get(CLOSE_SHORT).getAvg().subtract(pos.get(OPEN_SHORT).getAvg()));
             }
 
+
+
             String message = "{" +
-                    profitLong.add(equityLong).add(profitShort).add(equityShort).setScale(3, HALF_UP) + " " +
+//                    strategy.getName() + " " +
+//                    profitLong.add(equityLong).add(profitShort).add(equityShort).setScale(3, HALF_UP) + " " +
                     profitLong.setScale(3, HALF_UP) + " " +
-                    equityLong.setScale(3, HALF_UP) + " " +
-                    profitShort.setScale(3, HALF_UP) + " " +
-                    equityShort.setScale(3, HALF_UP) +
+//                    equityLong.setScale(3, HALF_UP) + " " +
+//                    profitShort.setScale(3, HALF_UP) + " " +
+//                    equityShort.setScale(3, HALF_UP) +
+                    count +
+//                    volume.setScale(3, HALF_UP) +
                     "}\t";
 
-            Module.getInjector().getInstance(BroadcastService.class).broadcast(getClass(), "profit_" +
+            Module.getInjector().getInstance(BroadcastService.class).broadcast(getClass(), key + "profit_"
+                    + key + "_" +
                     order.getSymbolType().name().toLowerCase(), message);
         });
     }
@@ -215,14 +234,17 @@ public class BaseStrategy {
                     (OrderType.BUY_SET.contains(order.getType()) ? "↑":"↓") + ") ";
 
             Module.getInjector().getInstance(BroadcastService.class).broadcast(getClass(), "create_order_" +
+                    key + "_" +
                     order.getSymbolType().name().toLowerCase() , message);
         } finally {
             orderMap.remove(createdOrderId);
         }
     }
 
+    private ExecutorService executorService = Executors.newFixedThreadPool(4);
+
     protected Future<Order> createOrderAsync(Order order){
-        return Executors.newCachedThreadPool().submit(() -> {
+        return executorService.submit(() -> {
             createOrder(order);
 
             return order;

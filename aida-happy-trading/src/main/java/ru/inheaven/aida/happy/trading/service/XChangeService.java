@@ -20,8 +20,6 @@ import ru.inheaven.aida.happy.trading.exception.CreateOrderException;
 
 import javax.inject.Singleton;
 import java.util.Date;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author inheaven on 03.07.2015 22:20.
@@ -30,26 +28,29 @@ import java.util.concurrent.ConcurrentHashMap;
 public class XChangeService {
     private Logger log = LoggerFactory.getLogger(getClass());
 
-    private Map<Long, Exchange> exchangeMap = new ConcurrentHashMap<>();
+    private ThreadLocal<Exchange> okcoinExchangeThreadLocal = new ThreadLocal<>();
 
     public Exchange getExchange(Account account){
-        Exchange exchange = exchangeMap.get(account.getId());
+        switch (account.getExchangeType()){
+            case OKCOIN_FUTURES:
+                Exchange exchange = okcoinExchangeThreadLocal.get();
 
-        if (exchange == null){
-            switch (account.getExchangeType()){
-                case OKCOIN_FUTURES:
-                    exchange = ExchangeFactory.INSTANCE.createExchange(new ExchangeSpecification(OkCoinExchange.class){{
+                if (exchange == null){
+                    exchange = ExchangeFactory.INSTANCE.createExchange(new ExchangeSpecification(OkCoinExchange.class) {{
                         setApiKey(account.getApiKey());
                         setSecretKey(account.getSecretKey());
                         setExchangeSpecificParametersItem("Use_Intl", true);
                     }});
-                    break;
-            }
 
-            exchangeMap.put(account.getId(), exchange);
+                    okcoinExchangeThreadLocal.set(exchange);
+
+                    log.info("init exchange {}", exchange);
+                }
+
+                return exchange;
         }
 
-        return exchange;
+        return null;
     }
 
     void placeLimitOrder(Account account, Order order) throws CreateOrderException {
@@ -88,6 +89,8 @@ public class XChangeService {
             order.setOrderId(orderId);
             order.setStatus(OrderStatus.OPEN);
             order.setOpen(new Date());
+
+            log.info("open order -> {} {} {}", order.getPrice(), order.getType(), order.getSymbolType());
         } catch (Exception e) {
             log.error("error place limit order -> ", e);
 

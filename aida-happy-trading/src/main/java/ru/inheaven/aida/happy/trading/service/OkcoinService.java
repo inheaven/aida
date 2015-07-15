@@ -68,7 +68,10 @@ public class OkcoinService {
 
     private String markerChannels = "[" +
             "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_this_week'}," +
+            "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_next_week'}," +
             "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_quarter'}" +
+            "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_this_week'}," +
+            "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_quarter'}" +
             "]";
 
 
@@ -206,6 +209,7 @@ public class OkcoinService {
 
         //reconnect
         tradingEndpoint.getJsonObservable()
+                .throttleLast(5, TimeUnit.SECONDS)
                 .filter(j -> !j.getString("errorcode", "").isEmpty())
                 .subscribe(j -> reconnect());
 

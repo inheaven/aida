@@ -8,6 +8,8 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Objects;
 
+import static java.math.RoundingMode.HALF_UP;
+
 /**
  * @author inheaven on 002 02.07.15 16:45
  */
@@ -18,6 +20,24 @@ public class TradeService {
     @Inject
     public TradeService(OkcoinService okcoinService) {
         tradeObservable = okcoinService.getTradeObservable();
+
+        tradeObservable.subscribe(t ->{
+            String key = "";
+
+            switch (t.getSymbol()){
+                case "BTC/USD":
+                    key = "btc";
+                    break;
+                case "LTC/USD":
+                    key = "ltc";
+                    break;
+            }
+
+            String message = t.getPrice().setScale(3, HALF_UP).toString();
+            Module.getInjector().getInstance(BroadcastService.class).broadcast(getClass(), "trade_"
+                    + key + "_"
+                    + t.getSymbolType().name().toLowerCase(), message);
+        });
     }
 
     public Observable<Trade> createTradeObserver(Strategy strategy){

@@ -10,6 +10,7 @@ import ru.inheaven.aida.happy.trading.service.TradeService;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
+import java.util.concurrent.Future;
 
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
@@ -58,8 +59,11 @@ public class LevelStrategy extends BaseStrategy{
                                     (d.compareTo(ZERO) <= 0 && d.abs().compareTo(spreadX2) < 0))
                     .findAny()
                     .isPresent()){
-                createOrderAsync(new Order(strategy, OPEN_LONG, trade.getPrice().subtract(spread), ONE)).get();
-                createOrderAsync(new Order(strategy, CLOSE_LONG, trade.getPrice().subtract(step), ONE)).get();
+                Future<Order> open = createOrderAsync(new Order(strategy, OPEN_LONG, trade.getPrice().subtract(spread), ONE));
+                Future<Order> close = createOrderAsync(new Order(strategy, CLOSE_LONG, trade.getPrice().subtract(step), ONE));
+
+                open.get();
+                close.get();
             }
         } catch (Exception e) {
             errorCount++;
