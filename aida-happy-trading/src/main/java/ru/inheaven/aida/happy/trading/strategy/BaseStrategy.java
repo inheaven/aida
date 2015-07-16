@@ -17,6 +17,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.*;
 
+import static java.math.BigDecimal.TEN;
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CLOSED;
@@ -137,17 +138,19 @@ public class BaseStrategy {
             BigDecimal profitLong = ZERO;
             BigDecimal equityLong = ZERO;
             if (pos.get(OPEN_LONG) != null && pos.get(CLOSE_LONG) != null) {
-                profitLong = pos.get(OPEN_LONG).getAvg()
-                        .multiply(pos.get(CLOSE_LONG).getPrice().subtract(pos.get(OPEN_LONG).getPrice())
-                                .divide(pos.get(OPEN_LONG).getPrice(), 8, HALF_UP));
+                int open = orderMapper.getOrderCount(strategy, OPEN_LONG);
+                int close = orderMapper.getOrderCount(strategy, CLOSE_LONG);
 
-//                int amount = pos.get(OPEN_LONG).getCount() - pos.get(CLOSE_LONG).getCount();
-//                OrderType orderType = amount > 0 ? CLOSE_LONG : OPEN_LONG;
-//                equityLong = pos.get(orderType).getAvg()
-//                        .multiply(BigDecimal.valueOf(amount))
-//                        .divide(BigDecimal.valueOf(pos.get(orderType).getCount()), 8, HALF_UP)
-//                        .multiply(order.getAvgPrice().subtract(pos.get(orderType).getPrice())
-//                                .divide(pos.get(orderType).getPrice(), 8, HALF_UP));
+                profitLong = orderMapper.getOrderVolume(strategy, OPEN_LONG, 0, Math.min(open, close))
+                        .subtract(orderMapper.getOrderVolume(strategy, CLOSE_LONG, 0, Math.min(open, close)));
+
+                if (open > close){
+                    equityLong = orderMapper.getOrderVolume(strategy, OPEN_LONG, close, open - close)
+                            .subtract(TEN.multiply(BigDecimal.valueOf(open - close)).divide(order.getAvgPrice(), 8, HALF_UP));
+                }else{
+                    equityLong = TEN.multiply(BigDecimal.valueOf(close - open)).divide(order.getAvgPrice(), 8, HALF_UP)
+                            .subtract(orderMapper.getOrderVolume(strategy, CLOSE_LONG, open, close - open));
+                }
 
                 count += pos.get(OPEN_LONG).getCount() + pos.get(CLOSE_LONG).getCount();
                 volume = volume.add(pos.get(OPEN_LONG).getAvg().subtract(pos.get(CLOSE_LONG).getAvg()));
@@ -177,9 +180,8 @@ public class BaseStrategy {
 
             String message = "{" +
 //                    strategy.getName() + " " +
-//                    profitLong.add(equityLong).add(profitShort).add(equityShort).setScale(3, HALF_UP) + " " +
                     profitLong.setScale(3, HALF_UP) + " " +
-//                    equityLong.setScale(3, HALF_UP) + " " +
+                    equityLong.setScale(3, HALF_UP) + " " +
 //                    profitShort.setScale(3, HALF_UP) + " " +
 //                    equityShort.setScale(3, HALF_UP) +
                     count +

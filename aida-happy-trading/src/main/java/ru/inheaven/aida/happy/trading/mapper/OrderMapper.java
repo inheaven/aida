@@ -5,6 +5,8 @@ import ru.inheaven.aida.happy.trading.entity.OrderPosition;
 import ru.inheaven.aida.happy.trading.entity.OrderType;
 import ru.inheaven.aida.happy.trading.entity.Strategy;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,5 +20,23 @@ public class OrderMapper extends BaseMapper<Order>{
 
     public Map<OrderType, OrderPosition> getOrderPositionMap(Strategy strategy){
         return sqlSession().selectMap("selectOrderPosition", strategy, "type");
+    }
+
+    public Integer getOrderCount(Strategy strategy, OrderType orderType){
+        return sqlSession().selectOne("selectOrderCount", new HashMap<String, Object>() {{
+            put("id", strategy.getId());
+            put("sessionStart", strategy.getSessionStart());
+            put("orderType", orderType);
+        }});
+    }
+
+    public BigDecimal getOrderVolume(Strategy strategy, OrderType orderType, Integer first, Integer count){
+        return sqlSession().selectOne("selectOrderVolume", new HashMap<String, Object>(){{
+            put("id", strategy.getId());
+            put("sessionStart", strategy.getSessionStart());
+            put("orderType", orderType);
+            put("first", first);
+            put("count", count);
+        }});
     }
 }
