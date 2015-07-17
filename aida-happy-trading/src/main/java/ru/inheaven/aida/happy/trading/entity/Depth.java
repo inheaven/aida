@@ -17,8 +17,8 @@ public class Depth extends AbstractEntity {
     private Date date;
     private Date created;
 
-    private Map<BigDecimal, BigDecimal> ask = new HashMap<>();
-    private Map<BigDecimal, BigDecimal> bid = new HashMap<>();
+    private Map<BigDecimal, BigDecimal> askMap = new HashMap<>();
+    private Map<BigDecimal, BigDecimal> bidMap = new HashMap<>();
 
     public ExchangeType getExchangeType() {
         return exchangeType;
@@ -60,19 +60,19 @@ public class Depth extends AbstractEntity {
         this.created = created;
     }
 
-    public Map<BigDecimal, BigDecimal> getAsk() {
-        return ask;
+    public Map<BigDecimal, BigDecimal> getAskMap() {
+        return askMap;
     }
 
-    public void setAsk(Map<BigDecimal, BigDecimal> ask) {
-        this.ask = ask;
+    public void setAskMap(Map<BigDecimal, BigDecimal> askMap) {
+        this.askMap = askMap;
     }
 
-    public Map<BigDecimal, BigDecimal> getBid() {
-        return bid;
+    public Map<BigDecimal, BigDecimal> getBidMap() {
+        return bidMap;
     }
 
-    public void setBid(Map<BigDecimal, BigDecimal> bid) {
-        this.bid = bid;
+    public void setBidMap(Map<BigDecimal, BigDecimal> bidMap) {
+        this.bidMap = bidMap;
     }
 }

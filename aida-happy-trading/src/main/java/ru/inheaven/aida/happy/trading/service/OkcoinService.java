@@ -70,6 +70,10 @@ public class OkcoinService {
             "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_this_week'}," +
             "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_next_week'}," +
             "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_quarter'}" +
+            "{'event':'addChannel','channel':'ok_ltcusd_future_depth_this_week'}," +
+            "{'event':'addChannel','channel':'ok_ltcusd_future_depth_next_week'}," +
+            "{'event':'addChannel','channel':'ok_ltcusd_future_depth_quarter_week'}," +
+
             "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_this_week'}," +
             "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_quarter'}" +
             "]";
@@ -405,12 +409,12 @@ public class OkcoinService {
                     depth.setDate(new Date(Long.parseLong(((JsonObject) j.value).getString("timestamp"))));
                     depth.setCreated(new Date());
 
-                    ((JsonObject)j.value).getJsonArray("ask").forEach(ask ->
-                            depth.getAsk().put(((JsonArray) ask).getJsonNumber(0).bigDecimalValue(),
+                    ((JsonObject)j.value).getJsonArray("asks").forEach(ask ->
+                            depth.getAskMap().put(((JsonArray) ask).getJsonNumber(0).bigDecimalValue(),
                                     ((JsonArray) ask).getJsonNumber(1).bigDecimalValue()));
 
-                    ((JsonObject)j.value).getJsonArray("bid").forEach(bid ->
-                            depth.getAsk().put(((JsonArray) bid).getJsonNumber(0).bigDecimalValue(),
+                    ((JsonObject)j.value).getJsonArray("bids").forEach(bid ->
+                            depth.getBidMap().put(((JsonArray) bid).getJsonNumber(0).bigDecimalValue(),
                                     ((JsonArray) bid).getJsonNumber(1).bigDecimalValue()));
 
                     return depth;

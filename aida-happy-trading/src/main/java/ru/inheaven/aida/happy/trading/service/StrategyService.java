@@ -24,12 +24,14 @@ public class StrategyService {
                            TradeService tradeService, DepthService depthService) {
         List<Strategy> strategies = strategyMapper.getActiveStrategies();
 
-        strategies.forEach(s -> {
+        strategies.stream()
+                .filter(Strategy::isActive)
+                .forEach(s -> {
             BaseStrategy baseStrategy;
 
-            switch (s.getType()){
+            switch (s.getType()) {
                 case LEVEL:
-                    baseStrategy = new LevelStrategy(s, orderService, orderMapper, tradeService);
+                    baseStrategy = new LevelStrategy(s, orderService, orderMapper, tradeService, depthService);
                     baseStrategy.start();
                     break;
                 case PARAGLIDER:

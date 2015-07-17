@@ -13,14 +13,10 @@ import java.util.Objects;
  */
 @Singleton
 public class DepthService {
-    private OkcoinService okcoinService;
-
     private Observable<Depth> depthObservable;
 
     @Inject
     public DepthService(OkcoinService okcoinService) {
-        this.okcoinService = okcoinService;
-
         depthObservable = okcoinService.getDepthObservable();
     }
 

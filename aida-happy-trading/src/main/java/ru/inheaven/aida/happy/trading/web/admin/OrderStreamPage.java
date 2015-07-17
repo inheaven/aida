@@ -25,7 +25,8 @@ public class OrderStreamPage extends BasePage{
             protected void onBroadcast(WebSocketRequestHandler handler, String key, Object payload) {
                 if (key.contains(param)) {
 
-                    String br = key.contains("profit") ?  "<br/><br/>" + count++ + ". " + LocalTime.now().toString() + " ": "";
+                    String br = key.contains("profit") ?  "<br/><br/>" + count++ + ". " + LocalTime.now().toString()
+                            + " " + key + " ": "";
 
                     handler.appendJavaScript("$('#order_stream').append(' "+ br + payload +"');");
 

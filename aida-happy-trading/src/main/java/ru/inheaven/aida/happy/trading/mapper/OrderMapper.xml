@@ -50,8 +50,8 @@
     </select>
 
     <select id="selectOrderVolume" parameterType="map" resultType="decimal">
-        select SUM(10*amount/avg_price) from `order` where strategy_id = #{id} and status = 'CLOSED'
-          and `closed` > #{sessionStart} and `type` = #{type} limit #{first}, #{count}
+        select SUM(10*o.amount/o.avg_price) from (select * from `order` where strategy_id = #{id} and status = 'CLOSED'
+          and `closed` > #{sessionStart} and `type` = #{orderType} limit #{first}, #{count}) o
     </select>
 
 </mapper>
