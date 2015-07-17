@@ -277,7 +277,7 @@ public class OkcoinService {
 
                     order.setAmount(BigDecimal.valueOf(j.getJsonNumber("amount").doubleValue()));
                     order.setCreated(new Date(j.getJsonNumber("create_date").longValue()));
-                    order.setFilledAmount(BigDecimal.valueOf(j.getJsonNumber("deal_amount").doubleValue()));
+                    order.setFilledAmount(j.getJsonNumber("deal_amount").bigDecimalValue());
                     order.setFee(BigDecimal.valueOf(j.getJsonNumber("fee").doubleValue()));
                     order.setOrderId(j.getJsonNumber("order_id").toString());
                     order.setPrice(BigDecimal.valueOf(j.getJsonNumber("price").doubleValue()));
@@ -403,31 +403,15 @@ public class OkcoinService {
                     depth.setSymbol(getSymbol(j.channel));
                     depth.setSymbolType(getSymbolType(j.channel));
                     depth.setDate(new Date(Long.parseLong(((JsonObject) j.value).getString("timestamp"))));
-                    depth.setData(j.value.toString());
                     depth.setCreated(new Date());
 
-                    /*# Response
-                    [{
-                        "channel":"ok_ltcusd_future_depth_this_week",
-                                "data":{
-                            "asks":[
-                            [4.444,247],
-                            [4.443,90],
-                            [4.441,206],
-                            [4.44,141],
-                            [4.439,142]
-                            ],
-                            "bids":[
-                            [4.433,298],
-                            [4.429,78],
-                            [4.428,230],
-                            [4.426,124],
-                            [4.425,109]
-                            ],
-                            "timestamp":"1418636773053",
-                                    "unit_amount":10
-                        }
-                    }]*/
+                    ((JsonObject)j.value).getJsonArray("ask").forEach(ask ->
+                            depth.getAsk().put(((JsonArray) ask).getJsonNumber(0).bigDecimalValue(),
+                                    ((JsonArray) ask).getJsonNumber(1).bigDecimalValue()));
+
+                    ((JsonObject)j.value).getJsonArray("bid").forEach(bid ->
+                            depth.getAsk().put(((JsonArray) bid).getJsonNumber(0).bigDecimalValue(),
+                                    ((JsonArray) bid).getJsonNumber(1).bigDecimalValue()));
 
                     return depth;
                 });
