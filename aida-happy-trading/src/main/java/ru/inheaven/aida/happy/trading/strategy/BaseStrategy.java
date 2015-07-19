@@ -32,12 +32,13 @@ public class BaseStrategy {
 
     private Observable<Order> orderObservable;
     private Observable<Order> closedOrderObservable;
-
     private Observable<Trade> tradeObservable;
+    private Observable<Depth> depthObservable;
 
     private Subscription closeOrderSubscription;
     private Subscription tradeSubscription;
     private Subscription checkOrderSubscription;
+    private Subscription depthSubscription;
 
     private Map<String, Order> orderMap = new ConcurrentHashMap<>();
 
@@ -64,7 +65,7 @@ public class BaseStrategy {
 
         tradeObservable = tradeService.createTradeObserver(strategy);
 
-        depthService.createDepthObservable(strategy).subscribe(this::onDepth);
+        depthObservable = depthService.createDepthObservable(strategy);
 
         switch (strategy.getSymbol()){
             case "BTC/USD":
@@ -125,6 +126,14 @@ public class BaseStrategy {
         });
 
         orderMap.forEach((id, o) -> orderService.orderInfo(strategy, o));
+
+        depthSubscription = depthObservable.subscribe(d -> {
+            try {
+                onDepth(d);
+            } catch (Exception e) {
+                log.error("error on depth -> ", e);
+            }
+        });
 
         flying = true;
     }
@@ -197,6 +206,7 @@ public class BaseStrategy {
         closeOrderSubscription.unsubscribe();
         tradeSubscription.unsubscribe();
         checkOrderSubscription.unsubscribe();
+        depthSubscription.unsubscribe();
 
         flying = false;
     }

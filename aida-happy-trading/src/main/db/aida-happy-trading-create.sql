@@ -53,9 +53,30 @@ CREATE TABLE `order`
   open TIMESTAMP NULL,
   closed TIMESTAMP NULL,
   status VARCHAR(32) NOT NULL,
+
+  KEY `key_closed` (closed),
+  KEY `key_type` (type),
+  KEY `key_closed` (closed),
+  KEY `key_status` (status),
+  UNIQUE KEY `key_order_id` (order_id),
   KEY `key_strategy_id` (strategy_id),
-  FOREIGN KEY (strategy_id) REFERENCES strategy (id),
-  KEY `key_closed` (closed)
+  FOREIGN KEY (strategy_id) REFERENCES strategy (id)
+);
+
+CREATE TABLE `user_info`
+(
+  id BIGINT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+  account_id BIGINT NOT NULL,
+  currency VARCHAR(32) NOT NULL,
+  account_rights DECIMAL(19,8) NOT NULL,
+  keep_deposit DECIMAL(19,8) NOT NULL,
+  profit_real DECIMAL(19,8) NOT NULL,
+  profit_unreal DECIMAL(19,8) NOT NULL,
+  risk_rate DECIMAL(19,8) NOT NULL,
+  created TIMESTAMP NOT NULL DEFAULT NOW(),
+  KEY `key_created` (created),
+  KEY `key_account_id` (account_id),
+  FOREIGN KEY (account_id) REFERENCES account (id)
 );
 
 

@@ -51,7 +51,9 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal bid = depth.getBidMap().keySet().parallelStream().max(Comparator.<BigDecimal>naturalOrder()).get();
 
         if (ask.subtract(bid).compareTo(spread.multiply(BigDecimal.valueOf(2.1))) > 0){
-            BigDecimal price = ask.add(bid).divide(BigDecimal.valueOf(2), 8, HALF_UP).add(spread);
+            BigDecimal price = ask.add(bid).divide(BigDecimal.valueOf(2), 8, HALF_UP)
+                    .add(spread.multiply(BigDecimal.valueOf(random.nextDouble())))
+                    .setScale(8, HALF_UP);
 
             log.info("onDepth -> {} {}", price, strategy.getSymbolType());
 
@@ -70,10 +72,10 @@ public class LevelStrategy extends BaseStrategy{
         }
 
         BigDecimal risk = ONE;
-        if (strategy.getSymbol().equals("LTC/USD") && price.compareTo(BigDecimal.valueOf(3.2)) < 0){
+        if (strategy.getSymbol().equals("LTC/USD") && price.compareTo(BigDecimal.valueOf(3.5)) < 0){
             risk = BigDecimal.valueOf(3);
         }
-        if (strategy.getSymbol().equals("BTC/USD") && price.compareTo(BigDecimal.valueOf(210)) < 0){
+        if (strategy.getSymbol().equals("BTC/USD") && price.compareTo(BigDecimal.valueOf(230)) < 0){
             risk = BigDecimal.valueOf(3);
         }
 

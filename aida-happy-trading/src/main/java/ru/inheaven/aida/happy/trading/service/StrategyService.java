@@ -44,6 +44,9 @@ public class StrategyService {
 
             baseStrategies.add(baseStrategy);
         });
+
+        //start user info service
+        Module.getInjector().getInstance(UserInfoService.class);
     }
 
     public List<BaseStrategy> getBaseStrategies() {

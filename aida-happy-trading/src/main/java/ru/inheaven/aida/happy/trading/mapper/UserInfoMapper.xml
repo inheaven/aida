@@ -1,0 +1,33 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ru.inheaven.aida.happy.trading.mapper.UserInfoMapper">
+    <resultMap id="userInfo" type="ru.inheaven.aida.happy.trading.entity.UserInfo">
+        <id column="id" property="id"/>
+        <result column="account_id" property="accountId"/>
+        <result column="currency" property="currency"/>
+        <result column="account_rights" property="accountRights"/>
+        <result column="keep_deposit" property="keepDeposit"/>
+        <result column="profit_real" property="profitReal"/>
+        <result column="profit_unreal" property="profitUnreal"/>
+        <result column="risk_rate" property="riskRate"/>
+        <result column="created" property="created"/>
+    </resultMap>
+
+    <insert id="insertUserInfo" parameterType="ru.inheaven.aida.happy.trading.entity.UserInfo" keyProperty="id"
+            useGeneratedKeys="true">
+        insert into `user_info` (account_id, currency, account_rights, keep_deposit, profit_real, profit_unreal,
+                                 risk_rate, created)
+            value (#{accountId}, #{currency}, #{accountRights}, #{keepDeposit}, #{profitReal}, #{profitUnreal},
+                   #{riskRate}, #{created});
+    </insert>
+
+    <select id="selectUserInfo" parameterType="long">
+        select * from user_info where id = #{id}
+    </select>
+
+    <select id="selectUserInfoList" parameterType="map">
+        select * from user_info where account_id = #{accountId} and currency = #{currency}
+    </select>
+
+</mapper>
