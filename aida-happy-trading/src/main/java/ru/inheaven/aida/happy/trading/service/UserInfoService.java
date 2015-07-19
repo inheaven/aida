@@ -27,11 +27,14 @@ public class UserInfoService {
 
     private XChangeService xChangeService;
     private UserInfoMapper userInfoMapper;
+    private BroadcastService broadcastService;
 
     @Inject
-    public UserInfoService(AccountMapper accountMapper, XChangeService xChangeService, UserInfoMapper userInfoMapper) {
+    public UserInfoService(AccountMapper accountMapper, XChangeService xChangeService, UserInfoMapper userInfoMapper,
+                           BroadcastService broadcastService) {
         this.xChangeService = xChangeService;
         this.userInfoMapper = userInfoMapper;
+        this.broadcastService = broadcastService;
 
         accountMapper.getAccounts(ExchangeType.OKCOIN_FUTURES).forEach(this::startUserInfoScheduler);
     }
@@ -64,5 +67,7 @@ public class UserInfoService {
         userInfo.setCreated(new Date());
 
         userInfoMapper.save(userInfo);
+
+        broadcastService.broadcast(getClass(), "user_info", userInfo);
     }
 }
