@@ -180,28 +180,25 @@ $(function () {
     }).highcharts();
 
     //ORDER
-    all_order_rate_chart = $('#all_order_rate').highcharts('StockChart', {
+    all_order_rate_chart = $('#all_order_rate').highcharts({
         title: {text: 'Order Time'},
         tooltip: {valueDecimals: 3},
         credits: {enabled: false},
         scrollbar: {enabled: false},
         navigator: {enabled: false},
         rangeSelector: {enabled: false},
+        legend: {enabled: false},
         xAxis: {type: 'datetime'},
-        yAxis: {labels: {enabled: false}},
-        series: [{type : 'line', name: 'Order Time', threshold: null,
+        yAxis: {labels: {enabled: false}, tickWidth: 0, title:{text: null}, min:0},
+        series: [{type : 'spline', name: 'Order Time',
             lineWidth : 0,
             marker : {
                 enabled : true,
-                radius : 2
+                radius : 5
             },
-            fillColor : {
-                linearGradient : {x1: 0, y1: 0, x2: 0, y2: 1},
-                stops : [
-                    [0, Highcharts.getOptions().colors[0]],
-                    [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
-                ]
-            }}]
+            states:{hover:{enabled: false}},
+            tooltip:{pointFormat: ''}
+            }]
     }).highcharts();
 
 });

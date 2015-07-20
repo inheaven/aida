@@ -9,6 +9,7 @@ import org.apache.wicket.protocol.ws.api.WebSocketRequestHandler;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.resource.JQueryResourceReference;
 import ru.inheaven.aida.happy.trading.entity.UserInfo;
+import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.mapper.UserInfoMapper;
 import ru.inheaven.aida.happy.trading.service.Module;
 import ru.inheaven.aida.happy.trading.service.UserInfoService;
@@ -18,6 +19,7 @@ import ru.inhell.aida.common.wicket.BroadcastBehavior;
 
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
+import java.util.Comparator;
 import java.util.Date;
 
 import static java.math.RoundingMode.HALF_UP;
@@ -36,6 +38,15 @@ public class AccountInfoPage extends BasePage{
             public void renderHead(Component component, IHeaderResponse response) {
                 response.render(OnDomReadyHeaderItem.forScript(initChart("BTC")));
                 response.render(OnDomReadyHeaderItem.forScript(initChart("LTC")));
+
+                JsonArrayBuilder times = Json.createArrayBuilder();
+                Module.getInjector().getInstance(OrderMapper.class).getLast100OrderTimes()
+                        .stream()
+                        .sorted(Comparator.<Date>naturalOrder())
+                        .forEach(d -> times.add(Json.createArrayBuilder().add(d.getTime()).add(1).add(1)));
+
+                response.render(OnDomReadyHeaderItem.forScript("all_order_rate_chart.series[0].setData(" +
+                        times.build().toString() + ");"));
             }
         });
 
@@ -67,7 +78,7 @@ public class AccountInfoPage extends BasePage{
             protected void onBroadcast(WebSocketRequestHandler handler, String key, Object payload) {
                 if (key.contains("profit")) {
                     handler.appendJavaScript("all_order_rate_chart.series[0].addPoint([" +
-                            System.currentTimeMillis() + "," + 1 + "]);");
+                            System.currentTimeMillis() + "," + 1 + "], true, true);");
                 }
             }
         });

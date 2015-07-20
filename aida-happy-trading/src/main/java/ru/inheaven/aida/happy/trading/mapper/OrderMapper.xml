@@ -58,4 +58,8 @@
           and `closed` > #{sessionStart} and `type` = #{orderType} limit #{first}, #{count}) o
     </select>
 
+    <select id="selectLast100OrderTimes" resultType="date">
+        select closed from `order` where status = 'CLOSED' order by closed desc limit 100;
+    </select>
+
 </mapper>

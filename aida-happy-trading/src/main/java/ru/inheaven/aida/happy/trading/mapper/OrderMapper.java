@@ -6,6 +6,7 @@ import ru.inheaven.aida.happy.trading.entity.OrderType;
 import ru.inheaven.aida.happy.trading.entity.Strategy;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,5 +43,9 @@ public class OrderMapper extends BaseMapper<Order>{
 
     public Long getAllOrderRate(){
         return sqlSession().selectOne("selectAllOrderRate");
+    }
+
+    public List<Date> getLast100OrderTimes(){
+        return sqlSession().selectList("selectLast100OrderTimes");
     }
 }
