@@ -49,6 +49,10 @@
         and `closed` > #{sessionStart} and `type` = #{orderType}
     </select>
 
+    <select id="selectAllOrderRate" resultType="long">
+        select count(*) from `order` where status = 'CLOSED' and `closed` > date_sub(now(), interval 1 hour);
+    </select>
+
     <select id="selectOrderVolume" parameterType="map" resultType="decimal">
         select SUM(10*o.amount/o.avg_price) from (select * from `order` where strategy_id = #{id} and status = 'CLOSED'
           and `closed` > #{sessionStart} and `type` = #{orderType} limit #{first}, #{count}) o

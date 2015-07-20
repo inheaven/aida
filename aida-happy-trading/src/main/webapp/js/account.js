@@ -6,6 +6,8 @@ var btc_equity_chart;
 var btc_margin_chart;
 var btc_profit_chart;
 
+var all_order_rate_chart;
+
 $(function () {
     Highcharts.setOptions({
         global: {
@@ -176,5 +178,31 @@ $(function () {
             inputEnabled : false
         }
     }).highcharts();
+
+    //ORDER
+    all_order_rate_chart = $('#all_order_rate').highcharts('StockChart', {
+        title: {text: 'Order Time'},
+        tooltip: {valueDecimals: 3},
+        credits: {enabled: false},
+        scrollbar: {enabled: false},
+        navigator: {enabled: false},
+        rangeSelector: {enabled: false},
+        xAxis: {type: 'datetime'},
+        yAxis: {labels: {enabled: false}},
+        series: [{type : 'line', name: 'Order Time', threshold: null,
+            lineWidth : 0,
+            marker : {
+                enabled : true,
+                radius : 2
+            },
+            fillColor : {
+                linearGradient : {x1: 0, y1: 0, x2: 0, y2: 1},
+                stops : [
+                    [0, Highcharts.getOptions().colors[0]],
+                    [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+                ]
+            }}]
+    }).highcharts();
+
 });
 

@@ -12,6 +12,7 @@ import ru.inheaven.aida.happy.trading.entity.UserInfo;
 import ru.inheaven.aida.happy.trading.mapper.UserInfoMapper;
 import ru.inheaven.aida.happy.trading.service.Module;
 import ru.inheaven.aida.happy.trading.service.UserInfoService;
+import ru.inheaven.aida.happy.trading.strategy.BaseStrategy;
 import ru.inheaven.aida.happy.trading.web.BasePage;
 import ru.inhell.aida.common.wicket.BroadcastBehavior;
 
@@ -58,6 +59,16 @@ public class AccountInfoPage extends BasePage{
                         Json.createArrayBuilder()
                                 .add(info.getCreated().getTime())
                                 .add((info.getKeepDeposit().setScale(3, HALF_UP))).build().toString() + ");");
+            }
+        });
+
+        add(new BroadcastBehavior(BaseStrategy.class) {
+            @Override
+            protected void onBroadcast(WebSocketRequestHandler handler, String key, Object payload) {
+                if (key.contains("profit")) {
+                    handler.appendJavaScript("all_order_rate_chart.series[0].addPoint([" +
+                            System.currentTimeMillis() + "," + 1 + "]);");
+                }
             }
         });
     }

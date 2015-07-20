@@ -5,6 +5,7 @@ import ru.inheaven.aida.happy.trading.entity.ExchangeType;
 import ru.inheaven.aida.happy.trading.entity.Order;
 import ru.inheaven.aida.happy.trading.entity.Strategy;
 import ru.inheaven.aida.happy.trading.exception.CreateOrderException;
+import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import rx.Observable;
 
 import javax.inject.Inject;
@@ -22,12 +23,17 @@ public class OrderService {
     private XChangeService xChangeService;
 
     @Inject
-    public OrderService(OkcoinService okcoinService, XChangeService xChangeService) {
+    public OrderService(OkcoinService okcoinService, XChangeService xChangeService, OrderMapper orderMapper,
+                        BroadcastService broadcastService) {
         this.okcoinService = okcoinService;
         this.xChangeService = xChangeService;
 
         orderObservable = okcoinService.getOrderObservable()
                 .mergeWith(okcoinService.getRealTradesObservable());
+
+//        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+//            broadcastService.broadcast(getClass(), "all_order_rate", orderMapper.getAllOrderRate());
+//        }, 0, 1, TimeUnit.MINUTES);
     }
 
     public Observable<Order> createOrderObserver(Strategy strategy){

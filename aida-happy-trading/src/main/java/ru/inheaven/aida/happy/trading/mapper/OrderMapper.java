@@ -39,4 +39,8 @@ public class OrderMapper extends BaseMapper<Order>{
             put("count", count);
         }});
     }
+
+    public Long getAllOrderRate(){
+        return sqlSession().selectOne("selectAllOrderRate");
+    }
 }
