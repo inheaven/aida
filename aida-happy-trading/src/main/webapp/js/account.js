@@ -181,7 +181,7 @@ $(function () {
 
     //ORDER
     all_order_rate_chart = $('#all_order_rate').highcharts({
-        title: {text: 'Order Time'},
+        title: {text: 'Order Time', style:{"fontSize": "16px"}},
         tooltip: {valueDecimals: 3},
         credits: {enabled: false},
         scrollbar: {enabled: false},
