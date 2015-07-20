@@ -23,7 +23,7 @@ public class AidaHappyTradingApplication extends WebApplication{
     @Override
     protected void init() {
         Bootstrap.install(Application.get(), new BootstrapSettings()
-                .setThemeProvider(new BootswatchThemeProvider(BootswatchTheme.Readable)));
+                .setThemeProvider(new BootswatchThemeProvider(BootswatchTheme.Darkly)));
 
         getMarkupSettings().setCompressWhitespace(true);
         getMarkupSettings().setDefaultMarkupEncoding("UTF-8");
