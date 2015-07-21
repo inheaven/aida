@@ -7,6 +7,7 @@ import de.agilecoders.wicket.themes.markup.html.bootswatch.BootswatchThemeProvid
 import org.apache.wicket.Application;
 import org.apache.wicket.Page;
 import org.apache.wicket.protocol.http.WebApplication;
+import org.wicketstuff.rest.utils.mounting.PackageScanner;
 import ru.inheaven.aida.happy.trading.web.admin.ClientEditPage;
 import ru.inheaven.aida.happy.trading.web.admin.ClientListPage;
 import ru.inheaven.aida.happy.trading.web.admin.OrderStreamPage;
@@ -37,6 +38,7 @@ public class AidaHappyTradingApplication extends WebApplication{
         getDebugSettings().setDevelopmentUtilitiesEnabled(true);
         getDebugSettings().setComponentUseCheck(true);
 
+        PackageScanner.scanPackage("ru.inheaven.aida.happy.trading.rest");
     }
 
     @Override

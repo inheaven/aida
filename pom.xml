@@ -238,6 +238,18 @@
                 <artifactId>wicketstuff-editable-grid</artifactId>
                 <version>${wicketstuff.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wicketstuff</groupId>
+                <artifactId>wicketstuff-restannotations-json</artifactId>
+                <version>${wicketstuff.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.pgelinas</groupId>
+                <artifactId>jackson-javax-json</artifactId>
+                <version>0.9.0</version>
+            </dependency>
+
 
             <!--WIQUERY-->
             <dependency>

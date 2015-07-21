@@ -13,7 +13,8 @@
     <packaging>war</packaging>
 
     <properties>
-        <wicket7.version>7.0.0-M5</wicket7.version>
+        <wicket7.version>7.0.0-M6</wicket7.version>
+        <wicketstuff.version>7.0.0-M6</wicketstuff.version>
     </properties>
 
     <dependencies>
@@ -85,6 +86,12 @@
         <dependency>
             <groupId>com.googlecode.wicked-charts</groupId>
             <artifactId>wicked-charts-wicket6</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.wicketstuff</groupId>
+            <artifactId>wicketstuff-restannotations-json</artifactId>
+            <version>${wicketstuff.version}</version>
         </dependency>
 
         <!-- REACTIVE -->
