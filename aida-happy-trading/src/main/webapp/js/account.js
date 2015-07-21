@@ -25,7 +25,7 @@ $(function () {
             chart: {animation: false},
             tooltip: {valueDecimals: 3},
             credits: {enabled: false},
-            navigator: {enabled: false},
+            navigator: {height: 0, xAxis:{labels:{enabled:false}}},
             scrollbar: {enabled: false},
             xAxis: {type: 'datetime'},
             series: [{
@@ -58,7 +58,7 @@ $(function () {
             chart: {animation: false},
             tooltip: {valueDecimals: 3},
             credits: {enabled: false},
-            navigator: {enabled: false},
+            navigator: {height: 0, xAxis:{labels:{enabled:false}}},
             scrollbar: {enabled: false},
             xAxis: {type: 'datetime'},
             series: [{
@@ -91,7 +91,7 @@ $(function () {
             chart: {animation: false},
             tooltip: {valueDecimals: 3},
             credits: {enabled: false},
-            navigator: {enabled: false},
+            navigator: {height: 0, xAxis:{labels:{enabled:false}}},
             scrollbar: {enabled: false},
             xAxis: {type: 'datetime'},
             series: [{
@@ -123,11 +123,11 @@ $(function () {
     $.getJSON('/account_info_rest/equity/LTC', function (data) {
         ltc_equity_chart = $('#ltc_equity').highcharts('StockChart', {
             title: {text: 'LTC Equity'},
-            chart:{animation: false},
+            chart:{animation: true},
             tooltip: {valueDecimals: 3},
             credits: {enabled: false},
             scrollbar: {enabled: false},
-            navigator: {enabled: false},
+            navigator: {height: 0, xAxis:{labels:{enabled:false}}},
             xAxis: {type: 'datetime'},
             series: [{type : 'area',  threshold : null, name: 'LTC Equity',
                 data: data,
@@ -158,7 +158,7 @@ $(function () {
             tooltip: {valueDecimals: 3},
             credits: {enabled: false},
             scrollbar: {enabled: false},
-            navigator: {enabled: false},
+            navigator: {height: 0, xAxis:{labels:{enabled:false}}},
             xAxis: {type: 'datetime'},
             series: [{
                 type: 'area', threshold: null, name: 'LTC Realized Profit',
@@ -191,7 +191,7 @@ $(function () {
             tooltip: {valueDecimals: 3},
             credits: {enabled: false},
             scrollbar: {enabled: false},
-            navigator: {enabled: false},
+            navigator: {height: 0, xAxis:{labels:{enabled:false}}},
             xAxis: {type: 'datetime'},
             series: [{
                 type: 'area', threshold: null, name: 'LTC Margin',
@@ -224,7 +224,7 @@ $(function () {
         tooltip: {valueDecimals: 3},
         credits: {enabled: false},
         scrollbar: {enabled: false},
-        navigator: {enabled: false},
+        navigator: {enabled: false, xAxis:{labels:{enabled:false}}},
         rangeSelector: {enabled: false},
         legend: {enabled: false},
         xAxis: {type: 'datetime'},
@@ -239,6 +239,12 @@ $(function () {
             tooltip:{pointFormat: ''}
             }]
     }).highcharts();
+
+    $('.highcharts-navigator').hide();
+    $('.highcharts-navigator-handle-left').hide();
+    $('.highcharts-navigator-handle-right').hide();
+
+
 
 });
 

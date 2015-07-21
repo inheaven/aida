@@ -55,17 +55,17 @@ public class AccountInfoPage extends BasePage{
                 handler.appendJavaScript(info.getCurrency().toLowerCase() + "_equity_chart.series[0].addPoint(" +
                         Json.createArrayBuilder()
                                 .add(info.getCreated().getTime())
-                                .add((info.getAccountRights().setScale(3, HALF_UP))).build().toString() + ", true, true, false);");
+                                .add((info.getAccountRights().setScale(3, HALF_UP))).build().toString() + ", true)");
 
                 handler.appendJavaScript(info.getCurrency().toLowerCase() + "_profit_chart.series[0].addPoint(" +
                         Json.createArrayBuilder()
                                 .add(info.getCreated().getTime())
-                                .add((info.getProfitReal().setScale(3, HALF_UP))).build().toString() + ", true, true, false);");
+                                .add((info.getProfitReal().setScale(3, HALF_UP))).build().toString() + ", true);");
 
                 handler.appendJavaScript(info.getCurrency().toLowerCase() + "_margin_chart.series[0].addPoint(" +
                         Json.createArrayBuilder()
                                 .add(info.getCreated().getTime())
-                                .add((info.getKeepDeposit().setScale(3, HALF_UP))).build().toString() + ", true, true, false);");
+                                .add((info.getKeepDeposit().setScale(3, HALF_UP))).build().toString() + ", true);");
             }
         });
 
@@ -74,7 +74,7 @@ public class AccountInfoPage extends BasePage{
             protected void onBroadcast(WebSocketRequestHandler handler, String key, Object payload) {
                 if (key.contains("profit")) {
                     handler.appendJavaScript("all_order_rate_chart.series[0].addPoint([" +
-                            System.currentTimeMillis() + "," + 1 + "], true, true, false);");
+                            System.currentTimeMillis() + "," + 1 + "], true, true);");
                 }
             }
         });
