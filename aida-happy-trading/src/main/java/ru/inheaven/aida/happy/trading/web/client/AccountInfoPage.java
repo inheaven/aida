@@ -96,7 +96,7 @@ public class AccountInfoPage extends BasePage{
     public void renderHead(IHeaderResponse response) {
         response.render(JavaScriptHeaderItem.forReference(JQueryResourceReference.get()));
         response.render(JavaScriptHeaderItem.forUrl("/highstock/highstock.js"));
-        response.render(JavaScriptHeaderItem.forUrl("/highstock/themes/dark-unica-mod.js"));
+        response.render(JavaScriptHeaderItem.forUrl("/js/dark-unica-mod.js"));
         response.render(JavaScriptHeaderItem.forUrl("/js/account.js"));
     }
 

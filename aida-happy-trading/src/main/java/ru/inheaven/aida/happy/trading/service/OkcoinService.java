@@ -69,6 +69,11 @@ public class OkcoinService {
 
             "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_this_week'}," +
             "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_quarter'}" +
+
+            "{'event':'addChannel','channel':'ok_ltcusd_trades_v1'}" +
+            "{'event':'addChannel','channel':'ok_ltcusd_depth'}" +
+
+            "{'event':'addChannel','channel':'ok_btcusd_trades_v1'}" +
             "]";
 
 

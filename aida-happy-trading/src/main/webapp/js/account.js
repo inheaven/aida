@@ -27,7 +27,7 @@ $(function () {
     $.getJSON('/account_info_rest/equity/BTC', function (data) {
         btc_equity_chart = $('#btc_equity').highcharts('StockChart', {
             title: {text: 'BTC Equity'},
-            chart: {animation: false},
+            chart: {animation: false, marginTop: 5},
             tooltip: {valueDecimals: 3},
             credits: {enabled: false},
             navigator: {height: 0, xAxis:{labels:{enabled:false}}},
@@ -46,10 +46,10 @@ $(function () {
             }],
             rangeSelector: {
                 buttons: [
-                    {type: 'hour', count: 1, text: 'Hour'},
-                    {type: 'day', count: 1, text: 'Day'},
-                    {type: 'week', count: 1, text: 'Week'},
-                    {type: 'all', count: 1, text: 'All'}
+                    {type: 'hour', count: 1, text: '.'},
+                    {type: 'day', count: 1, text: '.'},
+                    {type: 'week', count: 1, text: '.'},
+                    {type: 'all', count: 1, text: '.'}
                 ],
                 //selected : 1,
                 inputEnabled: false
@@ -60,7 +60,7 @@ $(function () {
     $.getJSON('/account_info_rest/profit/BTC', function (data) {
         btc_profit_chart = $('#btc_profit').highcharts('StockChart', {
             title: {text: 'BTC Realized Profit'},
-            chart: {animation: false},
+            chart: {animation: false, marginTop: 5},
             tooltip: {valueDecimals: 3},
             credits: {enabled: false},
             navigator: {height: 0, xAxis:{labels:{enabled:false}}},
@@ -79,10 +79,10 @@ $(function () {
             }],
             rangeSelector: {
                 buttons: [
-                    {type: 'hour', count: 1, text: 'Hour'},
-                    {type: 'day', count: 1, text: 'Day'},
-                    {type: 'week', count: 1, text: 'Week'},
-                    {type: 'all', count: 1, text: 'All'}
+                    {type: 'hour', count: 1, text: '.'},
+                    {type: 'day', count: 1, text: '.'},
+                    {type: 'week', count: 1, text: '.'},
+                    {type: 'all', count: 1, text: '.'}
                 ],
                 //selected : 1,
                 inputEnabled: false
@@ -93,7 +93,7 @@ $(function () {
     $.getJSON('/account_info_rest/margin/BTC', function (data) {
         btc_margin_chart = $('#btc_margin').highcharts('StockChart', {
             title: {text: 'BTC Margin'},
-            chart: {animation: false},
+            chart: {animation: false, marginTop: 5},
             tooltip: {valueDecimals: 3},
             credits: {enabled: false},
             navigator: {height: 0, xAxis:{labels:{enabled:false}}},
@@ -112,10 +112,10 @@ $(function () {
             }],
             rangeSelector: {
                 buttons: [
-                    {type: 'hour', count: 1, text: 'Hour'},
-                    {type: 'day', count: 1, text: 'Day'},
-                    {type: 'week', count: 1, text: 'Week'},
-                    {type: 'all', count: 1, text: 'All'}
+                    {type: 'hour', count: 1, text: '.'},
+                    {type: 'day', count: 1, text: '.'},
+                    {type: 'week', count: 1, text: '.'},
+                    {type: 'all', count: 1, text: '.'}
                 ],
                 //selected : 1,
                 inputEnabled: false
@@ -128,7 +128,7 @@ $(function () {
     $.getJSON('/account_info_rest/equity/LTC', function (data) {
         ltc_equity_chart = $('#ltc_equity').highcharts('StockChart', {
             title: {text: 'LTC Equity'},
-            chart:{animation: true},
+            chart:{animation: true, marginTop: 5},
             tooltip: {valueDecimals: 3},
             credits: {enabled: false},
             scrollbar: {enabled: false},
@@ -145,10 +145,10 @@ $(function () {
                 }}],
             rangeSelector : {
                 buttons : [
-                    {type : 'hour', count : 1, text : 'Hour'},
-                    {type : 'day', count : 1, text : 'Day'},
-                    {type : 'week', count : 1, text : 'Week'},
-                    {type : 'all', count : 1, text : 'All'}
+                    {type : 'hour', count : 1, text : '.'},
+                    {type : 'day', count : 1, text : '.'},
+                    {type : 'week', count : 1, text : '.'},
+                    {type : 'all', count : 1, text : '.'}
                 ],
                 //selected : 1,
                 inputEnabled : false
@@ -159,7 +159,7 @@ $(function () {
     $.getJSON('/account_info_rest/profit/LTC', function (data) {
         ltc_profit_chart = $('#ltc_profit').highcharts('StockChart', {
             title: {text: 'LTC Realized Profit'},
-            chart: {animation: false},
+            chart: {animation: false, marginTop: 5},
             tooltip: {valueDecimals: 3},
             credits: {enabled: false},
             scrollbar: {enabled: false},
@@ -178,10 +178,10 @@ $(function () {
             }],
             rangeSelector: {
                 buttons: [
-                    {type: 'hour', count: 1, text: 'Hour'},
-                    {type: 'day', count: 1, text: 'Day'},
-                    {type: 'week', count: 1, text: 'Week'},
-                    {type: 'all', count: 1, text: 'All'}
+                    {type: 'hour', count: 1, text: '.'},
+                    {type: 'day', count: 1, text: '.'},
+                    {type: 'week', count: 1, text: '.'},
+                    {type: 'all', count: 1, text: '.'}
                 ],
                 //selected : 1,
                 inputEnabled: false
@@ -192,7 +192,7 @@ $(function () {
     $.getJSON('/account_info_rest/margin/LTC', function (data) {
         ltc_margin_chart = $('#ltc_margin').highcharts('StockChart', {
             title: {text: 'LTC Margin'},
-            chart: {animation: false},
+            chart: {animation: false, marginTop: 5},
             tooltip: {valueDecimals: 3},
             credits: {enabled: false},
             scrollbar: {enabled: false},
@@ -211,10 +211,10 @@ $(function () {
             }],
             rangeSelector: {
                 buttons: [
-                    {type: 'hour', count: 1, text: 'Hour'},
-                    {type: 'day', count: 1, text: 'Day'},
-                    {type: 'week', count: 1, text: 'Week'},
-                    {type: 'all', count: 1, text: 'All'}
+                    {type: 'hour', count: 1, text: '.'},
+                    {type: 'day', count: 1, text: '.'},
+                    {type: 'week', count: 1, text: '.'},
+                    {type: 'all', count: 1, text: '.'}
                 ],
                 //selected : 1,
                 inputEnabled: false
@@ -227,7 +227,7 @@ $(function () {
     $.getJSON('/account_info_rest/spot/LTC_SPOT', function (data) {
         ltc_spot_chart = $('#ltc_spot').highcharts('StockChart', {
             title: {text: 'LTC Spot'},
-            chart: {animation: false},
+            chart: {animation: false, marginTop: 5},
             tooltip: {valueDecimals: 3},
             credits: {enabled: false},
             scrollbar: {enabled: false},
@@ -246,10 +246,10 @@ $(function () {
             }],
             rangeSelector: {
                 buttons: [
-                    {type: 'hour', count: 1, text: 'Hour'},
-                    {type: 'day', count: 1, text: 'Day'},
-                    {type: 'week', count: 1, text: 'Week'},
-                    {type: 'all', count: 1, text: 'All'}
+                    {type: 'hour', count: 1, text: '.'},
+                    {type: 'day', count: 1, text: '.'},
+                    {type: 'week', count: 1, text: '.'},
+                    {type: 'all', count: 1, text: '.'}
                 ],
                 //selected : 1,
                 inputEnabled: false
@@ -260,7 +260,7 @@ $(function () {
     $.getJSON('/account_info_rest/spot/BTC_SPOT', function (data) {
         btc_spot_chart = $('#btc_spot').highcharts('StockChart', {
             title: {text: 'BTC Spot'},
-            chart: {animation: false},
+            chart: {animation: false, marginTop: 5},
             tooltip: {valueDecimals: 3},
             credits: {enabled: false},
             scrollbar: {enabled: false},
@@ -279,10 +279,10 @@ $(function () {
             }],
             rangeSelector: {
                 buttons: [
-                    {type: 'hour', count: 1, text: 'Hour'},
-                    {type: 'day', count: 1, text: 'Day'},
-                    {type: 'week', count: 1, text: 'Week'},
-                    {type: 'all', count: 1, text: 'All'}
+                    {type: 'hour', count: 1, text: '.'},
+                    {type: 'day', count: 1, text: '.'},
+                    {type: 'week', count: 1, text: '.'},
+                    {type: 'all', count: 1, text: '.'}
                 ],
                 //selected : 1,
                 inputEnabled: false
@@ -293,7 +293,7 @@ $(function () {
     $.getJSON('/account_info_rest/spot/USD_SPOT', function (data) {
         usd_spot_chart = $('#usd_spot').highcharts('StockChart', {
             title: {text: 'USD Spot'},
-            chart: {animation: false},
+            chart: {animation: false, marginTop: 5},
             tooltip: {valueDecimals: 3},
             credits: {enabled: false},
             scrollbar: {enabled: false},
@@ -312,10 +312,10 @@ $(function () {
             }],
             rangeSelector: {
                 buttons: [
-                    {type: 'hour', count: 1, text: 'Hour'},
-                    {type: 'day', count: 1, text: 'Day'},
-                    {type: 'week', count: 1, text: 'Week'},
-                    {type: 'all', count: 1, text: 'All'}
+                    {type: 'hour', count: 1, text: '.'},
+                    {type: 'day', count: 1, text: '.'},
+                    {type: 'week', count: 1, text: '.'},
+                    {type: 'all', count: 1, text: '.'}
                 ],
                 //selected : 1,
                 inputEnabled: false
@@ -339,7 +339,7 @@ $(function () {
             lineWidth : 0,
             marker : {
                 enabled : true,
-                radius : 5
+                radius : 4
             },
             states:{hover:{enabled: false}},
             tooltip:{pointFormat: ''}

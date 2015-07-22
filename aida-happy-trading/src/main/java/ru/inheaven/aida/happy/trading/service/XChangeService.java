@@ -33,6 +33,7 @@ public class XChangeService {
     public Exchange getExchange(Account account){
         switch (account.getExchangeType()){
             case OKCOIN_FUTURES:
+            case OKCOIN_SPOT:
                 Exchange exchange = okcoinExchangeThreadLocal.get();
 
                 if (exchange == null){
