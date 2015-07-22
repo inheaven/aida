@@ -71,11 +71,13 @@ public class LevelStrategy extends BaseStrategy{
         }
 
         BigDecimal risk = ONE;
-        if (strategy.getSymbol().equals("LTC/USD") && price.compareTo(BigDecimal.valueOf(3.5)) < 0){
-            risk = BigDecimal.valueOf(3);
-        }
-        if (strategy.getSymbol().equals("BTC/USD") && price.compareTo(BigDecimal.valueOf(230)) < 0){
-            risk = BigDecimal.valueOf(3);
+        if (strategy.getSymbolType() != null) {
+            if (strategy.getSymbol().equals("LTC/USD") && price.compareTo(BigDecimal.valueOf(3.5)) < 0){
+                risk = BigDecimal.valueOf(3);
+            }
+            if (strategy.getSymbol().equals("BTC/USD") && price.compareTo(BigDecimal.valueOf(230)) < 0){
+                risk = BigDecimal.valueOf(3);
+            }
         }
 
         BigDecimal spread = strategy.getLevelSpread().multiply(risk);
