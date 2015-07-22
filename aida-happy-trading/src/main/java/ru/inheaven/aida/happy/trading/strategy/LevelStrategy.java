@@ -16,8 +16,7 @@ import java.util.concurrent.Future;
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
-import static ru.inheaven.aida.happy.trading.entity.OrderType.CLOSE_LONG;
-import static ru.inheaven.aida.happy.trading.entity.OrderType.OPEN_LONG;
+import static ru.inheaven.aida.happy.trading.entity.OrderType.*;
 
 /**
  * @author inheaven on 08.07.2015 19:39.
@@ -92,8 +91,17 @@ public class LevelStrategy extends BaseStrategy{
                                     (d.compareTo(ZERO) <= 0 && d.abs().compareTo(spreadX2) < 0))
                     .findAny()
                     .isPresent()){
-                Future<Order> open = createOrderAsync(new Order(strategy, OPEN_LONG, price.subtract(spread), ONE));
-                Future<Order> close = createOrderAsync(new Order(strategy, CLOSE_LONG, price.subtract(step), ONE));
+                Future<Order> open = createOrderAsync(
+                        new Order(strategy,
+                                strategy.getSymbolType() != null ? OPEN_LONG : BID,
+                                price.subtract(spread),
+                                strategy.getLevelLot()));
+
+                Future<Order> close = createOrderAsync(
+                        new Order(strategy,
+                                strategy.getSymbolType() != null ? CLOSE_LONG : ASK,
+                                price.subtract(step),
+                                strategy.getLevelLot()));
 
                 open.get();
                 close.get();

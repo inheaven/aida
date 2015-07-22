@@ -21,7 +21,7 @@ public class Strategy extends AbstractEntity {
 
     private boolean active;
 
-    private Account account;;
+    private Account account;
 
     private Date sessionStart;
 

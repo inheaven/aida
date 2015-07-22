@@ -50,7 +50,7 @@ public class OrderService {
         switch (order.getExchangeType()){
             case OKCOIN_FUTURES:
             case OKCOIN_SPOT:
-                xChangeService.placeLimitOrder(account,order);
+                xChangeService.placeLimitOrder(account, order);
                 break;
         }
     }
