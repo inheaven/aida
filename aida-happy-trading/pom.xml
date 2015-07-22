@@ -92,6 +92,12 @@
             <groupId>org.wicketstuff</groupId>
             <artifactId>wicketstuff-restannotations-json</artifactId>
             <version>${wicketstuff.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- REACTIVE -->
@@ -216,5 +222,6 @@
             <artifactId>xchange-okcoin</artifactId>
         </dependency>
     </dependencies>
+
 
 </project>

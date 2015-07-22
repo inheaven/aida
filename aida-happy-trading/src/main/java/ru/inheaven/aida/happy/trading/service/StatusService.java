@@ -8,7 +8,6 @@ import javax.inject.Singleton;
  */
 @Singleton
 public class StatusService {
-
     private long tradeCount = 0;
     private long depthCount = 0;
     private long orderCount = 0;
@@ -27,26 +26,6 @@ public class StatusService {
             broadcastService.broadcast(StatusService.class, "update_trading", l);
         });
 
-        okcoinService.getTradeObservable().subscribe(trade -> {
-            tradeCount++;
-
-            broadcastService.broadcast(StatusService.class, "update_trade", tradeCount);
-        });
-
-        okcoinService.getDepthObservable().subscribe(depth -> {
-            depthCount++;
-
-            broadcastService.broadcast(StatusService.class, "update_depth", depthCount);
-
-        });
-
-        okcoinService.getOrderObservable()
-                .mergeWith(okcoinService.getRealTradesObservable())
-                .subscribe(order -> {
-            orderCount++;
-
-            broadcastService.broadcast(StatusService.class, "update_order", orderCount);
-        });
     }
 
 

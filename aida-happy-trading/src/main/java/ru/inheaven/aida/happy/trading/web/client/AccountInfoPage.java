@@ -27,10 +27,11 @@ import static java.math.RoundingMode.HALF_UP;
  * @author inheaven on 19.07.2015 17:55.
  */
 public class AccountInfoPage extends BasePage{
-    private Long accountId;
+    private Long futureAccountId = 7L;
+    private Long spotAccountId = 8L;
 
     public AccountInfoPage(PageParameters pageParameters) {
-        accountId = pageParameters.get("a").toLong(7);
+        futureAccountId = pageParameters.get("a").toLong(7);
 
         add(new Behavior(){
             @Override
@@ -52,20 +53,31 @@ public class AccountInfoPage extends BasePage{
             protected void onBroadcast(WebSocketRequestHandler handler, String key, Object payload) {
                 UserInfo info = (UserInfo) payload;
 
-                handler.appendJavaScript(info.getCurrency().toLowerCase() + "_equity_chart.series[0].addPoint(" +
-                        Json.createArrayBuilder()
-                                .add(info.getCreated().getTime())
-                                .add((info.getAccountRights().setScale(3, HALF_UP))).build().toString() + ", true)");
+                if (info.getAccountId().equals(futureAccountId)) {
+                    handler.appendJavaScript(info.getCurrency().toLowerCase() + "_equity_chart.series[0].addPoint(" +
+                            Json.createArrayBuilder()
+                                    .add(info.getCreated().getTime())
+                                    .add((info.getAccountRights().setScale(3, HALF_UP)))
+                                    .build().toString() + ", true)");
 
-                handler.appendJavaScript(info.getCurrency().toLowerCase() + "_profit_chart.series[0].addPoint(" +
-                        Json.createArrayBuilder()
-                                .add(info.getCreated().getTime())
-                                .add((info.getProfitReal().setScale(3, HALF_UP))).build().toString() + ", true);");
+                    handler.appendJavaScript(info.getCurrency().toLowerCase() + "_profit_chart.series[0].addPoint(" +
+                            Json.createArrayBuilder()
+                                    .add(info.getCreated().getTime())
+                                    .add((info.getProfitReal().setScale(3, HALF_UP)))
+                                    .build().toString() + ", true);");
 
-                handler.appendJavaScript(info.getCurrency().toLowerCase() + "_margin_chart.series[0].addPoint(" +
-                        Json.createArrayBuilder()
-                                .add(info.getCreated().getTime())
-                                .add((info.getKeepDeposit().setScale(3, HALF_UP))).build().toString() + ", true);");
+                    handler.appendJavaScript(info.getCurrency().toLowerCase() + "_margin_chart.series[0].addPoint(" +
+                            Json.createArrayBuilder()
+                                    .add(info.getCreated().getTime())
+                                    .add((info.getKeepDeposit().setScale(3, HALF_UP)))
+                                    .build().toString() + ", true);");
+                }else if (info.getAccountId().equals(spotAccountId)){
+                    handler.appendJavaScript(info.getCurrency().toLowerCase() + "_chart.series[0].addPoint(" +
+                            Json.createArrayBuilder()
+                                    .add(info.getCreated().getTime())
+                                    .add((info.getAccountRights().add(info.getKeepDeposit()).setScale(3, HALF_UP)))
+                                    .build().toString() + ", true)");
+                }
             }
         });
 

@@ -17,7 +17,8 @@ public class DepthService {
 
     @Inject
     public DepthService(OkcoinService okcoinService) {
-        depthObservable = okcoinService.getDepthObservable();
+        depthObservable = okcoinService.createFutureDepthObservable()
+                .mergeWith(okcoinService.createSpotDepthObservable());
     }
 
     public Observable<Depth> createDepthObservable(Strategy strategy){

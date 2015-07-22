@@ -38,6 +38,7 @@ public class BaseStrategy {
     private Subscription closeOrderSubscription;
     private Subscription tradeSubscription;
     private Subscription checkOrderSubscription;
+    private Subscription checkAllOrderSubscription;
     private Subscription depthSubscription;
 
     private Map<String, Order> orderMap = new ConcurrentHashMap<>();
@@ -117,11 +118,20 @@ public class BaseStrategy {
                 log.error("error on trader -> ", e);
             }
         });
-        checkOrderSubscription = tradeObservable.throttleLast(30, TimeUnit.SECONDS).subscribe(o -> {
+
+        checkOrderSubscription = tradeObservable.throttleLast(1, TimeUnit.MINUTES).subscribe(t -> {
             try {
-                checkOrders(o);
+                checkOrders(t);
             } catch (Exception e) {
                 log.error("error check order -> ", e);
+            }
+        });
+
+        checkAllOrderSubscription = tradeObservable.throttleLast(1, TimeUnit.HOURS).subscribe(t -> {
+            try {
+                orderMap.forEach((id, o) -> orderService.orderInfo(strategy, o));
+            } catch (Exception e) {
+                log.error("error check all order -> ", e);
             }
         });
 
@@ -207,6 +217,7 @@ public class BaseStrategy {
         tradeSubscription.unsubscribe();
         checkOrderSubscription.unsubscribe();
         depthSubscription.unsubscribe();
+        checkAllOrderSubscription.unsubscribe();
 
         flying = false;
     }

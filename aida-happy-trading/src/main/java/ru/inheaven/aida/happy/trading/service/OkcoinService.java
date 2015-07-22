@@ -39,11 +39,6 @@ public class OkcoinService {
     private JsonObservableEndpoint marketEndpoint;
     private JsonObservableEndpoint tradingEndpoint;
 
-    private Observable<Trade> tradeObservable;
-    private Observable<Depth> depthObservable;
-    private Observable<Order> orderObservable;
-    private Observable<Order> realTradesObservable;
-
     private Observable<Long> marketDataHeartbeatObservable;
     private Observable<Long> tradingHeartbeatObservable;
 
@@ -160,18 +155,6 @@ public class OkcoinService {
                 }
             }, 0, 1, TimeUnit.MINUTES);
 
-            //trade
-            tradeObservable = createTradeObservable();
-
-            //depth
-            depthObservable = createDepthObservable();
-
-            //order info
-            orderObservable = createOrderObservable();
-
-            //real trades
-            realTradesObservable = createRealTrades();
-
             //success
             marketEndpoint.getJsonObservable().filter(j -> j.getString("success", null) != null).subscribe(System.out::println);
             tradingEndpoint.getJsonObservable().filter(j -> j.getString("success", null) != null).subscribe(System.out::println);
@@ -224,21 +207,6 @@ public class OkcoinService {
                 .subscribe(j -> log.info(j.toString()));
     }
 
-    public Observable<Trade> getTradeObservable() {
-        return tradeObservable;
-    }
-
-    public Observable<Depth> getDepthObservable() {
-        return depthObservable;
-    }
-
-    public Observable<Order> getOrderObservable() {
-        return orderObservable;
-    }
-
-    public Observable<Order> getRealTradesObservable() {
-        return realTradesObservable;
-    }
 
     public Observable<Long> getMarketDataHeartbeatObservable() {
         return marketDataHeartbeatObservable;
@@ -265,18 +233,123 @@ public class OkcoinService {
         });
     }
 
-    private Observable<Order> createOrderObservable() {
+    //TRADE
+
+    public Observable<Trade> createFutureTradeObservable() {
+        return marketEndpoint.getJsonObservable()
+                .filter(j -> j.getString("channel", "").contains("_future_trade_v1_"))
+                .flatMapIterable(j -> j.getJsonArray("data"), (o, v) -> new JsonData(o.getString("channel"), v))
+                .filter(d -> d.value.getValueType().equals(JsonValue.ValueType.ARRAY))
+                .map(j -> {
+                    lastTrade = System.currentTimeMillis();
+
+                    JsonArray a = (JsonArray) j.value;
+
+                    Trade trade = new Trade();
+
+                    trade.setTradeId(a.getString(0));
+                    trade.setExchangeType(ExchangeType.OKCOIN_FUTURES);
+                    trade.setSymbol(getSymbol(j.channel));
+                    trade.setSymbolType(getSymbolType(j.channel));
+                    trade.setPrice(new BigDecimal(a.getString(1)));
+                    trade.setAmount(new BigDecimal(a.getString(2)));
+                    trade.setDate(Date.from(LocalTime.parse(a.getString(3)).atDate(now()).toInstant(ofHours(8))));
+                    trade.setOrderType(OrderType.valueOf(a.getString(4).toUpperCase()));
+
+                    return trade;
+                });
+    }
+
+    public Observable<Trade> createSpotTradeObservable() {
+        return marketEndpoint.getJsonObservable()
+                .filter(j -> j.getString("channel", "").contains("usd_trades_v1"))
+                .flatMapIterable(j -> j.getJsonArray("data"), (o, v) -> new JsonData(o.getString("channel"), v))
+                .filter(d -> d.value.getValueType().equals(JsonValue.ValueType.ARRAY))
+                .map(j -> {
+                    lastTrade = System.currentTimeMillis();
+
+                    JsonArray a = (JsonArray) j.value;
+
+                    Trade trade = new Trade();
+
+                    trade.setTradeId(a.getString(0));
+                    trade.setExchangeType(ExchangeType.OKCOIN_SPOT);
+                    trade.setSymbol(getSymbol(j.channel));
+                    trade.setPrice(new BigDecimal(a.getString(1)));
+                    trade.setAmount(new BigDecimal(a.getString(2)));
+                    trade.setDate(Date.from(LocalTime.parse(a.getString(3)).atDate(now()).toInstant(ofHours(8))));
+                    trade.setOrderType(OrderType.valueOf(a.getString(4).toUpperCase()));
+
+                    return trade;
+                });
+    }
+
+    //DEPTH
+
+    public Observable<Depth> createFutureDepthObservable() {
+        return marketEndpoint.getJsonObservable()
+                .filter(j -> j.getString("channel", "").contains("_future_depth_"))
+                .map(j -> new JsonData(j.getString("channel"), j.getJsonObject("data")))
+                .filter(j -> j != null && j.value != null)
+                .map(j -> {
+                    Depth depth = new Depth();
+
+                    depth.setExchangeType(ExchangeType.OKCOIN_FUTURES);
+                    depth.setSymbol(getSymbol(j.channel));
+                    depth.setSymbolType(getSymbolType(j.channel));
+                    depth.setDate(new Date(Long.parseLong(((JsonObject) j.value).getString("timestamp"))));
+                    depth.setCreated(new Date());
+
+                    ((JsonObject) j.value).getJsonArray("asks").forEach(ask ->
+                            depth.getAskMap().put(((JsonArray) ask).getJsonNumber(0).bigDecimalValue(),
+                                    ((JsonArray) ask).getJsonNumber(1).bigDecimalValue()));
+
+                    ((JsonObject) j.value).getJsonArray("bids").forEach(bid ->
+                            depth.getBidMap().put(((JsonArray) bid).getJsonNumber(0).bigDecimalValue(),
+                                    ((JsonArray) bid).getJsonNumber(1).bigDecimalValue()));
+
+                    return depth;
+                });
+    }
+
+    public Observable<Depth> createSpotDepthObservable() {
+        return marketEndpoint.getJsonObservable()
+                .filter(j -> j.getString("channel", "").contains("usd_depth"))
+                .map(j -> new JsonData(j.getString("channel"), j.getJsonObject("data")))
+                .filter(j -> j != null && j.value != null)
+                .map(j -> {
+                    Depth depth = new Depth();
+
+                    depth.setExchangeType(ExchangeType.OKCOIN_SPOT);
+                    depth.setSymbol(getSymbol(j.channel));
+                    depth.setDate(new Date(Long.parseLong(((JsonObject) j.value).getString("timestamp"))));
+                    depth.setCreated(new Date());
+
+                    ((JsonObject) j.value).getJsonArray("asks").forEach(ask ->
+                            depth.getAskMap().put(((JsonArray) ask).getJsonNumber(0).bigDecimalValue(),
+                                    ((JsonArray) ask).getJsonNumber(1).bigDecimalValue()));
+
+                    ((JsonObject) j.value).getJsonArray("bids").forEach(bid ->
+                            depth.getBidMap().put(((JsonArray) bid).getJsonNumber(0).bigDecimalValue(),
+                                    ((JsonArray) bid).getJsonNumber(1).bigDecimalValue()));
+
+                    return depth;
+                });
+    }
+
+    //ORDER INFO
+
+    public Observable<Order> createFutureOrderObservable() {
         return tradingEndpoint.getJsonObservable()
-                .filter(j -> j.getString("channel", "").equals("ok_futureusd_order_info"))
-                .filter(j -> j.getJsonObject("data") != null)
+                .filter(j -> j.getString("channel", "").equals("ok_futureusd_order_info") && j.getJsonObject("data") != null)
                 .map(j -> j.getJsonObject("data"))
                 .filter(j -> j.getBoolean("result"))
                 .flatMapIterable(j -> j.getJsonArray("orders"))
                 .filter(j -> j.getValueType().equals(JsonValue.ValueType.OBJECT)).map(j -> (JsonObject) j)
                 .map(j -> {
                     Order order = new Order();
-                    order.setExchangeType(ExchangeType.OKCOIN_FUTURES);
 
+                    order.setExchangeType(ExchangeType.OKCOIN_FUTURES);
                     order.setAmount(BigDecimal.valueOf(j.getJsonNumber("amount").doubleValue()));
                     order.setCreated(new Date(j.getJsonNumber("create_date").longValue()));
                     order.setFilledAmount(j.getJsonNumber("deal_amount").bigDecimalValue());
@@ -324,7 +397,61 @@ public class OkcoinService {
                 });
     }
 
-    private Observable<Order> createRealTrades(){
+    public Observable<Order> createSpotOrderObservable() {
+        return tradingEndpoint.getJsonObservable()
+                .filter(j -> j.getString("channel", "").equals("ok_spotusd_order_info") && j.getJsonObject("data") != null)
+                .map(j -> j.getJsonObject("data"))
+                .filter(j -> j.getBoolean("result"))
+                .flatMapIterable(j -> j.getJsonArray("orders"))
+                .filter(j -> j.getValueType().equals(JsonValue.ValueType.OBJECT)).map(j -> (JsonObject) j)
+                .map(j -> {
+                    Order order = new Order();
+
+                    order.setExchangeType(ExchangeType.OKCOIN_SPOT);
+                    order.setAmount(BigDecimal.valueOf(j.getJsonNumber("amount").doubleValue()));
+                    order.setCreated(new Date(j.getJsonNumber("create_date").longValue()));
+                    order.setFilledAmount(j.getJsonNumber("deal_amount").bigDecimalValue());
+                    order.setFee(BigDecimal.valueOf(j.getJsonNumber("fee").doubleValue()));
+                    order.setOrderId(j.getJsonNumber("order_id").toString());
+                    order.setPrice(BigDecimal.valueOf(j.getJsonNumber("price").doubleValue()));
+                    order.setAvgPrice(BigDecimal.valueOf(j.getJsonNumber("avg_price").doubleValue()));
+
+                    String symbol = j.getString("symbol");
+                    if (symbol.contains("ltc")) {
+                        order.setSymbol("LTC/USD");
+                    } else if (symbol.contains("btc")) {
+                        order.setSymbol("BTC/USD");
+                    }
+
+                    switch (j.getInt("status")) {
+                        case -1:
+                        case 4:
+                            order.setStatus(OrderStatus.CANCELED);
+                            break;
+                        case 2:
+                            order.setStatus(OrderStatus.CLOSED);
+                            break;
+                        default:
+                            order.setStatus(OrderStatus.OPEN);
+                            break;
+                    }
+
+                    switch (j.getString("type")) {
+                        case "buy_market ":
+                            order.setType(OrderType.BID);
+                            break;
+                        case "sell_market":
+                            order.setType(OrderType.ASK);
+                            break;
+                    }
+
+                    return order;
+                });
+    }
+
+    //REAL TRADES
+
+    public Observable<Order> createFutureRealTrades(){
         return tradingEndpoint.getJsonObservable()
                 .filter(j -> j.getString("channel", "").equals("ok_usd_future_realtrades"))
                 .map(j -> j.getJsonObject("data"))
@@ -343,9 +470,9 @@ public class OkcoinService {
                     order.setFilledAmount(new BigDecimal(j.getString("deal_amount")));
 
                     String symbol = j.getString("contract_name");
-                    if (symbol.contains("LTC")){
+                    if (symbol.contains("LTC")) {
                         order.setSymbol("LTC/USD");
-                    }else if (symbol.contains("BTC")){
+                    } else if (symbol.contains("BTC")) {
                         order.setSymbol("BTC/USD");
                     }
 
@@ -377,7 +504,7 @@ public class OkcoinService {
                             break;
                     }
 
-                    switch (j.getString("contract_type")){
+                    switch (j.getString("contract_type")) {
                         case "this_week":
                             order.setSymbolType(SymbolType.THIS_WEEK);
                             break;
@@ -394,64 +521,65 @@ public class OkcoinService {
 
     }
 
-    private Observable<Depth> createDepthObservable() {
-        return marketEndpoint.getJsonObservable()
-                .filter(j -> j.getString("channel", "").contains("_future_depth_"))
-                .map(j -> new JsonData(j.getString("channel"), j.getJsonObject("data")))
-                .filter(j -> j != null && j.value != null)
+    public Observable<Order> createSpotRealTrades(){
+        return tradingEndpoint.getJsonObservable()
+                .filter(j -> j.getString("channel", "").equals("ok_usd_realtrades") && j.getJsonObject("data") != null)
+                .map(j -> j.getJsonObject("data"))
                 .map(j -> {
-                    Depth depth = new Depth();
+                    lastOrder = System.currentTimeMillis();
 
-                    depth.setExchangeType(ExchangeType.OKCOIN_FUTURES);
-                    depth.setSymbol(getSymbol(j.channel));
-                    depth.setSymbolType(getSymbolType(j.channel));
-                    depth.setDate(new Date(Long.parseLong(((JsonObject) j.value).getString("timestamp"))));
-                    depth.setCreated(new Date());
+                    Order order = new Order();
 
-                    ((JsonObject) j.value).getJsonArray("asks").forEach(ask ->
-                            depth.getAskMap().put(((JsonArray) ask).getJsonNumber(0).bigDecimalValue(),
-                                    ((JsonArray) ask).getJsonNumber(1).bigDecimalValue()));
+                    order.setExchangeType(ExchangeType.OKCOIN_SPOT);
+                    order.setAmount(new BigDecimal(j.getString("tradeAmount")));
+                    order.setOrderId(j.getJsonNumber("orderId").toString());
+                    order.setPrice(new BigDecimal(j.getString("tradePrice")));
+                    order.setAvgPrice(new BigDecimal(j.getString("averagePrice")));
+                    order.setFilledAmount(new BigDecimal(j.getString("completedTradeAmount")));
 
-                    ((JsonObject) j.value).getJsonArray("bids").forEach(bid ->
-                            depth.getBidMap().put(((JsonArray) bid).getJsonNumber(0).bigDecimalValue(),
-                                    ((JsonArray) bid).getJsonNumber(1).bigDecimalValue()));
+                    String symbol = j.getString("symbol");
+                    if (symbol.contains("ltc")) {
+                        order.setSymbol("LTC/USD");
+                    } else if (symbol.contains("btc")) {
+                        order.setSymbol("BTC/USD");
+                    }
 
-                    return depth;
+                    switch (j.getJsonNumber("status").intValue()) {
+                        case -1:
+                        case 4:
+                            order.setStatus(OrderStatus.CANCELED);
+                            break;
+                        case 2:
+                            order.setStatus(OrderStatus.CLOSED);
+                            break;
+                        default:
+                            order.setStatus(OrderStatus.OPEN);
+                            break;
+                    }
+
+                    switch (j.getString("tradeType")) {
+                        case "buy":
+                            order.setType(OrderType.BID);
+                            break;
+                        case "sell":
+                            order.setType(OrderType.ASK);
+                            break;
+                    }
+
+                    return order;
                 });
+
     }
 
-    private Observable<Trade> createTradeObservable() {
-        return marketEndpoint.getJsonObservable()
-                .filter(j -> j.getString("channel", "").contains("_future_trade_v1_"))
-                .flatMapIterable(j -> j.getJsonArray("data"), (o, v) -> new JsonData(o.getString("channel"), v))
-                .filter(d -> d.value.getValueType().equals(JsonValue.ValueType.ARRAY))
-                .map(j -> {
-                    lastTrade = System.currentTimeMillis();
+    //REQUEST
 
-                    JsonArray a = (JsonArray) j.value;
-
-                    Trade trade = new Trade();
-
-                    trade.setTradeId(a.getString(0));
-                    trade.setExchangeType(ExchangeType.OKCOIN_FUTURES);
-                    trade.setSymbol(getSymbol(j.channel));
-                    trade.setSymbolType(getSymbolType(j.channel));
-                    trade.setPrice(new BigDecimal(a.getString(1)));
-                    trade.setAmount(new BigDecimal(a.getString(2)));
-                    trade.setDate(Date.from(LocalTime.parse(a.getString(3)).atDate(now()).toInstant(ofHours(8))));
-                    trade.setOrderType(OrderType.valueOf(a.getString(4).toUpperCase()));
-
-                    return trade;
-                });
-    }
-
-    public void orderInfo(String apiKey, String secretKey, Order order){
-        orderInfo(apiKey, secretKey, toSymbol(order.getSymbol()), order.getOrderId(),
+    public void orderFutureInfo(String apiKey, String secretKey, Order order){
+        orderFutureInfo(apiKey, secretKey, toSymbol(order.getSymbol()), order.getOrderId(),
                 toContractName(order.getSymbolType()), "2", "1", "1");
     }
 
-    public void orderInfo(String apiKey, String secretKey, String symbol, String orderId, String contractType,
-                          String status, String currentPage, String pageLength){
+    public void orderFutureInfo(String apiKey, String secretKey, String symbol, String orderId, String contractType,
+                                String status, String currentPage, String pageLength){
         try {
             JsonObject parameters = Json.createObjectBuilder()
                     .add("api_key", apiKey)
@@ -483,7 +611,34 @@ public class OkcoinService {
         }
     }
 
-    public void realTrades(String apiKey, String secretKey){
+    public void orderSpotInfo(String apiKey, String secretKey, Order order){
+        try {
+            String orderId = order.getOrderId();
+            String symbol = toSymbol(order.getSymbol());
+
+            JsonObject parameters = Json.createObjectBuilder()
+                    .add("api_key", apiKey)
+                    .add("order_id",orderId)
+                    .add("symbol", symbol)
+                    .build();
+
+            JsonObject parametersSing = Json.createObjectBuilder()
+                    .add("api_key", apiKey)
+                    .add("order_id", orderId)
+                    .add("symbol", symbol)
+                    .add("sign", getMD5String(parameters, secretKey))
+                    .build();
+
+            tradingEndpoint.getSession().getBasicRemote().sendText(Json.createObjectBuilder()
+                    .add("event", "addChannel")
+                    .add("channel", "ok_spotusd_order_info")
+                    .add("parameters", parametersSing).build().toString());
+        } catch (Exception e) {
+            log.error("order info error", e);
+        }
+    }
+
+    public void realFutureTrades(String apiKey, String secretKey){
         try {
             JsonObject parameters = Json.createObjectBuilder()
                     .add("api_key", apiKey)
@@ -509,9 +664,33 @@ public class OkcoinService {
         }
     }
 
-    public void createOrder(Order order){
-        throw new RuntimeException("websocket create order not implemented");
+    public void realSpotTrades(String apiKey, String secretKey){
+        try {
+            JsonObject parameters = Json.createObjectBuilder()
+                    .add("api_key", apiKey)
+                    .build();
+
+            JsonObject parametersSing = Json.createObjectBuilder()
+                    .add("api_key", apiKey)
+                    .add("sign", getMD5String(parameters, secretKey))
+                    .build();
+
+            String channel = Json.createObjectBuilder()
+                    .add("event", "addChannel")
+                    .add("channel", "ok_usd_realtrades")
+                    .add("parameters", parametersSing).build().toString();
+
+            if (!tradesChannels.contains(channel)) {
+                tradingEndpoint.getSession().getBasicRemote().sendText(channel);
+
+                tradesChannels.add(channel);
+            }
+        } catch (Exception e) {
+            log.error("real trades error", e);
+        }
     }
+
+    //UTIL
 
     public String getSymbol(String channel){
         if (channel.contains("_btcusd_")){

@@ -22,6 +22,10 @@ import static java.math.RoundingMode.HALF_UP;
  */
 @ResourcePath("/account_info_rest")
 public class AccountInfoRest extends AbstractRestResource<JsonWebSerialDeserial>{
+    private Long futureAccountId = 7L;
+    private Long spotAccountId = 8L;
+    private Date startDate = new Date(Timestamp.valueOf("2015-07-20 00:00:00").getTime());
+
     private UserInfoMapper userInfoMapper = Module.getInjector().getInstance(UserInfoMapper.class);
 
     public AccountInfoRest() {
@@ -32,8 +36,7 @@ public class AccountInfoRest extends AbstractRestResource<JsonWebSerialDeserial>
     public List getEquity(@PathParam("currency") String currency){
         List<List> array = new ArrayList<>();
 
-        userInfoMapper.getUserInfoList(7L, currency,
-                new Date(Timestamp.valueOf("2015-07-20 00:00:00").getTime()))
+        userInfoMapper.getUserInfoList(futureAccountId, currency,startDate)
                 .forEach(i -> array.add(Arrays.asList(i.getCreated().getTime(), i.getAccountRights().setScale(3, HALF_UP))));
 
         return array;
@@ -43,8 +46,7 @@ public class AccountInfoRest extends AbstractRestResource<JsonWebSerialDeserial>
     public List getMargin(@PathParam("currency") String currency){
         List<List> array = new ArrayList<>();
 
-        userInfoMapper.getUserInfoList(7L, currency,
-                new Date(Timestamp.valueOf("2015-07-20 00:00:00").getTime()))
+        userInfoMapper.getUserInfoList(futureAccountId, currency, startDate)
                 .forEach(i -> array.add(Arrays.asList(i.getCreated().getTime(), i.getKeepDeposit().setScale(3, HALF_UP))));
 
         return array;
@@ -54,9 +56,19 @@ public class AccountInfoRest extends AbstractRestResource<JsonWebSerialDeserial>
     public List getProfit(@PathParam("currency") String currency){
         List<List> array = new ArrayList<>();
 
-        userInfoMapper.getUserInfoList(7L, currency,
-                new Date(Timestamp.valueOf("2015-07-20 00:00:00").getTime()))
+        userInfoMapper.getUserInfoList(futureAccountId, currency, startDate)
                 .forEach(i -> array.add(Arrays.asList(i.getCreated().getTime(), i.getProfitReal().setScale(3, HALF_UP))));
+
+        return array;
+    }
+
+    @MethodMapping("/spot/{currency}")
+    public List getSpot(@PathParam("currency") String currency){
+        List<List> array = new ArrayList<>();
+
+        userInfoMapper.getUserInfoList(spotAccountId, currency, startDate)
+                .forEach(i -> array.add(Arrays.asList(i.getCreated().getTime(), i.getAccountRights().add(i.getKeepDeposit())
+                        .setScale(3, HALF_UP))));
 
         return array;
     }

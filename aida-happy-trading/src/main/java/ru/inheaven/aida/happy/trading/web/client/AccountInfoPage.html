@@ -6,23 +6,36 @@
         .highcharts-navigator-handle-right{
             display: none;
         }
+
+        .chart{
+            height: 290px
+        }
+
+        .column{
+            width: 33%
+        }
     </style>
 </wicket:head>
 <wicket:extend xmlns:wicket="http://wicket.apache.org">
     <table id="charts" style="width: 100%">
         <tr>
-            <td style="width: 33%"><div id="btc_margin" style="height: 400px"></div></td>
-            <td style="width: 33%"><div id="btc_profit" style="height: 400px"></div></td>
-            <td style="width: 33%"><div id="btc_equity" style="height: 400px"></div></td>
+            <td class="column"><div id="btc_margin" class="chart"></div></td>
+            <td class="column"><div id="btc_profit" class="chart"></div></td>
+            <td class="column"><div id="btc_equity" class="chart"></div></td>
         </tr>
         <tr>
-            <td style="width: 33%"><div id="ltc_margin" style="height: 400px"></div></td>
-            <td style="width: 33%"><div id="ltc_profit" style="height: 400px"></div></td>
-            <td style="width: 33%"><div id="ltc_equity" style="height: 400px"></div></td>
+            <td class="column"><div id="ltc_margin" class="chart"></div></td>
+            <td class="column"><div id="ltc_profit" class="chart"></div></td>
+            <td class="column"><div id="ltc_equity" class="chart"></div></td>
+        </tr>
+        <tr>
+            <td class="column"><div id="ltc_spot" class="chart"></div></td>
+            <td class="column"><div id="btc_spot" class="chart"></div></td>
+            <td class="column"><div id="usd_spot" class="chart"></div></td>
         </tr>
         <tr>
             <td colspan="3">
-                <div id="all_order_rate" style="height: 150px"></div>
+                <div id="all_order_rate" style="height: 100px"></div>
             </td>
         </tr>
     </table>

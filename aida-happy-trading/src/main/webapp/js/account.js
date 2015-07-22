@@ -6,6 +6,11 @@ var btc_equity_chart;
 var btc_margin_chart;
 var btc_profit_chart;
 
+var ltc_spot_chart;
+var btc_spot_chart;
+var usd_spot_chart;
+
+
 var all_order_rate_chart;
 
 $(function () {
@@ -217,6 +222,107 @@ $(function () {
         }).highcharts();
     });
 
+    //SPOT
+
+    $.getJSON('/account_info_rest/spot/LTC_SPOT', function (data) {
+        ltc_spot_chart = $('#ltc_spot').highcharts('StockChart', {
+            title: {text: 'LTC Spot'},
+            chart: {animation: false},
+            tooltip: {valueDecimals: 3},
+            credits: {enabled: false},
+            scrollbar: {enabled: false},
+            navigator: {height: 0, xAxis:{labels:{enabled:false}}},
+            xAxis: {type: 'datetime'},
+            series: [{
+                type: 'area', threshold: null, name: 'LTC Spot',
+                data: data,
+                fillColor: {
+                    linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
+                    stops: [
+                        [0, Highcharts.getOptions().colors[0]],
+                        [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+                    ]
+                }
+            }],
+            rangeSelector: {
+                buttons: [
+                    {type: 'hour', count: 1, text: 'Hour'},
+                    {type: 'day', count: 1, text: 'Day'},
+                    {type: 'week', count: 1, text: 'Week'},
+                    {type: 'all', count: 1, text: 'All'}
+                ],
+                //selected : 1,
+                inputEnabled: false
+            }
+        }).highcharts();
+    });
+
+    $.getJSON('/account_info_rest/spot/BTC_SPOT', function (data) {
+        btc_spot_chart = $('#btc_spot').highcharts('StockChart', {
+            title: {text: 'BTC Spot'},
+            chart: {animation: false},
+            tooltip: {valueDecimals: 3},
+            credits: {enabled: false},
+            scrollbar: {enabled: false},
+            navigator: {height: 0, xAxis:{labels:{enabled:false}}},
+            xAxis: {type: 'datetime'},
+            series: [{
+                type: 'area', threshold: null, name: 'BTC Spot',
+                data: data,
+                fillColor: {
+                    linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
+                    stops: [
+                        [0, Highcharts.getOptions().colors[0]],
+                        [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+                    ]
+                }
+            }],
+            rangeSelector: {
+                buttons: [
+                    {type: 'hour', count: 1, text: 'Hour'},
+                    {type: 'day', count: 1, text: 'Day'},
+                    {type: 'week', count: 1, text: 'Week'},
+                    {type: 'all', count: 1, text: 'All'}
+                ],
+                //selected : 1,
+                inputEnabled: false
+            }
+        }).highcharts();
+    });
+
+    $.getJSON('/account_info_rest/spot/USD_SPOT', function (data) {
+        usd_spot_chart = $('#usd_spot').highcharts('StockChart', {
+            title: {text: 'USD Spot'},
+            chart: {animation: false},
+            tooltip: {valueDecimals: 3},
+            credits: {enabled: false},
+            scrollbar: {enabled: false},
+            navigator: {height: 0, xAxis:{labels:{enabled:false}}},
+            xAxis: {type: 'datetime'},
+            series: [{
+                type: 'area', threshold: null, name: 'USD Spot',
+                data: data,
+                fillColor: {
+                    linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
+                    stops: [
+                        [0, Highcharts.getOptions().colors[0]],
+                        [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+                    ]
+                }
+            }],
+            rangeSelector: {
+                buttons: [
+                    {type: 'hour', count: 1, text: 'Hour'},
+                    {type: 'day', count: 1, text: 'Day'},
+                    {type: 'week', count: 1, text: 'Week'},
+                    {type: 'all', count: 1, text: 'All'}
+                ],
+                //selected : 1,
+                inputEnabled: false
+            }
+        }).highcharts();
+    });
+
     //ORDER
     all_order_rate_chart = $('#all_order_rate').highcharts({
         title: {text: 'Order Time', style:{"fontSize": "16px"}},
@@ -239,12 +345,5 @@ $(function () {
             tooltip:{pointFormat: ''}
             }]
     }).highcharts();
-
-    $('.highcharts-navigator').hide();
-    $('.highcharts-navigator-handle-left').hide();
-    $('.highcharts-navigator-handle-right').hide();
-
-
-
 });
 

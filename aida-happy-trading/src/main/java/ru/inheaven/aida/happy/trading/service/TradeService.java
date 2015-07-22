@@ -18,8 +18,9 @@ public class TradeService {
     private Observable<Trade> tradeObservable;
 
     @Inject
-    public TradeService(OkcoinService okcoinService) {
-        tradeObservable = okcoinService.getTradeObservable();
+    public TradeService(OkcoinService okcoinService, BroadcastService broadcastService) {
+        tradeObservable = okcoinService.createFutureTradeObservable()
+                .mergeWith(okcoinService.createSpotTradeObservable());
 
         tradeObservable.subscribe(t ->{
             String key = "";
@@ -33,10 +34,8 @@ public class TradeService {
                     break;
             }
 
-            String message = t.getPrice().setScale(3, HALF_UP).toString();
-            Module.getInjector().getInstance(BroadcastService.class).broadcast(getClass(), "trade_"
-                    + key + "_"
-                    + t.getSymbolType().name().toLowerCase(), message);
+            broadcastService.broadcast(getClass(), "trade_" + key + "_" + t.getSymbolType().name().toLowerCase(),
+                    t.getPrice().setScale(3, HALF_UP).toString());
         });
     }
 
