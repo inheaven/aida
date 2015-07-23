@@ -70,11 +70,11 @@ public class OkcoinService {
             "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_this_week'}," +
             "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_quarter'}," +
 
-            "{'event':'addChannel','channel':'ok_ltcusd_trades_v1'}," +
-            "{'event':'addChannel','channel':'ok_ltcusd_depth'}," +
+            "{'event':'addChannel','channel':'ok_ltcusd_trades_v1', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}," +
+            "{'event':'addChannel','channel':'ok_ltcusd_depth', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}," +
 
-            "{'event':'addChannel','channel':'ok_btcusd_trades_v1'}," +
-            "{'event':'addChannel','channel':'ok_btcusd_depth'}" +
+            "{'event':'addChannel','channel':'ok_btcusd_trades_v1', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}," +
+            "{'event':'addChannel','channel':'ok_btcusd_depth', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}" +
             "]";
 
 

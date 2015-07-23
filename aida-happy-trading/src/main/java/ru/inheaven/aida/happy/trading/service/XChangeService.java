@@ -20,6 +20,7 @@ import ru.inheaven.aida.happy.trading.exception.CreateOrderException;
 
 import javax.inject.Singleton;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * @author inheaven on 03.07.2015 22:20.
@@ -91,7 +92,7 @@ public class XChangeService {
             order.setStatus(OrderStatus.OPEN);
             order.setOpen(new Date());
 
-            log.info("open order -> {} {} {}", order.getPrice(), order.getType(), order.getSymbolType());
+            log.info("open order -> {} {} {}", order.getPrice(), order.getType(), Objects.toString(order.getSymbolType(), ""));
         } catch (Exception e) {
             log.error("error place limit order -> ", e);
 
