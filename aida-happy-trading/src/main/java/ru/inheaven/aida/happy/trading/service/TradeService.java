@@ -34,7 +34,7 @@ public class TradeService {
                     break;
             }
 
-            broadcastService.broadcast(getClass(), "trade_" + key + "_" + t.getSymbolType().name().toLowerCase(),
+            broadcastService.broadcast(getClass(), "trade_" + key + "_" + t.getSymbolType(),
                     t.getPrice().setScale(3, HALF_UP).toString());
         });
     }

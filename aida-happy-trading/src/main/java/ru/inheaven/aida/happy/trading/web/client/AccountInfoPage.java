@@ -84,7 +84,7 @@ public class AccountInfoPage extends BasePage{
         add(new BroadcastBehavior(BaseStrategy.class) {
             @Override
             protected void onBroadcast(WebSocketRequestHandler handler, String key, Object payload) {
-                if (key.contains("profit")) {
+                if (key.contains("close_order")) {
                     handler.appendJavaScript("all_order_rate_chart.series[0].addPoint([" +
                             System.currentTimeMillis() + "," + 1 + "], true, true);");
                 }

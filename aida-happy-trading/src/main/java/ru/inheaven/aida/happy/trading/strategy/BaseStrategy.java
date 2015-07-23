@@ -12,6 +12,7 @@ import rx.Subscription;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.*;
 
 import static java.math.BigDecimal.TEN;
@@ -97,12 +98,11 @@ public class BaseStrategy {
                                 + (OrderType.BUY_SET.contains(order.getType()) ? "↑" : "↓") + "] ";
 
                         Module.getInjector().getInstance(BroadcastService.class).broadcast(getClass(), "close_order_"
-                                + key + "_"
-                                + order.getSymbolType().name().toLowerCase(), message);
+                                + key + "_"+ Objects.toString(order.getSymbolType(), ""), message);
                     }
 
                     //profit
-                    profit(order);
+                    //profit(order);
                 }
 
                 onCloseOrder(o);
@@ -207,8 +207,7 @@ public class BaseStrategy {
                     "}\t";
 
             Module.getInjector().getInstance(BroadcastService.class).broadcast(getClass(), "profit_"
-                    + key + "_" +
-                    order.getSymbolType().name().toLowerCase(), message);
+                    + key + "_" + Objects.toString(order.getSymbolType(), ""), message);
         });
     }
 
@@ -258,8 +257,7 @@ public class BaseStrategy {
                     (OrderType.BUY_SET.contains(order.getType()) ? "↑":"↓") + ") ";
 
             Module.getInjector().getInstance(BroadcastService.class).broadcast(getClass(), "create_order_" +
-                    key + "_" +
-                    order.getSymbolType().name().toLowerCase() , message);
+                    key + "_" + Objects.toString(order.getSymbolType(), ""), message);
         } finally {
             orderMap.remove(createdOrderId);
         }

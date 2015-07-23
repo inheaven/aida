@@ -68,12 +68,13 @@ public class OkcoinService {
             "{'event':'addChannel','channel':'ok_ltcusd_future_depth_quarter_week'}," +
 
             "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_this_week'}," +
-            "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_quarter'}" +
+            "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_quarter'}," +
 
-            "{'event':'addChannel','channel':'ok_ltcusd_trades_v1'}" +
-            "{'event':'addChannel','channel':'ok_ltcusd_depth'}" +
+            "{'event':'addChannel','channel':'ok_ltcusd_trades_v1'}," +
+            "{'event':'addChannel','channel':'ok_ltcusd_depth'}," +
 
-            "{'event':'addChannel','channel':'ok_btcusd_trades_v1'}" +
+            "{'event':'addChannel','channel':'ok_btcusd_trades_v1'}," +
+            "{'event':'addChannel','channel':'ok_btcusd_depth'}" +
             "]";
 
 
@@ -209,6 +210,12 @@ public class OkcoinService {
                 .subscribe(j -> log.info(j.toString()));
         tradingEndpoint.getJsonObservable()
                 .filter(j -> j.getString("channel", "").equals("ok_futureusd_order_info"))
+                .subscribe(j -> log.info(j.toString()));
+        tradingEndpoint.getJsonObservable()
+                .filter(j -> j.getString("channel", "").equals("ok_usd_realtrades"))
+                .subscribe(j -> log.info(j.toString()));
+        tradingEndpoint.getJsonObservable()
+                .filter(j -> j.getString("channel", "").equals("ok_spotusd_order_info"))
                 .subscribe(j -> log.info(j.toString()));
     }
 
@@ -416,7 +423,6 @@ public class OkcoinService {
                     order.setAmount(BigDecimal.valueOf(j.getJsonNumber("amount").doubleValue()));
                     order.setCreated(new Date(j.getJsonNumber("create_date").longValue()));
                     order.setFilledAmount(j.getJsonNumber("deal_amount").bigDecimalValue());
-                    order.setFee(BigDecimal.valueOf(j.getJsonNumber("fee").doubleValue()));
                     order.setOrderId(j.getJsonNumber("order_id").toString());
                     order.setPrice(BigDecimal.valueOf(j.getJsonNumber("price").doubleValue()));
                     order.setAvgPrice(BigDecimal.valueOf(j.getJsonNumber("avg_price").doubleValue()));
@@ -442,9 +448,11 @@ public class OkcoinService {
                     }
 
                     switch (j.getString("type")) {
+                        case "buy":
                         case "buy_market ":
                             order.setType(OrderType.BID);
                             break;
+                        case "sell":
                         case "sell_market":
                             order.setType(OrderType.ASK);
                             break;

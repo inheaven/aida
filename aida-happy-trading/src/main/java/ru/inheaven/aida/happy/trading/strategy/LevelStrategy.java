@@ -57,6 +57,10 @@ public class LevelStrategy extends BaseStrategy{
             log.info("onDepth -> {} {}", price, strategy.getSymbolType());
 
             action(price);
+        }else if (depth.getExchangeType().equals(ExchangeType.OKCOIN_SPOT)){
+            BigDecimal price = ask.add(bid).divide(BigDecimal.valueOf(2), 8, HALF_UP);
+
+            action(price);
         }
     }
 
@@ -93,17 +97,23 @@ public class LevelStrategy extends BaseStrategy{
                                     (d.compareTo(ZERO) <= 0 && d.abs().compareTo(spreadX2) < 0))
                     .findAny()
                     .isPresent()){
+                BigDecimal amount = strategy.getLevelLot();
+
+                if (strategy.getSymbolType() == null){
+                    amount = amount.multiply(BigDecimal.valueOf(1 + random.nextGaussian()/5));
+                }
+
                 Future<Order> open = createOrderAsync(
                         new Order(strategy,
                                 strategy.getSymbolType() != null ? OPEN_LONG : BID,
                                 price.subtract(spread),
-                                strategy.getLevelLot()));
+                                amount));
 
                 Future<Order> close = createOrderAsync(
                         new Order(strategy,
                                 strategy.getSymbolType() != null ? CLOSE_LONG : ASK,
                                 price.subtract(step),
-                                strategy.getLevelLot()));
+                                amount));
 
                 open.get();
                 close.get();

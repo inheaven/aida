@@ -46,10 +46,10 @@ $(function () {
             }],
             rangeSelector: {
                 buttons: [
-                    {type: 'hour', count: 1, text: '.'},
-                    {type: 'day', count: 1, text: '.'},
-                    {type: 'week', count: 1, text: '.'},
-                    {type: 'all', count: 1, text: '.'}
+                    {type: 'hour', count: 1, text: ' '},
+                    {type: 'day', count: 1, text: ' '},
+                    {type: 'week', count: 1, text: ' '},
+                    {type: 'all', count: 1, text: ' '}
                 ],
                 //selected : 1,
                 inputEnabled: false
@@ -79,10 +79,10 @@ $(function () {
             }],
             rangeSelector: {
                 buttons: [
-                    {type: 'hour', count: 1, text: '.'},
-                    {type: 'day', count: 1, text: '.'},
-                    {type: 'week', count: 1, text: '.'},
-                    {type: 'all', count: 1, text: '.'}
+                    {type: 'hour', count: 1, text: ' '},
+                    {type: 'day', count: 1, text: ' '},
+                    {type: 'week', count: 1, text: ' '},
+                    {type: 'all', count: 1, text: ' '}
                 ],
                 //selected : 1,
                 inputEnabled: false
@@ -112,10 +112,10 @@ $(function () {
             }],
             rangeSelector: {
                 buttons: [
-                    {type: 'hour', count: 1, text: '.'},
-                    {type: 'day', count: 1, text: '.'},
-                    {type: 'week', count: 1, text: '.'},
-                    {type: 'all', count: 1, text: '.'}
+                    {type: 'hour', count: 1, text: ' '},
+                    {type: 'day', count: 1, text: ' '},
+                    {type: 'week', count: 1, text: ' '},
+                    {type: 'all', count: 1, text: ' '}
                 ],
                 //selected : 1,
                 inputEnabled: false
@@ -145,10 +145,10 @@ $(function () {
                 }}],
             rangeSelector : {
                 buttons : [
-                    {type : 'hour', count : 1, text : '.'},
-                    {type : 'day', count : 1, text : '.'},
-                    {type : 'week', count : 1, text : '.'},
-                    {type : 'all', count : 1, text : '.'}
+                    {type : 'hour', count : 1, text : ' '},
+                    {type : 'day', count : 1, text : ' '},
+                    {type : 'week', count : 1, text : ' '},
+                    {type : 'all', count : 1, text : ' '}
                 ],
                 //selected : 1,
                 inputEnabled : false
@@ -178,10 +178,10 @@ $(function () {
             }],
             rangeSelector: {
                 buttons: [
-                    {type: 'hour', count: 1, text: '.'},
-                    {type: 'day', count: 1, text: '.'},
-                    {type: 'week', count: 1, text: '.'},
-                    {type: 'all', count: 1, text: '.'}
+                    {type: 'hour', count: 1, text: ' '},
+                    {type: 'day', count: 1, text: ' '},
+                    {type: 'week', count: 1, text: ' '},
+                    {type: 'all', count: 1, text: ' '}
                 ],
                 //selected : 1,
                 inputEnabled: false
@@ -211,10 +211,10 @@ $(function () {
             }],
             rangeSelector: {
                 buttons: [
-                    {type: 'hour', count: 1, text: '.'},
-                    {type: 'day', count: 1, text: '.'},
-                    {type: 'week', count: 1, text: '.'},
-                    {type: 'all', count: 1, text: '.'}
+                    {type: 'hour', count: 1, text: ' '},
+                    {type: 'day', count: 1, text: ' '},
+                    {type: 'week', count: 1, text: ' '},
+                    {type: 'all', count: 1, text: ' '}
                 ],
                 //selected : 1,
                 inputEnabled: false
@@ -246,10 +246,10 @@ $(function () {
             }],
             rangeSelector: {
                 buttons: [
-                    {type: 'hour', count: 1, text: '.'},
-                    {type: 'day', count: 1, text: '.'},
-                    {type: 'week', count: 1, text: '.'},
-                    {type: 'all', count: 1, text: '.'}
+                    {type: 'hour', count: 1, text: ' '},
+                    {type: 'day', count: 1, text: ' '},
+                    {type: 'week', count: 1, text: ' '},
+                    {type: 'all', count: 1, text: ' '}
                 ],
                 //selected : 1,
                 inputEnabled: false
@@ -279,10 +279,10 @@ $(function () {
             }],
             rangeSelector: {
                 buttons: [
-                    {type: 'hour', count: 1, text: '.'},
-                    {type: 'day', count: 1, text: '.'},
-                    {type: 'week', count: 1, text: '.'},
-                    {type: 'all', count: 1, text: '.'}
+                    {type: 'hour', count: 1, text: ' '},
+                    {type: 'day', count: 1, text: ' '},
+                    {type: 'week', count: 1, text: ' '},
+                    {type: 'all', count: 1, text: ' '}
                 ],
                 //selected : 1,
                 inputEnabled: false
@@ -312,10 +312,10 @@ $(function () {
             }],
             rangeSelector: {
                 buttons: [
-                    {type: 'hour', count: 1, text: '.'},
-                    {type: 'day', count: 1, text: '.'},
-                    {type: 'week', count: 1, text: '.'},
-                    {type: 'all', count: 1, text: '.'}
+                    {type: 'hour', count: 1, text: ' '},
+                    {type: 'day', count: 1, text: ' '},
+                    {type: 'week', count: 1, text: ' '},
+                    {type: 'all', count: 1, text: ' '}
                 ],
                 //selected : 1,
                 inputEnabled: false
