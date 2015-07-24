@@ -68,6 +68,7 @@ public class OkcoinService {
             "{'event':'addChannel','channel':'ok_ltcusd_future_depth_quarter_week'}," +
 
             "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_this_week'}," +
+            "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_next_week'}," +
             "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_quarter'}," +
 
             "{'event':'addChannel','channel':'ok_ltcusd_trades_v1', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}," +
@@ -208,15 +209,15 @@ public class OkcoinService {
         tradingEndpoint.getJsonObservable()
                 .filter(j -> j.getString("channel", "").equals("ok_usd_future_realtrades"))
                 .subscribe(j -> log.info(j.toString()));
-        tradingEndpoint.getJsonObservable()
-                .filter(j -> j.getString("channel", "").equals("ok_futureusd_order_info"))
-                .subscribe(j -> log.info(j.toString()));
+//        tradingEndpoint.getJsonObservable()
+//                .filter(j -> j.getString("channel", "").equals("ok_futureusd_order_info"))
+//                .subscribe(j -> log.info(j.toString()));
         tradingEndpoint.getJsonObservable()
                 .filter(j -> j.getString("channel", "").equals("ok_usd_realtrades"))
                 .subscribe(j -> log.info(j.toString()));
-        tradingEndpoint.getJsonObservable()
-                .filter(j -> j.getString("channel", "").equals("ok_spotusd_order_info"))
-                .subscribe(j -> log.info(j.toString()));
+//        tradingEndpoint.getJsonObservable()
+//                .filter(j -> j.getString("channel", "").equals("ok_spotusd_order_info"))
+//                .subscribe(j -> log.info(j.toString()));
     }
 
 

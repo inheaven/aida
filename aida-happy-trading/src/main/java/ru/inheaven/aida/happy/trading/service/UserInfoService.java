@@ -11,6 +11,9 @@ import ru.inheaven.aida.happy.trading.entity.ExchangeType;
 import ru.inheaven.aida.happy.trading.entity.UserInfo;
 import ru.inheaven.aida.happy.trading.mapper.AccountMapper;
 import ru.inheaven.aida.happy.trading.mapper.UserInfoMapper;
+import rx.Observable;
+import rx.subjects.PublishSubject;
+import rx.subjects.Subject;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -32,6 +35,8 @@ public class UserInfoService {
     private UserInfoMapper userInfoMapper;
     private BroadcastService broadcastService;
 
+    private Subject<UserInfo, UserInfo> userInfoSubject = PublishSubject.create();
+
     @Inject
     public UserInfoService(AccountMapper accountMapper, XChangeService xChangeService, UserInfoMapper userInfoMapper,
                            BroadcastService broadcastService) {
@@ -41,6 +46,10 @@ public class UserInfoService {
 
         accountMapper.getAccounts(ExchangeType.OKCOIN_FUTURES).forEach(this::startOkcoinFutureUserInfoScheduler);
         accountMapper.getAccounts(ExchangeType.OKCOIN_SPOT).forEach(this::startOkcoinSpotUserInfoScheduler);
+    }
+
+    public Observable<UserInfo> createUserInfoObservable(String currency){
+        return userInfoSubject.filter(u -> u.getCurrency().equals(currency));
     }
 
     private void startOkcoinFutureUserInfoScheduler(Account account){
@@ -66,6 +75,7 @@ public class UserInfoService {
                 saveFunds(account.getId(), "BTC_SPOT", funds.getFree().get("btc"), funds.getFreezed().get("btc"));
                 saveFunds(account.getId(), "LTC_SPOT", funds.getFree().get("ltc"), funds.getFreezed().get("ltc"));
                 saveFunds(account.getId(), "USD_SPOT", funds.getFree().get("usd"), funds.getFreezed().get("usd"));
+                saveFunds(account.getId(), "ASSET", funds.getAsset().get("total"), funds.getAsset().get("net"));
             } catch (Exception e) {
                 log.error("error user info -> ", e);
             }
@@ -85,10 +95,10 @@ public class UserInfoService {
         userInfo.setRiskRate(ZERO);
         userInfo.setCreated(new Date());
 
-        userInfoMapper.save(userInfo);
-
+        userInfoSubject.onNext(userInfo);
         broadcastService.broadcast(getClass(), "user_info", userInfo);
 
+        userInfoMapper.save(userInfo);
     }
 
     private void saveFunds(Long accountId, String currency, OkcoinFuturesFundsCross funds){
@@ -103,8 +113,9 @@ public class UserInfoService {
         userInfo.setRiskRate(BigDecimal.valueOf(funds.getRiskRate()));
         userInfo.setCreated(new Date());
 
-        userInfoMapper.save(userInfo);
-
+        userInfoSubject.onNext(userInfo);
         broadcastService.broadcast(getClass(), "user_info", userInfo);
+
+        userInfoMapper.save(userInfo);
     }
 }

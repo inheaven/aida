@@ -62,4 +62,8 @@
         select closed from `order` where status = 'CLOSED' order by closed desc limit 100;
     </select>
 
+    <select id="selectLast6HourOrderTimes" resultType="date">
+        select closed from `order` where status = 'CLOSED' and `closed` > date_sub(now(), interval 6 hour);
+    </select>
+
 </mapper>

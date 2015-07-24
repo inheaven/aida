@@ -48,4 +48,8 @@ public class OrderMapper extends BaseMapper<Order>{
     public List<Date> getLast100OrderTimes(){
         return sqlSession().selectList("selectLast100OrderTimes");
     }
+
+    public List<Date> getLast6HourOrderTimes(){
+        return sqlSession().selectList("selectLast6HourOrderTimes");
+    }
 }

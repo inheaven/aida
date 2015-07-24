@@ -140,7 +140,7 @@ Highcharts.theme = {
 			fill: '#222222',
 			stroke: '#000000',
 			style: {
-				color: '#CCC'
+				color: '#222222'
 			},
 			states: {
 				hover: {

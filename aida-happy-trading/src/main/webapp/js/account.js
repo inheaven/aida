@@ -326,14 +326,14 @@ $(function () {
     //ORDER
     all_order_rate_chart = $('#all_order_rate').highcharts({
         title: {text: 'Order Time', style:{"fontSize": "16px"}},
-        chart:{animation: false},
+        chart:{animation: true},
         tooltip: {valueDecimals: 3},
         credits: {enabled: false},
         scrollbar: {enabled: false},
         navigator: {enabled: false, xAxis:{labels:{enabled:false}}},
         rangeSelector: {enabled: false},
         legend: {enabled: false},
-        xAxis: {type: 'datetime'},
+        xAxis: {type: 'datetime', minRange: 3600000, min: new Date().getTime() - 3600000, max: new Date().getTime() + 60000},
         yAxis: {labels: {enabled: false}, tickWidth: 0, title:{text: null}, min:0},
         series: [{type : 'spline', name: 'Order Time',
             lineWidth : 0,
@@ -345,5 +345,7 @@ $(function () {
             tooltip:{pointFormat: ''}
             }]
     }).highcharts();
+
+    setInterval(function () {all_order_rate_chart.xAxis[0].setExtremes(new Date().getTime() - 3600000, new Date().getTime() + 60000);}, 60000);
 });
 

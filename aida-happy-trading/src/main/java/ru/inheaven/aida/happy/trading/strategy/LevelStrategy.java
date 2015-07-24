@@ -7,6 +7,7 @@ import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.DepthService;
 import ru.inheaven.aida.happy.trading.service.OrderService;
 import ru.inheaven.aida.happy.trading.service.TradeService;
+import ru.inheaven.aida.happy.trading.service.UserInfoService;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
@@ -23,18 +24,41 @@ import static ru.inheaven.aida.happy.trading.entity.OrderType.*;
  */
 public class LevelStrategy extends BaseStrategy{
     private Logger log = LoggerFactory.getLogger(getClass());
+
+    private SecureRandom random = new SecureRandom("LevelStrategy".getBytes());
+
     private Strategy strategy;
 
     private int errorCount = 0;
     private long errorTime = 0;
 
-    private SecureRandom random = new SecureRandom("LevelStrategy".getBytes());
+    private BigDecimal risk = ONE;
 
     public LevelStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
-                         DepthService depthService) {
+                         DepthService depthService, UserInfoService userInfoService) {
         super(strategy, orderService, orderMapper, tradeService, depthService);
 
         this.strategy = strategy;
+
+        if (strategy.getSymbolType() != null) {
+            userInfoService.createUserInfoObservable(strategy.getSymbol().substring(0, 3))
+                    .filter(u -> u.getRiskRate() != null)
+                    .subscribe(u -> {
+                        if (u.getRiskRate().compareTo(BigDecimal.valueOf(5)) < 0) {
+                            risk = BigDecimal.valueOf(10);
+                        } else if (u.getRiskRate().compareTo(BigDecimal.valueOf(8)) < 0) {
+                            risk = BigDecimal.valueOf(5);
+                        }else if (u.getRiskRate().compareTo(BigDecimal.valueOf(10)) < 0) {
+                            risk = BigDecimal.valueOf(2);
+                        }else {
+                            risk = ONE;
+                        }
+
+                        if (risk.compareTo(ONE) > 0){
+                            log.warn("RISK RATE {} {}", u.getCurrency(), u.getRiskRate());
+                        }
+                    });
+        }
     }
 
     @Override
@@ -54,15 +78,10 @@ public class LevelStrategy extends BaseStrategy{
                     .add(spread.multiply(BigDecimal.valueOf(random.nextDouble())))
                     .setScale(8, HALF_UP);
 
-            log.info("onDepth -> {} {}", price, strategy.getSymbolType());
+            //log.info("onDepth -> {} {} {}", price, strategy.getSymbol(), Objects.toString(strategy.getSymbolType(), ""));
 
             action(price);
         }
-//        else if (depth.getExchangeType().equals(ExchangeType.OKCOIN_SPOT)){
-//            BigDecimal price = ask.add(bid).divide(BigDecimal.valueOf(2), 8, HALF_UP);
-//
-//            action(price);
-//        }
     }
 
     private void action(BigDecimal price) {
@@ -72,16 +91,6 @@ public class LevelStrategy extends BaseStrategy{
             }else{
                 errorCount = 0;
                 errorTime = 0;
-            }
-        }
-
-        BigDecimal risk = ONE;
-        if (strategy.getSymbolType() != null) {
-            if (strategy.getSymbol().equals("LTC/USD") && price.compareTo(BigDecimal.valueOf(3.5)) < 0){
-                risk = BigDecimal.valueOf(3);
-            }
-            if (strategy.getSymbol().equals("BTC/USD") && price.compareTo(BigDecimal.valueOf(230)) < 0){
-                risk = BigDecimal.valueOf(3);
             }
         }
 
@@ -110,6 +119,10 @@ public class LevelStrategy extends BaseStrategy{
                                 price.subtract(spread),
                                 amount));
 
+                if (strategy.getSymbolType() == null){
+                    amount = amount.multiply(BigDecimal.valueOf(1 + (random.nextGaussian()/5)));
+                }
+
                 Future<Order> close = createOrderAsync(
                         new Order(strategy,
                                 strategy.getSymbolType() != null ? CLOSE_LONG : ASK,
@@ -122,6 +135,13 @@ public class LevelStrategy extends BaseStrategy{
         } catch (Exception e) {
             errorCount++;
             errorTime = System.currentTimeMillis();
+        }
+    }
+
+    @Override
+    protected void onCloseOrder(Order order) {
+        if (errorCount > 0 && OrderType.SELL_SET.contains(order.getType())){
+            errorCount--;
         }
     }
 }

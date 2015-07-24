@@ -11,6 +11,7 @@ import org.apache.wicket.resource.JQueryResourceReference;
 import ru.inheaven.aida.happy.trading.entity.UserInfo;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.Module;
+import ru.inheaven.aida.happy.trading.service.TradeService;
 import ru.inheaven.aida.happy.trading.service.UserInfoService;
 import ru.inheaven.aida.happy.trading.strategy.BaseStrategy;
 import ru.inheaven.aida.happy.trading.web.BasePage;
@@ -18,9 +19,13 @@ import ru.inhell.aida.common.wicket.BroadcastBehavior;
 
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
+import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 
+import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
 
 /**
@@ -30,14 +35,21 @@ public class AccountInfoPage extends BasePage{
     private Long futureAccountId = 7L;
     private Long spotAccountId = 8L;
 
+    private BigDecimal btcPrice = ZERO;
+    private BigDecimal ltcPrice = ZERO;
+    private BigDecimal ltcEquity = ZERO;
+    private BigDecimal btcEquity = ZERO;
+
+    private static final List<String> SPOT = Arrays.asList("BTC_SPOT", "LTC_SPOT", "USD_SPOT");
+
     public AccountInfoPage(PageParameters pageParameters) {
         futureAccountId = pageParameters.get("a").toLong(7);
 
-        add(new Behavior(){
+        add(new Behavior() {
             @Override
             public void renderHead(Component component, IHeaderResponse response) {
                 JsonArrayBuilder times = Json.createArrayBuilder();
-                Module.getInjector().getInstance(OrderMapper.class).getLast100OrderTimes()
+                Module.getInjector().getInstance(OrderMapper.class).getLast6HourOrderTimes()
                         .stream()
                         .sorted(Comparator.<Date>naturalOrder())
                         .forEach(d -> times.add(Json.createArrayBuilder().add(d.getTime()).add(1).add(1)));
@@ -71,12 +83,24 @@ public class AccountInfoPage extends BasePage{
                                     .add(info.getCreated().getTime())
                                     .add((info.getKeepDeposit().setScale(3, HALF_UP)))
                                     .build().toString() + ", true);");
+
+                    if ("BTC".equals(info.getCurrency())){
+                        btcEquity = info.getAccountRights();
+                    }else if ("LTC".equals(info.getCurrency())){
+                        ltcEquity = info.getAccountRights();
+                    }
                 }else if (info.getAccountId().equals(spotAccountId)){
-                    handler.appendJavaScript(info.getCurrency().toLowerCase() + "_chart.series[0].addPoint(" +
-                            Json.createArrayBuilder()
-                                    .add(info.getCreated().getTime())
-                                    .add((info.getAccountRights().add(info.getKeepDeposit()).setScale(3, HALF_UP)))
-                                    .build().toString() + ", true)");
+                    if (SPOT.contains(info.getCurrency())) {
+                        handler.appendJavaScript(info.getCurrency().toLowerCase() + "_chart.series[0].addPoint(" +
+                                Json.createArrayBuilder()
+                                        .add(info.getCreated().getTime())
+                                        .add((info.getAccountRights().add(info.getKeepDeposit()).setScale(3, HALF_UP)))
+                                        .build().toString() + ", true)");
+                    }else if ("ASSET".equals(info.getCurrency()) && ltcPrice.compareTo(ZERO) > 0 && btcPrice.compareTo(ZERO) > 0){
+                        handler.appendJavaScript("all_order_rate_chart.setTitle({text: 'Usd Total: " +
+                                info.getAccountRights().add(btcEquity.multiply(btcPrice)).add(ltcEquity.multiply(ltcPrice))
+                                        .setScale(2, HALF_UP) + "'});");
+                    }
                 }
             }
         });
@@ -86,7 +110,18 @@ public class AccountInfoPage extends BasePage{
             protected void onBroadcast(WebSocketRequestHandler handler, String key, Object payload) {
                 if (key.contains("close_order")) {
                     handler.appendJavaScript("all_order_rate_chart.series[0].addPoint([" +
-                            System.currentTimeMillis() + "," + 1 + "], true, true);");
+                            System.currentTimeMillis() + "," + 1 + "]);");
+                }
+            }
+        });
+
+        add(new BroadcastBehavior(TradeService.class) {
+            @Override
+            protected void onBroadcast(WebSocketRequestHandler handler, String key, Object payload) {
+                if ("trade_btc_".equals(key)){
+                    btcPrice = (BigDecimal) payload;
+                }else if ("trade_ltc_".equals(key)){
+                    ltcPrice = (BigDecimal) payload;
                 }
             }
         });

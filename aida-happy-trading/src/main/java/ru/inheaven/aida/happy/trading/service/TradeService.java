@@ -34,8 +34,8 @@ public class TradeService {
                     break;
             }
 
-            broadcastService.broadcast(getClass(), "trade_" + key + "_" + t.getSymbolType(),
-                    t.getPrice().setScale(3, HALF_UP).toString());
+            broadcastService.broadcast(getClass(), "trade_" + key + "_" + Objects.toString(t.getSymbolType(), ""),
+                    t.getPrice().setScale(3, HALF_UP));
         });
     }
 
@@ -44,5 +44,9 @@ public class TradeService {
                 .filter(t -> Objects.equals(strategy.getAccount().getExchangeType(), t.getExchangeType()))
                 .filter(t -> Objects.equals(strategy.getSymbol(), t.getSymbol()))
                 .filter(t -> Objects.equals(strategy.getSymbolType(), t.getSymbolType()));
+    }
+
+    public Observable<Trade> getTradeObservable() {
+        return tradeObservable;
     }
 }
