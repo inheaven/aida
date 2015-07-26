@@ -1,3 +1,5 @@
+import java.math.BigDecimal;
+
 /**
  * @author inheaven on 20.06.2015 0:33.
  */
@@ -6,6 +8,10 @@ public class StrategyTest {
 
 
     public static void main(String... args){
+        test2();
+    }
+
+    private static void test1(){
         int[] prices = new int[]{90, 100, 110, 100, 90, 80, 90, 100, 110, 120};
 
         int l = 0;
@@ -22,6 +28,16 @@ public class StrategyTest {
         }
 
         System.out.println("l = " + l + ", s = " + s);
+    }
+
+    private static void test2(){
+        BigDecimal decimal = BigDecimal.valueOf(4.0);
+        for (int i=0; i<1000; ++i){
+            decimal = decimal.add(BigDecimal.valueOf(0.02));
+
+            System.out.println(decimal.divideToIntegralValue(BigDecimal.valueOf(0.02)));
+        }
+
     }
 
 }

@@ -347,5 +347,12 @@ $(function () {
     }).highcharts();
 
     setInterval(function () {all_order_rate_chart.xAxis[0].setExtremes(new Date().getTime() - 3600000, new Date().getTime() + 60000);}, 60000);
+
+    Wicket.Event.subscribe("/websocket/closed", function(){
+        $('#charts').css('-webkit-filter', 'grayscale(1)');
+        setTimeout(function(){
+            location.reload();
+        }, 30000);
+    });
 });
 

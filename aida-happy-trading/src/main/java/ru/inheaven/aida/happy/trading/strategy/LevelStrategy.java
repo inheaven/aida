@@ -12,6 +12,9 @@ import ru.inheaven.aida.happy.trading.service.UserInfoService;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.Comparator;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
 import static java.math.BigDecimal.ONE;
@@ -33,6 +36,8 @@ public class LevelStrategy extends BaseStrategy{
     private long errorTime = 0;
 
     private BigDecimal risk = ONE;
+
+    private Map<BigDecimal, Long> levelTimeMap = new ConcurrentHashMap<>();
 
     public LevelStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                          DepthService depthService, UserInfoService userInfoService) {
@@ -97,6 +102,7 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal spread = strategy.getLevelSpread().multiply(risk);
         BigDecimal spreadX2 = spread.multiply(BigDecimal.valueOf(2)).setScale(8, HALF_UP);
         BigDecimal step = BigDecimal.valueOf(0.001);
+        BigDecimal level = price.divideToIntegralValue(spread);
 
         try {
             if (!getOrderMap().values().parallelStream()
@@ -107,30 +113,55 @@ public class LevelStrategy extends BaseStrategy{
                                     (d.compareTo(ZERO) <= 0 && d.abs().compareTo(spreadX2) < 0))
                     .findAny()
                     .isPresent()){
-                BigDecimal amount = strategy.getLevelLot();
+                BigDecimal spreadHFT = spread;
+                BigDecimal amountHFT = strategy.getLevelLot();
+
+                if (levelTimeMap.get(level) != null){
+                    Long time = System.currentTimeMillis() - levelTimeMap.get(level);
+
+                    if (strategy.getSymbolType() == null){
+                        if (time < 5000){
+                            amountHFT = amountHFT.multiply(BigDecimal.valueOf(4));
+                        }else if (time < 15000){
+                            amountHFT = amountHFT.multiply(BigDecimal.valueOf(3));
+                        }else if (time < 30000){
+                            amountHFT = amountHFT.multiply(BigDecimal.valueOf(2));
+                        }
+                    }else if (time < 30000){
+                        spreadHFT = spreadHFT.divide(BigDecimal.valueOf(2), 8, HALF_UP);
+                    }
+
+                    log.info("HFT -> {} {} {} {}", time, price, amountHFT, Objects.toString(strategy.getSymbolType(), ""));
+                }
+
+                //BUY
 
                 if (strategy.getSymbolType() == null){
-                    amount = strategy.getLevelLot().multiply(BigDecimal.valueOf(1 + (random.nextDouble() / 2))).setScale(8, HALF_UP);
+                    amountHFT = strategy.getLevelLot().multiply(BigDecimal.valueOf(1 + (random.nextDouble() / 2))).setScale(8, HALF_UP);
                 }
 
                 Future<Order> open = createOrderAsync(
                         new Order(strategy,
                                 strategy.getSymbolType() != null ? OPEN_LONG : BID,
-                                price.subtract(spread),
-                                amount));
+                                price.subtract(spreadHFT),
+                                amountHFT));
+
+                //SELL
 
                 if (strategy.getSymbolType() == null){
-                    amount = strategy.getLevelLot().multiply(BigDecimal.valueOf(1 + (random.nextDouble() / 2))).setScale(8, HALF_UP);
+                    amountHFT = strategy.getLevelLot().multiply(BigDecimal.valueOf(1 + (random.nextDouble() / 2))).setScale(8, HALF_UP);
                 }
 
                 Future<Order> close = createOrderAsync(
                         new Order(strategy,
                                 strategy.getSymbolType() != null ? CLOSE_LONG : ASK,
                                 price.subtract(step),
-                                amount));
+                                amountHFT));
 
                 open.get();
                 close.get();
+
+                levelTimeMap.put(level, System.currentTimeMillis());
             }
         } catch (Exception e) {
             errorCount++;

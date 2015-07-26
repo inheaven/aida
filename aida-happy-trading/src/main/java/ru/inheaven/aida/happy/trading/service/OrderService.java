@@ -43,7 +43,8 @@ public class OrderService {
 
         return orderObservable
                 .filter(o -> Objects.equals(strategy.getAccount().getExchangeType(), o.getExchangeType()))
-                .filter(o -> Objects.equals(strategy.getSymbol(), o.getSymbol()));
+                .filter(o -> Objects.equals(strategy.getSymbol(), o.getSymbol()))
+                .filter(o -> Objects.equals(strategy.getSymbolType(), o.getSymbolType()));
     }
 
     public void createOrder(Account account, Order order) throws CreateOrderException {
