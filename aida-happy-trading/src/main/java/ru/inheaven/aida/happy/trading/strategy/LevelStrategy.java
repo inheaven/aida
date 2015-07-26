@@ -110,7 +110,7 @@ public class LevelStrategy extends BaseStrategy{
                 BigDecimal amount = strategy.getLevelLot();
 
                 if (strategy.getSymbolType() == null){
-                    amount = amount.multiply(BigDecimal.valueOf(1 + (random.nextGaussian()/5)));
+                    amount = strategy.getLevelLot().multiply(BigDecimal.valueOf(1 + (random.nextDouble() / 2))).setScale(8, HALF_UP);
                 }
 
                 Future<Order> open = createOrderAsync(
@@ -120,7 +120,7 @@ public class LevelStrategy extends BaseStrategy{
                                 amount));
 
                 if (strategy.getSymbolType() == null){
-                    amount = amount.multiply(BigDecimal.valueOf(1 + (random.nextGaussian()/5)));
+                    amount = strategy.getLevelLot().multiply(BigDecimal.valueOf(1 + (random.nextDouble() / 2))).setScale(8, HALF_UP);
                 }
 
                 Future<Order> close = createOrderAsync(
@@ -142,6 +142,13 @@ public class LevelStrategy extends BaseStrategy{
     protected void onCloseOrder(Order order) {
         if (errorCount > 0 && OrderType.SELL_SET.contains(order.getType())){
             errorCount--;
+        }
+    }
+
+    @Override
+    protected void onRealTrade(Order order) {
+        if (order.getStatus().equals(OrderStatus.CLOSED)){
+            action(order.getAvgPrice());
         }
     }
 }

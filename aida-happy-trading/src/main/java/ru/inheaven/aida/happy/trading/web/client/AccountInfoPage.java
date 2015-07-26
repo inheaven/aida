@@ -96,7 +96,8 @@ public class AccountInfoPage extends BasePage{
                                         .add(info.getCreated().getTime())
                                         .add((info.getAccountRights().add(info.getKeepDeposit()).setScale(3, HALF_UP)))
                                         .build().toString() + ", true)");
-                    }else if ("ASSET".equals(info.getCurrency()) && ltcPrice.compareTo(ZERO) > 0 && btcPrice.compareTo(ZERO) > 0){
+                    }else if ("ASSET".equals(info.getCurrency()) && ltcPrice.compareTo(ZERO) > 0 && btcPrice.compareTo(ZERO) > 0 &&
+                            ltcEquity.compareTo(ZERO) > 0 && btcEquity.compareTo(ZERO) > 0){
                         handler.appendJavaScript("all_order_rate_chart.setTitle({text: 'Usd Total: " +
                                 info.getAccountRights().add(btcEquity.multiply(btcPrice)).add(ltcEquity.multiply(ltcPrice))
                                         .setScale(2, HALF_UP) + "'});");

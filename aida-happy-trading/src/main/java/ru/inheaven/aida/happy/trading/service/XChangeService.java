@@ -22,6 +22,8 @@ import javax.inject.Singleton;
 import java.util.Date;
 import java.util.Objects;
 
+import static java.math.RoundingMode.HALF_UP;
+
 /**
  * @author inheaven on 03.07.2015 22:20.
  */
@@ -92,7 +94,8 @@ public class XChangeService {
             order.setStatus(OrderStatus.OPEN);
             order.setOpen(new Date());
 
-            log.info("open order -> {} {} {} {}", order.getPrice(), order.getAmount(), order.getType(), Objects.toString(order.getSymbolType(), ""));
+            log.info("open order -> {} {} {} {}", order.getPrice().setScale(3, HALF_UP), order.getAmount().setScale(3, HALF_UP),
+                    order.getType(), Objects.toString(order.getSymbolType(), ""));
         } catch (Exception e) {
             log.error("error place limit order -> ", e);
 

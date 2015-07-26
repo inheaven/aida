@@ -15,12 +15,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.*;
 
-import static java.math.BigDecimal.TEN;
-import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CLOSED;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CREATED;
-import static ru.inheaven.aida.happy.trading.entity.OrderType.*;
+import static ru.inheaven.aida.happy.trading.entity.OrderType.BUY_SET;
+import static ru.inheaven.aida.happy.trading.entity.OrderType.SELL_SET;
 
 /**
  * @author inheaven on 002 02.07.15 16:43
@@ -32,7 +31,6 @@ public class BaseStrategy {
     private OrderMapper orderMapper;
 
     private Observable<Order> orderObservable;
-    private Observable<Order> closedOrderObservable;
     private Observable<Trade> tradeObservable;
     private Observable<Depth> depthObservable;
 
@@ -41,6 +39,7 @@ public class BaseStrategy {
     private Subscription checkOrderSubscription;
     private Subscription checkAllOrderSubscription;
     private Subscription depthSubscription;
+    private Subscription realTradeSubscription;
 
     private Map<String, Order> orderMap = new ConcurrentHashMap<>();
 
@@ -61,10 +60,6 @@ public class BaseStrategy {
 
         orderObservable = orderService.createOrderObserver(strategy);
 
-        closedOrderObservable = orderObservable
-                .filter(o -> orderMap.containsKey(o.getOrderId()))
-                .filter(o -> o.getStatus().equals(OrderStatus.CLOSED) || o.getStatus().equals(OrderStatus.CANCELED));
-
         tradeObservable = tradeService.createTradeObserver(strategy);
 
         depthObservable = depthService.createDepthObservable(strategy);
@@ -84,30 +79,38 @@ public class BaseStrategy {
             return;
         }
 
-        closeOrderSubscription = closedOrderObservable.subscribe(o -> {
-            try {
-                Order order = orderMap.get(o.getOrderId());
+        closeOrderSubscription = orderObservable
+                .filter(o -> orderMap.containsKey(o.getOrderId()))
+                .filter(o -> o.getStatus().equals(OrderStatus.CLOSED) || o.getStatus().equals(OrderStatus.CANCELED))
+                .subscribe(o -> {
+                    try {
+                        Order order = orderMap.get(o.getOrderId());
 
-                if (order != null) {
-                    order.close(o);
-                    orderMap.remove(o.getOrderId());
-                    orderMapper.save(order);
+                        if (order != null) {
+                            order.close(o);
+                            orderMap.remove(o.getOrderId());
+                            orderMapper.save(order);
 
-                    if (order.getStatus().equals(CLOSED)) {
-                        String message = "[" + o.getAvgPrice().setScale(3, HALF_UP)
-                                + (OrderType.BUY_SET.contains(order.getType()) ? "↑" : "↓") + "] ";
+                            if (order.getStatus().equals(CLOSED)) {
+                                String message = "[" + o.getAvgPrice().setScale(3, HALF_UP)
+                                        + (OrderType.BUY_SET.contains(order.getType()) ? "↑" : "↓") + "] ";
 
-                        Module.getInjector().getInstance(BroadcastService.class).broadcast(getClass(), "close_order_"
-                                + key + "_"+ Objects.toString(order.getSymbolType(), ""), message);
+                                Module.getInjector().getInstance(BroadcastService.class).broadcast(getClass(), "close_order_"
+                                        + key + "_" + Objects.toString(order.getSymbolType(), ""), message);
+                            }
+                        }
+
+                        onCloseOrder(o);
+                    } catch (Exception e) {
+                        log.error("error on close order -> ", e);
                     }
+                });
 
-                    //profit
-                    //profit(order);
-                }
-
-                onCloseOrder(o);
-            } catch (Exception e) {
-                log.error("error on close order -> ", e);
+        realTradeSubscription = orderObservable.subscribe(o -> {
+            try {
+                onRealTrade(o);
+            }catch (Exception e){
+                log.error("error on real trade -> ", e);
             }
         });
 
@@ -135,8 +138,6 @@ public class BaseStrategy {
             }
         });
 
-        orderMap.forEach((id, o) -> orderService.orderInfo(strategy, o));
-
         depthSubscription = depthObservable.subscribe(d -> {
             try {
                 onDepth(d);
@@ -145,70 +146,9 @@ public class BaseStrategy {
             }
         });
 
+        orderMap.forEach((id, o) -> orderService.orderInfo(strategy, o));
+
         flying = true;
-    }
-
-    private ExecutorService profitExecutorService = Executors.newCachedThreadPool();
-
-    protected void profit(Order order) {
-        profitExecutorService.submit(() -> {
-            int count = 0;
-
-            BigDecimal profitLong = ZERO;
-            BigDecimal equityLong = ZERO;
-
-            Integer open = orderMapper.getOrderCount(strategy, OPEN_LONG);
-            Integer close = orderMapper.getOrderCount(strategy, CLOSE_LONG);
-
-            if (open != null && close != null) {
-                profitLong = orderMapper.getOrderVolume(strategy, OPEN_LONG, 0, Math.min(open, close))
-                        .subtract(orderMapper.getOrderVolume(strategy, CLOSE_LONG, 0, Math.min(open, close)));
-
-                if (open > close) {
-                    equityLong = orderMapper.getOrderVolume(strategy, OPEN_LONG, close, open - close)
-                            .subtract(TEN.multiply(BigDecimal.valueOf(open - close)).divide(order.getAvgPrice(), 8, HALF_UP));
-                } else {
-                    equityLong = TEN.multiply(BigDecimal.valueOf(close - open)).divide(order.getAvgPrice(), 8, HALF_UP)
-                            .subtract(orderMapper.getOrderVolume(strategy, CLOSE_LONG, open, close - open));
-                }
-
-                count += open + close;
-            }
-
-//            BigDecimal profitShort = ZERO;
-//            BigDecimal equityShort = ZERO;
-//
-//            if (pos.get(OPEN_SHORT) != null && pos.get(CLOSE_SHORT) != null && strategy.getType().equals(StrategyType.PARAGLIDER)) {
-//                profitShort = pos.get(CLOSE_SHORT).getAvg()
-//                        .multiply(pos.get(OPEN_SHORT).getPrice().subtract(pos.get(CLOSE_SHORT).getPrice())
-//                                .divide(pos.get(OPEN_SHORT).getPrice(), 8, HALF_UP));
-//
-////                int amount = pos.get(CLOSE_SHORT).getCount() - pos.get(OPEN_SHORT).getCount();
-////                OrderType orderType = amount > 0 ? OPEN_SHORT : CLOSE_SHORT;
-////                equityShort = pos.get(orderType).getAvg()
-////                        .multiply(BigDecimal.valueOf(amount))
-////                        .divide(BigDecimal.valueOf(pos.get(orderType).getCount()), 8, HALF_UP)
-////                        .multiply(order.getAvgPrice().subtract(pos.get(orderType).getPrice())
-////                                .divide(pos.get(orderType).getPrice(), 8, HALF_UP));
-//
-//                count += pos.get(OPEN_SHORT).getCount() + pos.get(CLOSE_SHORT).getCount();
-//                volume = volume.add(pos.get(CLOSE_SHORT).getAvg().subtract(pos.get(OPEN_SHORT).getAvg()));
-//            }
-
-
-            String message = "{" +
-//                    strategy.getName() + " " +
-                    profitLong.add(equityLong).setScale(3, HALF_UP) + " " +
-                    profitLong.setScale(3, HALF_UP) + " " +
-                    equityLong.setScale(3, HALF_UP) + " " +
-//                    profitShort.setScale(3, HALF_UP) + " " +
-//                    equityShort.setScale(3, HALF_UP) +
-                    count +
-                    "}\t";
-
-            Module.getInjector().getInstance(BroadcastService.class).broadcast(getClass(), "profit_"
-                    + key + "_" + Objects.toString(order.getSymbolType(), ""), message);
-        });
     }
 
     public void stop(){
@@ -217,11 +157,15 @@ public class BaseStrategy {
         checkOrderSubscription.unsubscribe();
         depthSubscription.unsubscribe();
         checkAllOrderSubscription.unsubscribe();
+        realTradeSubscription.unsubscribe();
 
         flying = false;
     }
 
     protected void onCloseOrder(Order order){
+    }
+
+    protected void onRealTrade(Order order){
     }
 
     protected void onTrade(Trade trade){
@@ -275,9 +219,5 @@ public class BaseStrategy {
 
     public Map<String, Order> getOrderMap() {
         return orderMap;
-    }
-
-    public Observable<Order> getOrderObservable() {
-        return orderObservable;
     }
 }
