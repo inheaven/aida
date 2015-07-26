@@ -206,15 +206,15 @@ public class OkcoinService {
                 .subscribe(j -> reconnect());
 
         //log
-        tradingEndpoint.getJsonObservable()
-                .filter(j -> j.getString("channel", "").equals("ok_usd_future_realtrades"))
-                .subscribe(j -> log.info(j.toString()));
+//        tradingEndpoint.getJsonObservable()
+//                .filter(j -> j.getString("channel", "").equals("ok_usd_future_realtrades"))
+//                .subscribe(j -> log.info(j.toString()));
 //        tradingEndpoint.getJsonObservable()
 //                .filter(j -> j.getString("channel", "").equals("ok_futureusd_order_info"))
 //                .subscribe(j -> log.info(j.toString()));
-        tradingEndpoint.getJsonObservable()
-                .filter(j -> j.getString("channel", "").equals("ok_usd_realtrades"))
-                .subscribe(j -> log.info(j.toString()));
+//        tradingEndpoint.getJsonObservable()
+//                .filter(j -> j.getString("channel", "").equals("ok_usd_realtrades"))
+//                .subscribe(j -> log.info(j.toString()));
 //        tradingEndpoint.getJsonObservable()
 //                .filter(j -> j.getString("channel", "").equals("ok_spotusd_order_info"))
 //                .subscribe(j -> log.info(j.toString()));

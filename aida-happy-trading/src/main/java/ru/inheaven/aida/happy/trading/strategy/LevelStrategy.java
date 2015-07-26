@@ -78,7 +78,7 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal ask = depth.getAskMap().keySet().parallelStream().min(Comparator.<BigDecimal>naturalOrder()).get();
         BigDecimal bid = depth.getBidMap().keySet().parallelStream().max(Comparator.<BigDecimal>naturalOrder()).get();
 
-        if (ask.subtract(bid).compareTo(spread.multiply(BigDecimal.valueOf(2.1))) > 0){
+        if (ask.subtract(bid).compareTo(spread.multiply(BigDecimal.valueOf(2.1))) > 0 && ask.compareTo(bid) > 0){
             BigDecimal price = ask.add(bid).divide(BigDecimal.valueOf(2), 8, HALF_UP)
                     .add(spread.multiply(BigDecimal.valueOf(random.nextDouble())))
                     .setScale(8, HALF_UP);
@@ -102,7 +102,7 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal spread = strategy.getLevelSpread().multiply(risk);
         BigDecimal spreadX2 = spread.multiply(BigDecimal.valueOf(2)).setScale(8, HALF_UP);
         BigDecimal step = BigDecimal.valueOf(0.001);
-        BigDecimal level = price.divideToIntegralValue(spread);
+        BigDecimal level = price.divideToIntegralValue(spreadX2);
 
         try {
             if (!getOrderMap().values().parallelStream()
@@ -131,7 +131,9 @@ public class LevelStrategy extends BaseStrategy{
                         spreadHFT = spreadHFT.divide(BigDecimal.valueOf(2), 8, HALF_UP);
                     }
 
-                    log.info("HFT -> {} {} {} {}", time, price, amountHFT, Objects.toString(strategy.getSymbolType(), ""));
+                    if (time < 30000) {
+                        log.info("HFT -> {} {} {} {}", time/1000, price, amountHFT, Objects.toString(strategy.getSymbolType(), ""));
+                    }
                 }
 
                 //BUY

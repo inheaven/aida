@@ -350,9 +350,17 @@ $(function () {
 
     Wicket.Event.subscribe("/websocket/closed", function(){
         $('#charts').css('-webkit-filter', 'grayscale(1)');
-        setTimeout(function(){
-            location.reload();
-        }, 30000);
+
+        $('#reconnect').show();
+
+        var i = 42;
+        setInterval(function(){
+            $('#reconnect').text(i--);
+
+            if (i == 1){
+                location.reload();
+            }
+        }, 1000);
     });
 });
 
