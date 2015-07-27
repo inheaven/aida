@@ -16,7 +16,6 @@ import java.util.Objects;
 import java.util.concurrent.*;
 
 import static java.math.RoundingMode.HALF_UP;
-import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CLOSED;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CREATED;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.BUY_SET;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.SELL_SET;
@@ -82,29 +81,7 @@ public class BaseStrategy {
         closeOrderSubscription = orderObservable
                 .filter(o -> orderMap.containsKey(o.getOrderId()))
                 .filter(o -> o.getStatus().equals(OrderStatus.CLOSED) || o.getStatus().equals(OrderStatus.CANCELED))
-                .subscribe(o -> {
-                    try {
-                        Order order = orderMap.get(o.getOrderId());
-
-                        if (order != null) {
-                            order.close(o);
-                            orderMap.remove(o.getOrderId());
-                            orderMapper.save(order);
-
-                            if (order.getStatus().equals(CLOSED)) {
-                                String message = "[" + o.getAvgPrice().setScale(3, HALF_UP)
-                                        + (OrderType.BUY_SET.contains(order.getType()) ? "↑" : "↓") + "] ";
-
-                                Module.getInjector().getInstance(BroadcastService.class).broadcast(getClass(), "close_order_"
-                                        + key + "_" + Objects.toString(order.getSymbolType(), ""), message);
-                            }
-                        }
-
-                        onCloseOrder(o);
-                    } catch (Exception e) {
-                        log.error("error on close order -> ", e);
-                    }
-                });
+                .subscribe(this::closeOrder);
 
         realTradeSubscription = orderObservable.subscribe(o -> {
             try {
@@ -176,11 +153,14 @@ public class BaseStrategy {
 
     protected void checkOrders(Trade trade){
         orderMap.values().parallelStream()
-                .filter(o -> (BUY_SET.contains(o.getType()) && o.getPrice().compareTo(trade.getPrice()) > 1) ||
-                        (SELL_SET.contains(o.getType()) && o.getPrice().compareTo(trade.getPrice()) < 1) ||
-                        o.getPrice().subtract(trade.getPrice()).abs()
-                                .compareTo(strategy.getLevelSpread().multiply(BigDecimal.valueOf(2))) < 0)
+                .filter(o -> o.getPrice().subtract(trade.getPrice()).abs().compareTo(strategy.getLevelSpread()
+                        .multiply(BigDecimal.valueOf(2))) < 0)
                 .forEach(o -> orderService.orderInfo(strategy, o));
+
+        orderMap.values().parallelStream()
+                .filter(o -> (BUY_SET.contains(o.getType()) && o.getPrice().compareTo(trade.getPrice()) > 0) ||
+                        (SELL_SET.contains(o.getType()) && o.getPrice().compareTo(trade.getPrice()) < 0))
+                .forEach(this::closeOrder);
     }
 
     protected void createOrder(Order order) throws CreateOrderException {
@@ -204,6 +184,23 @@ public class BaseStrategy {
                     key + "_" + Objects.toString(order.getSymbolType(), ""), message);
         } finally {
             orderMap.remove(createdOrderId);
+        }
+    }
+
+    protected void closeOrder(Order o){
+        try {
+            Order order = orderMap.get(o.getOrderId());
+
+            if (order != null) {
+                orderMap.remove(o.getOrderId());
+
+                order.close(o);
+                orderMapper.save(order);
+            }
+
+            onCloseOrder(o);
+        } catch (Exception e) {
+            log.error("error on close order -> ", e);
         }
     }
 

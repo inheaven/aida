@@ -11,9 +11,9 @@ import org.apache.wicket.resource.JQueryResourceReference;
 import ru.inheaven.aida.happy.trading.entity.UserInfo;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.Module;
+import ru.inheaven.aida.happy.trading.service.OrderService;
 import ru.inheaven.aida.happy.trading.service.TradeService;
 import ru.inheaven.aida.happy.trading.service.UserInfoService;
-import ru.inheaven.aida.happy.trading.strategy.BaseStrategy;
 import ru.inheaven.aida.happy.trading.web.BasePage;
 import ru.inhell.aida.common.wicket.BroadcastBehavior;
 
@@ -106,7 +106,7 @@ public class AccountInfoPage extends BasePage{
             }
         });
 
-        add(new BroadcastBehavior(BaseStrategy.class) {
+        add(new BroadcastBehavior(OrderService.class) {
             @Override
             protected void onBroadcast(WebSocketRequestHandler handler, String key, Object payload) {
                 if (key.contains("close_order")) {
@@ -131,9 +131,9 @@ public class AccountInfoPage extends BasePage{
     @Override
     public void renderHead(IHeaderResponse response) {
         response.render(JavaScriptHeaderItem.forReference(JQueryResourceReference.get()));
-        response.render(JavaScriptHeaderItem.forUrl("/highstock/highstock.js"));
-        response.render(JavaScriptHeaderItem.forUrl("/js/dark-unica-mod.js"));
-        response.render(JavaScriptHeaderItem.forUrl("/js/account.js"));
+        response.render(JavaScriptHeaderItem.forUrl("./highstock/highstock.js"));
+        response.render(JavaScriptHeaderItem.forUrl("./js/dark-unica-mod.js"));
+        response.render(JavaScriptHeaderItem.forUrl("./js/account.js"));
     }
 
 }

@@ -139,7 +139,7 @@ public class LevelStrategy extends BaseStrategy{
                 //BUY
 
                 if (strategy.getSymbolType() == null){
-                    amountHFT = strategy.getLevelLot().multiply(BigDecimal.valueOf(1 + (random.nextDouble() / 2))).setScale(8, HALF_UP);
+                    amountHFT = amountHFT.multiply(BigDecimal.valueOf(1 + (random.nextDouble() / 5))).setScale(8, HALF_UP);
                 }
 
                 Future<Order> open = createOrderAsync(
@@ -151,7 +151,7 @@ public class LevelStrategy extends BaseStrategy{
                 //SELL
 
                 if (strategy.getSymbolType() == null){
-                    amountHFT = strategy.getLevelLot().multiply(BigDecimal.valueOf(1 + (random.nextDouble() / 2))).setScale(8, HALF_UP);
+                    amountHFT = amountHFT.multiply(BigDecimal.valueOf(1 + (random.nextDouble() / 5))).setScale(8, HALF_UP);
                 }
 
                 Future<Order> close = createOrderAsync(

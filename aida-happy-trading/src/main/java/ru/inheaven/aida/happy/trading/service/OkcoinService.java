@@ -65,7 +65,7 @@ public class OkcoinService {
             "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_quarter'}" +
             "{'event':'addChannel','channel':'ok_ltcusd_future_depth_this_week'}," +
             "{'event':'addChannel','channel':'ok_ltcusd_future_depth_next_week'}," +
-            "{'event':'addChannel','channel':'ok_ltcusd_future_depth_quarter_week'}," +
+            "{'event':'addChannel','channel':'ok_ltcusd_future_depth_quarter'}," +
 
             "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_this_week'}," +
             "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_next_week'}," +
@@ -141,25 +141,12 @@ public class OkcoinService {
 
             //last order trade check
             Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
-                try {
-                    long now = System.currentTimeMillis();
+                long now = System.currentTimeMillis();
 
-                    if (now - lastOrder > 300000 || now - lastTrade > 300000) {
-                        marketEndpoint.getSession().getBasicRemote().sendText(markerChannels);
-
-                        tradesChannels.forEach(s -> {
-                            try {
-                                tradingEndpoint.getSession().getBasicRemote().sendText(s);
-                            } catch (IOException e) {
-                                log.error("error add channel ->", e);
-                            }
-                        });
-
-                        log.info("add channels");
-                    }
-                } catch (IOException e) {
-                    log.error("error add channel ->", e);
+                if (now - lastOrder > 600000 || now - lastTrade > 600000) {
+                    reconnect();
                 }
+
             }, 0, 1, TimeUnit.MINUTES);
 
             //success
@@ -203,21 +190,27 @@ public class OkcoinService {
         tradingEndpoint.getJsonObservable()
                 .throttleLast(5, TimeUnit.SECONDS)
                 .filter(j -> !j.getString("errorcode", "").isEmpty())
-                .subscribe(j -> reconnect());
+                .subscribe(j -> {
+                    log.error(j.toString());
+
+                    reconnect();
+                });
 
         //log
 //        tradingEndpoint.getJsonObservable()
 //                .filter(j -> j.getString("channel", "").equals("ok_usd_future_realtrades"))
 //                .subscribe(j -> log.info(j.toString()));
-//        tradingEndpoint.getJsonObservable()
-//                .filter(j -> j.getString("channel", "").equals("ok_futureusd_order_info"))
-//                .subscribe(j -> log.info(j.toString()));
+        tradingEndpoint.getJsonObservable()
+                .filter(j -> j.getString("channel", "").equals("ok_futureusd_order_info"))
+                .filter(j -> j.getJsonObject("data").getJsonArray("orders").isEmpty())
+                .subscribe(j -> log.info(j.toString()));
 //        tradingEndpoint.getJsonObservable()
 //                .filter(j -> j.getString("channel", "").equals("ok_usd_realtrades"))
 //                .subscribe(j -> log.info(j.toString()));
-//        tradingEndpoint.getJsonObservable()
-//                .filter(j -> j.getString("channel", "").equals("ok_spotusd_order_info"))
-//                .subscribe(j -> log.info(j.toString()));
+        tradingEndpoint.getJsonObservable()
+                .filter(j -> j.getString("channel", "").equals("ok_spotusd_order_info"))
+                .filter(j -> j.getJsonObject("data").getJsonArray("orders").isEmpty())
+                .subscribe(j -> log.info(j.toString()));
     }
 
 
