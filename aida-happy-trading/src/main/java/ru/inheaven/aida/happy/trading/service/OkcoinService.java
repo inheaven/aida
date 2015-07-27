@@ -265,14 +265,18 @@ public class OkcoinService {
 
                     Trade trade = new Trade();
 
-                    trade.setTradeId(a.getString(0));
-                    trade.setExchangeType(ExchangeType.OKCOIN_FUTURES);
-                    trade.setSymbol(getSymbol(j.channel));
-                    trade.setSymbolType(getSymbolType(j.channel));
-                    trade.setPrice(new BigDecimal(a.getString(1)));
-                    trade.setAmount(new BigDecimal(a.getString(2)));
-                    trade.setDate(Date.from(LocalTime.parse(a.getString(3)).atDate(now()).toInstant(ofHours(8))));
-                    trade.setOrderType(OrderType.valueOf(a.getString(4).toUpperCase()));
+                    try {
+                        trade.setTradeId(a.getString(0));
+                        trade.setExchangeType(ExchangeType.OKCOIN_FUTURES);
+                        trade.setSymbol(getSymbol(j.channel));
+                        trade.setSymbolType(getSymbolType(j.channel));
+                        trade.setPrice(new BigDecimal(a.getString(1)));
+                        trade.setAmount(new BigDecimal(a.getString(2)));
+                        trade.setDate(Date.from(LocalTime.parse(a.getString(3)).atDate(now()).toInstant(ofHours(8))));
+                        trade.setOrderType(OrderType.valueOf(a.getString(4).toUpperCase()));
+                    } catch (Exception e) {
+                        log.error("error future trade observable -> ", e);
+                    }
 
                     return trade;
                 });
@@ -290,13 +294,17 @@ public class OkcoinService {
 
                     Trade trade = new Trade();
 
-                    trade.setTradeId(a.getString(0));
-                    trade.setExchangeType(ExchangeType.OKCOIN_SPOT);
-                    trade.setSymbol(getSymbol(j.channel));
-                    trade.setPrice(new BigDecimal(a.getString(1)));
-                    trade.setAmount(new BigDecimal(a.getString(2)));
-                    trade.setDate(Date.from(LocalTime.parse(a.getString(3)).atDate(now()).toInstant(ofHours(8))));
-                    trade.setOrderType(OrderType.valueOf(a.getString(4).toUpperCase()));
+                    try {
+                        trade.setTradeId(a.getString(0));
+                        trade.setExchangeType(ExchangeType.OKCOIN_SPOT);
+                        trade.setSymbol(getSymbol(j.channel));
+                        trade.setPrice(new BigDecimal(a.getString(1)));
+                        trade.setAmount(new BigDecimal(a.getString(2)));
+                        trade.setDate(Date.from(LocalTime.parse(a.getString(3)).atDate(now()).toInstant(ofHours(8))));
+                        trade.setOrderType(OrderType.valueOf(a.getString(4).toUpperCase()));
+                    } catch (Exception e) {
+                        log.error("error spot trade observable -> ", e);
+                    }
 
                     return trade;
                 });
@@ -312,19 +320,23 @@ public class OkcoinService {
                 .map(j -> {
                     Depth depth = new Depth();
 
-                    depth.setExchangeType(ExchangeType.OKCOIN_FUTURES);
-                    depth.setSymbol(getSymbol(j.channel));
-                    depth.setSymbolType(getSymbolType(j.channel));
-                    depth.setDate(new Date(Long.parseLong(((JsonObject) j.value).getString("timestamp"))));
-                    depth.setCreated(new Date());
+                    try {
+                        depth.setExchangeType(ExchangeType.OKCOIN_FUTURES);
+                        depth.setSymbol(getSymbol(j.channel));
+                        depth.setSymbolType(getSymbolType(j.channel));
+                        depth.setDate(new Date(Long.parseLong(((JsonObject) j.value).getString("timestamp"))));
+                        depth.setCreated(new Date());
 
-                    ((JsonObject) j.value).getJsonArray("asks").forEach(ask ->
-                            depth.getAskMap().put(((JsonArray) ask).getJsonNumber(0).bigDecimalValue(),
-                                    ((JsonArray) ask).getJsonNumber(1).bigDecimalValue()));
+                        ((JsonObject) j.value).getJsonArray("asks").forEach(ask ->
+                                depth.getAskMap().put(((JsonArray) ask).getJsonNumber(0).bigDecimalValue(),
+                                        ((JsonArray) ask).getJsonNumber(1).bigDecimalValue()));
 
-                    ((JsonObject) j.value).getJsonArray("bids").forEach(bid ->
-                            depth.getBidMap().put(((JsonArray) bid).getJsonNumber(0).bigDecimalValue(),
-                                    ((JsonArray) bid).getJsonNumber(1).bigDecimalValue()));
+                        ((JsonObject) j.value).getJsonArray("bids").forEach(bid ->
+                                depth.getBidMap().put(((JsonArray) bid).getJsonNumber(0).bigDecimalValue(),
+                                        ((JsonArray) bid).getJsonNumber(1).bigDecimalValue()));
+                    } catch (Exception e) {
+                        log.error("error future depth observable -> ", e);
+                    }
 
                     return depth;
                 });
@@ -338,18 +350,22 @@ public class OkcoinService {
                 .map(j -> {
                     Depth depth = new Depth();
 
-                    depth.setExchangeType(ExchangeType.OKCOIN_SPOT);
-                    depth.setSymbol(getSymbol(j.channel));
-                    depth.setDate(new Date(Long.parseLong(((JsonObject) j.value).getString("timestamp"))));
-                    depth.setCreated(new Date());
+                    try {
+                        depth.setExchangeType(ExchangeType.OKCOIN_SPOT);
+                        depth.setSymbol(getSymbol(j.channel));
+                        depth.setDate(new Date(Long.parseLong(((JsonObject) j.value).getString("timestamp"))));
+                        depth.setCreated(new Date());
 
-                    ((JsonObject) j.value).getJsonArray("asks").forEach(ask ->
-                            depth.getAskMap().put(((JsonArray) ask).getJsonNumber(0).bigDecimalValue(),
-                                    ((JsonArray) ask).getJsonNumber(1).bigDecimalValue()));
+                        ((JsonObject) j.value).getJsonArray("asks").forEach(ask ->
+                                depth.getAskMap().put(((JsonArray) ask).getJsonNumber(0).bigDecimalValue(),
+                                        ((JsonArray) ask).getJsonNumber(1).bigDecimalValue()));
 
-                    ((JsonObject) j.value).getJsonArray("bids").forEach(bid ->
-                            depth.getBidMap().put(((JsonArray) bid).getJsonNumber(0).bigDecimalValue(),
-                                    ((JsonArray) bid).getJsonNumber(1).bigDecimalValue()));
+                        ((JsonObject) j.value).getJsonArray("bids").forEach(bid ->
+                                depth.getBidMap().put(((JsonArray) bid).getJsonNumber(0).bigDecimalValue(),
+                                        ((JsonArray) bid).getJsonNumber(1).bigDecimalValue()));
+                    } catch (Exception e) {
+                        log.error("error spot depth observable -> ", e);
+                    }
 
                     return depth;
                 });
@@ -367,48 +383,52 @@ public class OkcoinService {
                 .map(j -> {
                     Order order = new Order();
 
-                    order.setExchangeType(ExchangeType.OKCOIN_FUTURES);
-                    order.setAmount(BigDecimal.valueOf(j.getJsonNumber("amount").doubleValue()));
-                    order.setCreated(new Date(j.getJsonNumber("create_date").longValue()));
-                    order.setFilledAmount(j.getJsonNumber("deal_amount").bigDecimalValue());
-                    order.setFee(BigDecimal.valueOf(j.getJsonNumber("fee").doubleValue()));
-                    order.setOrderId(j.getJsonNumber("order_id").toString());
-                    order.setPrice(BigDecimal.valueOf(j.getJsonNumber("price").doubleValue()));
-                    order.setAvgPrice(BigDecimal.valueOf(j.getJsonNumber("price_avg").doubleValue()));
+                    try {
+                        order.setExchangeType(ExchangeType.OKCOIN_FUTURES);
+                        order.setAmount(BigDecimal.valueOf(j.getJsonNumber("amount").doubleValue()));
+                        order.setCreated(new Date(j.getJsonNumber("create_date").longValue()));
+                        order.setFilledAmount(j.getJsonNumber("deal_amount").bigDecimalValue());
+                        order.setFee(BigDecimal.valueOf(j.getJsonNumber("fee").doubleValue()));
+                        order.setOrderId(j.getJsonNumber("order_id").toString());
+                        order.setPrice(BigDecimal.valueOf(j.getJsonNumber("price").doubleValue()));
+                        order.setAvgPrice(BigDecimal.valueOf(j.getJsonNumber("price_avg").doubleValue()));
 
-                    String symbol = j.getString("symbol");
-                    if (symbol.contains("ltc")) {
-                        order.setSymbol("LTC/USD");
-                    } else if (symbol.contains("btc")) {
-                        order.setSymbol("BTC/USD");
-                    }
+                        String symbol = j.getString("symbol");
+                        if (symbol.contains("ltc")) {
+                            order.setSymbol("LTC/USD");
+                        } else if (symbol.contains("btc")) {
+                            order.setSymbol("BTC/USD");
+                        }
 
-                    switch (j.getInt("status")) {
-                        case -1:
-                        case 4:
-                            order.setStatus(OrderStatus.CANCELED);
-                            break;
-                        case 2:
-                            order.setStatus(OrderStatus.CLOSED);
-                            break;
-                        default:
-                            order.setStatus(OrderStatus.OPEN);
-                            break;
-                    }
+                        switch (j.getInt("status")) {
+                            case -1:
+                            case 4:
+                                order.setStatus(OrderStatus.CANCELED);
+                                break;
+                            case 2:
+                                order.setStatus(OrderStatus.CLOSED);
+                                break;
+                            default:
+                                order.setStatus(OrderStatus.OPEN);
+                                break;
+                        }
 
-                    switch (j.getInt("type")) {
-                        case 1:
-                            order.setType(OrderType.OPEN_LONG);
-                            break;
-                        case 2:
-                            order.setType(OrderType.OPEN_SHORT);
-                            break;
-                        case 3:
-                            order.setType(OrderType.CLOSE_LONG);
-                            break;
-                        case 4:
-                            order.setType(OrderType.CLOSE_SHORT);
-                            break;
+                        switch (j.getInt("type")) {
+                            case 1:
+                                order.setType(OrderType.OPEN_LONG);
+                                break;
+                            case 2:
+                                order.setType(OrderType.OPEN_SHORT);
+                                break;
+                            case 3:
+                                order.setType(OrderType.CLOSE_LONG);
+                                break;
+                            case 4:
+                                order.setType(OrderType.CLOSE_SHORT);
+                                break;
+                        }
+                    } catch (Exception e) {
+                        log.error("error future order observable -> ", e);
                     }
 
                     return order;
@@ -425,43 +445,47 @@ public class OkcoinService {
                 .map(j -> {
                     Order order = new Order();
 
-                    order.setExchangeType(ExchangeType.OKCOIN_SPOT);
-                    order.setAmount(BigDecimal.valueOf(j.getJsonNumber("amount").doubleValue()));
-                    order.setCreated(new Date(j.getJsonNumber("create_date").longValue()));
-                    order.setFilledAmount(j.getJsonNumber("deal_amount").bigDecimalValue());
-                    order.setOrderId(j.getJsonNumber("order_id").toString());
-                    order.setPrice(BigDecimal.valueOf(j.getJsonNumber("price").doubleValue()));
-                    order.setAvgPrice(BigDecimal.valueOf(j.getJsonNumber("avg_price").doubleValue()));
+                    try {
+                        order.setExchangeType(ExchangeType.OKCOIN_SPOT);
+                        order.setAmount(BigDecimal.valueOf(j.getJsonNumber("amount").doubleValue()));
+                        order.setCreated(new Date(j.getJsonNumber("create_date").longValue()));
+                        order.setFilledAmount(j.getJsonNumber("deal_amount").bigDecimalValue());
+                        order.setOrderId(j.getJsonNumber("order_id").toString());
+                        order.setPrice(BigDecimal.valueOf(j.getJsonNumber("price").doubleValue()));
+                        order.setAvgPrice(BigDecimal.valueOf(j.getJsonNumber("avg_price").doubleValue()));
 
-                    String symbol = j.getString("symbol");
-                    if (symbol.contains("ltc")) {
-                        order.setSymbol("LTC/USD");
-                    } else if (symbol.contains("btc")) {
-                        order.setSymbol("BTC/USD");
-                    }
+                        String symbol = j.getString("symbol");
+                        if (symbol.contains("ltc")) {
+                            order.setSymbol("LTC/USD");
+                        } else if (symbol.contains("btc")) {
+                            order.setSymbol("BTC/USD");
+                        }
 
-                    switch (j.getInt("status")) {
-                        case -1:
-                        case 4:
-                            order.setStatus(OrderStatus.CANCELED);
-                            break;
-                        case 2:
-                            order.setStatus(OrderStatus.CLOSED);
-                            break;
-                        default:
-                            order.setStatus(OrderStatus.OPEN);
-                            break;
-                    }
+                        switch (j.getInt("status")) {
+                            case -1:
+                            case 4:
+                                order.setStatus(OrderStatus.CANCELED);
+                                break;
+                            case 2:
+                                order.setStatus(OrderStatus.CLOSED);
+                                break;
+                            default:
+                                order.setStatus(OrderStatus.OPEN);
+                                break;
+                        }
 
-                    switch (j.getString("type")) {
-                        case "buy":
-                        case "buy_market ":
-                            order.setType(OrderType.BID);
-                            break;
-                        case "sell":
-                        case "sell_market":
-                            order.setType(OrderType.ASK);
-                            break;
+                        switch (j.getString("type")) {
+                            case "buy":
+                            case "buy_market ":
+                                order.setType(OrderType.BID);
+                                break;
+                            case "sell":
+                            case "sell_market":
+                                order.setType(OrderType.ASK);
+                                break;
+                        }
+                    } catch (Exception e) {
+                        log.error("error spot order observable -> ", e);
                     }
 
                     return order;
@@ -479,60 +503,64 @@ public class OkcoinService {
                     lastOrder = System.currentTimeMillis();
 
                     Order order = new Order();
-                    order.setExchangeType(ExchangeType.OKCOIN_FUTURES);
 
-                    order.setAmount(new BigDecimal(j.getString("amount")));
-                    order.setOrderId(j.getJsonNumber("orderid").toString());
-                    order.setPrice(new BigDecimal(j.getString("price")));
-                    order.setAvgPrice(new BigDecimal(j.getString("price_avg")));
-                    order.setFee(new BigDecimal(j.getString("fee")));
-                    order.setFilledAmount(new BigDecimal(j.getString("deal_amount")));
+                    try {
+                        order.setExchangeType(ExchangeType.OKCOIN_FUTURES);
+                        order.setAmount(new BigDecimal(j.getString("amount")));
+                        order.setOrderId(j.getJsonNumber("orderid").toString());
+                        order.setPrice(new BigDecimal(j.getString("price")));
+                        order.setAvgPrice(new BigDecimal(j.getString("price_avg")));
+                        order.setFee(new BigDecimal(j.getString("fee")));
+                        order.setFilledAmount(new BigDecimal(j.getString("deal_amount")));
 
-                    String symbol = j.getString("contract_name");
-                    if (symbol.contains("LTC")) {
-                        order.setSymbol("LTC/USD");
-                    } else if (symbol.contains("BTC")) {
-                        order.setSymbol("BTC/USD");
-                    }
+                        String symbol = j.getString("contract_name");
+                        if (symbol.contains("LTC")) {
+                            order.setSymbol("LTC/USD");
+                        } else if (symbol.contains("BTC")) {
+                            order.setSymbol("BTC/USD");
+                        }
 
-                    switch (j.getString("status")) {
-                        case "-1":
-                        case "4":
-                            order.setStatus(OrderStatus.CANCELED);
-                            break;
-                        case "2":
-                            order.setStatus(OrderStatus.CLOSED);
-                            break;
-                        default:
-                            order.setStatus(OrderStatus.OPEN);
-                            break;
-                    }
+                        switch (j.getString("status")) {
+                            case "-1":
+                            case "4":
+                                order.setStatus(OrderStatus.CANCELED);
+                                break;
+                            case "2":
+                                order.setStatus(OrderStatus.CLOSED);
+                                break;
+                            default:
+                                order.setStatus(OrderStatus.OPEN);
+                                break;
+                        }
 
-                    switch (j.getString("type")) {
-                        case "1":
-                            order.setType(OrderType.OPEN_LONG);
-                            break;
-                        case "2":
-                            order.setType(OrderType.OPEN_SHORT);
-                            break;
-                        case "3":
-                            order.setType(OrderType.CLOSE_LONG);
-                            break;
-                        case "4":
-                            order.setType(OrderType.CLOSE_SHORT);
-                            break;
-                    }
+                        switch (j.getString("type")) {
+                            case "1":
+                                order.setType(OrderType.OPEN_LONG);
+                                break;
+                            case "2":
+                                order.setType(OrderType.OPEN_SHORT);
+                                break;
+                            case "3":
+                                order.setType(OrderType.CLOSE_LONG);
+                                break;
+                            case "4":
+                                order.setType(OrderType.CLOSE_SHORT);
+                                break;
+                        }
 
-                    switch (j.getString("contract_type")) {
-                        case "this_week":
-                            order.setSymbolType(SymbolType.THIS_WEEK);
-                            break;
-                        case "next_week":
-                            order.setSymbolType(SymbolType.NEXT_WEEK);
-                            break;
-                        case "quarter":
-                            order.setSymbolType(SymbolType.QUARTER);
-                            break;
+                        switch (j.getString("contract_type")) {
+                            case "this_week":
+                                order.setSymbolType(SymbolType.THIS_WEEK);
+                                break;
+                            case "next_week":
+                                order.setSymbolType(SymbolType.NEXT_WEEK);
+                                break;
+                            case "quarter":
+                                order.setSymbolType(SymbolType.QUARTER);
+                                break;
+                        }
+                    } catch (Exception e) {
+                        log.error("error future real trades -> ", e);
                     }
 
                     return order;
@@ -549,40 +577,44 @@ public class OkcoinService {
 
                     Order order = new Order();
 
-                    order.setExchangeType(ExchangeType.OKCOIN_SPOT);
-                    order.setAmount(new BigDecimal(j.getString("tradeAmount")));
-                    order.setOrderId(j.getJsonNumber("orderId").toString());
-                    order.setPrice(new BigDecimal(j.getString("tradePrice")));
-                    order.setAvgPrice(new BigDecimal(j.getString("averagePrice")));
-                    order.setFilledAmount(new BigDecimal(j.getString("completedTradeAmount")));
+                    try {
+                        order.setExchangeType(ExchangeType.OKCOIN_SPOT);
+                        order.setAmount(new BigDecimal(j.getString("tradeAmount")));
+                        order.setOrderId(j.getJsonNumber("orderId").toString());
+                        order.setPrice(new BigDecimal(j.getString("tradePrice")));
+                        order.setAvgPrice(new BigDecimal(j.getString("averagePrice")));
+                        order.setFilledAmount(new BigDecimal(j.getString("completedTradeAmount")));
 
-                    String symbol = j.getString("symbol");
-                    if (symbol.contains("ltc")) {
-                        order.setSymbol("LTC/USD");
-                    } else if (symbol.contains("btc")) {
-                        order.setSymbol("BTC/USD");
-                    }
+                        String symbol = j.getString("symbol");
+                        if (symbol.contains("ltc")) {
+                            order.setSymbol("LTC/USD");
+                        } else if (symbol.contains("btc")) {
+                            order.setSymbol("BTC/USD");
+                        }
 
-                    switch (j.getJsonNumber("status").intValue()) {
-                        case -1:
-                        case 4:
-                            order.setStatus(OrderStatus.CANCELED);
-                            break;
-                        case 2:
-                            order.setStatus(OrderStatus.CLOSED);
-                            break;
-                        default:
-                            order.setStatus(OrderStatus.OPEN);
-                            break;
-                    }
+                        switch (j.getJsonNumber("status").intValue()) {
+                            case -1:
+                            case 4:
+                                order.setStatus(OrderStatus.CANCELED);
+                                break;
+                            case 2:
+                                order.setStatus(OrderStatus.CLOSED);
+                                break;
+                            default:
+                                order.setStatus(OrderStatus.OPEN);
+                                break;
+                        }
 
-                    switch (j.getString("tradeType")) {
-                        case "buy":
-                            order.setType(OrderType.BID);
-                            break;
-                        case "sell":
-                            order.setType(OrderType.ASK);
-                            break;
+                        switch (j.getString("tradeType")) {
+                            case "buy":
+                                order.setType(OrderType.BID);
+                                break;
+                            case "sell":
+                                order.setType(OrderType.ASK);
+                                break;
+                        }
+                    } catch (Exception e) {
+                        log.error("error spot real trades -> ", e);
                     }
 
                     return order;

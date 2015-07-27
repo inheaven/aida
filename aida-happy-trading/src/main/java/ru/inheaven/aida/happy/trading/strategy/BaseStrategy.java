@@ -192,9 +192,10 @@ public class BaseStrategy {
 
                 order.close(o);
                 orderMapper.asyncSave(order);
+
+                orderService.onCloseOrder(o);
             }
 
-            orderService.onCloseOrder(o);
             onCloseOrder(o);
         } catch (Exception e) {
             log.error("error on close order -> ", e);
