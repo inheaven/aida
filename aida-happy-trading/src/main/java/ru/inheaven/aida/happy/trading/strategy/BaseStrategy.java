@@ -5,14 +5,15 @@ import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.exception.CreateOrderException;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
-import ru.inheaven.aida.happy.trading.service.*;
+import ru.inheaven.aida.happy.trading.service.DepthService;
+import ru.inheaven.aida.happy.trading.service.OrderService;
+import ru.inheaven.aida.happy.trading.service.TradeService;
 import rx.Observable;
 import rx.Subscription;
 
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.*;
 
 import static java.math.RoundingMode.HALF_UP;
@@ -46,8 +47,6 @@ public class BaseStrategy {
 
     private boolean flying = false;
 
-    private String key;
-
     public BaseStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                         DepthService depthService) {
         this.strategy = strategy;
@@ -62,15 +61,6 @@ public class BaseStrategy {
         tradeObservable = tradeService.createTradeObserver(strategy);
 
         depthObservable = depthService.createDepthObservable(strategy);
-
-        switch (strategy.getSymbol()){
-            case "BTC/USD":
-                key = "btc";
-                break;
-            case "LTC/USD":
-                key = "ltc";
-                break;
-        }
     }
 
     public void start(){
@@ -175,32 +165,11 @@ public class BaseStrategy {
         try {
             orderService.createOrder(strategy.getAccount(), order);
             orderMap.put(order.getOrderId(), order);
-            orderMapper.save(order);
+            orderMapper.asyncSave(order);
 
-            String message = "(" + order.getPrice().setScale(3, HALF_UP) +
-                    (OrderType.BUY_SET.contains(order.getType()) ? "↑":"↓") + ") ";
-
-            Module.getInjector().getInstance(BroadcastService.class).broadcast(getClass(), "create_order_" +
-                    key + "_" + Objects.toString(order.getSymbolType(), ""), message);
+            orderService.onCreateOrder(order);
         } finally {
             orderMap.remove(createdOrderId);
-        }
-    }
-
-    protected void closeOrder(Order o){
-        try {
-            Order order = orderMap.get(o.getOrderId());
-
-            if (order != null) {
-                orderMap.remove(o.getOrderId());
-
-                order.close(o);
-                orderMapper.save(order);
-            }
-
-            onCloseOrder(o);
-        } catch (Exception e) {
-            log.error("error on close order -> ", e);
         }
     }
 
@@ -212,6 +181,24 @@ public class BaseStrategy {
 
             return order;
         });
+    }
+
+    protected void closeOrder(Order o){
+        try {
+            Order order = orderMap.get(o.getOrderId());
+
+            if (order != null) {
+                orderMap.remove(o.getOrderId());
+
+                order.close(o);
+                orderMapper.asyncSave(order);
+            }
+
+            orderService.onCloseOrder(o);
+            onCloseOrder(o);
+        } catch (Exception e) {
+            log.error("error on close order -> ", e);
+        }
     }
 
     public Map<String, Order> getOrderMap() {

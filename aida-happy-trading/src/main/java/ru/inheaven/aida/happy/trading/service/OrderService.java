@@ -12,7 +12,6 @@ import javax.inject.Singleton;
 import java.util.Objects;
 
 import static java.math.RoundingMode.HALF_UP;
-import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CLOSED;
 
 /**
  * @author inheaven on 29.06.2015 23:49.
@@ -23,11 +22,13 @@ public class OrderService {
 
     private OkcoinService okcoinService;
     private XChangeService xChangeService;
+    private BroadcastService broadcastService;
 
     @Inject
-    public OrderService(OkcoinService okcoinService, XChangeService xChangeService) {
+    public OrderService(OkcoinService okcoinService, XChangeService xChangeService, BroadcastService broadcastService) {
         this.okcoinService = okcoinService;
         this.xChangeService = xChangeService;
+        this.broadcastService = broadcastService;
 
         orderObservable = okcoinService.createFutureOrderObservable()
                 .mergeWith(okcoinService.createSpotOrderObservable())
@@ -36,17 +37,6 @@ public class OrderService {
 
         okcoinService.realFutureTrades("00dff9d7-7d99-45f9-bd41-23d08d4665ce", "41A8FBFE7CD7D079D7FD64B79D64BBE2");
         okcoinService.realSpotTrades("00dff9d7-7d99-45f9-bd41-23d08d4665ce", "41A8FBFE7CD7D079D7FD64B79D64BBE2");
-
-        orderObservable.subscribe(order -> {
-            if (order.getStatus().equals(CLOSED)) {
-                String message = "[" + order.getAvgPrice().setScale(3, HALF_UP)
-                        + (OrderType.BUY_SET.contains(order.getType()) ? "↑" : "↓") + "] ";
-
-                Module.getInjector().getInstance(BroadcastService.class).broadcast(getClass(), "close_order_"
-                        + order.getSymbol() + "_" + Objects.toString(order.getSymbolType(), ""), message);
-            }
-        });
-
     }
 
     public Observable<Order> createOrderObserver(Strategy strategy){
@@ -74,5 +64,32 @@ public class OrderService {
                 okcoinService.orderSpotInfo(strategy.getAccount().getApiKey(), strategy.getAccount().getSecretKey(), order);
                 break;
         }
+    }
+
+    public void onCreateOrder(Order order){
+        String key = "";
+
+        switch (order.getSymbol()){
+            case "BTC/USD":
+                key = "btc";
+                break;
+            case "LTC/USD":
+                key = "ltc";
+                break;
+        }
+
+        String message = "(" + order.getPrice().setScale(3, HALF_UP) +
+                (OrderType.BUY_SET.contains(order.getType()) ? "↑":"↓") + ") ";
+
+        Module.getInjector().getInstance(BroadcastService.class).broadcast(getClass(), "create_order_" +
+                key + "_" + Objects.toString(order.getSymbolType(), ""), message);
+    }
+
+    public void onCloseOrder(Order order){
+        String message = "[" + order.getAvgPrice().setScale(3, HALF_UP)
+                + (OrderType.BUY_SET.contains(order.getType()) ? "↑" : "↓") + "] ";
+
+        broadcastService.broadcast(getClass(), "close_order_"
+                + order.getSymbol() + "_" + Objects.toString(order.getSymbolType(), ""), message);
     }
 }

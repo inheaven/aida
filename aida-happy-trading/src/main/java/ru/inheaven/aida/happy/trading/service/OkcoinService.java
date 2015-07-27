@@ -202,14 +202,26 @@ public class OkcoinService {
 //                .subscribe(j -> log.info(j.toString()));
         tradingEndpoint.getJsonObservable()
                 .filter(j -> j.getString("channel", "").equals("ok_futureusd_order_info"))
-                .filter(j -> j.getJsonObject("data").getJsonArray("orders").isEmpty())
+                .filter(j ->{
+                    try {
+                        return j.getJsonObject("data").getJsonArray("orders").isEmpty();
+                    } catch (Exception e) {
+                        return false;
+                    }
+                })
                 .subscribe(j -> log.info(j.toString()));
 //        tradingEndpoint.getJsonObservable()
 //                .filter(j -> j.getString("channel", "").equals("ok_usd_realtrades"))
 //                .subscribe(j -> log.info(j.toString()));
         tradingEndpoint.getJsonObservable()
                 .filter(j -> j.getString("channel", "").equals("ok_spotusd_order_info"))
-                .filter(j -> j.getJsonObject("data").getJsonArray("orders").isEmpty())
+                .filter(j -> {
+                    try {
+                        return j.getJsonObject("data").getJsonArray("orders").isEmpty();
+                    } catch (Exception e) {
+                        return false;
+                    }
+                })
                 .subscribe(j -> log.info(j.toString()));
     }
 
