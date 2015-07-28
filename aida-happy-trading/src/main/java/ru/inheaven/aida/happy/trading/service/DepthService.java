@@ -3,6 +3,8 @@ package ru.inheaven.aida.happy.trading.service;
 import ru.inheaven.aida.happy.trading.entity.Depth;
 import ru.inheaven.aida.happy.trading.entity.Strategy;
 import rx.Observable;
+import rx.observables.ConnectableObservable;
+import rx.schedulers.Schedulers;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -13,12 +15,17 @@ import java.util.Objects;
  */
 @Singleton
 public class DepthService {
-    private Observable<Depth> depthObservable;
+    private ConnectableObservable<Depth> depthObservable;
 
     @Inject
     public DepthService(OkcoinService okcoinService) {
         depthObservable = okcoinService.createFutureDepthObservable()
-                .mergeWith(okcoinService.createSpotDepthObservable());
+                .mergeWith(okcoinService.createSpotDepthObservable())
+                .observeOn(Schedulers.io())
+                .onBackpressureBuffer()
+                .publish();
+
+        depthObservable.connect();
     }
 
     public Observable<Depth> createDepthObservable(Strategy strategy){

@@ -43,6 +43,6 @@ public class AidaHappyTradingApplication extends WebApplication{
 
     @Override
     public Class<? extends Page> getHomePage() {
-        return OrderStreamPage.class;
+        return AccountInfoPage.class;
     }
 }

@@ -24,7 +24,9 @@ import static java.math.RoundingMode.HALF_UP;
 public class AccountInfoRest extends AbstractRestResource<JsonWebSerialDeserial>{
     private Long futureAccountId = 7L;
     private Long spotAccountId = 8L;
-    private Date startDate = new Date(Timestamp.valueOf("2015-07-20 00:00:00").getTime());
+    private Date startDate = new Date(Timestamp.valueOf("2015-07-21 00:00:00").getTime());
+    private Date startSpotDate = new Date(Timestamp.valueOf("2015-07-24 00:00:00").getTime());
+
 
     private UserInfoMapper userInfoMapper = Module.getInjector().getInstance(UserInfoMapper.class);
 
@@ -66,7 +68,7 @@ public class AccountInfoRest extends AbstractRestResource<JsonWebSerialDeserial>
     public List getSpot(@PathParam("currency") String currency){
         List<List> array = new ArrayList<>();
 
-        userInfoMapper.getUserInfoList(spotAccountId, currency, startDate)
+        userInfoMapper.getUserInfoList(spotAccountId, currency, startSpotDate)
                 .forEach(i -> array.add(Arrays.asList(i.getCreated().getTime(), i.getAccountRights().add(i.getKeepDeposit())
                         .setScale(3, HALF_UP))));
 

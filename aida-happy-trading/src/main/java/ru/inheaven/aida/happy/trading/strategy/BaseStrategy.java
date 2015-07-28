@@ -173,7 +173,7 @@ public class BaseStrategy {
         }
     }
 
-    private ExecutorService executorService = Executors.newFixedThreadPool(4);
+    private ExecutorService executorService = Executors.newFixedThreadPool(2);
 
     protected Future<Order> createOrderAsync(Order order){
         return executorService.submit(() -> {
@@ -193,7 +193,7 @@ public class BaseStrategy {
                 order.close(o);
                 orderMapper.asyncSave(order);
 
-                orderService.onCloseOrder(o);
+                orderService.onCloseOrder(order);
             }
 
             onCloseOrder(o);

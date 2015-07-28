@@ -323,6 +323,8 @@ $(function () {
         }).highcharts();
     });
 
+    var offset = -new Date().getTimezoneOffset()*60000 + 60000*60;
+
     //ORDER
     all_order_rate_chart = $('#all_order_rate').highcharts({
         title: {text: 'Order Time', style:{"fontSize": "16px"}},
@@ -333,7 +335,7 @@ $(function () {
         navigator: {enabled: false, xAxis:{labels:{enabled:false}}},
         rangeSelector: {enabled: false},
         legend: {enabled: false},
-        xAxis: {type: 'datetime', minRange: 3600000, min: new Date().getTime() - 3600000, max: new Date().getTime() + 60000},
+        xAxis: {type: 'datetime', minRange: 3600000, min: new Date().getTime() - 3600000 + offset, max: new Date().getTime() + 60000 + offset},
         yAxis: {labels: {enabled: false}, tickWidth: 0, title:{text: null}, min:0},
         series: [{type : 'spline', name: 'Order Time',
             lineWidth : 0,
@@ -346,7 +348,7 @@ $(function () {
             }]
     }).highcharts();
 
-    setInterval(function () {all_order_rate_chart.xAxis[0].setExtremes(new Date().getTime() - 3600000, new Date().getTime() + 60000);}, 60000);
+    setInterval(function () {all_order_rate_chart.xAxis[0].setExtremes(new Date().getTime() - 3600000 + offset, new Date().getTime() + 60000 + offset);}, 60000);
 
     Wicket.Event.subscribe("/websocket/closed", function(){
         $('#charts').css('-webkit-filter', 'grayscale(1)');

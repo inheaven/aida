@@ -1,3 +1,7 @@
+import rx.observables.ConnectableObservable;
+import rx.schedulers.Schedulers;
+import rx.subjects.PublishSubject;
+
 import java.math.BigDecimal;
 
 /**
@@ -8,7 +12,7 @@ public class StrategyTest {
 
 
     public static void main(String... args){
-        test2();
+        test3();
     }
 
     private static void test1(){
@@ -36,6 +40,46 @@ public class StrategyTest {
             decimal = decimal.add(BigDecimal.valueOf(0.02));
 
             System.out.println(decimal.divideToIntegralValue(BigDecimal.valueOf(0.02)));
+        }
+    }
+
+    private static void test3(){
+        PublishSubject<Integer> subject = PublishSubject.create();
+
+        ConnectableObservable<Integer> observable = subject
+                .map(i -> {
+                    System.out.println(Thread.currentThread().getName() + " map " + i);
+
+                    return i * i;
+                })
+                .observeOn(Schedulers.io()).publish();
+
+
+
+        observable.subscribe(i -> {
+            System.out.println(Thread.currentThread().getName() + " subscribe1 " + i);
+        });
+
+        observable.connect();
+
+        observable.subscribe(i -> {
+            System.out.println(Thread.currentThread().getName() + " subscribe2 " + i);
+        });
+
+        for (int i=2; i < 100; i += 2 ){
+            subject.onNext(i);
+
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
 
     }

@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
 
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
@@ -79,15 +80,14 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal bid = depth.getBidMap().keySet().parallelStream().max(Comparator.<BigDecimal>naturalOrder()).get();
 
         if (ask.subtract(bid).compareTo(spread.multiply(BigDecimal.valueOf(2.1))) > 0 && ask.compareTo(bid) > 0){
-            BigDecimal price = ask.add(bid).divide(BigDecimal.valueOf(2), 8, HALF_UP)
-                    .add(spread.multiply(BigDecimal.valueOf(random.nextDouble())))
-                    .setScale(8, HALF_UP);
-
             //log.info("onDepth -> {} {} {}", price, strategy.getSymbol(), Objects.toString(strategy.getSymbolType(), ""));
 
-            action(price);
+            action(ask.subtract(spread).subtract(getStep()));
+            action(bid.add(spread.multiply(BigDecimal.valueOf(2))).add(getStep()));
         }
     }
+
+    private Semaphore lock = new Semaphore(1);
 
     private void action(BigDecimal price) {
         if (errorCount > 10){
@@ -101,16 +101,17 @@ public class LevelStrategy extends BaseStrategy{
 
         BigDecimal spread = strategy.getLevelSpread().multiply(risk);
         BigDecimal spreadX2 = spread.multiply(BigDecimal.valueOf(2)).setScale(8, HALF_UP);
-        BigDecimal step = BigDecimal.valueOf(0.001);
         BigDecimal level = price.divideToIntegralValue(spreadX2);
 
         try {
+            lock.acquire();
+
             if (!getOrderMap().values().parallelStream()
-                    .filter(order -> OrderType.LONG.contains(order.getType()))
-                    .map(order -> order.getPrice().subtract(price))
-                    .filter(d ->
-                            (d.compareTo(ZERO) > 0 && d.compareTo(spread) < 0) ||
-                                    (d.compareTo(ZERO) <= 0 && d.abs().compareTo(spreadX2) < 0))
+                    .filter(order -> LONG.contains(order.getType()))
+                    .filter(o -> (SELL_SET.contains(o.getType()) &&
+                                    o.getPrice().subtract(price).abs().compareTo(spread.subtract(getStep())) < 0) ||
+                                    (BUY_SET.contains(o.getType()) &&
+                                            price.subtract(o.getPrice()).abs().compareTo(spreadX2.add(getStep())) < 0))
                     .findAny()
                     .isPresent()){
                 BigDecimal spreadHFT = spread;
@@ -157,7 +158,7 @@ public class LevelStrategy extends BaseStrategy{
                 Future<Order> close = createOrderAsync(
                         new Order(strategy,
                                 strategy.getSymbolType() != null ? CLOSE_LONG : ASK,
-                                price.subtract(step),
+                                price.subtract(getStep()),
                                 amountHFT));
 
                 open.get();
@@ -168,12 +169,14 @@ public class LevelStrategy extends BaseStrategy{
         } catch (Exception e) {
             errorCount++;
             errorTime = System.currentTimeMillis();
+        } finally {
+            lock.release();
         }
     }
 
     @Override
     protected void onCloseOrder(Order order) {
-        if (errorCount > 0 && OrderType.SELL_SET.contains(order.getType())){
+        if (errorCount > 0 && SELL_SET.contains(order.getType())){
             errorCount--;
         }
     }
@@ -183,5 +186,16 @@ public class LevelStrategy extends BaseStrategy{
         if (order.getStatus().equals(OrderStatus.CLOSED)){
             action(order.getAvgPrice());
         }
+    }
+
+    private BigDecimal getStep(){
+        switch (strategy.getSymbol()){
+            case "BTC/USD":
+                return BigDecimal.valueOf(0.01);
+            case "LTC/USD":
+                return BigDecimal.valueOf(0.001);
+        }
+
+        return ZERO;
     }
 }

@@ -3,6 +3,8 @@ package ru.inheaven.aida.happy.trading.service;
 import ru.inheaven.aida.happy.trading.entity.Strategy;
 import ru.inheaven.aida.happy.trading.entity.Trade;
 import rx.Observable;
+import rx.observables.ConnectableObservable;
+import rx.schedulers.Schedulers;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -15,12 +17,16 @@ import static java.math.RoundingMode.HALF_UP;
  */
 @Singleton
 public class TradeService {
-    private Observable<Trade> tradeObservable;
+    private ConnectableObservable<Trade> tradeObservable;
 
     @Inject
     public TradeService(OkcoinService okcoinService, BroadcastService broadcastService) {
         tradeObservable = okcoinService.createFutureTradeObservable()
-                .mergeWith(okcoinService.createSpotTradeObservable());
+                .mergeWith(okcoinService.createSpotTradeObservable())
+                .observeOn(Schedulers.io())
+                .onBackpressureBuffer()
+                .publish();
+        tradeObservable.connect();
 
         tradeObservable.subscribe(t ->{
             String key = "";
