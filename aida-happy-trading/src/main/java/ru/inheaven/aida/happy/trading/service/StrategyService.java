@@ -30,7 +30,8 @@ public class StrategyService {
             BaseStrategy baseStrategy;
 
             switch (s.getType()) {
-                case LEVEL:
+                case LEVEL_SPOT:
+                case LEVEL_FUTURES:
                     baseStrategy = new LevelStrategy(s, orderService, orderMapper, tradeService, depthService, userInfoService);
                     baseStrategy.start();
                     break;
@@ -44,9 +45,6 @@ public class StrategyService {
 
             baseStrategies.add(baseStrategy);
         });
-
-        //start user info service
-        Module.getInjector().getInstance(UserInfoService.class);
     }
 
     public List<BaseStrategy> getBaseStrategies() {

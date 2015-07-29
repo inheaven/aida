@@ -7,6 +7,7 @@ import org.apache.wicket.protocol.http.WicketFilter;
 import ru.inheaven.aida.happy.trading.service.Module;
 import ru.inheaven.aida.happy.trading.service.OkcoinService;
 import ru.inheaven.aida.happy.trading.service.StrategyService;
+import ru.inheaven.aida.happy.trading.service.UserInfoService;
 
 /**
  * @author inheaven on 17.06.2015 23:13.
@@ -15,6 +16,7 @@ public class AidaHappyTradingApplicationFactory implements IWebApplicationFactor
     @Override
     public WebApplication createApplication(WicketFilter filter) {
         Module.getInjector().getInstance(StrategyService.class);
+        Module.getInjector().getInstance(UserInfoService.class);
 
         WebApplication application = Module.getInjector().getInstance(AidaHappyTradingApplication.class);
         application.getComponentInstantiationListeners().add(new GuiceComponentInjector(application, Module.getInjector()));

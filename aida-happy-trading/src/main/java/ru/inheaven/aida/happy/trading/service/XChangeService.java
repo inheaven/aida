@@ -13,7 +13,6 @@ import com.xeiam.xchange.okcoin.service.polling.OkCoinTradeServiceRaw;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.Account;
-import ru.inheaven.aida.happy.trading.entity.ExchangeType;
 import ru.inheaven.aida.happy.trading.entity.Order;
 import ru.inheaven.aida.happy.trading.entity.OrderStatus;
 import ru.inheaven.aida.happy.trading.exception.CreateOrderException;
@@ -35,8 +34,7 @@ public class XChangeService {
 
     public Exchange getExchange(Account account){
         switch (account.getExchangeType()){
-            case OKCOIN_FUTURES:
-            case OKCOIN_SPOT:
+            case OKCOIN:
                 Exchange exchange = okcoinExchangeThreadLocal.get();
 
                 if (exchange == null){
@@ -61,7 +59,7 @@ public class XChangeService {
         try {
             String orderId;
 
-            if (order.getExchangeType().equals(ExchangeType.OKCOIN_FUTURES)){
+            if (order.getSymbolType() != null){
                 OkCoinTradeServiceRaw tradeService = (OkCoinTradeServiceRaw) getExchange(account).getPollingTradeService();
 
                 FuturesContract futuresContract;

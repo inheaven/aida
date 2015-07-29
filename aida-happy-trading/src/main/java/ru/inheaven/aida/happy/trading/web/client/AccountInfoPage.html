@@ -12,7 +12,7 @@
         }
 
         .column{
-            width: 33%
+            width: 25%
         }
 
         .reconnect{
@@ -30,27 +30,31 @@
     </style>
 </wicket:head>
 <wicket:extend xmlns:wicket="http://wicket.apache.org">
-    <table id="charts" style="width: 100%">
+    <table  id="charts"  style="width: 100%">
         <tr>
             <td class="column"><div id="btc_margin" class="chart"></div></td>
             <td class="column"><div id="btc_profit" class="chart"></div></td>
             <td class="column"><div id="btc_equity" class="chart"></div></td>
+            <td class="column"><div id="btc_price" class="chart"></div></td>
         </tr>
         <tr>
             <td class="column"><div id="ltc_margin" class="chart"></div></td>
             <td class="column"><div id="ltc_profit" class="chart"></div></td>
             <td class="column"><div id="ltc_equity" class="chart"></div></td>
+            <td class="column"><div id="ltc_price" class="chart"></div></td>
         </tr>
         <tr>
             <td class="column"><div id="ltc_spot" class="chart"></div></td>
             <td class="column"><div id="btc_spot" class="chart"></div></td>
             <td class="column"><div id="usd_spot" class="chart"></div></td>
+            <td class="column"><div id="usd_total" class="chart"></div></td>
         </tr>
         <tr>
-            <td colspan="3">
+            <td colspan="4">
                 <div id="all_order_rate" style="height: 100px"></div>
             </td>
         </tr>
     </table>
+
     <div id="reconnect" class="reconnect"></div>
 </wicket:extend>

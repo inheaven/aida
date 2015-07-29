@@ -26,6 +26,8 @@ public class Order extends AbstractEntity {
     private Date closed;
     private OrderStatus status;
 
+    private Long accountId;
+
     public Order() {
     }
 
@@ -168,6 +170,11 @@ public class Order extends AbstractEntity {
         this.status = status;
     }
 
+    public Long getAccountId() {
+        return accountId;
+    }
 
-
+    public void setAccountId(Long accountId) {
+        this.accountId = accountId;
+    }
 }

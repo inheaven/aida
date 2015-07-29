@@ -9,6 +9,7 @@ import org.apache.wicket.protocol.ws.api.WebSocketRequestHandler;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.resource.JQueryResourceReference;
 import ru.inheaven.aida.happy.trading.entity.UserInfo;
+import ru.inheaven.aida.happy.trading.entity.UserInfoTotal;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.Module;
 import ru.inheaven.aida.happy.trading.service.OrderService;
@@ -112,6 +113,23 @@ public class AccountInfoPage extends BasePage{
                 }
             }
         });
+
+        add(new BroadcastBehavior(UserInfoTotal.class){
+                @Override
+                protected void onBroadcast(WebSocketRequestHandler handler, String key, Object payload) {
+                    UserInfoTotal total = (UserInfoTotal) payload;
+
+                    handler.appendJavaScript("usd_total_chart.series[0].addPoint([" +
+                            total.getCreated().getTime() + "," + total.getFuturesTotal().add(total.getSpotTotal()).setScale(3, HALF_UP) + "])");
+                    handler.appendJavaScript("btc_price_chart.series[1].addPoint([" +
+                            total.getCreated().getTime() + "," + total.getBtcPrice().setScale(2, HALF_UP) + "])");
+                    handler.appendJavaScript("ltc_price_chart.series[2].addPoint([" +
+                            total.getCreated().getTime() + "," + total.getLtcPrice().setScale(3, HALF_UP) + "])");
+//                    handler.appendJavaScript("usd_total_chart.series[3].addPoint([" +
+//                            total.getCreated().getTime() + "," + total.getFuturesVolume().add(total.getSpotVolume()).setScale(3, HALF_UP) + "])");
+                }
+            }
+        );
 
         add(new BroadcastBehavior(OrderService.class) {
             @Override

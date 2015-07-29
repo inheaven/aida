@@ -10,6 +10,9 @@ var ltc_spot_chart;
 var btc_spot_chart;
 var usd_spot_chart;
 
+var btc_price_chart;
+var ltc_price_chart;
+var usd_total_chart;
 
 var all_order_rate_chart;
 
@@ -24,7 +27,7 @@ $(function () {
     });
 
     //BTC
-    $.getJSON('/account_info_rest/equity/BTC', function (data) {
+    $.getJSON('/account_info_rest/user_info/BTC', function (data) {
         btc_equity_chart = $('#btc_equity').highcharts('StockChart', {
             title: {text: 'BTC Equity'},
             chart: {animation: false, marginTop: 5},
@@ -35,7 +38,7 @@ $(function () {
             xAxis: {type: 'datetime'},
             series: [{
                 type: 'area', threshold: null, name: 'BTC Equity',
-                data: data,
+                data: data.map(function(a){return [a[0], a[1]]}),
                 fillColor: {
                     linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
                     stops: [
@@ -55,42 +58,7 @@ $(function () {
                 inputEnabled: false
             }
         }).highcharts();
-    });
 
-    $.getJSON('/account_info_rest/profit/BTC', function (data) {
-        btc_profit_chart = $('#btc_profit').highcharts('StockChart', {
-            title: {text: 'BTC Realized Profit'},
-            chart: {animation: false, marginTop: 5},
-            tooltip: {valueDecimals: 3},
-            credits: {enabled: false},
-            navigator: {height: 0, xAxis:{labels:{enabled:false}}},
-            scrollbar: {enabled: false},
-            xAxis: {type: 'datetime'},
-            series: [{
-                type: 'area', threshold: null, name: 'BTC Realized Profit',
-                data: data,
-                fillColor: {
-                    linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
-                    stops: [
-                        [0, Highcharts.getOptions().colors[0]],
-                        [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
-                    ]
-                }
-            }],
-            rangeSelector: {
-                buttons: [
-                    {type: 'hour', count: 1, text: ' '},
-                    {type: 'day', count: 1, text: ' '},
-                    {type: 'week', count: 1, text: ' '},
-                    {type: 'all', count: 1, text: ' '}
-                ],
-                //selected : 1,
-                inputEnabled: false
-            }
-        }).highcharts();
-    });
-
-    $.getJSON('/account_info_rest/margin/BTC', function (data) {
         btc_margin_chart = $('#btc_margin').highcharts('StockChart', {
             title: {text: 'BTC Margin'},
             chart: {animation: false, marginTop: 5},
@@ -101,7 +69,38 @@ $(function () {
             xAxis: {type: 'datetime'},
             series: [{
                 type: 'area', threshold: null, name: 'BTC Margin',
-                data: data,
+                data: data.map(function(a){return [a[0], a[2]]}),
+                fillColor: {
+                    linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
+                    stops: [
+                        [0, Highcharts.getOptions().colors[0]],
+                        [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+                    ]
+                }
+            }],
+            rangeSelector: {
+                buttons: [
+                    {type: 'hour', count: 1, text: ' '},
+                    {type: 'day', count: 1, text: ' '},
+                    {type: 'week', count: 1, text: ' '},
+                    {type: 'all', count: 1, text: ' '}
+                ],
+                //selected : 1,
+                inputEnabled: false
+            }
+        }).highcharts();
+
+        btc_profit_chart = $('#btc_profit').highcharts('StockChart', {
+            title: {text: 'BTC Realized Profit'},
+            chart: {animation: false, marginTop: 5},
+            tooltip: {valueDecimals: 3},
+            credits: {enabled: false},
+            navigator: {height: 0, xAxis:{labels:{enabled:false}}},
+            scrollbar: {enabled: false},
+            xAxis: {type: 'datetime'},
+            series: [{
+                type: 'area', threshold: null, name: 'BTC Realized Profit',
+                data: data.map(function(a){return [a[0], a[3]]}),
                 fillColor: {
                     linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
                     stops: [
@@ -125,7 +124,7 @@ $(function () {
 
     //LTC
 
-    $.getJSON('/account_info_rest/equity/LTC', function (data) {
+    $.getJSON('/account_info_rest/user_info/LTC', function (data) {
         ltc_equity_chart = $('#ltc_equity').highcharts('StockChart', {
             title: {text: 'LTC Equity'},
             chart:{animation: true, marginTop: 5},
@@ -135,7 +134,7 @@ $(function () {
             navigator: {height: 0, xAxis:{labels:{enabled:false}}},
             xAxis: {type: 'datetime'},
             series: [{type : 'area',  threshold : null, name: 'LTC Equity',
-                data: data,
+                data: data.map(function(a){return [a[0], a[1]]}),
                 fillColor : {
                     linearGradient : {x1: 0, y1: 0, x2: 0, y2: 1},
                     stops : [
@@ -154,42 +153,7 @@ $(function () {
                 inputEnabled : false
             }
         }).highcharts();
-    });
 
-    $.getJSON('/account_info_rest/profit/LTC', function (data) {
-        ltc_profit_chart = $('#ltc_profit').highcharts('StockChart', {
-            title: {text: 'LTC Realized Profit'},
-            chart: {animation: false, marginTop: 5},
-            tooltip: {valueDecimals: 3},
-            credits: {enabled: false},
-            scrollbar: {enabled: false},
-            navigator: {height: 0, xAxis:{labels:{enabled:false}}},
-            xAxis: {type: 'datetime'},
-            series: [{
-                type: 'area', threshold: null, name: 'LTC Realized Profit',
-                data: data,
-                fillColor: {
-                    linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
-                    stops: [
-                        [0, Highcharts.getOptions().colors[0]],
-                        [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
-                    ]
-                }
-            }],
-            rangeSelector: {
-                buttons: [
-                    {type: 'hour', count: 1, text: ' '},
-                    {type: 'day', count: 1, text: ' '},
-                    {type: 'week', count: 1, text: ' '},
-                    {type: 'all', count: 1, text: ' '}
-                ],
-                //selected : 1,
-                inputEnabled: false
-            }
-        }).highcharts();
-    });
-
-    $.getJSON('/account_info_rest/margin/LTC', function (data) {
         ltc_margin_chart = $('#ltc_margin').highcharts('StockChart', {
             title: {text: 'LTC Margin'},
             chart: {animation: false, marginTop: 5},
@@ -200,7 +164,38 @@ $(function () {
             xAxis: {type: 'datetime'},
             series: [{
                 type: 'area', threshold: null, name: 'LTC Margin',
-                data: data,
+                data: data.map(function(a){return [a[0], a[2]]}),
+                fillColor: {
+                    linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
+                    stops: [
+                        [0, Highcharts.getOptions().colors[0]],
+                        [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+                    ]
+                }
+            }],
+            rangeSelector: {
+                buttons: [
+                    {type: 'hour', count: 1, text: ' '},
+                    {type: 'day', count: 1, text: ' '},
+                    {type: 'week', count: 1, text: ' '},
+                    {type: 'all', count: 1, text: ' '}
+                ],
+                //selected : 1,
+                inputEnabled: false
+            }
+        }).highcharts();
+
+        ltc_profit_chart = $('#ltc_profit').highcharts('StockChart', {
+            title: {text: 'LTC Realized Profit'},
+            chart: {animation: false, marginTop: 5},
+            tooltip: {valueDecimals: 3},
+            credits: {enabled: false},
+            scrollbar: {enabled: false},
+            navigator: {height: 0, xAxis:{labels:{enabled:false}}},
+            xAxis: {type: 'datetime'},
+            series: [{
+                type: 'area', threshold: null, name: 'LTC Realized Profit',
+                data: data.map(function(a){return [a[0], a[3]]}),
                 fillColor: {
                     linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
                     stops: [
@@ -221,7 +216,6 @@ $(function () {
             }
         }).highcharts();
     });
-
     //SPOT
 
     $.getJSON('/account_info_rest/spot/LTC_SPOT', function (data) {
@@ -323,9 +317,105 @@ $(function () {
         }).highcharts();
     });
 
-    var offset = -new Date().getTimezoneOffset()*60000 + 60000*60;
+    //USD TOTAL
+
+    $.getJSON('/account_info_rest/user_info_total', function (data) {
+        usd_total_chart = $('#usd_total').highcharts('StockChart', {
+            title: {text: 'USD Total'},
+            chart:{animation: true, marginTop: 5},
+            tooltip: {valueDecimals: 3},
+            credits: {enabled: false},
+            scrollbar: {enabled: false},
+            navigator: {height: 0, xAxis:{labels:{enabled:false}}},
+            xAxis: {type: 'datetime'},
+            series: [{type : 'area',  threshold : null, name: 'USD Total',
+                data: data.map(function(a){return [a[0], a[1]]}),
+                fillColor : {
+                    linearGradient : {x1: 0, y1: 0, x2: 0, y2: 1},
+                    stops : [
+                        [0, Highcharts.getOptions().colors[0]],
+                        [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+                    ]
+                }}],
+            rangeSelector : {
+                buttons : [
+                    {type : 'hour', count : 1, text : ' '},
+                    {type : 'day', count : 1, text : ' '},
+                    {type : 'week', count : 1, text : ' '},
+                    {type : 'all', count : 1, text : ' '}
+                ],
+                //selected : 1,
+                inputEnabled : false
+            }
+        }).highcharts();
+
+        btc_price_chart = $('#btc_price').highcharts('StockChart', {
+            title: {text: 'BTC Price'},
+            chart: {animation: false, marginTop: 5},
+            tooltip: {valueDecimals: 3},
+            credits: {enabled: false},
+            scrollbar: {enabled: false},
+            navigator: {height: 0, xAxis:{labels:{enabled:false}}},
+            xAxis: {type: 'datetime'},
+            series: [{
+                type: 'area', threshold: null, name: 'BTC Price',
+                data: data.map(function(a){return [a[0], a[3]]}),
+                fillColor: {
+                    linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
+                    stops: [
+                        [0, Highcharts.getOptions().colors[0]],
+                        [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+                    ]
+                }
+            }],
+            rangeSelector: {
+                buttons: [
+                    {type: 'hour', count: 1, text: ' '},
+                    {type: 'day', count: 1, text: ' '},
+                    {type: 'week', count: 1, text: ' '},
+                    {type: 'all', count: 1, text: ' '}
+                ],
+                //selected : 1,
+                inputEnabled: false
+            }
+        }).highcharts();
+
+        ltc_price_chart = $('#ltc_price').highcharts('StockChart', {
+            title: {text: 'LTC Price'},
+            chart: {animation: false, marginTop: 5},
+            tooltip: {valueDecimals: 3},
+            credits: {enabled: false},
+            scrollbar: {enabled: false},
+            navigator: {height: 0, xAxis:{labels:{enabled:false}}},
+            xAxis: {type: 'datetime'},
+            series: [{
+                type: 'area', threshold: null, name: 'LTC Price',
+                data: data.map(function(a){return [a[0], a[4]]}),
+                fillColor: {
+                    linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
+                    stops: [
+                        [0, Highcharts.getOptions().colors[0]],
+                        [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+                    ]
+                }
+            }],
+            rangeSelector: {
+                buttons: [
+                    {type: 'hour', count: 1, text: ' '},
+                    {type: 'day', count: 1, text: ' '},
+                    {type: 'week', count: 1, text: ' '},
+                    {type: 'all', count: 1, text: ' '}
+                ],
+                //selected : 1,
+                inputEnabled: false
+            }
+        }).highcharts();
+    });
 
     //ORDER
+
+    var offset = -new Date().getTimezoneOffset()*60000 + 60000*60;
+
     all_order_rate_chart = $('#all_order_rate').highcharts({
         title: {text: 'Order Time', style:{"fontSize": "16px"}},
         chart:{animation: true},
@@ -345,7 +435,7 @@ $(function () {
             },
             states:{hover:{enabled: false}},
             tooltip:{pointFormat: ''}
-            }]
+        }]
     }).highcharts();
 
     setInterval(function () {all_order_rate_chart.xAxis[0].setExtremes(new Date().getTime() - 3600000 + offset, new Date().getTime() + 60000 + offset);}, 60000);

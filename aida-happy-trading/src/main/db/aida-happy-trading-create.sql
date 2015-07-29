@@ -79,4 +79,20 @@ CREATE TABLE `user_info`
   FOREIGN KEY (account_id) REFERENCES account (id)
 );
 
+CREATE TABLE `user_info_total`
+(
+  id BIGINT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+  account_id BIGINT NOT NULL,
+  spot_total DECIMAL(19,8) NOT NULL,
+  futures_total DECIMAL(19,8) NOT NULL,
+  spot_volume DECIMAL(19,8) NOT NULL,
+  futures_volume DECIMAL(19,8) NOT NULL,
+  ltc_price DECIMAL(19,8) NOT NULL,
+  btc_price DECIMAL(19,8) NOT NULL,
+  created TIMESTAMP NOT NULL DEFAULT NOW(),
+  KEY `key_created` (created),
+  KEY `key_account_id` (account_id),
+  FOREIGN KEY (account_id) REFERENCES account (id)
+);
+
 

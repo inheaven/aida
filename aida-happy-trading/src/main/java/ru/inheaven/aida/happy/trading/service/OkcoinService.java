@@ -267,7 +267,7 @@ public class OkcoinService {
 
                     try {
                         trade.setTradeId(a.getString(0));
-                        trade.setExchangeType(ExchangeType.OKCOIN_FUTURES);
+                        trade.setExchangeType(ExchangeType.OKCOIN);
                         trade.setSymbol(getSymbol(j.channel));
                         trade.setSymbolType(getSymbolType(j.channel));
                         trade.setPrice(new BigDecimal(a.getString(1)));
@@ -296,7 +296,7 @@ public class OkcoinService {
 
                     try {
                         trade.setTradeId(a.getString(0));
-                        trade.setExchangeType(ExchangeType.OKCOIN_SPOT);
+                        trade.setExchangeType(ExchangeType.OKCOIN);
                         trade.setSymbol(getSymbol(j.channel));
                         trade.setPrice(new BigDecimal(a.getString(1)));
                         trade.setAmount(new BigDecimal(a.getString(2)));
@@ -321,7 +321,7 @@ public class OkcoinService {
                     Depth depth = new Depth();
 
                     try {
-                        depth.setExchangeType(ExchangeType.OKCOIN_FUTURES);
+                        depth.setExchangeType(ExchangeType.OKCOIN);
                         depth.setSymbol(getSymbol(j.channel));
                         depth.setSymbolType(getSymbolType(j.channel));
                         depth.setDate(new Date(Long.parseLong(((JsonObject) j.value).getString("timestamp"))));
@@ -351,7 +351,7 @@ public class OkcoinService {
                     Depth depth = new Depth();
 
                     try {
-                        depth.setExchangeType(ExchangeType.OKCOIN_SPOT);
+                        depth.setExchangeType(ExchangeType.OKCOIN);
                         depth.setSymbol(getSymbol(j.channel));
                         depth.setDate(new Date(Long.parseLong(((JsonObject) j.value).getString("timestamp"))));
                         depth.setCreated(new Date());
@@ -384,7 +384,7 @@ public class OkcoinService {
                     Order order = new Order();
 
                     try {
-                        order.setExchangeType(ExchangeType.OKCOIN_FUTURES);
+                        order.setExchangeType(ExchangeType.OKCOIN);
                         order.setAmount(BigDecimal.valueOf(j.getJsonNumber("amount").doubleValue()));
                         order.setCreated(new Date(j.getJsonNumber("create_date").longValue()));
                         order.setFilledAmount(j.getJsonNumber("deal_amount").bigDecimalValue());
@@ -446,7 +446,7 @@ public class OkcoinService {
                     Order order = new Order();
 
                     try {
-                        order.setExchangeType(ExchangeType.OKCOIN_SPOT);
+                        order.setExchangeType(ExchangeType.OKCOIN);
                         order.setAmount(BigDecimal.valueOf(j.getJsonNumber("amount").doubleValue()));
                         order.setCreated(new Date(j.getJsonNumber("create_date").longValue()));
                         order.setFilledAmount(j.getJsonNumber("deal_amount").bigDecimalValue());
@@ -505,7 +505,7 @@ public class OkcoinService {
                     Order order = new Order();
 
                     try {
-                        order.setExchangeType(ExchangeType.OKCOIN_FUTURES);
+                        order.setExchangeType(ExchangeType.OKCOIN);
                         order.setAmount(new BigDecimal(j.getString("amount")));
                         order.setOrderId(j.getJsonNumber("orderid").toString());
                         order.setPrice(new BigDecimal(j.getString("price")));
@@ -578,7 +578,7 @@ public class OkcoinService {
                     Order order = new Order();
 
                     try {
-                        order.setExchangeType(ExchangeType.OKCOIN_SPOT);
+                        order.setExchangeType(ExchangeType.OKCOIN);
                         order.setAmount(new BigDecimal(j.getString("tradeAmount")));
                         order.setOrderId(j.getJsonNumber("orderId").toString());
                         order.setPrice(new BigDecimal(j.getString("tradePrice")));

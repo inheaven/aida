@@ -193,6 +193,7 @@ public class BaseStrategy {
                 order.close(o);
                 orderMapper.asyncSave(order);
 
+                order.setAccountId(strategy.getAccount().getId());
                 orderService.onCloseOrder(order);
             }
 

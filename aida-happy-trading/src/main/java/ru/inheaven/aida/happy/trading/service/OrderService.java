@@ -8,12 +8,14 @@ import ru.inheaven.aida.happy.trading.exception.CreateOrderException;
 import rx.Observable;
 import rx.observables.ConnectableObservable;
 import rx.schedulers.Schedulers;
+import rx.subjects.PublishSubject;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Objects;
 
 import static java.math.RoundingMode.HALF_UP;
+import static ru.inheaven.aida.happy.trading.entity.ExchangeType.OKCOIN;
 
 /**
  * @author inheaven on 29.06.2015 23:49.
@@ -25,6 +27,9 @@ public class OrderService {
     private OkcoinService okcoinService;
     private XChangeService xChangeService;
     private BroadcastService broadcastService;
+
+    private PublishSubject<Order> localClosedOrderPublishSubject = PublishSubject.create();
+    private ConnectableObservable<Order> localClosedOrderObservable;
 
     @Inject
     public OrderService(OkcoinService okcoinService, XChangeService xChangeService, BroadcastService broadcastService) {
@@ -39,8 +44,13 @@ public class OrderService {
                 .observeOn(Schedulers.io())
                 .onBackpressureBuffer()
                 .publish();
-
         orderObservable.connect();
+
+        localClosedOrderObservable = localClosedOrderPublishSubject
+                .observeOn(Schedulers.io())
+                .onBackpressureBuffer()
+                .publish();
+        localClosedOrderObservable.connect();
 
         okcoinService.realFutureTrades("00dff9d7-7d99-45f9-bd41-23d08d4665ce", "41A8FBFE7CD7D079D7FD64B79D64BBE2");
         okcoinService.realSpotTrades("00dff9d7-7d99-45f9-bd41-23d08d4665ce", "41A8FBFE7CD7D079D7FD64B79D64BBE2");
@@ -55,21 +65,19 @@ public class OrderService {
 
     public void createOrder(Account account, Order order) throws CreateOrderException {
         switch (order.getExchangeType()){
-            case OKCOIN_FUTURES:
-            case OKCOIN_SPOT:
+            case OKCOIN:
                 xChangeService.placeLimitOrder(account, order);
                 break;
         }
     }
 
     public void orderInfo(Strategy strategy, Order order){
-        switch (order.getExchangeType()){
-            case OKCOIN_FUTURES:
+        if (order.getExchangeType().equals(OKCOIN)){
+            if (order.getSymbolType() != null){
                 okcoinService.orderFutureInfo(strategy.getAccount().getApiKey(), strategy.getAccount().getSecretKey(), order);
-                break;
-            case OKCOIN_SPOT:
+            }else {
                 okcoinService.orderSpotInfo(strategy.getAccount().getApiKey(), strategy.getAccount().getSecretKey(), order);
-                break;
+            }
         }
     }
 
@@ -93,6 +101,8 @@ public class OrderService {
     }
 
     public void onCloseOrder(Order order){
+        localClosedOrderPublishSubject.onNext(order);
+
         if (order.getAvgPrice() != null) {
             String message = "[" + order.getAvgPrice().setScale(3, HALF_UP)
                     + (OrderType.BUY_SET.contains(order.getType()) ? "↑" : "↓") + "] ";
@@ -100,5 +110,9 @@ public class OrderService {
             broadcastService.broadcast(getClass(), "close_order_"
                     + order.getSymbol() + "_" + Objects.toString(order.getSymbolType(), ""), message);
         }
+    }
+
+    public Observable<Order> getClosedOrderObservable(){
+        return localClosedOrderObservable;
     }
 }

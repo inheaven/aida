@@ -47,7 +47,7 @@ public class LevelStrategy extends BaseStrategy{
         this.strategy = strategy;
 
         if (strategy.getSymbolType() != null) {
-            userInfoService.createUserInfoObservable(strategy.getSymbol().substring(0, 3))
+            userInfoService.createUserInfoObservable(strategy.getAccount().getId(), strategy.getSymbol().substring(0, 3))
                     .filter(u -> u.getRiskRate() != null)
                     .subscribe(u -> {
                         if (u.getRiskRate().compareTo(BigDecimal.valueOf(5)) < 0) {

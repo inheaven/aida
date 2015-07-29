@@ -9,8 +9,10 @@ import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.Account;
 import ru.inheaven.aida.happy.trading.entity.ExchangeType;
 import ru.inheaven.aida.happy.trading.entity.UserInfo;
+import ru.inheaven.aida.happy.trading.entity.UserInfoTotal;
 import ru.inheaven.aida.happy.trading.mapper.AccountMapper;
 import ru.inheaven.aida.happy.trading.mapper.UserInfoMapper;
+import ru.inheaven.aida.happy.trading.mapper.UserInfoTotalMapper;
 import rx.Observable;
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
@@ -23,6 +25,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static java.math.BigDecimal.ZERO;
+import static java.math.RoundingMode.HALF_UP;
 
 /**
  * @author inheaven on 19.07.2015 17:15.
@@ -33,49 +36,78 @@ public class UserInfoService {
 
     private XChangeService xChangeService;
     private UserInfoMapper userInfoMapper;
+    private UserInfoTotalMapper userInfoTotalMapper;
     private BroadcastService broadcastService;
 
     private Subject<UserInfo, UserInfo> userInfoSubject = PublishSubject.create();
 
+    private BigDecimal ltcPrice = ZERO;
+    private BigDecimal btcPrice = ZERO;
+    private BigDecimal spotVolume = ZERO;
+    private BigDecimal futuresVolume = ZERO;
+
     @Inject
     public UserInfoService(AccountMapper accountMapper, XChangeService xChangeService, UserInfoMapper userInfoMapper,
+                           UserInfoTotalMapper userInfoTotalMapper, TradeService tradeService, OrderService orderService,
                            BroadcastService broadcastService) {
         this.xChangeService = xChangeService;
         this.userInfoMapper = userInfoMapper;
+        this.userInfoTotalMapper = userInfoTotalMapper;
         this.broadcastService = broadcastService;
 
-        accountMapper.getAccounts(ExchangeType.OKCOIN_FUTURES).forEach(this::startOkcoinFutureUserInfoScheduler);
-        accountMapper.getAccounts(ExchangeType.OKCOIN_SPOT).forEach(this::startOkcoinSpotUserInfoScheduler);
+        accountMapper.getAccounts(ExchangeType.OKCOIN).forEach(this::startOkcoinUserInfoScheduler);
+
+        tradeService.getTradeObservable()
+                .filter(t -> t.getSymbolType() == null)
+                .subscribe(t -> {
+                    if (t.getSymbol().equals("BTC/USD")) {
+                        btcPrice = t.getPrice();
+                    } else if (t.getSymbol().equals("LTC/USD")) {
+                        ltcPrice = t.getPrice();
+                    }
+                });
+
+        orderService.getClosedOrderObservable()
+                .subscribe(o -> {
+                    if (o.getSymbolType() != null){
+                        if (o.getSymbol().equals("BTC/USD")) {
+                            futuresVolume = futuresVolume.add(BigDecimal.valueOf(100).multiply(o.getAmount()));
+                        } else if (o.getSymbol().equals("LTC/USD")) {
+                            futuresVolume = futuresVolume.add(BigDecimal.valueOf(10).multiply(o.getAmount()));
+                        }
+                    }else{
+                        if (o.getSymbol().equals("BTC/USD")) {
+                            spotVolume = spotVolume.add(o.getAmount().multiply(btcPrice));
+                        } else if (o.getSymbol().equals("LTC/USD")) {
+                            spotVolume = spotVolume.add(o.getAmount().multiply(ltcPrice));
+                        }
+                    }
+                });
     }
 
-    public Observable<UserInfo> createUserInfoObservable(String currency){
-        return userInfoSubject.filter(u -> u.getCurrency().equals(currency));
+    public Observable<UserInfo> createUserInfoObservable(Long accountId, String currency){
+        return userInfoSubject.filter(u -> u.getAccountId().equals(accountId) && u.getCurrency().equals(currency));
     }
 
-    private void startOkcoinFutureUserInfoScheduler(Account account){
+    private void startOkcoinUserInfoScheduler(Account account){
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
             try {
                 OkCoinFuturesUserInfoCross info = ((OkCoinAccountServiceRaw) xChangeService.getExchange(account)
                         .getPollingAccountService()).getFutureUserInfo();
-
                 saveFunds(account.getId(), "BTC", info.getInfo().getBtcFunds());
                 saveFunds(account.getId(), "LTC", info.getInfo().getLtcFunds());
-            } catch (Exception e) {
-                log.error("error user info -> ", e);
-            }
 
-        }, 0, 1, TimeUnit.MINUTES);
-    }
-
-    private void startOkcoinSpotUserInfoScheduler(Account account){
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
-            try {
                 OkCoinFunds funds = ((OkCoinAccountServiceRaw) xChangeService.getExchange(account)
                         .getPollingAccountService()).getUserInfo().getInfo().getFunds();
                 saveFunds(account.getId(), "BTC_SPOT", funds.getFree().get("btc"), funds.getFreezed().get("btc"));
                 saveFunds(account.getId(), "LTC_SPOT", funds.getFree().get("ltc"), funds.getFreezed().get("ltc"));
                 saveFunds(account.getId(), "USD_SPOT", funds.getFree().get("usd"), funds.getFreezed().get("usd"));
                 saveFunds(account.getId(), "ASSET", funds.getAsset().get("total"), funds.getAsset().get("net"));
+
+                if (ltcPrice.compareTo(ZERO) > 0 && btcPrice.compareTo(ZERO) > 0){
+                    saveTotal(account.getId(), funds.getAsset().get("total"), info.getInfo().getLtcFunds().getAccountRights(),
+                            info.getInfo().getBtcFunds().getAccountRights());
+                }
             } catch (Exception e) {
                 log.error("error user info -> ", e);
             }
@@ -117,5 +149,22 @@ public class UserInfoService {
         broadcastService.broadcast(getClass(), "user_info", userInfo);
 
         userInfoMapper.save(userInfo);
+    }
+
+    private void saveTotal(Long accountId, BigDecimal spotTotal, BigDecimal ltcAmount, BigDecimal btcAmount){
+        UserInfoTotal userInfoTotal = new UserInfoTotal();
+
+        userInfoTotal.setAccountId(accountId);
+        userInfoTotal.setSpotTotal(spotTotal);
+        userInfoTotal.setFuturesTotal(ltcAmount.multiply(ltcPrice).add(btcAmount.multiply(btcPrice)).setScale(8, HALF_UP));
+        userInfoTotal.setFuturesVolume(futuresVolume);
+        userInfoTotal.setSpotVolume(spotVolume);
+        userInfoTotal.setLtcPrice(ltcPrice);
+        userInfoTotal.setBtcPrice(btcPrice);
+        userInfoTotal.setCreated(new Date());
+
+        broadcastService.broadcast(UserInfoTotal.class, "user_info_total", userInfoTotal);
+
+        userInfoTotalMapper.save(userInfoTotal);
     }
 }
