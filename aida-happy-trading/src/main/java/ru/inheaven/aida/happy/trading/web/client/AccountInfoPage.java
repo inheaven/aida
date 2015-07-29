@@ -89,6 +89,13 @@ public class AccountInfoPage extends BasePage{
                     }else if ("LTC".equals(info.getCurrency())){
                         ltcEquity = info.getAccountRights();
                     }
+
+                    if (info.getRiskRate().compareTo(BigDecimal.valueOf(9)) < 0){
+                        handler.appendJavaScript("" +
+                                "var msg = new SpeechSynthesisUtterance('уровень маржи предельный');\n" +
+                                "msg.lang='ru-RU';\n" +
+                                "window.speechSynthesis.speak(msg);");
+                    }
                 }else if (info.getAccountId().equals(spotAccountId)){
                     if (SPOT.contains(info.getCurrency())) {
                         handler.appendJavaScript(info.getCurrency().toLowerCase() + "_chart.series[0].addPoint(" +
