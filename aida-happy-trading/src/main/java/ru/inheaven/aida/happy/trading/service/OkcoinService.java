@@ -34,7 +34,7 @@ import static java.time.ZoneOffset.ofHours;
 public class OkcoinService {
     private Logger log = LoggerFactory.getLogger(getClass());
 
-    private final static String OKCOIN_WSS = "wss://real.okcoin.com:10440/websocket/okcoinapi";
+    private final static String OKCOIN_WSS = "wss://api.okcoin.com:9880/websocket/okcoinapi";
 
     private JsonObservableEndpoint marketEndpoint;
     private JsonObservableEndpoint tradingEndpoint;
@@ -96,7 +96,7 @@ public class OkcoinService {
 
                 @Override
                 public boolean onConnectFailure(Exception exception) {
-                    log.warn("connection failure -> {}", reconnectCount++);
+                    log.error("connection error -> {}", reconnectCount++, exception);
 
                     return !destroy;
                 }
@@ -104,7 +104,6 @@ public class OkcoinService {
 
             client.getProperties().put(ClientProperties.RECONNECT_HANDLER, reconnectHandler);
             client2.getProperties().put(ClientProperties.RECONNECT_HANDLER, reconnectHandler);
-
 
             marketEndpoint = new JsonObservableEndpoint(){
                 @Override

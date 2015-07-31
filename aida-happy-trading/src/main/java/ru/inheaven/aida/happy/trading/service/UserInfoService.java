@@ -163,6 +163,9 @@ public class UserInfoService {
         userInfoTotal.setBtcPrice(btcPrice);
         userInfoTotal.setCreated(new Date());
 
+        futuresVolume = ZERO;
+        spotVolume = ZERO;
+
         broadcastService.broadcast(UserInfoTotal.class, "user_info_total", userInfoTotal);
 
         userInfoTotalMapper.save(userInfoTotal);

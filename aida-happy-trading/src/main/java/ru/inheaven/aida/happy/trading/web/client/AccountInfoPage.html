@@ -8,7 +8,7 @@
         }
 
         .chart{
-            height: 290px
+            height: 255px
         }
 
         .column{
@@ -51,10 +51,17 @@
         </tr>
         <tr>
             <td colspan="4">
-                <div id="all_order_rate" style="height: 100px"></div>
+                <div id="all_order_rate" style="height: 210px"></div>
             </td>
         </tr>
     </table>
+
+    <div style="position: absolute; top: 5px; right: 5px">
+        <button type="button" class="btn btn-default btn-xs" onclick="hourCharts()">H</button>
+        <button type="button" class="btn btn-default btn-xs" onclick="dayCharts()">D</button>
+        <button type="button" class="btn btn-default btn-xs" onclick="weekCharts()">W</button>
+        <button type="button" class="btn btn-default btn-xs" onclick="allCharts()">A</button>
+    </div>
 
     <div id="reconnect" class="reconnect"></div>
 </wicket:extend>

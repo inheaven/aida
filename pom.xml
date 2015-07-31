@@ -454,7 +454,7 @@
             <dependency>
                 <groupId>io.reactivex</groupId>
                 <artifactId>rxjava</artifactId>
-                <version>1.0.9</version>
+                <version>1.0.13</version>
             </dependency>
             <dependency>
                 <groupId>io.reactivex</groupId>
@@ -580,12 +580,12 @@
             <dependency>
                 <groupId>org.glassfish.tyrus</groupId>
                 <artifactId>tyrus-client</artifactId>
-                <version>1.10</version>
+                <version>1.11</version>
             </dependency>
             <dependency>
                 <groupId>org.glassfish.tyrus</groupId>
                 <artifactId>tyrus-container-jdk-client</artifactId>
-                <version>1.10</version>
+                <version>1.11</version>
             </dependency>
 
             <dependency>

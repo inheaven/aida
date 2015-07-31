@@ -23,6 +23,6 @@
     </insert>
 
     <select id="selectUserInfoTotals" parameterType="map" resultMap="userInfoTotal">
-        select * from user_info_total where account_id = #{accountId} and created > #{startDate}
+        select * from user_info_total where account_id = #{accountId} and created > #{startDate} order by created asc;
     </select>
 </mapper>
