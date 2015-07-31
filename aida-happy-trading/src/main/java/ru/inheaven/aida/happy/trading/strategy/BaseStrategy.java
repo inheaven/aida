@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.exception.CreateOrderException;
+import ru.inheaven.aida.happy.trading.exception.OrderInfoException;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.DepthService;
 import ru.inheaven.aida.happy.trading.service.OrderService;
@@ -14,10 +15,12 @@ import rx.Subscription;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.*;
 
 import static java.math.RoundingMode.HALF_UP;
-import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CREATED;
+import static java.util.concurrent.TimeUnit.HOURS;
+import static ru.inheaven.aida.happy.trading.entity.OrderStatus.*;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.BUY_SET;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.SELL_SET;
 
@@ -37,7 +40,6 @@ public class BaseStrategy {
     private Subscription closeOrderSubscription;
     private Subscription tradeSubscription;
     private Subscription checkOrderSubscription;
-    private Subscription checkAllOrderSubscription;
     private Subscription depthSubscription;
     private Subscription realTradeSubscription;
 
@@ -53,8 +55,7 @@ public class BaseStrategy {
         this.orderService = orderService;
         this.orderMapper = orderMapper;
 
-        orderMapper.getOpenOrders(strategy.getId())
-                .forEach(o -> orderMap.put(o.getOrderId(), o));
+        orderMapper.getOpenOrders(strategy.getId()).forEach(o -> orderMap.put(o.getOrderId(), o));
 
         orderObservable = orderService.createOrderObserver(strategy);
 
@@ -76,7 +77,7 @@ public class BaseStrategy {
         realTradeSubscription = orderObservable.subscribe(o -> {
             try {
                 onRealTrade(o);
-            }catch (Exception e){
+            } catch (Exception e) {
                 log.error("error on real trade -> ", e);
             }
         });
@@ -97,14 +98,6 @@ public class BaseStrategy {
             }
         });
 
-        checkAllOrderSubscription = tradeObservable.throttleLast(1, TimeUnit.HOURS).subscribe(t -> {
-            try {
-                orderMap.forEach((id, o) -> orderService.orderInfo(strategy, o));
-            } catch (Exception e) {
-                log.error("error check all order -> ", e);
-            }
-        });
-
         depthSubscription = depthObservable.subscribe(d -> {
             try {
                 onDepth(d);
@@ -113,7 +106,20 @@ public class BaseStrategy {
             }
         });
 
-        orderMap.forEach((id, o) -> orderService.orderInfo(strategy, o));
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(()-> orderMap.forEach((id, o) -> {
+            try {
+                orderService.checkOrder(strategy.getAccount(), o);
+
+                if (o.getStatus().equals(CANCELED) || o.getStatus().equals(CLOSED)){
+                    closeOrder(o);
+                    log.info("schedule close order -> {} {} {} {}", o.getOrderId(), o.getSymbol(),
+                            Objects.toString(o.getSymbolType(), ""), o.getStatus());
+                }
+            } catch (OrderInfoException e) {
+                log.error("error check order -> ", e);
+            }
+
+        }), 0, 1, HOURS);
 
         flying = true;
     }
@@ -123,7 +129,6 @@ public class BaseStrategy {
         tradeSubscription.unsubscribe();
         checkOrderSubscription.unsubscribe();
         depthSubscription.unsubscribe();
-        checkAllOrderSubscription.unsubscribe();
         realTradeSubscription.unsubscribe();
 
         flying = false;
@@ -150,7 +155,10 @@ public class BaseStrategy {
         orderMap.values().parallelStream()
                 .filter(o -> (BUY_SET.contains(o.getType()) && o.getPrice().compareTo(trade.getPrice()) > 0) ||
                         (SELL_SET.contains(o.getType()) && o.getPrice().compareTo(trade.getPrice()) < 0))
-                .forEach(this::closeOrder);
+                .forEach(o -> {
+                    o.setStatus(CLOSED);
+                    closeOrder(o);
+                });
     }
 
     protected void createOrder(Order order) throws CreateOrderException {

@@ -5,6 +5,7 @@ import ru.inheaven.aida.happy.trading.entity.Order;
 import ru.inheaven.aida.happy.trading.entity.OrderType;
 import ru.inheaven.aida.happy.trading.entity.Strategy;
 import ru.inheaven.aida.happy.trading.exception.CreateOrderException;
+import ru.inheaven.aida.happy.trading.exception.OrderInfoException;
 import rx.Observable;
 import rx.observables.ConnectableObservable;
 import rx.schedulers.Schedulers;
@@ -78,6 +79,14 @@ public class OrderService {
             }else {
                 okcoinService.orderSpotInfo(strategy.getAccount().getApiKey(), strategy.getAccount().getSecretKey(), order);
             }
+        }
+    }
+
+    public void checkOrder(Account account, Order order) throws OrderInfoException {
+        switch (order.getExchangeType()){
+            case OKCOIN:
+                xChangeService.checkOrder(account, order);
+                break;
         }
     }
 
