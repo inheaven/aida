@@ -34,7 +34,7 @@ import static java.time.ZoneOffset.ofHours;
 public class OkcoinService {
     private Logger log = LoggerFactory.getLogger(getClass());
 
-    private final static String OKCOIN_WSS = "wss://api.okcoin.com:9880/websocket/okcoinapi";
+    private final static String OKCOIN_WSS = "wss://real.okcoin.com:10440/websocket/okcoinapi";
 
     private JsonObservableEndpoint marketEndpoint;
     private JsonObservableEndpoint tradingEndpoint;
@@ -71,11 +71,11 @@ public class OkcoinService {
             "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_next_week'}," +
             "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_quarter'}," +
 
-            "{'event':'addChannel','channel':'ok_ltcusd_trades_v1', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}," +
-            "{'event':'addChannel','channel':'ok_ltcusd_depth', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}," +
+            "{'event':'addChannel','channel':'ok_ltcusd_trades_v1'}," +
+            "{'event':'addChannel','channel':'ok_ltcusd_depth'}," +
 
-            "{'event':'addChannel','channel':'ok_btcusd_trades_v1', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}," +
-            "{'event':'addChannel','channel':'ok_btcusd_depth', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}" +
+            "{'event':'addChannel','channel':'ok_btcusd_trades_v1'}," +
+            "{'event':'addChannel','channel':'ok_btcusd_depth'}" +
             "]";
 
 
@@ -749,7 +749,7 @@ public class OkcoinService {
             return "LTC/USD";
         }
 
-        return null;
+        throw new IllegalArgumentException("error get symbol -> " + channel);
     }
 
     public SymbolType getSymbolType(String channel){
@@ -761,7 +761,7 @@ public class OkcoinService {
             return  SymbolType.QUARTER;
         }
 
-        return null;
+        throw new IllegalArgumentException("error get symbol type -> " + channel);
     }
 
     public String toSymbol(String symbol){
@@ -771,7 +771,7 @@ public class OkcoinService {
             return "ltc_usd";
         }
 
-        return null;
+        throw new IllegalArgumentException("error to symbol -> " + symbol);
     }
 
     public String toContractName(SymbolType symbolType){
@@ -781,7 +781,7 @@ public class OkcoinService {
             case QUARTER: return "quarter";
         }
 
-        return null;
+        throw new IllegalArgumentException("error to contract name -> " + symbolType);
     }
 
     private static final char HEX_DIGITS[] = {

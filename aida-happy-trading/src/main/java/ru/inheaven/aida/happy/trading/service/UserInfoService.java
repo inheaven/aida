@@ -7,7 +7,6 @@ import com.xeiam.xchange.okcoin.service.polling.OkCoinAccountServiceRaw;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.Account;
-import ru.inheaven.aida.happy.trading.entity.ExchangeType;
 import ru.inheaven.aida.happy.trading.entity.UserInfo;
 import ru.inheaven.aida.happy.trading.entity.UserInfoTotal;
 import ru.inheaven.aida.happy.trading.mapper.AccountMapper;
@@ -26,6 +25,8 @@ import java.util.concurrent.TimeUnit;
 
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
+import static ru.inheaven.aida.happy.trading.entity.ExchangeType.OKCOIN;
+import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CLOSED;
 
 /**
  * @author inheaven on 19.07.2015 17:15.
@@ -55,7 +56,7 @@ public class UserInfoService {
         this.userInfoTotalMapper = userInfoTotalMapper;
         this.broadcastService = broadcastService;
 
-        accountMapper.getAccounts(ExchangeType.OKCOIN).forEach(this::startOkcoinUserInfoScheduler);
+        accountMapper.getAccounts(OKCOIN).forEach(this::startOkcoinUserInfoScheduler);
 
         tradeService.getTradeObservable()
                 .filter(t -> t.getSymbolType() == null)
@@ -68,14 +69,15 @@ public class UserInfoService {
                 });
 
         orderService.getClosedOrderObservable()
+                .filter(o -> o.getStatus().equals(CLOSED))
                 .subscribe(o -> {
-                    if (o.getSymbolType() != null){
+                    if (o.getSymbolType() != null) {
                         if (o.getSymbol().equals("BTC/USD")) {
                             futuresVolume = futuresVolume.add(BigDecimal.valueOf(100).multiply(o.getAmount()));
                         } else if (o.getSymbol().equals("LTC/USD")) {
                             futuresVolume = futuresVolume.add(BigDecimal.valueOf(10).multiply(o.getAmount()));
                         }
-                    }else{
+                    } else {
                         if (o.getSymbol().equals("BTC/USD")) {
                             spotVolume = spotVolume.add(o.getAmount().multiply(btcPrice));
                         } else if (o.getSymbol().equals("LTC/USD")) {

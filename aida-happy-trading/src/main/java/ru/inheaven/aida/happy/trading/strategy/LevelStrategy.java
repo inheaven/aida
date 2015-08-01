@@ -67,26 +67,6 @@ public class LevelStrategy extends BaseStrategy{
         }
     }
 
-    @Override
-    protected void onTrade(Trade trade) {
-        action(trade.getPrice());
-    }
-
-    @Override
-    protected void onDepth(Depth depth) {
-        BigDecimal spread = strategy.getLevelSpread();
-
-        BigDecimal ask = depth.getAskMap().keySet().parallelStream().min(Comparator.<BigDecimal>naturalOrder()).get();
-        BigDecimal bid = depth.getBidMap().keySet().parallelStream().max(Comparator.<BigDecimal>naturalOrder()).get();
-
-        if (ask.subtract(bid).compareTo(spread.multiply(BigDecimal.valueOf(2.1))) > 0 && ask.compareTo(bid) > 0){
-            //log.info("onDepth -> {} {} {}", price, strategy.getSymbol(), Objects.toString(strategy.getSymbolType(), ""));
-
-            action(ask.subtract(spread).subtract(getStep()));
-            action(bid.add(spread.multiply(BigDecimal.valueOf(2))).add(getStep()));
-        }
-    }
-
     private Semaphore lock = new Semaphore(1);
 
     private void action(BigDecimal price) {
@@ -175,9 +155,31 @@ public class LevelStrategy extends BaseStrategy{
     }
 
     @Override
+    protected void onTrade(Trade trade) {
+        action(trade.getPrice());
+    }
+
+    @Override
+    protected void onDepth(Depth depth) {
+        BigDecimal spread = strategy.getLevelSpread();
+
+        BigDecimal ask = depth.getAskMap().keySet().parallelStream().min(Comparator.<BigDecimal>naturalOrder()).get();
+        BigDecimal bid = depth.getBidMap().keySet().parallelStream().max(Comparator.<BigDecimal>naturalOrder()).get();
+
+        if (ask.subtract(bid).compareTo(spread.multiply(BigDecimal.valueOf(2.1))) > 0 && ask.compareTo(bid) > 0){
+            action(ask.subtract(spread).subtract(getStep()));
+            action(bid.add(spread.multiply(BigDecimal.valueOf(2))).add(getStep()));
+        }
+    }
+
+    @Override
     protected void onCloseOrder(Order order) {
         if (errorCount > 0 && SELL_SET.contains(order.getType())){
             errorCount--;
+        }
+
+        if (order.getStatus().equals(OrderStatus.CLOSED)){
+            action(order.getPrice());
         }
     }
 
