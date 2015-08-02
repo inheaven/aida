@@ -59,17 +59,13 @@ public class LevelStrategy extends BaseStrategy{
                         }else {
                             risk = ONE;
                         }
-
-                        if (risk.compareTo(ONE) > 0){
-                            log.warn("RISK RATE {} {}", u.getCurrency(), u.getRiskRate());
-                        }
                     });
         }
     }
 
     private Semaphore lock = new Semaphore(1);
 
-    private void action(BigDecimal price) {
+    private void action(String key, BigDecimal price) {
         if (errorCount > 10){
             if (System.currentTimeMillis() - errorTime < 60000){
                 return;
@@ -89,9 +85,9 @@ public class LevelStrategy extends BaseStrategy{
             if (!getOrderMap().values().parallelStream()
                     .filter(order -> LONG.contains(order.getType()))
                     .filter(o -> (SELL_SET.contains(o.getType()) &&
-                                    o.getPrice().subtract(price).abs().compareTo(spread.subtract(getStep())) < 0) ||
+                                    o.getPrice().subtract(price).abs().compareTo(spreadX2) < 0) ||
                                     (BUY_SET.contains(o.getType()) &&
-                                            price.subtract(o.getPrice()).abs().compareTo(spreadX2.add(getStep())) < 0))
+                                            price.subtract(o.getPrice()).abs().compareTo(spread) < 0))
                     .findAny()
                     .isPresent()){
                 BigDecimal spreadHFT = spread;
@@ -117,6 +113,10 @@ public class LevelStrategy extends BaseStrategy{
                     }
                 }
 
+                if (risk.compareTo(ONE) > 0){
+                    log.warn("RISK RATE {} {} {}", risk, strategy.getSymbol(), Objects.toString(strategy.getSymbolType(), ""));
+                }
+
                 //BUY
 
                 if (strategy.getSymbolType() == null){
@@ -126,7 +126,7 @@ public class LevelStrategy extends BaseStrategy{
                 Future<Order> open = createOrderAsync(
                         new Order(strategy,
                                 strategy.getSymbolType() != null ? OPEN_LONG : BID,
-                                price.subtract(spreadHFT),
+                                price.add(getStep()),
                                 amountHFT));
 
                 //SELL
@@ -138,8 +138,10 @@ public class LevelStrategy extends BaseStrategy{
                 Future<Order> close = createOrderAsync(
                         new Order(strategy,
                                 strategy.getSymbolType() != null ? CLOSE_LONG : ASK,
-                                price.subtract(getStep()),
+                                price.add(spreadHFT),
                                 amountHFT));
+
+                log.info(key + " {}", price);
 
                 open.get();
                 close.get();
@@ -154,9 +156,18 @@ public class LevelStrategy extends BaseStrategy{
         }
     }
 
+    private BigDecimal lastTrade = ZERO;
+
     @Override
     protected void onTrade(Trade trade) {
-        action(trade.getPrice());
+        if (lastTrade.compareTo(ZERO) == 0 || lastTrade.subtract(trade.getPrice()).abs()
+                .divide(lastTrade, 8, HALF_UP).compareTo(BigDecimal.valueOf(0.1)) < 0){
+            action("on trade", trade.getPrice());
+        }else{
+            log.warn("trade price diff 10% than last trade {} {} {}", trade.getPrice(), trade.getSymbol(), Objects.toString(trade.getSymbolType(), ""));
+        }
+
+        lastTrade = trade.getPrice();
     }
 
     @Override
@@ -167,8 +178,8 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal bid = depth.getBidMap().keySet().parallelStream().max(Comparator.<BigDecimal>naturalOrder()).get();
 
         if (ask.subtract(bid).compareTo(spread.multiply(BigDecimal.valueOf(2.1))) > 0 && ask.compareTo(bid) > 0){
-            action(ask.subtract(spread).subtract(getStep()));
-            action(bid.add(spread.multiply(BigDecimal.valueOf(2))).add(getStep()));
+            action("on depth ask", ask.subtract(spread).subtract(getStep()));
+            action("on depth bid", bid.add(spread.multiply(BigDecimal.valueOf(2))).add(getStep()));
         }
     }
 
@@ -179,14 +190,14 @@ public class LevelStrategy extends BaseStrategy{
         }
 
         if (order.getStatus().equals(OrderStatus.CLOSED)){
-            action(order.getPrice());
+            action("on close order", order.getPrice());
         }
     }
 
     @Override
     protected void onRealTrade(Order order) {
-        if (order.getStatus().equals(OrderStatus.CLOSED)){
-            action(order.getAvgPrice());
+        if (order.getStatus().equals(OrderStatus.CLOSED) && order.getAvgPrice().compareTo(ZERO) > 0){
+            action("on real trade", order.getAvgPrice());
         }
     }
 

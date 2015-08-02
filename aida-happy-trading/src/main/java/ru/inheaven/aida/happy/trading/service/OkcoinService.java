@@ -19,13 +19,9 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import static java.time.LocalDate.now;
-import static java.time.ZoneOffset.ofHours;
 
 /**
  * @author inheaven on 20.04.2015 22:34.
@@ -59,25 +55,24 @@ public class OkcoinService {
         }
     }
 
-    private String markerChannels = "[" +
-            "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_this_week'}," +
-            "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_next_week'}," +
-            "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_quarter'}" +
-            "{'event':'addChannel','channel':'ok_ltcusd_future_depth_this_week'}," +
-            "{'event':'addChannel','channel':'ok_ltcusd_future_depth_next_week'}," +
-            "{'event':'addChannel','channel':'ok_ltcusd_future_depth_quarter'}," +
+    private List<String> markerChannels = Arrays.asList(
+            "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_this_week', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}",
+            "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_next_week', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}",
+            "{'event':'addChannel','channel':'ok_ltcusd_future_trade_v1_quarter', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}",
+            "{'event':'addChannel','channel':'ok_ltcusd_future_depth_this_week', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}",
+            "{'event':'addChannel','channel':'ok_ltcusd_future_depth_next_week', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}",
+            "{'event':'addChannel','channel':'ok_ltcusd_future_depth_quarter', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}",
 
-            "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_this_week'}," +
-            "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_next_week'}," +
-            "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_quarter'}," +
+            "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_this_week', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}",
+            "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_next_week', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}",
+            "{'event':'addChannel','channel':'ok_btcusd_future_trade_v1_quarter', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}",
 
-            "{'event':'addChannel','channel':'ok_ltcusd_trades_v1'}," +
-            "{'event':'addChannel','channel':'ok_ltcusd_depth'}," +
+            "{'event':'addChannel','channel':'ok_ltcusd_trades_v1', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}",
+            "{'event':'addChannel','channel':'ok_ltcusd_depth', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}",
 
-            "{'event':'addChannel','channel':'ok_btcusd_trades_v1'}," +
-            "{'event':'addChannel','channel':'ok_btcusd_depth'}" +
-            "]";
-
+            "{'event':'addChannel','channel':'ok_btcusd_trades_v1', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}",
+            "{'event':'addChannel','channel':'ok_btcusd_depth', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}"
+    );
 
     public OkcoinService(){
         try {
@@ -110,11 +105,13 @@ public class OkcoinService {
                 public void onOpen(Session session, EndpointConfig config) {
                     super.onOpen(session, config);
 
-                    try {
-                        session.getBasicRemote().sendText(markerChannels);
-                    } catch (IOException e) {
-                        log.error("error add channel ->", e);
-                    }
+                    markerChannels.forEach(c -> {
+                        try {
+                            session.getBasicRemote().sendText(c);
+                        } catch (IOException e) {
+                            log.error("error add channel ->", e);
+                        }
+                    });
                 }
             };
             client.connectToServer(marketEndpoint, URI.create(OKCOIN_WSS));
@@ -187,8 +184,8 @@ public class OkcoinService {
 
         //reconnect
         tradingEndpoint.getJsonObservable()
-                .throttleLast(5, TimeUnit.SECONDS)
                 .filter(j -> !j.getString("errorcode", "").isEmpty())
+                .throttleLast(5, TimeUnit.SECONDS)
                 .subscribe(j -> {
                     log.error(j.toString());
 
@@ -234,12 +231,13 @@ public class OkcoinService {
     }
 
     private void reconnect(){
-        try {
-            marketEndpoint.getSession().getBasicRemote().sendText(markerChannels);
-        } catch (IOException e) {
-            log.error("error add channel ->", e);
-        }
-
+        markerChannels.forEach(c -> {
+            try {
+                marketEndpoint.getSession().getBasicRemote().sendText(c);
+            } catch (IOException e) {
+                log.error("error add channel ->", e);
+            }
+        });
 
         tradesChannels.forEach(s -> {
             try {
@@ -271,8 +269,9 @@ public class OkcoinService {
                         trade.setSymbolType(getSymbolType(j.channel));
                         trade.setPrice(new BigDecimal(a.getString(1)));
                         trade.setAmount(new BigDecimal(a.getString(2)));
-                        trade.setDate(Date.from(LocalTime.parse(a.getString(3)).atDate(now()).toInstant(ofHours(8))));
+                        trade.setTime(a.getString(3));
                         trade.setOrderType(OrderType.valueOf(a.getString(4).toUpperCase()));
+                        trade.setCreated(new Date());
                     } catch (Exception e) {
                         log.error("error future trade observable -> ", e);
                     }
@@ -299,8 +298,9 @@ public class OkcoinService {
                         trade.setSymbol(getSymbol(j.channel));
                         trade.setPrice(new BigDecimal(a.getString(1)));
                         trade.setAmount(new BigDecimal(a.getString(2)));
-                        trade.setDate(Date.from(LocalTime.parse(a.getString(3)).atDate(now()).toInstant(ofHours(8))));
+                        trade.setTime(a.getString(3));
                         trade.setOrderType(OrderType.valueOf(a.getString(4).toUpperCase()));
+                        trade.setCreated(new Date());
                     } catch (Exception e) {
                         log.error("error spot trade observable -> ", e);
                     }

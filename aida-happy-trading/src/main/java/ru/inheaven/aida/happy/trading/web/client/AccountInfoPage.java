@@ -123,6 +123,11 @@ public class AccountInfoPage extends BasePage{
                         handler.appendJavaScript("all_order_rate_chart.series[0].addPoint([" +
                                 total.getCreated().getTime() + "," +  volume + "]);");
                     }
+
+                    BigDecimal deposit = total.getBtcPrice().multiply(BigDecimal.valueOf(30));
+                    handler.appendJavaScript("usd_total_chart.yAxis[0].removePlotLine('deposit')");
+                    handler.appendJavaScript("usd_total_chart.yAxis[0].addPlotLine({id: 'deposit', value: "+ deposit +
+                            ", color: '#2b908f', dashStyle: 'dash', width:1 })");
                 }
             }
         );

@@ -2,6 +2,7 @@ package ru.inheaven.aida.happy.trading.service;
 
 import ru.inheaven.aida.happy.trading.entity.Strategy;
 import ru.inheaven.aida.happy.trading.entity.Trade;
+import ru.inheaven.aida.happy.trading.mapper.TradeMapper;
 import rx.Observable;
 import rx.observables.ConnectableObservable;
 import rx.schedulers.Schedulers;
@@ -20,7 +21,7 @@ public class TradeService {
     private ConnectableObservable<Trade> tradeObservable;
 
     @Inject
-    public TradeService(OkcoinService okcoinService, BroadcastService broadcastService) {
+    public TradeService(OkcoinService okcoinService, BroadcastService broadcastService, TradeMapper tradeMapper) {
         tradeObservable = okcoinService.createFutureTradeObservable()
                 .mergeWith(okcoinService.createSpotTradeObservable())
                 .observeOn(Schedulers.io())
@@ -29,6 +30,8 @@ public class TradeService {
         tradeObservable.connect();
 
         tradeObservable.subscribe(t ->{
+            tradeMapper.asyncSave(t);
+
             String key = "";
 
             switch (t.getSymbol()){

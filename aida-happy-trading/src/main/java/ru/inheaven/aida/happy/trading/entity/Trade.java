@@ -16,7 +16,7 @@ public class Trade extends AbstractEntity {
     private OrderType orderType;
     private BigDecimal price;
     private BigDecimal amount;
-    private Date date;
+    private String time;
     private Date created;
 
     public Trade() {
@@ -54,12 +54,12 @@ public class Trade extends AbstractEntity {
         this.amount = amount;
     }
 
-    public Date getDate() {
-        return date;
+    public String getTime() {
+        return time;
     }
 
-    public void setDate(Date date) {
-        this.date = date;
+    public void setTime(String time) {
+        this.time = time;
     }
 
     public Date getCreated() {

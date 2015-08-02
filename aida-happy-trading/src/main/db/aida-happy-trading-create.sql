@@ -95,4 +95,25 @@ CREATE TABLE `user_info_total`
   FOREIGN KEY (account_id) REFERENCES account (id)
 );
 
+CREATE TABLE `trade`
+(
+  id BIGINT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+  trade_id VARCHAR(32) NOT NULL,
+  exchange_type VARCHAR(8) NOT NULL,
+  symbol VARCHAR(8) NOT NULL,
+  symbol_type VARCHAR(10),
+  order_type VARCHAR(10),
+  price DECIMAL(19,8) NOT NULL,
+  amount DECIMAL(19,8) NOT NULL,
+  time VARCHAR(8),
+  created TIMESTAMP NOT NULL DEFAULT NOW(),
+  UNIQUE KEY `key_trade_id` (trade_id),
+  KEY `key_exchange_type` (exchange_type),
+  KEY `key_symbol` (symbol),
+  KEY `key_symbol_type` (symbol_type),
+  KEY `key_order_type` (order_type),
+  KEY `key_price` (price),
+  KEY `key_created` (created)
+);
+
 

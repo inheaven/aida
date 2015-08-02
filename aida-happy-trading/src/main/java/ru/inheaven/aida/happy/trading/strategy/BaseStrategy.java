@@ -203,9 +203,9 @@ public class BaseStrategy {
 
                 order.setAccountId(strategy.getAccount().getId());
                 orderService.onCloseOrder(order);
-            }
 
-            onCloseOrder(o);
+                onCloseOrder(order);
+            }
         } catch (Exception e) {
             log.error("error on close order -> ", e);
         }
