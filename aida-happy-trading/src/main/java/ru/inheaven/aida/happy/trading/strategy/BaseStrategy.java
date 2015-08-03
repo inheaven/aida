@@ -49,6 +49,9 @@ public class BaseStrategy {
 
     private boolean flying = false;
 
+    private int errorCount = 0;
+    private long errorTime = 0;
+
     public BaseStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                         DepthService depthService) {
         this.strategy = strategy;
@@ -106,11 +109,11 @@ public class BaseStrategy {
             }
         });
 
-        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(()-> orderMap.forEach((id, o) -> {
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> orderMap.forEach((id, o) -> {
             try {
                 orderService.checkOrder(strategy.getAccount(), o);
 
-                if (o.getStatus().equals(CANCELED) || o.getStatus().equals(CLOSED)){
+                if (o.getStatus().equals(CANCELED) || o.getStatus().equals(CLOSED)) {
                     closeOrder(o);
                     log.info("schedule close order -> {} {} {} {}", o.getOrderId(), o.getSymbol(),
                             Objects.toString(o.getSymbolType(), ""), o.getStatus());
@@ -184,8 +187,26 @@ public class BaseStrategy {
     private ExecutorService executorService = Executors.newFixedThreadPool(2);
 
     protected Future<Order> createOrderAsync(Order order){
+        order.setCreated(new Date());
+        order.setStatus(CREATED);
+        order.setPrice(order.getPrice().setScale(8, HALF_UP));
+
+        String createdOrderId = "CREATED->" + System.nanoTime();
+        order.setOrderId(createdOrderId);
+        orderMap.put(createdOrderId, order);
+
         return executorService.submit(() -> {
-            createOrder(order);
+            try {
+                orderService.createOrder(strategy.getAccount(), order);
+                orderMap.put(order.getOrderId(), order);
+                orderMapper.save(order);
+
+                orderService.onCreateOrder(order);
+            } catch (Exception e){
+                log.error("error create order -> ", e);
+            } finally{
+                orderMap.remove(createdOrderId);
+            }
 
             return order;
         });
@@ -213,5 +234,29 @@ public class BaseStrategy {
 
     public Map<String, Order> getOrderMap() {
         return orderMap;
+    }
+
+    public void incrementErrorCount(){
+        errorCount++;
+    }
+
+    public void decrementErrorCount(){
+        errorCount--;
+    }
+
+    public int getErrorCount() {
+        return errorCount;
+    }
+
+    public void setErrorCount(int errorCount) {
+        this.errorCount = errorCount;
+    }
+
+    public long getErrorTime() {
+        return errorTime;
+    }
+
+    public void setErrorTime(long errorTime) {
+        this.errorTime = errorTime;
     }
 }

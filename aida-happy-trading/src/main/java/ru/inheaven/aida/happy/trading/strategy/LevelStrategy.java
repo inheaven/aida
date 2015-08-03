@@ -14,7 +14,6 @@ import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 
 import static java.math.BigDecimal.ONE;
@@ -31,9 +30,6 @@ public class LevelStrategy extends BaseStrategy{
     private SecureRandom random = new SecureRandom("LevelStrategy".getBytes());
 
     private Strategy strategy;
-
-    private int errorCount = 0;
-    private long errorTime = 0;
 
     private BigDecimal risk = ONE;
 
@@ -65,12 +61,12 @@ public class LevelStrategy extends BaseStrategy{
     private Semaphore lock = new Semaphore(1);
 
     private void action(String key, BigDecimal price) {
-        if (errorCount > 10){
-            if (System.currentTimeMillis() - errorTime < 60000){
+        if (getErrorCount() > 10){
+            if (System.currentTimeMillis() - getErrorTime() < 60000){
                 return;
             }else{
-                errorCount = 0;
-                errorTime = 0;
+                setErrorCount(0);
+                setErrorTime(0);
             }
         }
 
@@ -121,8 +117,7 @@ public class LevelStrategy extends BaseStrategy{
                     amountHFT = amountHFT.multiply(BigDecimal.valueOf(1 + (random.nextDouble() / 5))).setScale(8, HALF_UP);
                 }
 
-                Future<Order> open = createOrderAsync(
-                        new Order(strategy,
+                createOrderAsync(new Order(strategy,
                                 strategy.getSymbolType() != null ? OPEN_LONG : BID,
                                 price.add(getStep()),
                                 amountHFT));
@@ -133,22 +128,18 @@ public class LevelStrategy extends BaseStrategy{
                     amountHFT = amountHFT.multiply(BigDecimal.valueOf(1 + (random.nextDouble() / 5))).setScale(8, HALF_UP);
                 }
 
-                Future<Order> close = createOrderAsync(
-                        new Order(strategy,
+                createOrderAsync(new Order(strategy,
                                 strategy.getSymbolType() != null ? CLOSE_LONG : ASK,
                                 price.add(spread),
                                 amountHFT));
 
                 log.info(key + " {}", price);
 
-                open.get();
-                close.get();
-
                 levelTimeMap.put(level, System.currentTimeMillis());
             }
         } catch (Exception e) {
-            errorCount++;
-            errorTime = System.currentTimeMillis();
+            incrementErrorCount();
+            setErrorTime(System.currentTimeMillis());
         } finally {
             lock.release();
         }
@@ -183,8 +174,8 @@ public class LevelStrategy extends BaseStrategy{
 
     @Override
     protected void onCloseOrder(Order order) {
-        if (errorCount > 0 && SELL_SET.contains(order.getType())){
-            errorCount--;
+        if (getErrorCount() > 0 && SELL_SET.contains(order.getType())){
+            decrementErrorCount();
         }
 
         if (order.getStatus().equals(OrderStatus.CLOSED)){
