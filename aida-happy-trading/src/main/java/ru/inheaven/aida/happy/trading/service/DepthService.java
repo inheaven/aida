@@ -1,5 +1,7 @@
 package ru.inheaven.aida.happy.trading.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.Depth;
 import ru.inheaven.aida.happy.trading.entity.Strategy;
 import ru.inheaven.aida.happy.trading.mapper.DepthMapper;
@@ -9,14 +11,20 @@ import rx.schedulers.Schedulers;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author inheaven on 10.07.2015 0:22.
  */
 @Singleton
 public class DepthService {
+    private Logger log = LoggerFactory.getLogger(getClass());
+
     private ConnectableObservable<Depth> depthObservable;
+
+    private Map<String, Depth> depthMap = new ConcurrentHashMap<>();
 
     @Inject
     public DepthService(OkcoinService okcoinService, DepthMapper depthMapper) {
@@ -27,7 +35,21 @@ public class DepthService {
                 .publish();
         depthObservable.connect();
 
-        depthObservable.subscribe(depthMapper::asyncSave);
+        depthObservable.subscribe(d -> {
+            try {
+                String key = d.getExchangeType() + d.getSymbol() + d.getSymbolType();
+
+                Depth d0 = depthMap.get(key);
+
+                if (d0 == null || d0.getAsk().compareTo(d.getAsk()) != 0 || d0.getBid().compareTo(d.getBid()) != 0){
+                    depthMapper.asyncSave(d);
+                }
+
+                depthMap.put(key, d);
+            } catch (Exception e) {
+                log.error("error store depth -> ", e);
+            }
+        });
     }
 
     public Observable<Depth> createDepthObservable(Strategy strategy){
