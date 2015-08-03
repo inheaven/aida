@@ -90,7 +90,6 @@ public class LevelStrategy extends BaseStrategy{
                                             price.subtract(o.getPrice()).abs().compareTo(spread) < 0))
                     .findAny()
                     .isPresent()){
-                BigDecimal spreadHFT = spread;
                 BigDecimal amountHFT = strategy.getLevelLot();
 
                 if (levelTimeMap.get(level) != null){
@@ -104,8 +103,8 @@ public class LevelStrategy extends BaseStrategy{
                         }else if (time < 30000){
                             amountHFT = amountHFT.multiply(BigDecimal.valueOf(2));
                         }
-                    }else if (time < 30000){
-                        spreadHFT = spreadHFT.divide(BigDecimal.valueOf(2), 8, HALF_UP);
+                    }else if (time < 15000){
+                        amountHFT = amountHFT.multiply(BigDecimal.valueOf(2));
                     }
 
                     if (time < 30000) {
@@ -138,7 +137,7 @@ public class LevelStrategy extends BaseStrategy{
                 Future<Order> close = createOrderAsync(
                         new Order(strategy,
                                 strategy.getSymbolType() != null ? CLOSE_LONG : ASK,
-                                price.add(spreadHFT),
+                                price.add(spread),
                                 amountHFT));
 
                 log.info(key + " {}", price);

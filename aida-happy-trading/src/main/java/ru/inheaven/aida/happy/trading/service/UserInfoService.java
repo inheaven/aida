@@ -84,7 +84,7 @@ public class UserInfoService {
                             spotVolume = spotVolume.add(o.getAmount().multiply(ltcPrice));
                         }
                     }
-                });
+                }, e -> log.error("error add volume", e));
     }
 
     public Observable<UserInfo> createUserInfoObservable(Long accountId, String currency){
