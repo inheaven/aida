@@ -11,7 +11,6 @@ import ru.inheaven.aida.happy.trading.service.UserInfoService;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
-import java.util.Comparator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -173,8 +172,8 @@ public class LevelStrategy extends BaseStrategy{
     protected void onDepth(Depth depth) {
         BigDecimal spread = strategy.getLevelSpread();
 
-        BigDecimal ask = depth.getAskMap().keySet().parallelStream().min(Comparator.<BigDecimal>naturalOrder()).get();
-        BigDecimal bid = depth.getBidMap().keySet().parallelStream().max(Comparator.<BigDecimal>naturalOrder()).get();
+        BigDecimal ask = depth.getAsk();
+        BigDecimal bid = depth.getBid();
 
         if (ask.subtract(bid).compareTo(spread.multiply(BigDecimal.valueOf(2.1))) > 0 && ask.compareTo(bid) > 0){
             action("on depth ask", ask.subtract(spread).subtract(getStep()));

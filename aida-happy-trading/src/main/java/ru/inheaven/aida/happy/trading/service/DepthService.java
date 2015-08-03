@@ -2,6 +2,7 @@ package ru.inheaven.aida.happy.trading.service;
 
 import ru.inheaven.aida.happy.trading.entity.Depth;
 import ru.inheaven.aida.happy.trading.entity.Strategy;
+import ru.inheaven.aida.happy.trading.mapper.DepthMapper;
 import rx.Observable;
 import rx.observables.ConnectableObservable;
 import rx.schedulers.Schedulers;
@@ -18,14 +19,15 @@ public class DepthService {
     private ConnectableObservable<Depth> depthObservable;
 
     @Inject
-    public DepthService(OkcoinService okcoinService) {
+    public DepthService(OkcoinService okcoinService, DepthMapper depthMapper) {
         depthObservable = okcoinService.createFutureDepthObservable()
                 .mergeWith(okcoinService.createSpotDepthObservable())
-                .observeOn(Schedulers.io())
                 .onBackpressureBuffer()
+                .observeOn(Schedulers.io())
                 .publish();
-
         depthObservable.connect();
+
+        depthObservable.subscribe(depthMapper::asyncSave);
     }
 
     public Observable<Depth> createDepthObservable(Strategy strategy){

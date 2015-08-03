@@ -11,8 +11,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Objects;
 
-import static java.math.RoundingMode.HALF_UP;
-
 /**
  * @author inheaven on 002 02.07.15 16:45
  */
@@ -21,31 +19,15 @@ public class TradeService {
     private ConnectableObservable<Trade> tradeObservable;
 
     @Inject
-    public TradeService(OkcoinService okcoinService, BroadcastService broadcastService, TradeMapper tradeMapper) {
+    public TradeService(OkcoinService okcoinService, TradeMapper tradeMapper) {
         tradeObservable = okcoinService.createFutureTradeObservable()
                 .mergeWith(okcoinService.createSpotTradeObservable())
-                .observeOn(Schedulers.io())
                 .onBackpressureBuffer()
+                .observeOn(Schedulers.io())
                 .publish();
         tradeObservable.connect();
 
-        tradeObservable.subscribe(t ->{
-            tradeMapper.asyncSave(t);
-
-            String key = "";
-
-            switch (t.getSymbol()){
-                case "BTC/USD":
-                    key = "btc";
-                    break;
-                case "LTC/USD":
-                    key = "ltc";
-                    break;
-            }
-
-            broadcastService.broadcast(getClass(), "trade_" + key + "_" + Objects.toString(t.getSymbolType(), ""),
-                    t.getPrice().setScale(3, HALF_UP));
-        });
+        tradeObservable.subscribe(tradeMapper::asyncSave);
     }
 
     public Observable<Trade> createTradeObserver(Strategy strategy){

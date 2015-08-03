@@ -42,19 +42,19 @@ public class OrderService {
                 .mergeWith(okcoinService.createSpotOrderObservable())
                 .mergeWith(okcoinService.createFutureRealTrades())
                 .mergeWith(okcoinService.createSpotRealTrades())
-                .observeOn(Schedulers.io())
                 .onBackpressureBuffer()
+                .observeOn(Schedulers.io())
                 .publish();
         orderObservable.connect();
 
         localClosedOrderObservable = localClosedOrderPublishSubject
-                .observeOn(Schedulers.io())
                 .onBackpressureBuffer()
+                .observeOn(Schedulers.io())
                 .publish();
         localClosedOrderObservable.connect();
 
-        okcoinService.realFutureTrades("00dff9d7-7d99-45f9-bd41-23d08d4665ce", "41A8FBFE7CD7D079D7FD64B79D64BBE2");
-        okcoinService.realSpotTrades("00dff9d7-7d99-45f9-bd41-23d08d4665ce", "41A8FBFE7CD7D079D7FD64B79D64BBE2");
+        okcoinService.realFutureTrades("832a335b-e627-49ca-b95d-bceafe6c3815", "8FAF74E300D67DCFA080A6425182C8B7");
+        okcoinService.realSpotTrades("832a335b-e627-49ca-b95d-bceafe6c3815", "8FAF74E300D67DCFA080A6425182C8B7");
     }
 
     public Observable<Order> createOrderObserver(Strategy strategy){

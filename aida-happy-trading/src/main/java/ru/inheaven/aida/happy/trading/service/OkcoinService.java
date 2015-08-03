@@ -2,6 +2,7 @@ package ru.inheaven.aida.happy.trading.service;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.ClientProperties;
+import org.glassfish.tyrus.client.ThreadPoolConfig;
 import org.glassfish.tyrus.container.jdk.client.JdkClientContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,11 +46,11 @@ public class OkcoinService {
 
     private boolean destroy = false;
 
-    private class JsonData{
+    private class JsonData<T extends JsonValue>{
         private String channel;
-        private JsonValue value;
+        private T value;
 
-        public JsonData(String channel, JsonValue value) {
+        public JsonData(String channel, T value) {
             this.channel = channel;
             this.value = value;
         }
@@ -97,8 +98,20 @@ public class OkcoinService {
                 }
             };
 
+            ThreadPoolConfig threadPoolConfig = ThreadPoolConfig.defaultConfig();
+            threadPoolConfig.setKeepAliveTime(5, TimeUnit.MINUTES);
+            threadPoolConfig.setPriority(Thread.MAX_PRIORITY);
+            threadPoolConfig.setDaemon(false);
+
             client.getProperties().put(ClientProperties.RECONNECT_HANDLER, reconnectHandler);
+            client.getProperties().put(ClientProperties.INCOMING_BUFFER_SIZE, 67108864);
+            client.getProperties().put(ClientProperties.SHARED_CONTAINER_IDLE_TIMEOUT, 300);
+            client.getProperties().put(ClientProperties.WORKER_THREAD_POOL_CONFIG, threadPoolConfig.copy());
+
             client2.getProperties().put(ClientProperties.RECONNECT_HANDLER, reconnectHandler);
+            client2.getProperties().put(ClientProperties.INCOMING_BUFFER_SIZE, 67108864);
+            client2.getProperties().put(ClientProperties.SHARED_CONTAINER_IDLE_TIMEOUT, 300);
+            client2.getProperties().put(ClientProperties.WORKER_THREAD_POOL_CONFIG, threadPoolConfig.copy());
 
             marketEndpoint = new JsonObservableEndpoint(){
                 @Override
@@ -115,8 +128,6 @@ public class OkcoinService {
                 }
             };
             client.connectToServer(marketEndpoint, URI.create(OKCOIN_WSS));
-
-//            tradingEndpoint = marketEndpoint;
 
             tradingEndpoint = new JsonObservableEndpoint(){
                 @Override
@@ -253,7 +264,7 @@ public class OkcoinService {
     public Observable<Trade> createFutureTradeObservable() {
         return marketEndpoint.getJsonObservable()
                 .filter(j -> j.getString("channel", "").contains("_future_trade_v1_"))
-                .flatMapIterable(j -> j.getJsonArray("data"), (o, v) -> new JsonData(o.getString("channel"), v))
+                .flatMapIterable(j -> j.getJsonArray("data"), (o, v) -> new JsonData<JsonValue>(o.getString("channel"), v))
                 .filter(d -> d.value.getValueType().equals(JsonValue.ValueType.ARRAY))
                 .map(j -> {
                     lastTrade = System.currentTimeMillis();
@@ -283,7 +294,7 @@ public class OkcoinService {
     public Observable<Trade> createSpotTradeObservable() {
         return marketEndpoint.getJsonObservable()
                 .filter(j -> j.getString("channel", "").contains("usd_trades_v1"))
-                .flatMapIterable(j -> j.getJsonArray("data"), (o, v) -> new JsonData(o.getString("channel"), v))
+                .flatMapIterable(j -> j.getJsonArray("data"), (o, v) -> new JsonData<JsonValue>(o.getString("channel"), v))
                 .filter(d -> d.value.getValueType().equals(JsonValue.ValueType.ARRAY))
                 .map(j -> {
                     lastTrade = System.currentTimeMillis();
@@ -313,9 +324,8 @@ public class OkcoinService {
 
     public Observable<Depth> createFutureDepthObservable() {
         return marketEndpoint.getJsonObservable()
-                .filter(j -> j.getString("channel", "").contains("_future_depth_"))
-                .map(j -> new JsonData(j.getString("channel"), j.getJsonObject("data")))
-                .filter(j -> j != null && j.value != null)
+                .filter(j -> j.getString("channel", "").contains("_future_depth_") && j.getJsonObject("data") != null)
+                .map(j -> new JsonData<>(j.getString("channel"), j.getJsonObject("data")))
                 .map(j -> {
                     Depth depth = new Depth();
 
@@ -323,16 +333,13 @@ public class OkcoinService {
                         depth.setExchangeType(ExchangeType.OKCOIN);
                         depth.setSymbol(getSymbol(j.channel));
                         depth.setSymbolType(getSymbolType(j.channel));
-                        depth.setDate(new Date(Long.parseLong(((JsonObject) j.value).getString("timestamp"))));
+                        depth.setBid(j.value.getJsonArray("bids").getJsonArray(0).getJsonNumber(0).bigDecimalValue());
+                        depth.setAsk(j.value.getJsonArray("asks").getJsonArray(j.value.getJsonArray("asks").size() - 1)
+                                .getJsonNumber(0).bigDecimalValue());
+                        depth.setBidJson(j.value.getJsonArray("bids").toString());
+                        depth.setAskJson(j.value.getJsonArray("asks").toString());
+                        depth.setTime(new Date(Long.parseLong(j.value.getString("timestamp"))));
                         depth.setCreated(new Date());
-
-                        ((JsonObject) j.value).getJsonArray("asks").forEach(ask ->
-                                depth.getAskMap().put(((JsonArray) ask).getJsonNumber(0).bigDecimalValue(),
-                                        ((JsonArray) ask).getJsonNumber(1).bigDecimalValue()));
-
-                        ((JsonObject) j.value).getJsonArray("bids").forEach(bid ->
-                                depth.getBidMap().put(((JsonArray) bid).getJsonNumber(0).bigDecimalValue(),
-                                        ((JsonArray) bid).getJsonNumber(1).bigDecimalValue()));
                     } catch (Exception e) {
                         log.error("error future depth observable -> ", e);
                     }
@@ -344,7 +351,7 @@ public class OkcoinService {
     public Observable<Depth> createSpotDepthObservable() {
         return marketEndpoint.getJsonObservable()
                 .filter(j -> j.getString("channel", "").contains("usd_depth"))
-                .map(j -> new JsonData(j.getString("channel"), j.getJsonObject("data")))
+                .map(j -> new JsonData<>(j.getString("channel"), j.getJsonObject("data")))
                 .filter(j -> j != null && j.value != null)
                 .map(j -> {
                     Depth depth = new Depth();
@@ -352,16 +359,13 @@ public class OkcoinService {
                     try {
                         depth.setExchangeType(ExchangeType.OKCOIN);
                         depth.setSymbol(getSymbol(j.channel));
-                        depth.setDate(new Date(Long.parseLong(((JsonObject) j.value).getString("timestamp"))));
+                        depth.setBid(j.value.getJsonArray("bids").getJsonArray(0).getJsonNumber(0).bigDecimalValue());
+                        depth.setAsk(j.value.getJsonArray("asks").getJsonArray(j.value.getJsonArray("asks").size() - 1)
+                                .getJsonNumber(0).bigDecimalValue());
+                        depth.setBidJson(j.value.getJsonArray("bids").toString());
+                        depth.setAskJson(j.value.getJsonArray("asks").toString());
+                        depth.setTime(new Date(Long.parseLong(j.value.getString("timestamp"))));
                         depth.setCreated(new Date());
-
-                        ((JsonObject) j.value).getJsonArray("asks").forEach(ask ->
-                                depth.getAskMap().put(((JsonArray) ask).getJsonNumber(0).bigDecimalValue(),
-                                        ((JsonArray) ask).getJsonNumber(1).bigDecimalValue()));
-
-                        ((JsonObject) j.value).getJsonArray("bids").forEach(bid ->
-                                depth.getBidMap().put(((JsonArray) bid).getJsonNumber(0).bigDecimalValue(),
-                                        ((JsonArray) bid).getJsonNumber(1).bigDecimalValue()));
                     } catch (Exception e) {
                         log.error("error spot depth observable -> ", e);
                     }

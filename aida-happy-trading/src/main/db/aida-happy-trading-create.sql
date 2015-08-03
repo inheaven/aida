@@ -116,4 +116,23 @@ CREATE TABLE `trade`
   KEY `key_created` (created)
 );
 
+CREATE TABLE `depth`
+(
+  id BIGINT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+  exchange_type VARCHAR(8) NOT NULL,
+  symbol VARCHAR(8) NOT NULL,
+  symbol_type VARCHAR(10),
+  bid DECIMAL(19,8) NOT NULL,
+  ask DECIMAL(19,8) NOT NULL,
+  bid_json LONGTEXT NOT NULL,
+  ask_json LONGTEXT NOT NULL,
+  time TIMESTAMP NOT NULL DEFAULT NOW(),
+  created TIMESTAMP NOT NULL DEFAULT NOW(),
+  KEY `key_exchange_type` (exchange_type),
+  KEY `key_symbol` (symbol),
+  KEY `key_symbol_type` (symbol_type),
+  KEY `key_bid` (bid),
+  KEY `key_ask` (ask),
+  KEY `key_created` (created)
+);
 

@@ -4,21 +4,20 @@ import ru.inhell.aida.common.entity.AbstractEntity;
 
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author inheaven on 01.05.2015 13:23.
  */
 public class Depth extends AbstractEntity {
     private ExchangeType exchangeType;
-    private SymbolType symbolType;
     private String symbol;
-    private Date date;
+    private SymbolType symbolType;
+    private BigDecimal bid;
+    private BigDecimal ask;
+    private String bidJson;
+    private String askJson;
+    private Date time;
     private Date created;
-
-    private Map<BigDecimal, BigDecimal> askMap = new HashMap<>();
-    private Map<BigDecimal, BigDecimal> bidMap = new HashMap<>();
 
     public ExchangeType getExchangeType() {
         return exchangeType;
@@ -26,14 +25,6 @@ public class Depth extends AbstractEntity {
 
     public void setExchangeType(ExchangeType exchangeType) {
         this.exchangeType = exchangeType;
-    }
-
-    public SymbolType getSymbolType() {
-        return symbolType;
-    }
-
-    public void setSymbolType(SymbolType symbolType) {
-        this.symbolType = symbolType;
     }
 
     public String getSymbol() {
@@ -44,12 +35,52 @@ public class Depth extends AbstractEntity {
         this.symbol = symbol;
     }
 
-    public Date getDate() {
-        return date;
+    public SymbolType getSymbolType() {
+        return symbolType;
     }
 
-    public void setDate(Date date) {
-        this.date = date;
+    public void setSymbolType(SymbolType symbolType) {
+        this.symbolType = symbolType;
+    }
+
+    public BigDecimal getBid() {
+        return bid;
+    }
+
+    public void setBid(BigDecimal bid) {
+        this.bid = bid;
+    }
+
+    public BigDecimal getAsk() {
+        return ask;
+    }
+
+    public void setAsk(BigDecimal ask) {
+        this.ask = ask;
+    }
+
+    public String getBidJson() {
+        return bidJson;
+    }
+
+    public void setBidJson(String bidJson) {
+        this.bidJson = bidJson;
+    }
+
+    public String getAskJson() {
+        return askJson;
+    }
+
+    public void setAskJson(String askJson) {
+        this.askJson = askJson;
+    }
+
+    public Date getTime() {
+        return time;
+    }
+
+    public void setTime(Date time) {
+        this.time = time;
     }
 
     public Date getCreated() {
@@ -58,21 +89,5 @@ public class Depth extends AbstractEntity {
 
     public void setCreated(Date created) {
         this.created = created;
-    }
-
-    public Map<BigDecimal, BigDecimal> getAskMap() {
-        return askMap;
-    }
-
-    public void setAskMap(Map<BigDecimal, BigDecimal> askMap) {
-        this.askMap = askMap;
-    }
-
-    public Map<BigDecimal, BigDecimal> getBidMap() {
-        return bidMap;
-    }
-
-    public void setBidMap(Map<BigDecimal, BigDecimal> bidMap) {
-        this.bidMap = bidMap;
     }
 }

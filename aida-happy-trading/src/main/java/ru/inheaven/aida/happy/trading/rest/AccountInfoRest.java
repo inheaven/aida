@@ -27,6 +27,8 @@ public class AccountInfoRest extends AbstractRestResource<JsonWebSerialDeserial>
     private Date startDate = new Date(Timestamp.valueOf("2015-07-21 00:00:00").getTime());
     private Date startSpotDate = new Date(Timestamp.valueOf("2015-07-24 00:00:00").getTime());
 
+    private static final long WEEK = 7 * 24 * 60 * 60 * 1000;
+
 
     private UserInfoMapper userInfoMapper = Module.getInjector().getInstance(UserInfoMapper.class);
     private UserInfoTotalMapper userInfoTotalMapper = Module.getInjector().getInstance(UserInfoTotalMapper.class);
@@ -40,6 +42,8 @@ public class AccountInfoRest extends AbstractRestResource<JsonWebSerialDeserial>
     @MethodMapping("/user_info/{currency}")
     public List getUserInfo(@PathParam("currency") String currency){
         return userInfoMapper.getUserInfoList(accountId, currency,startDate).stream()
+                .filter(i -> System.currentTimeMillis() - i.getCreated().getTime() < WEEK  ||
+                        i.getCreated().getTime() / 60000 % 5 == 0)
                 .map(i -> Arrays.asList(i.getCreated().getTime(),
                         i.getAccountRights().setScale(3, HALF_UP),
                         i.getKeepDeposit().setScale(3, HALF_UP),
@@ -50,6 +54,8 @@ public class AccountInfoRest extends AbstractRestResource<JsonWebSerialDeserial>
     @MethodMapping("/spot/{currency}")
     public List getSpot(@PathParam("currency") String currency){
         return userInfoMapper.getUserInfoList(accountId, currency, startSpotDate).stream()
+                .filter(i -> System.currentTimeMillis() - i.getCreated().getTime() < WEEK ||
+                        i.getCreated().getTime() / 60000 % 5 == 0)
                 .map(i -> Arrays.asList(i.getCreated().getTime(),
                         i.getAccountRights().add(i.getKeepDeposit()).setScale(3, HALF_UP)))
                 .collect(Collectors.toList());
@@ -58,6 +64,8 @@ public class AccountInfoRest extends AbstractRestResource<JsonWebSerialDeserial>
     @MethodMapping("/user_info_total")
     public List getUserInfoTotal(){
         return userInfoTotalMapper.getUserInfoTotals(accountId, startDate).stream()
+                .filter(i -> System.currentTimeMillis() - i.getCreated().getTime() < WEEK ||
+                        i.getCreated().getTime() / 60000 % 5 == 0)
                 .map(t -> Arrays.asList(t.getCreated().getTime(),
                         t.getFuturesTotal().add(t.getSpotTotal()).setScale(3, HALF_UP),
                         t.getFuturesVolume().add(t.getSpotVolume()).setScale(3, HALF_UP),

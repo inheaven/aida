@@ -1,0 +1,27 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ru.inheaven.aida.happy.trading.mapper.DepthMapper">
+    <resultMap id="depth" type="ru.inheaven.aida.happy.trading.entity.Depth">
+        <id column="id" property="id"/>
+        <result column="exchange_type" property="exchangeType"/>
+        <result column="symbol" property="symbol"/>
+        <result column="symbol_type" property="symbolType"/>
+        <result column="bid" property="bid"/>
+        <result column="ask" property="ask"/>
+        <result column="bid_json" property="bidJson"/>
+        <result column="ask_json" property="askJson"/>
+        <result column="time" property="time"/>
+        <result column="created" property="created"/>
+    </resultMap>
+
+    <insert id="insertDepth" parameterType="ru.inheaven.aida.happy.trading.entity.Depth">
+        insert into depth (exchange_type, symbol, symbol_type, bid, ask, bid_json, ask_json, `time`, created)
+                value (#{exchangeType}, #{symbol}, #{symbolType}, #{bid}, #{ask}, #{bidJson}, #{askJson}, #{time}, #{created})
+    </insert>
+
+    <select id="selectDepths" parameterType="map" resultMap="depth">
+        select * from depth where exchange_type = #{exchangeType} and symbol = #{symbol} and symbol_type = #{symbolType}
+          and created > #{startDate}
+    </select>
+</mapper>
