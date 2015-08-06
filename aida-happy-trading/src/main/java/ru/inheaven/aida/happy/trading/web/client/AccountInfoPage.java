@@ -112,7 +112,8 @@ public class AccountInfoPage extends BasePage{
                     UserInfoTotal total = (UserInfoTotal) payload;
 
                     handler.appendJavaScript("usd_total_chart.series[0].addPoint([" +
-                            total.getCreated().getTime() + "," + total.getFuturesTotal().add(total.getSpotTotal()).setScale(3, HALF_UP) + "])");
+                            total.getCreated().getTime() + "," + total.getFuturesTotal().add(total.getSpotTotal())
+                            .divide(total.getBtcPrice(), 3, HALF_UP) + "])");
                     handler.appendJavaScript("btc_price_chart.series[0].addPoint([" +
                             total.getCreated().getTime() + "," + total.getBtcPrice().setScale(2, HALF_UP) + "])");
                     handler.appendJavaScript("ltc_price_chart.series[0].addPoint([" +
@@ -124,10 +125,10 @@ public class AccountInfoPage extends BasePage{
                                 total.getCreated().getTime() + "," +  volume + "]);");
                     }
 
-                    BigDecimal deposit = total.getBtcPrice().multiply(BigDecimal.valueOf(30));
-                    handler.appendJavaScript("usd_total_chart.yAxis[0].removePlotLine('deposit')");
-                    handler.appendJavaScript("usd_total_chart.yAxis[0].addPlotLine({id: 'deposit', value: "+ deposit +
-                            ", color: '#2b908f', dashStyle: 'dash', width:1 })");
+//                    BigDecimal deposit = total.getBtcPrice().multiply(BigDecimal.valueOf(30));
+//                    handler.appendJavaScript("usd_total_chart.yAxis[0].removePlotLine('deposit')");
+//                    handler.appendJavaScript("usd_total_chart.yAxis[0].addPlotLine({id: 'deposit', value: "+ deposit +
+//                            ", color: '#2b908f', dashStyle: 'dash', width:1 })");
                 }
             }
         );

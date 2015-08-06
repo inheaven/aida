@@ -23,6 +23,7 @@ import static java.util.concurrent.TimeUnit.HOURS;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.*;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.BUY_SET;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.SELL_SET;
+import static ru.inheaven.aida.happy.trading.entity.SymbolType.QUARTER;
 
 /**
  * @author inheaven on 002 02.07.15 16:43
@@ -35,6 +36,7 @@ public class BaseStrategy {
 
     private Observable<Order> orderObservable;
     private Observable<Trade> tradeObservable;
+    private Observable<Trade> allTradeObservable;
     private Observable<Depth> depthObservable;
 
     private Subscription closeOrderSubscription;
@@ -64,6 +66,12 @@ public class BaseStrategy {
 
         tradeObservable = tradeService.createTradeObserver(strategy);
 
+        allTradeObservable = tradeService.getTradeObservable()
+                .filter(t -> Objects.equals(strategy.getAccount().getExchangeType(), t.getExchangeType()))
+                .filter(t -> Objects.equals(strategy.getSymbol(), t.getSymbol()))
+                .filter(t -> (QUARTER.equals(strategy.getSymbolType()) && QUARTER.equals(t.getSymbolType())) ||
+                        (!QUARTER.equals(strategy.getSymbolType()) && !QUARTER.equals(t.getSymbolType())));
+
         depthObservable = depthService.createDepthObservable(strategy);
     }
 
@@ -85,7 +93,7 @@ public class BaseStrategy {
             }
         });
 
-        tradeSubscription = tradeObservable.subscribe(t -> {
+        tradeSubscription = allTradeObservable.subscribe(t -> {
             try {
                 onTrade(t);
             } catch (Exception e) {

@@ -331,15 +331,15 @@ $(function () {
 
     $.getJSON('/account_info_rest/user_info_total', function (data) {
         usd_total_chart = $('#usd_total').highcharts('StockChart', {
-            title: {text: 'USD Total'},
+            title: {text: 'BTC Total'},
             chart:{animation: true, spacingBottom: 0},
             tooltip: {valueDecimals: 3},
             credits: {enabled: false},
             scrollbar: {enabled: false},
             navigator: {height: 0, xAxis:{labels:{enabled:false}}},
             xAxis: {type: 'datetime'},
-            series: [{type : 'area',  threshold : null, name: 'USD Total',
-                data: data.map(function(a){return [a[0], a[1]]}),
+            series: [{type : 'area',  threshold : null, name: 'BTC Total',
+                data: data.map(function(a){return [a[0], a[1]/a[3]]}),
                 fillColor : {
                     linearGradient : {x1: 0, y1: 0, x2: 0, y2: 1},
                     stops : [

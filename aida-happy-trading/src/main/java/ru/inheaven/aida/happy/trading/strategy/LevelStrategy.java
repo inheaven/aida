@@ -80,9 +80,9 @@ public class LevelStrategy extends BaseStrategy{
             if (!getOrderMap().values().parallelStream()
                     .filter(order -> LONG.contains(order.getType()))
                     .filter(o -> (SELL_SET.contains(o.getType()) &&
-                                    o.getPrice().subtract(price).abs().compareTo(spreadX2) < 0) ||
-                                    (BUY_SET.contains(o.getType()) &&
-                                            price.subtract(o.getPrice()).abs().compareTo(spread) < 0))
+                            o.getPrice().subtract(price).abs().compareTo(spreadX2) < 0) ||
+                            (BUY_SET.contains(o.getType()) &&
+                                    price.subtract(o.getPrice()).abs().compareTo(spread) < 0))
                     .findAny()
                     .isPresent()){
                 BigDecimal amountHFT = strategy.getLevelLot();
@@ -111,6 +111,8 @@ public class LevelStrategy extends BaseStrategy{
                     log.warn("RISK RATE {} {} {}", risk, strategy.getSymbol(), Objects.toString(strategy.getSymbolType(), ""));
                 }
 
+                Long positionId = System.nanoTime();
+
                 //BUY
 
                 if (strategy.getSymbolType() == null){
@@ -118,9 +120,10 @@ public class LevelStrategy extends BaseStrategy{
                 }
 
                 createOrderAsync(new Order(strategy,
-                                strategy.getSymbolType() != null ? OPEN_LONG : BID,
-                                price.add(getStep()),
-                                amountHFT));
+                        positionId,
+                        strategy.getSymbolType() != null ? OPEN_LONG : BID,
+                        price.add(getStep()),
+                        amountHFT));
 
                 //SELL
 
@@ -129,9 +132,10 @@ public class LevelStrategy extends BaseStrategy{
                 }
 
                 createOrderAsync(new Order(strategy,
-                                strategy.getSymbolType() != null ? CLOSE_LONG : ASK,
-                                price.add(spread),
-                                amountHFT));
+                        positionId,
+                        strategy.getSymbolType() != null ? CLOSE_LONG : ASK,
+                        price.add(spread),
+                        amountHFT));
 
                 log.info(key + " {}", price);
 

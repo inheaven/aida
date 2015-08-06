@@ -73,6 +73,10 @@ public class OrderService {
     }
 
     public void orderInfo(Strategy strategy, Order order){
+        if (order.getOrderId().contains("CREATED")){
+            return;
+        }
+
         if (order.getExchangeType().equals(OKCOIN)){
             if (order.getSymbolType() != null){
                 okcoinService.orderFutureInfo(strategy.getAccount().getApiKey(), strategy.getAccount().getSecretKey(), order);
@@ -83,6 +87,10 @@ public class OrderService {
     }
 
     public void checkOrder(Account account, Order order) throws OrderInfoException {
+        if (order.getOrderId().contains("CREATED")){
+            return;
+        }
+
         switch (order.getExchangeType()){
             case OKCOIN:
                 xChangeService.checkOrder(account, order);

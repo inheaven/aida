@@ -12,6 +12,7 @@ import java.util.Date;
 public class Order extends AbstractEntity {
     private String orderId;
     private Long strategyId;
+    private Long positionId;
     private ExchangeType exchangeType;
     private OrderType type;
     private String symbol;
@@ -42,6 +43,12 @@ public class Order extends AbstractEntity {
         this.amount = amount;
     }
 
+    public Order(Strategy strategy, Long positionId, OrderType type, BigDecimal price, BigDecimal amount) {
+        this(strategy, type, price, amount);
+
+        this.positionId = positionId;
+    }
+
     public void close(Order order){
         filledAmount = order.filledAmount;
         avgPrice = order.avgPrice;
@@ -64,6 +71,14 @@ public class Order extends AbstractEntity {
 
     public void setStrategyId(Long strategyId) {
         this.strategyId = strategyId;
+    }
+
+    public Long getPositionId() {
+        return positionId;
+    }
+
+    public void setPositionId(Long positionId) {
+        this.positionId = positionId;
     }
 
     public ExchangeType getExchangeType() {
