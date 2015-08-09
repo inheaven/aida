@@ -107,7 +107,7 @@ public class UserInfoService {
                 saveFunds(account.getId(), "ASSET", funds.getAsset().get("total"), funds.getAsset().get("net"));
 
                 if (ltcPrice.compareTo(ZERO) > 0 && btcPrice.compareTo(ZERO) > 0){
-                    saveTotal(account.getId(), funds.getAsset().get("total"), info.getInfo().getLtcFunds().getAccountRights(),
+                    saveTotal(account.getId(), funds.getAsset().get("net"), info.getInfo().getLtcFunds().getAccountRights(),
                             info.getInfo().getBtcFunds().getAccountRights());
                 }
             } catch (Exception e) {

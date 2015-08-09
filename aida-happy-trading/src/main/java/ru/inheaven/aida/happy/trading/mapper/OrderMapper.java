@@ -52,4 +52,8 @@ public class OrderMapper extends BaseMapper<Order>{
     public List<Date> getLast6HourOrderTimes(){
         return sqlSession().selectList("selectLast6HourOrderTimes");
     }
+
+    public BigDecimal getTradeProfit(){
+        return sqlSession().selectOne("selectTradeProfit");
+    }
 }

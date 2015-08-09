@@ -12,7 +12,7 @@ public class StrategyTest {
 
 
     public static void main(String... args){
-        test3();
+        test4();
     }
 
     private static void test1(){
@@ -81,7 +81,14 @@ public class StrategyTest {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
 
+    private static void test4(){
+        double price = 4.2;
+
+        for (double spread = 0; spread < 0.05; spread += 0.001){
+            System.out.println(spread + "," + (spread - (price + spread)*0.002));
+        }
     }
 
 }

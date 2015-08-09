@@ -1,0 +1,34 @@
+<!DOCTYPE html PUBLIC>
+<wicket:head xmlns:wicket="http://wicket.apache.org">
+    <style>
+        .highcharts-navigator,
+        .highcharts-navigator-handle-left,
+        .highcharts-navigator-handle-right{
+            display: none;
+        }
+
+        .chart{
+            height: 900px
+        }
+
+        .column{
+            width: 50%
+        }
+    </style>
+</wicket:head>
+<wicket:extend xmlns:wicket="http://wicket.apache.org">
+    <table style="width: 100%">
+        <tr>
+            <td class="column"><div id="btc_spread" class="chart"></div></td>
+            <td class="column"><div id="ltc_spread" class="chart"></div></td>
+        </tr>
+        <tr>
+            <td class="column"><div id="btc_spot_this_delta"></div></td>
+            <td class="column"><div id="ltc_spot_this_delta"></div></td>
+        </tr>
+        <tr>
+            <td class="column"><div id="btc_this_next_delta"></div></td>
+            <td class="column"><div id="ltc_this_next_delta"></div></td>
+        </tr>
+    </table>
+</wicket:extend>

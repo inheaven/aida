@@ -33,6 +33,8 @@ public class BaseStrategy {
 
     private OrderService orderService;
     private OrderMapper orderMapper;
+    private TradeService tradeService;
+    private DepthService depthService;
 
     private Observable<Order> orderObservable;
     private Observable<Trade> tradeObservable;
@@ -59,20 +61,41 @@ public class BaseStrategy {
         this.strategy = strategy;
         this.orderService = orderService;
         this.orderMapper = orderMapper;
+        this.tradeService = tradeService;
+        this.depthService = depthService;
+
+        orderObservable = createOrderObservable();
+        tradeObservable = createTradeObservable();
+        allTradeObservable = createAllTradeObservable();
+        depthObservable = createDepthObservable();
 
         orderMapper.getOpenOrders(strategy.getId()).forEach(o -> orderMap.put(o.getOrderId(), o));
+    }
 
-        orderObservable = orderService.createOrderObserver(strategy);
+    protected Observable<Order> createOrderObservable(){
+        return orderService.getOrderObservable()
+                .filter(o -> Objects.equals(strategy.getAccount().getExchangeType(), o.getExchangeType()))
+                .filter(o -> Objects.equals(strategy.getSymbol(), o.getSymbol()))
+                .filter(o -> Objects.equals(strategy.getSymbolType(), o.getSymbolType()));
+    }
 
-        tradeObservable = tradeService.createTradeObserver(strategy);
+    protected Observable<Trade> createTradeObservable(){
+        return tradeService.getTradeObservable()
+                .filter(t -> Objects.equals(strategy.getAccount().getExchangeType(), t.getExchangeType()))
+                .filter(t -> Objects.equals(strategy.getSymbol(), t.getSymbol()))
+                .filter(t -> Objects.equals(strategy.getSymbolType(), t.getSymbolType()));
+    }
 
-        allTradeObservable = tradeService.getTradeObservable()
+    protected Observable<Trade> createAllTradeObservable(){
+        return tradeService.getTradeObservable()
                 .filter(t -> Objects.equals(strategy.getAccount().getExchangeType(), t.getExchangeType()))
                 .filter(t -> Objects.equals(strategy.getSymbol(), t.getSymbol()))
                 .filter(t -> (QUARTER.equals(strategy.getSymbolType()) && QUARTER.equals(t.getSymbolType())) ||
                         (!QUARTER.equals(strategy.getSymbolType()) && !QUARTER.equals(t.getSymbolType())));
+    }
 
-        depthObservable = depthService.createDepthObservable(strategy);
+    protected Observable<Depth> createDepthObservable(){
+        return depthService.createDepthObservable(strategy);
     }
 
     public void start(){
@@ -145,6 +168,9 @@ public class BaseStrategy {
         flying = false;
     }
 
+    protected void onCreateOrder(Order order){
+    }
+
     protected void onCloseOrder(Order order){
     }
 
@@ -184,9 +210,12 @@ public class BaseStrategy {
         try {
             orderService.createOrder(strategy.getAccount(), order);
             orderMap.put(order.getOrderId(), order);
-            orderMapper.asyncSave(order);
 
+            orderMapper.save(order);
+
+            onCreateOrder(order);
             orderService.onCreateOrder(order);
+
         } finally {
             orderMap.remove(createdOrderId);
         }
@@ -207,8 +236,10 @@ public class BaseStrategy {
             try {
                 orderService.createOrder(strategy.getAccount(), order);
                 orderMap.put(order.getOrderId(), order);
+
                 orderMapper.save(order);
 
+                onCreateOrder(order);
                 orderService.onCreateOrder(order);
             } catch (Exception e){
                 log.error("error create order -> ", e);
@@ -225,14 +256,13 @@ public class BaseStrategy {
             Order order = orderMap.get(o.getOrderId());
 
             if (order != null) {
+                order.setAccountId(strategy.getAccount().getId());
                 orderMap.remove(o.getOrderId());
-
                 order.close(o);
+
                 orderMapper.asyncSave(order);
 
-                order.setAccountId(strategy.getAccount().getId());
                 orderService.onCloseOrder(order);
-
                 onCloseOrder(order);
             }
         } catch (Exception e) {

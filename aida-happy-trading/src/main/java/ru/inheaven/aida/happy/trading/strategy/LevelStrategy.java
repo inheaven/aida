@@ -16,8 +16,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 
-import static java.math.BigDecimal.ONE;
-import static java.math.BigDecimal.ZERO;
+import static java.math.BigDecimal.*;
 import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.*;
 
@@ -45,12 +44,8 @@ public class LevelStrategy extends BaseStrategy{
             userInfoService.createUserInfoObservable(strategy.getAccount().getId(), strategy.getSymbol().substring(0, 3))
                     .filter(u -> u.getRiskRate() != null)
                     .subscribe(u -> {
-                        if (u.getRiskRate().compareTo(BigDecimal.valueOf(5)) < 0) {
-                            risk = BigDecimal.valueOf(10);
-                        } else if (u.getRiskRate().compareTo(BigDecimal.valueOf(8)) < 0) {
-                            risk = BigDecimal.valueOf(5);
-                        }else if (u.getRiskRate().compareTo(BigDecimal.valueOf(10)) < 0) {
-                            risk = BigDecimal.valueOf(2);
+                        if (u.getRiskRate().compareTo(BigDecimal.valueOf(10)) < 0){
+                            risk = TEN.divide(u.getRiskRate(), 8, HALF_UP).pow(3).setScale(2, HALF_UP);
                         }else {
                             risk = ONE;
                         }
@@ -91,24 +86,20 @@ public class LevelStrategy extends BaseStrategy{
                     Long time = System.currentTimeMillis() - levelTimeMap.get(level);
 
                     if (strategy.getSymbolType() == null){
-                        if (time < 5000){
-                            amountHFT = amountHFT.multiply(BigDecimal.valueOf(4));
-                        }else if (time < 15000){
-                            amountHFT = amountHFT.multiply(BigDecimal.valueOf(3));
-                        }else if (time < 30000){
-                            amountHFT = amountHFT.multiply(BigDecimal.valueOf(2));
+                        if (time < 60000){
+                            amountHFT = amountHFT.multiply(BigDecimal.valueOf(-3*time/60000 + 4));
                         }
                     }else if (time < 15000){
                         amountHFT = amountHFT.multiply(BigDecimal.valueOf(2));
                     }
 
                     if (time < 30000) {
-                        log.info("HFT -> {} {} {} {}", time/1000, price, amountHFT, Objects.toString(strategy.getSymbolType(), ""));
+                        log.info("HFT -> {}s {} {} {}", time/1000, price, amountHFT, Objects.toString(strategy.getSymbolType(), ""));
                     }
                 }
 
                 if (risk.compareTo(ONE) > 0){
-                    log.warn("RISK RATE {} {} {}", risk, strategy.getSymbol(), Objects.toString(strategy.getSymbolType(), ""));
+                    log.warn("RISK RATE {} {} {}", risk.setScale(3, HALF_UP), strategy.getSymbol(), Objects.toString(strategy.getSymbolType(), ""));
                 }
 
                 Long positionId = System.nanoTime();
@@ -127,7 +118,7 @@ public class LevelStrategy extends BaseStrategy{
 
                 //SELL
 
-                if (strategy.getSymbolType() == null){
+                if (strategy.getSymbolType() == null && strategy.getSymbol().equals("LTC/USD")){
                     amountHFT = amountHFT.multiply(BigDecimal.valueOf(1 + (random.nextDouble() / 5))).setScale(8, HALF_UP);
                 }
 

@@ -90,7 +90,7 @@ public class AccountInfoPage extends BasePage{
                                     .add((info.getKeepDeposit().setScale(3, HALF_UP)))
                                     .build().toString() + ", true);");
 
-                    if (info.getRiskRate().compareTo(BigDecimal.valueOf(9)) < 0){
+                    if (info.getRiskRate().compareTo(BigDecimal.valueOf(6)) < 0){
                         handler.appendJavaScript("" +
                                 "var msg = new SpeechSynthesisUtterance('уровень маржи предельный');\n" +
                                 "msg.lang='ru-RU'; msg.pitch=1.2;\n" +
@@ -124,11 +124,6 @@ public class AccountInfoPage extends BasePage{
                         handler.appendJavaScript("all_order_rate_chart.series[0].addPoint([" +
                                 total.getCreated().getTime() + "," +  volume + "]);");
                     }
-
-//                    BigDecimal deposit = total.getBtcPrice().multiply(BigDecimal.valueOf(30));
-//                    handler.appendJavaScript("usd_total_chart.yAxis[0].removePlotLine('deposit')");
-//                    handler.appendJavaScript("usd_total_chart.yAxis[0].addPlotLine({id: 'deposit', value: "+ deposit +
-//                            ", color: '#2b908f', dashStyle: 'dash', width:1 })");
                 }
             }
         );
@@ -136,10 +131,10 @@ public class AccountInfoPage extends BasePage{
         add(new BroadcastBehavior(OrderService.class) {
             @Override
             protected void onBroadcast(WebSocketRequestHandler handler, String key, Object payload) {
-//                if (key.contains("close_order")) {
-//                    handler.appendJavaScript("all_order_rate_chart.series[1].addPoint([" +
-//                            System.currentTimeMillis() + "," + tradeVolume + "]);");
-//                }
+                if (key.contains("trade_profit")) {
+                    handler.appendJavaScript("all_order_rate_chart.setTitle({text: 'Trade Profit: "
+                            + ((BigDecimal)payload).setScale(2, HALF_UP) + "'});");
+                }
             }
         });
     }

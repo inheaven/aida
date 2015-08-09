@@ -6,6 +6,7 @@ import ru.inheaven.aida.happy.trading.entity.OrderType;
 import ru.inheaven.aida.happy.trading.entity.Strategy;
 import ru.inheaven.aida.happy.trading.exception.CreateOrderException;
 import ru.inheaven.aida.happy.trading.exception.OrderInfoException;
+import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import rx.Observable;
 import rx.observables.ConnectableObservable;
 import rx.schedulers.Schedulers;
@@ -28,15 +29,18 @@ public class OrderService {
     private OkcoinService okcoinService;
     private XChangeService xChangeService;
     private BroadcastService broadcastService;
+    private OrderMapper orderMapper;
 
     private PublishSubject<Order> localClosedOrderPublishSubject = PublishSubject.create();
     private ConnectableObservable<Order> localClosedOrderObservable;
 
     @Inject
-    public OrderService(OkcoinService okcoinService, XChangeService xChangeService, BroadcastService broadcastService) {
+    public OrderService(OkcoinService okcoinService, XChangeService xChangeService, BroadcastService broadcastService,
+                        OrderMapper orderMapper) {
         this.okcoinService = okcoinService;
         this.xChangeService = xChangeService;
         this.broadcastService = broadcastService;
+        this.orderMapper = orderMapper;
 
         orderObservable = okcoinService.createFutureOrderObservable()
                 .mergeWith(okcoinService.createSpotOrderObservable())
@@ -57,11 +61,8 @@ public class OrderService {
         okcoinService.realSpotTrades("832a335b-e627-49ca-b95d-bceafe6c3815", "8FAF74E300D67DCFA080A6425182C8B7");
     }
 
-    public Observable<Order> createOrderObserver(Strategy strategy){
-        return orderObservable
-                .filter(o -> Objects.equals(strategy.getAccount().getExchangeType(), o.getExchangeType()))
-                .filter(o -> Objects.equals(strategy.getSymbol(), o.getSymbol()))
-                .filter(o -> Objects.equals(strategy.getSymbolType(), o.getSymbolType()));
+    public ConnectableObservable<Order> getOrderObservable() {
+        return orderObservable;
     }
 
     public void createOrder(Account account, Order order) throws CreateOrderException {
@@ -127,6 +128,8 @@ public class OrderService {
             broadcastService.broadcast(getClass(), "close_order_"
                     + order.getSymbol() + "_" + Objects.toString(order.getSymbolType(), ""), message);
         }
+
+        broadcastService.broadcast(getClass(), "trade_profit", orderMapper.getTradeProfit());
     }
 
     public Observable<Order> getClosedOrderObservable(){

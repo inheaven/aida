@@ -431,7 +431,7 @@ $(function () {
 
     all_order_rate_chart = $('#all_order_rate').highcharts({
         title: {text: 'Trade Volume', style:{"fontSize": "16px"}},
-        chart:{animation: true, spacingBottom: 0},
+        chart:{animation: true, spacingBottom: 0,  alignTicks: false},
         tooltip: {valueDecimals: 3},
         credits: {enabled: false},
         scrollbar: {enabled: false},
@@ -440,7 +440,7 @@ $(function () {
         legend: {enabled: false},
         xAxis: {type: 'datetime', minRange: 3600000, min: new Date().getTime() - 24*3600000 + offset, max: new Date().getTime() + 60000 + offset},
         yAxis: [
-            {labels: {enabled: true}, title:{text: null}, opposite: true, min:0, maxPadding:0, type:"logarithmic"},
+            {labels: {enabled: true}, title:{text: null}, opposite: true, endOnTick:false},
             {labels: {enabled: false}, title:{text: null}}
         ],
         series: [{

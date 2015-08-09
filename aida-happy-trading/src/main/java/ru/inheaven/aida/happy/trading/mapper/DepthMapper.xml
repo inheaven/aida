@@ -21,7 +21,7 @@
     </insert>
 
     <select id="selectDepths" parameterType="map" resultMap="depth">
-        select * from depth where exchange_type = #{exchangeType} and symbol = #{symbol} and symbol_type = #{symbolType}
-          and created > #{startDate}
+        select symbol, symbol_type, bid, ask, created from depth
+          where exchange_type = #{exchangeType} and symbol = #{symbol} and created > #{startDate}
     </select>
 </mapper>
