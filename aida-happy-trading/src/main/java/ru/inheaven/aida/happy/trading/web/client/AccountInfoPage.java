@@ -81,7 +81,7 @@ public class AccountInfoPage extends BasePage{
                     handler.appendJavaScript(info.getCurrency().toLowerCase() + "_profit_chart.series[0].addPoint(" +
                             Json.createArrayBuilder()
                                     .add(info.getCreated().getTime())
-                                    .add((info.getProfitReal().setScale(3, HALF_UP)))
+                                    .add((info.getProfitReal().add(info.getProfitUnreal()).setScale(3, HALF_UP)))
                                     .build().toString() + ", true);");
 
                     handler.appendJavaScript(info.getCurrency().toLowerCase() + "_margin_chart.series[0].addPoint(" +
@@ -143,6 +143,7 @@ public class AccountInfoPage extends BasePage{
     public void renderHead(IHeaderResponse response) {
         response.render(JavaScriptHeaderItem.forReference(JQueryResourceReference.get()));
         response.render(JavaScriptHeaderItem.forUrl("./highstock/highstock.js"));
+        response.render(JavaScriptHeaderItem.forUrl("./highstock/highcharts-more.js"));
         response.render(JavaScriptHeaderItem.forUrl("./js/dark-unica-mod.js"));
         response.render(JavaScriptHeaderItem.forUrl("./js/account.js"));
     }

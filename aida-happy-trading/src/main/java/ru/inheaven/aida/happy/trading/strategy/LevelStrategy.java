@@ -73,7 +73,7 @@ public class LevelStrategy extends BaseStrategy{
             lock.acquire();
 
             if (!getOrderMap().values().parallelStream()
-                    .filter(order -> LONG.contains(order.getType()))
+                    .filter(o -> LONG.contains(o.getType()))
                     .filter(o -> (SELL_SET.contains(o.getType()) &&
                             o.getPrice().subtract(price).abs().compareTo(spreadX2) < 0) ||
                             (BUY_SET.contains(o.getType()) &&
@@ -161,10 +161,15 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal ask = depth.getAsk();
         BigDecimal bid = depth.getBid();
 
-        if (ask.subtract(bid).compareTo(spread.multiply(BigDecimal.valueOf(2.1))) > 0 && ask.compareTo(bid) > 0){
-            action("on depth ask", ask.subtract(spread).subtract(getStep()));
-            action("on depth bid", bid.add(spread.multiply(BigDecimal.valueOf(2))).add(getStep()));
+        if (ask.subtract(bid).compareTo(spread.multiply(BigDecimal.valueOf(2))) > 0 && ask.compareTo(bid) > 0){
+            BigDecimal step = getStep().multiply(BigDecimal.valueOf(2));
+
+            action("on depth ask", ask.subtract(spread).subtract(step));
+            action("on depth bid", bid.add(spread.multiply(BigDecimal.valueOf(2))).add(step));
         }
+
+        closeOnCheck(ask);
+        closeOnCheck(bid);
     }
 
     @Override

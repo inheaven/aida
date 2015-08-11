@@ -47,7 +47,7 @@ public class AccountInfoRest extends AbstractRestResource<JsonWebSerialDeserial>
                 .map(i -> Arrays.asList(i.getCreated().getTime(),
                         i.getAccountRights().setScale(3, HALF_UP),
                         i.getKeepDeposit().setScale(3, HALF_UP),
-                        i.getProfitReal().setScale(3, HALF_UP)))
+                        i.getProfitReal().add(i.getProfitUnreal()).setScale(3, HALF_UP)))
                 .collect(Collectors.toList());
     }
 

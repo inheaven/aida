@@ -189,9 +189,13 @@ public class BaseStrategy {
                         .multiply(BigDecimal.valueOf(2))) < 0)
                 .forEach(o -> orderService.orderInfo(strategy, o));
 
+        closeOnCheck(trade.getPrice());
+    }
+
+    protected void closeOnCheck(BigDecimal price){
         orderMap.values().parallelStream()
-                .filter(o -> (BUY_SET.contains(o.getType()) && o.getPrice().compareTo(trade.getPrice()) > 0) ||
-                        (SELL_SET.contains(o.getType()) && o.getPrice().compareTo(trade.getPrice()) < 0))
+                .filter(o -> (BUY_SET.contains(o.getType()) && o.getPrice().compareTo(price) > 0) ||
+                        (SELL_SET.contains(o.getType()) && o.getPrice().compareTo(price) < 0))
                 .forEach(o -> {
                     o.setStatus(CLOSED);
                     closeOrder(o);

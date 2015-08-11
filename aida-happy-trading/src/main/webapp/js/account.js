@@ -432,7 +432,9 @@ $(function () {
     all_order_rate_chart = $('#all_order_rate').highcharts({
         title: {text: 'Trade Volume', style:{"fontSize": "16px"}},
         chart:{animation: true, spacingBottom: 0,  alignTicks: false},
-        tooltip: {valueDecimals: 3},
+        tooltip: {valueDecimals: 3, positioner: function (w, h, p) {
+            return { x: p.plotX - w/2, y: all_order_rate_chart.plotTop-h/2 };
+        }},
         credits: {enabled: false},
         scrollbar: {enabled: false},
         navigator: {enabled: false, xAxis:{labels:{enabled:false}}},
@@ -453,8 +455,8 @@ $(function () {
             fillColor: {
                 linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
                 stops: [
-                    [0, Highcharts.getOptions().colors[0]],
-                    [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+                    [0, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0.2).get('rgba')],
+                    [1, Highcharts.getOptions().colors[0]]
                 ]
             }
         },{
