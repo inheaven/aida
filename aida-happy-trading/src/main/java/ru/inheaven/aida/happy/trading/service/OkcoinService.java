@@ -391,13 +391,13 @@ public class OkcoinService {
 
                     try {
                         order.setExchangeType(ExchangeType.OKCOIN);
-                        order.setAmount(BigDecimal.valueOf(j.getJsonNumber("amount").doubleValue()));
+                        order.setAmount(j.getJsonNumber("amount").bigDecimalValue());
                         order.setCreated(new Date(j.getJsonNumber("create_date").longValue()));
                         order.setFilledAmount(j.getJsonNumber("deal_amount").bigDecimalValue());
-                        order.setFee(BigDecimal.valueOf(j.getJsonNumber("fee").doubleValue()));
+                        order.setFee(j.getJsonNumber("fee").bigDecimalValue());
                         order.setOrderId(j.getJsonNumber("order_id").toString());
-                        order.setPrice(BigDecimal.valueOf(j.getJsonNumber("price").doubleValue()));
-                        order.setAvgPrice(BigDecimal.valueOf(j.getJsonNumber("price_avg").doubleValue()));
+                        order.setPrice(j.getJsonNumber("price").bigDecimalValue());
+                        order.setAvgPrice(j.getJsonNumber("price_avg").bigDecimalValue());
 
                         String symbol = j.getString("symbol");
                         if (symbol.contains("ltc")) {
@@ -453,12 +453,12 @@ public class OkcoinService {
 
                     try {
                         order.setExchangeType(ExchangeType.OKCOIN);
-                        order.setAmount(BigDecimal.valueOf(j.getJsonNumber("amount").doubleValue()));
+                        order.setAmount(j.getJsonNumber("amount").bigDecimalValue());
                         order.setCreated(new Date(j.getJsonNumber("create_date").longValue()));
                         order.setFilledAmount(j.getJsonNumber("deal_amount").bigDecimalValue());
                         order.setOrderId(j.getJsonNumber("order_id").toString());
-                        order.setPrice(BigDecimal.valueOf(j.getJsonNumber("price").doubleValue()));
-                        order.setAvgPrice(BigDecimal.valueOf(j.getJsonNumber("avg_price").doubleValue()));
+                        order.setPrice(j.getJsonNumber("price").bigDecimalValue());
+                        order.setAvgPrice(j.getJsonNumber("avg_price").bigDecimalValue());
 
                         String symbol = j.getString("symbol");
                         if (symbol.contains("ltc")) {

@@ -85,8 +85,8 @@ public class XChangeService {
             order.setStatus(OrderStatus.OPEN);
             order.setOpen(new Date());
 
-            log.info("open order -> {} {} {} {}", order.getPrice().setScale(3, HALF_UP), order.getAmount().setScale(3, HALF_UP),
-                    order.getType(), Objects.toString(order.getSymbolType(), ""));
+            log.info("open order -> {} {} {} {} {}", order.getStrategyId(), order.getPrice().setScale(3, HALF_UP),
+                    order.getAmount().setScale(3, HALF_UP), order.getType(), Objects.toString(order.getSymbolType(), ""));
         } catch (Exception e) {
             log.error("error place limit order -> ", e);
 

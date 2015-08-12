@@ -301,4 +301,8 @@ public class BaseStrategy {
     public void setErrorTime(long errorTime) {
         this.errorTime = errorTime;
     }
+
+    public Strategy getStrategy() {
+        return strategy;
+    }
 }

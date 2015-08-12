@@ -16,8 +16,8 @@
             <dataSource type="POOLED">
                 <property name="driver" value="com.mysql.jdbc.Driver"/>
                 <property name="url" value="jdbc:mysql://localhost:3306/aida"/>
-                <property name="username" value="aida"/>
-                <property name="password" value="aida"/>
+                <property name="username" value="root"/>
+                <property name="password" value="root"/>
             </dataSource>
         </environment>
     </environments>

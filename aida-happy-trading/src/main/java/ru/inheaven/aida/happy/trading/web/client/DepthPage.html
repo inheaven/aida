@@ -1,0 +1,123 @@
+<!DOCTYPE html PUBLIC>
+<wicket:head xmlns:wicket="http://wicket.apache.org">
+    <style>
+        .bid{
+            color: #00bc8c;
+            text-align: center;
+        }
+
+        .ask{
+            color: #e74c3c;
+            text-align: center;
+        }
+
+        .table{
+            margin-bottom: 0 !important;
+        }
+
+        .table .table {
+            background-color: transparent !important;
+        }
+
+        .panel {
+            margin-bottom: 0 !important;
+        }
+
+        .table2{
+            width: 300px;
+        }
+
+    </style>
+</wicket:head>
+<wicket:extend xmlns:wicket="http://wicket.apache.org">
+    <table class="table">
+        <tr>
+            <td>
+                <div class="panel panel-default table2">
+                    <div class="panel-heading">LTC Spot</div>
+                    <div class="panel-body">
+                        <table id="ltc_depth" class="table">
+                            <tr wicket:id="ltc_depth">
+                                <td wicket:id="price" class="cell" style="padding: 0"></td>
+                                <td wicket:id="volume" class="cell" style="padding: 0"></td>
+                                <td wicket:id="open" class="cell" style="padding: 0"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <div class="panel panel-default table2">
+                    <div class="panel-heading">LTC This Week</div>
+                    <div class="panel-body">
+                        <table id="ltc_this_depth" class="table">
+                            <tr wicket:id="ltc_this_depth">
+                                <td wicket:id="price" class="cell" style="padding: 0"></td>
+                                <td wicket:id="volume" class="cell" style="padding: 0"></td>
+                                <td wicket:id="open" class="cell" style="padding: 0"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <div class="panel panel-default table2">
+                    <div class="panel-heading">LTC Next Week</div>
+                    <div class="panel-body">
+                        <table id="ltc_next_depth" class="table">
+                            <tr wicket:id="ltc_next_depth">
+                                <td wicket:id="price" class="cell" style="padding: 0"></td>
+                                <td wicket:id="volume" class="cell" style="padding: 0"></td>
+                                <td wicket:id="open" class="cell" style="padding: 0"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <div class="panel panel-default table2">
+                    <div class="panel-heading">BTC Spot</div>
+                    <div class="panel-body">
+                        <table id="btc_depth" class="table">
+                            <tr wicket:id="btc_depth">
+                                <td wicket:id="price" class="cell" style="padding: 0"></td>
+                                <td wicket:id="volume" class="cell" style="padding: 0"></td>
+                                <td wicket:id="open" class="cell" style="padding: 0"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <div class="panel panel-default table2">
+                    <div class="panel-heading">BTC This Week</div>
+                    <div class="panel-body">
+                        <table id="btc_this_depth" class="table">
+                            <tr wicket:id="btc_this_depth">
+                                <td wicket:id="price" class="cell" style="padding: 0"></td>
+                                <td wicket:id="volume" class="cell" style="padding: 0"></td>
+                                <td wicket:id="open" class="cell" style="padding: 0"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <div class="panel panel-default table2">
+                    <div class="panel-heading">BTC This Week</div>
+                    <div class="panel-body">
+                        <table id="btc_next_depth" class="table">
+                            <tr wicket:id="btc_next_depth">
+                                <td wicket:id="price" class="cell" style="padding: 0"></td>
+                                <td wicket:id="volume" class="cell" style="padding: 0"></td>
+                                <td wicket:id="open" class="cell" style="padding: 0"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+
+</wicket:extend>

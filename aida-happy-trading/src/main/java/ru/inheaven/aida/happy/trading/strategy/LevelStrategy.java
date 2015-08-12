@@ -87,14 +87,14 @@ public class LevelStrategy extends BaseStrategy{
 
                     if (strategy.getSymbolType() == null){
                         if (time < 60000){
-                            amountHFT = amountHFT.multiply(BigDecimal.valueOf(-3*time/60000 + 4));
+                            amountHFT = amountHFT.multiply(BigDecimal.valueOf(-3.0*time/60000 + 4.0));
+
+                            log.info("HFT -> {}s {} {} -> {}", time/1000, price, strategy.getLevelLot(), amountHFT);
                         }
                     }else if (time < 15000){
                         amountHFT = amountHFT.multiply(BigDecimal.valueOf(2));
-                    }
 
-                    if (time < 30000) {
-                        log.info("HFT -> {}s {} {} {}", time/1000, price, amountHFT, Objects.toString(strategy.getSymbolType(), ""));
+                        log.info("HFT -> {}s {} {} {}", time/1000, price, amountHFT, strategy.getSymbolType());
                     }
                 }
 
@@ -105,28 +105,31 @@ public class LevelStrategy extends BaseStrategy{
                 Long positionId = System.nanoTime();
 
                 //BUY
+                BigDecimal buyAmount = amountHFT;
 
                 if (strategy.getSymbolType() == null){
-                    amountHFT = amountHFT.multiply(BigDecimal.valueOf(1 + (random.nextDouble() / 5))).setScale(8, HALF_UP);
+                    buyAmount = buyAmount.multiply(BigDecimal.valueOf(1 + (random.nextDouble() / 5))).setScale(8, HALF_UP);
                 }
 
                 createOrderAsync(new Order(strategy,
                         positionId,
                         strategy.getSymbolType() != null ? OPEN_LONG : BID,
                         price.add(getStep()),
-                        amountHFT));
+                        buyAmount));
 
                 //SELL
 
+                BigDecimal sellAmount = amountHFT;
+
                 if (strategy.getSymbolType() == null && strategy.getSymbol().equals("LTC/USD")){
-                    amountHFT = amountHFT.multiply(BigDecimal.valueOf(1 + (random.nextDouble() / 5))).setScale(8, HALF_UP);
+                    sellAmount = sellAmount.multiply(BigDecimal.valueOf(1 + (random.nextDouble() / 5))).setScale(8, HALF_UP);
                 }
 
                 createOrderAsync(new Order(strategy,
                         positionId,
                         strategy.getSymbolType() != null ? CLOSE_LONG : ASK,
                         price.add(spread),
-                        amountHFT));
+                        sellAmount));
 
                 log.info(key + " {}", price);
 

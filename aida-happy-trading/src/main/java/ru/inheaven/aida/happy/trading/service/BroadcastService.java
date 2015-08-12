@@ -27,7 +27,8 @@ public class BroadcastService {
 
     private ExecutorService executorService = Executors.newCachedThreadPool();
 
-    public void broadcast(Class producer, String key, Object payload){
+    @SuppressWarnings("unchecked")
+    public  <T> void broadcast(Class producer, String key, T payload){
         executorService.submit(()->{
             try {
                 if (broadcaster == null){
