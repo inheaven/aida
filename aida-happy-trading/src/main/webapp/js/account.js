@@ -433,7 +433,7 @@ $(function () {
         title: {text: 'Trade Volume', style:{"fontSize": "16px"}},
         chart:{animation: true, spacingBottom: 0,  alignTicks: false},
         tooltip: {valueDecimals: 3, positioner: function (w, h, p) {
-            return { x: p.plotX - w/2, y: all_order_rate_chart.plotTop-h/2 };
+            return { x: p.plotX - w/2, y: p.plotY < all_order_rate_chart.plotTop ? all_order_rate_chart.plotTop-h/2 : p.plotY};
         }},
         credits: {enabled: false},
         scrollbar: {enabled: false},
@@ -441,38 +441,19 @@ $(function () {
         rangeSelector: {enabled: false},
         legend: {enabled: false},
         xAxis: {type: 'datetime', minRange: 3600000, min: new Date().getTime() - 24*3600000 + offset, max: new Date().getTime() + 60000 + offset},
-        yAxis: [
-            {labels: {enabled: true}, title:{text: null}, opposite: true, endOnTick:false},
-            {labels: {enabled: false}, title:{text: null}}
-        ],
+        yAxis:{labels: {enabled: true}, title:{text: null}, opposite: true, endOnTick:false, max: 500},
         series: [{
             type : 'column',
             name: 'Trade Volume',
             borderWidth:0,
-            pointWidth: 16,
             stacking: 'normal',
-            yAxis: 0,
-            fillColor: {
+            color: {
                 linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
                 stops: [
                     [0, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0.2).get('rgba')],
                     [1, Highcharts.getOptions().colors[0]]
                 ]
             }
-        },{
-            type : 'spline',
-            name: 'Order Time',
-            lineWidth : 0,
-            stacking: 'normal',
-            marker : {
-                enabled : false,
-                radius : 4,
-                symbol: 'circle',
-                fillColor: Highcharts.getOptions().colors[0]
-            },
-            states:{hover:{enabled: false}},
-            tooltip:{pointFormat: '', enabled: false},
-            yAxis: 0
         }]
 
     }).highcharts();

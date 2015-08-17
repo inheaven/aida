@@ -16,7 +16,7 @@ public class TradeService {
     private ConnectableObservable<Trade> tradeObservable;
 
     @Inject
-    public TradeService(OkcoinService okcoinService, TradeMapper tradeMapper) {
+    public TradeService(OkcoinService okcoinService, TradeMapper tradeMapper, BroadcastService broadcastService) {
         tradeObservable = okcoinService.createFutureTradeObservable()
                 .mergeWith(okcoinService.createSpotTradeObservable())
                 .onBackpressureBuffer()
@@ -25,6 +25,8 @@ public class TradeService {
         tradeObservable.connect();
 
         tradeObservable.subscribe(tradeMapper::asyncSave);
+
+        tradeObservable.subscribe(t -> broadcastService.broadcast(getClass(), "trade", t));
     }
 
     public ConnectableObservable<Trade> getTradeObservable() {

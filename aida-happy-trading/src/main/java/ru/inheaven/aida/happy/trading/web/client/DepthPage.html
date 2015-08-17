@@ -13,6 +13,7 @@
 
         .table{
             margin-bottom: 0 !important;
+            font-family: 'Unica One', sans-serif;
         }
 
         .table .table {
@@ -27,6 +28,11 @@
             width: 300px;
         }
 
+        .cell{
+            width: 25%;
+            padding: 0 !important;
+        }
+
     </style>
 </wicket:head>
 <wicket:extend xmlns:wicket="http://wicket.apache.org">
@@ -34,13 +40,14 @@
         <tr>
             <td>
                 <div class="panel panel-default table2">
-                    <div class="panel-heading">LTC Spot</div>
+                    <div class="panel-heading">LTC SPOT</div>
                     <div class="panel-body">
                         <table id="ltc_depth" class="table">
                             <tr wicket:id="ltc_depth">
-                                <td wicket:id="price" class="cell" style="padding: 0"></td>
-                                <td wicket:id="volume" class="cell" style="padding: 0"></td>
-                                <td wicket:id="open" class="cell" style="padding: 0"></td>
+                                <td wicket:id="price" class="cell"></td>
+                                <td wicket:id="volume" class="cell"></td>
+                                <td wicket:id="open" class="cell"></td>
+                                <td wicket:id="trade" class="cell"></td>
                             </tr>
                         </table>
                     </div>
@@ -48,13 +55,14 @@
             </td>
             <td>
                 <div class="panel panel-default table2">
-                    <div class="panel-heading">LTC This Week</div>
+                    <div class="panel-heading">LTC THIS WEEK</div>
                     <div class="panel-body">
                         <table id="ltc_this_depth" class="table">
                             <tr wicket:id="ltc_this_depth">
-                                <td wicket:id="price" class="cell" style="padding: 0"></td>
-                                <td wicket:id="volume" class="cell" style="padding: 0"></td>
-                                <td wicket:id="open" class="cell" style="padding: 0"></td>
+                                <td wicket:id="price" class="cell"></td>
+                                <td wicket:id="volume" class="cell"></td>
+                                <td wicket:id="open" class="cell"></td>
+                                <td wicket:id="trade" class="cell"></td>
                             </tr>
                         </table>
                     </div>
@@ -62,13 +70,14 @@
             </td>
             <td>
                 <div class="panel panel-default table2">
-                    <div class="panel-heading">LTC Next Week</div>
+                    <div class="panel-heading">LTC NEXT WEEK</div>
                     <div class="panel-body">
                         <table id="ltc_next_depth" class="table">
                             <tr wicket:id="ltc_next_depth">
-                                <td wicket:id="price" class="cell" style="padding: 0"></td>
-                                <td wicket:id="volume" class="cell" style="padding: 0"></td>
-                                <td wicket:id="open" class="cell" style="padding: 0"></td>
+                                <td wicket:id="price" class="cell"></td>
+                                <td wicket:id="volume" class="cell"></td>
+                                <td wicket:id="open" class="cell"></td>
+                                <td wicket:id="trade" class="cell"></td>
                             </tr>
                         </table>
                     </div>
@@ -76,13 +85,14 @@
             </td>
             <td>
                 <div class="panel panel-default table2">
-                    <div class="panel-heading">BTC Spot</div>
+                    <div class="panel-heading">BTC SPOT</div>
                     <div class="panel-body">
                         <table id="btc_depth" class="table">
                             <tr wicket:id="btc_depth">
-                                <td wicket:id="price" class="cell" style="padding: 0"></td>
-                                <td wicket:id="volume" class="cell" style="padding: 0"></td>
-                                <td wicket:id="open" class="cell" style="padding: 0"></td>
+                                <td wicket:id="price" class="cell"></td>
+                                <td wicket:id="volume" class="cell"></td>
+                                <td wicket:id="open" class="cell"></td>
+                                <td wicket:id="trade" class="cell"></td>
                             </tr>
                         </table>
                     </div>
@@ -90,13 +100,14 @@
             </td>
             <td>
                 <div class="panel panel-default table2">
-                    <div class="panel-heading">BTC This Week</div>
+                    <div class="panel-heading">BTC THIS WEEK</div>
                     <div class="panel-body">
                         <table id="btc_this_depth" class="table">
                             <tr wicket:id="btc_this_depth">
-                                <td wicket:id="price" class="cell" style="padding: 0"></td>
-                                <td wicket:id="volume" class="cell" style="padding: 0"></td>
-                                <td wicket:id="open" class="cell" style="padding: 0"></td>
+                                <td wicket:id="price" class="cell"></td>
+                                <td wicket:id="volume" class="cell"></td>
+                                <td wicket:id="open" class="cell"></td>
+                                <td wicket:id="trade" class="cell"></td>
                             </tr>
                         </table>
                     </div>
@@ -104,13 +115,14 @@
             </td>
             <td>
                 <div class="panel panel-default table2">
-                    <div class="panel-heading">BTC This Week</div>
+                    <div class="panel-heading">BTC NEXT WEEK</div>
                     <div class="panel-body">
                         <table id="btc_next_depth" class="table">
                             <tr wicket:id="btc_next_depth">
-                                <td wicket:id="price" class="cell" style="padding: 0"></td>
-                                <td wicket:id="volume" class="cell" style="padding: 0"></td>
-                                <td wicket:id="open" class="cell" style="padding: 0"></td>
+                                <td wicket:id="price" class="cell"></td>
+                                <td wicket:id="volume" class="cell"></td>
+                                <td wicket:id="open" class="cell"></td>
+                                <td wicket:id="trade" class="cell"></td>
                             </tr>
                         </table>
                     </div>
@@ -118,6 +130,4 @@
             </td>
         </tr>
     </table>
-
-
 </wicket:extend>

@@ -36,6 +36,9 @@ public class AccountInfoPage extends BasePage{
     private static final List<String> SPOT = Arrays.asList("BTC_SPOT", "LTC_SPOT", "USD_SPOT");
     private static final List<String> FUTURES = Arrays.asList("BTC", "LTC");
 
+    private BigDecimal usdTotal = ZERO;
+    private BigDecimal btcPrice = ZERO;
+
     public AccountInfoPage(PageParameters pageParameters) {
         accountId = pageParameters.get("a").toLong(7);
 
@@ -111,9 +114,11 @@ public class AccountInfoPage extends BasePage{
                 protected void onBroadcast(WebSocketRequestHandler handler, String key, Object payload) {
                     UserInfoTotal total = (UserInfoTotal) payload;
 
+                    usdTotal = total.getFuturesTotal().add(total.getSpotTotal());
+                    btcPrice = total.getBtcPrice();
+
                     handler.appendJavaScript("usd_total_chart.series[0].addPoint([" +
-                            total.getCreated().getTime() + "," + total.getFuturesTotal().add(total.getSpotTotal())
-                            .divide(total.getBtcPrice(), 3, HALF_UP) + "])");
+                            total.getCreated().getTime() + "," + usdTotal.divide(total.getBtcPrice(), 3, HALF_UP) + "])");
                     handler.appendJavaScript("btc_price_chart.series[0].addPoint([" +
                             total.getCreated().getTime() + "," + total.getBtcPrice().setScale(2, HALF_UP) + "])");
                     handler.appendJavaScript("ltc_price_chart.series[0].addPoint([" +
@@ -131,9 +136,15 @@ public class AccountInfoPage extends BasePage{
         add(new BroadcastBehavior(OrderService.class) {
             @Override
             protected void onBroadcast(WebSocketRequestHandler handler, String key, Object payload) {
-                if (key.contains("trade_profit")) {
-                    handler.appendJavaScript("all_order_rate_chart.setTitle({text: 'Trade Profit: "
-                            + ((BigDecimal)payload).setScale(2, HALF_UP) + "'});");
+                if (key.contains("trade_profit") && usdTotal.compareTo(ZERO) > 0 && btcPrice.compareTo(ZERO) > 0) {
+                    BigDecimal tradeProfit = ((BigDecimal)payload);
+                    BigDecimal valuationProfit = usdTotal.add(tradeProfit).add(btcPrice.multiply(BigDecimal.valueOf(4.759)))
+                            .subtract(BigDecimal.valueOf(10000))
+                            .divide(BigDecimal.valueOf(100), 8, HALF_UP);
+
+                    handler.appendJavaScript("all_order_rate_chart.setTitle({text: " +
+                            "'Trade Profit: " +  tradeProfit.setScale(2, HALF_UP) +
+                            ", Valuation Profit: " + valuationProfit.setScale(2, HALF_UP) + "%'});");
                 }
             }
         });

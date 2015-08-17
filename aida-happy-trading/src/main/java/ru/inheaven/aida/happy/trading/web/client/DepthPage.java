@@ -1,5 +1,6 @@
 package ru.inheaven.aida.happy.trading.web.client;
 
+
 import org.apache.wicket.ClassAttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -8,20 +9,24 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.protocol.ws.api.WebSocketRequestHandler;
 import ru.inheaven.aida.happy.trading.entity.Depth;
 import ru.inheaven.aida.happy.trading.entity.SymbolType;
+import ru.inheaven.aida.happy.trading.entity.Trade;
 import ru.inheaven.aida.happy.trading.service.DepthService;
 import ru.inheaven.aida.happy.trading.service.Module;
 import ru.inheaven.aida.happy.trading.service.StrategyService;
+import ru.inheaven.aida.happy.trading.service.TradeService;
 import ru.inheaven.aida.happy.trading.strategy.BaseStrategy;
 import ru.inheaven.aida.happy.trading.web.BasePage;
 import ru.inhell.aida.common.wicket.BroadcastBehavior;
 
 import javax.json.Json;
 import javax.json.JsonArray;
+import java.io.Serializable;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -31,6 +36,9 @@ import static java.math.RoundingMode.HALF_UP;
  * @author inheaven on 12.08.2015 21:12.
  */
 public class DepthPage extends BasePage{
+    private static Map<String, Cell> cacheMap = new ConcurrentHashMap<>();
+    private Map<String, BigDecimal> tradeMap = new ConcurrentHashMap<>();
+
     public DepthPage() {
         setVersioned(false);
 
@@ -44,25 +52,7 @@ public class DepthPage extends BasePage{
         add(new BroadcastBehavior<Depth>(DepthService.class) {
             @Override
             protected void onBroadcast(WebSocketRequestHandler handler, String key, Depth depth) {
-                String id = null;
-
-                if (depth.getSymbol().equals("LTC/USD")) {
-                    if (depth.getSymbolType() == null) {
-                        id = "ltc_depth";
-                    }else if (depth.getSymbolType().equals(SymbolType.THIS_WEEK)){
-                        id = "ltc_this_depth";
-                    }else if (depth.getSymbolType().equals(SymbolType.NEXT_WEEK)){
-                        id = "ltc_next_depth";
-                    }
-                }else if (depth.getSymbol().equals("BTC/USD")){
-                    if (depth.getSymbolType() == null) {
-                        id = "btc_depth";
-                    }else if (depth.getSymbolType().equals(SymbolType.THIS_WEEK)){
-                        id = "btc_this_depth";
-                    }else if (depth.getSymbolType().equals(SymbolType.NEXT_WEEK)){
-                        id = "btc_next_depth";
-                    }
-                }
+                String id = getDepthId(depth.getSymbol(), depth.getSymbolType());
 
                 if (id != null){
                     update(id, handler, depth, Module.getInjector().getInstance(StrategyService.class)
@@ -70,9 +60,44 @@ public class DepthPage extends BasePage{
                 }
             }
         });
+
+        add(new BroadcastBehavior<Trade>(TradeService.class) {
+            @Override
+            protected void onBroadcast(WebSocketRequestHandler handler, String key, Trade trade) {
+                String id = getDepthId(trade.getSymbol(), trade.getSymbolType());
+                String k = id+trade.getPrice().setScale(3, HALF_UP);
+                BigDecimal amount = tradeMap.get(k);
+
+                //noinspection RedundantStringConstructorCall
+                tradeMap.put(new String(k), trade.getAmount().add(amount != null ? amount : BigDecimal.ZERO).setScale(3, HALF_UP));
+            }
+        });
     }
 
-    private class Cell{
+    @SuppressWarnings("Duplicates")
+    private String getDepthId(String symbol, SymbolType symbolType) {
+        if (symbol.equals("LTC/USD")) {
+            if (symbolType== null) {
+                return "ltc_depth";
+            }else if (symbolType.equals(SymbolType.THIS_WEEK)){
+                return "ltc_this_depth";
+            }else if (symbolType.equals(SymbolType.NEXT_WEEK)){
+                return "ltc_next_depth";
+            }
+        }else if (symbol.equals("BTC/USD")){
+            if (symbolType == null) {
+                return "btc_depth";
+            }else if (symbolType.equals(SymbolType.THIS_WEEK)){
+                return "btc_this_depth";
+            }else if (symbolType.equals(SymbolType.NEXT_WEEK)){
+                return "btc_next_depth";
+            }
+        }
+
+        return null;
+    }
+
+    private class Cell implements Serializable{
         private BigDecimal price;
         private BigDecimal volume;
         private BigDecimal open;
@@ -97,9 +122,7 @@ public class DepthPage extends BasePage{
         }
     }
 
-    private Map<String, Cell> cache = new HashMap<>();
-
-    private void update(String key, WebSocketRequestHandler handler, Depth depth, List<BaseStrategy> ltcSpot) {
+    private void update(String id, WebSocketRequestHandler handler, Depth depth, List<BaseStrategy> ltcSpot) {
         Map<BigDecimal, BigDecimal> map = new HashMap<>();
 
         Json.createReader(new StringReader(depth.getAskJson())).readArray()
@@ -124,24 +147,35 @@ public class DepthPage extends BasePage{
                     .filter(o -> o.getPrice().setScale(3, HALF_UP).equals(price.setScale(3, HALF_UP)))
                     .collect(Collectors.summingDouble(o -> o.getAmount().doubleValue()));
 
-            Cell cell = new Cell(price.setScale(3, HALF_UP), map.get(price).setScale(3, HALF_UP), BigDecimal.valueOf(open).setScale(3, HALF_UP));
-            Cell c = cache.get(key+index);
+            int volumeScale = depth.getSymbolType() == null ? 3 : 0;
+            int priceScale = depth.getSymbol().contains("BTC") ? 2 : 3;
+
+            Cell cell = new Cell(price.setScale(3, HALF_UP), map.get(price).setScale(volumeScale, HALF_UP),
+                    BigDecimal.valueOf(open).setScale(volumeScale, HALF_UP));
+            Cell c = cacheMap.get(id+index);
 
             if (c == null || !c.equals(cell)){
-                handler.appendJavaScript("$('#" + key + " #price_" + index + "').text('" + cell.price + "')");
-                handler.appendJavaScript("$('#" + key +" #volume_" + index + "').text('" + cell.volume + "')");
-                handler.appendJavaScript("$('#" + key + " #open_" + index + "').text('" +
+                BigDecimal trade = tradeMap.get(id+cell.price);
+
+                handler.appendJavaScript("$('#" + id + " #price_" + index + "').text('" +
+                        cell.price.setScale(priceScale, HALF_UP) + "')");
+                handler.appendJavaScript("$('#" + id +" #volume_" + index + "').text('" +
+                        cell.volume + "')");
+                handler.appendJavaScript("$('#" + id + " #open_" + index + "').text('" +
                         (open > 0 ? cell.open : "") + "')");
+                handler.appendJavaScript("$('#" + id + " #trade_" + index + "').text('" +
+                        (trade != null ? trade.setScale(volumeScale, HALF_UP) : "") + "')");
             }
 
-            cache.put(key+index, cell);
+            cacheMap.put(id + index, cell);
 
             index++;
         }
     }
 
     protected ListView getListView(String id) {
-        ListView listView = new ListView<Integer>(id, IntStream.range(0, 40).boxed().collect(Collectors.toList())) {
+
+        return new ListView<Integer>(id, IntStream.range(0, 40).boxed().collect(Collectors.toList())) {
             @SuppressWarnings("WicketForgeJavaIdInspection")
             @Override
             protected void populateItem(ListItem<Integer> item) {
@@ -152,9 +186,8 @@ public class DepthPage extends BasePage{
                 item.add(new Label("price", Model.of("")).setMarkupId("price_" + index).add(ClassAttributeModifier.append("class", rowClass)));
                 item.add(new Label("volume", Model.of("")).setMarkupId("volume_" + index).add(ClassAttributeModifier.append("class", rowClass)));
                 item.add(new Label("open", Model.of("")).setMarkupId("open_" + index).add(ClassAttributeModifier.append("class", rowClass)));
+                item.add(new Label("trade", Model.of("")).setMarkupId("trade_" + index).add(ClassAttributeModifier.append("class", rowClass)));
             }
         };
-
-        return listView;
     }
 }
