@@ -67,14 +67,57 @@
         select closed from `order` where status = 'CLOSED' and `closed` > date_sub(now(), interval 6 hour);
     </select>
 
-    <select id="selectTradeProfit" resultType="decimal">
-        select SUM(IF(o1.symbol_type is null, (o1.price*0.998 - o2.price)*IF(o2.amount > o1.amount, o1.amount, o2.amount),
-                      IF(o1.symbol = 'BTC/USD', (100/o2.price - 100/o1.price)*o1.amount - 0.03*o1.amount,
-                         IF(o1.symbol = 'LTC/USD', (10/o2.price - 10/o1.price)*o1.amount - 0.003*o1.amount, 0))))
+    <select id="selectMinTradeProfit" resultType="decimal" parameterType="map">
+        select SUM(
+          IF(o1.symbol_type is null, (o1.price*0.998 - o2.price)*IF(o2.amount > o1.amount, o1.amount, o2.amount),
+          IF(o1.symbol = 'BTC/USD', (100/o2.price - 100/o1.price)*o1.amount - 0.03*o1.amount,
+          IF(o1.symbol = 'LTC/USD', (10/o2.price - 10/o1.price)*o1.amount - 0.003*o1.amount, 0))))
         from `order` o1 left join `order` o2 on o1.position_id = o2.position_id
         where o1.position_id is not null and o2.position_id is not null and
-              o1.type in ('CLOSE_LONG', 'ASK') and o2.type in ('OPEN_LONG', 'BID') and
-              o1.status = 'CLOSED' and o2.status = 'CLOSED'
+          o1.type in ('CLOSE_LONG', 'ASK') and o2.type in ('OPEN_LONG', 'BID') and
+          o1.status = 'CLOSED' and o2.status = 'CLOSED'
+          <if test="strategyId != null">and o1.strategy_id = #{strategyId} and o2.strategy_id = #{strategyId}</if>
+          <if test="startDate != null">and o1.closed > #{startDate} and o2.closed > #{startDate}</if>
+          <if test="endDate != null">and #{endDate} > o1.closed and #{endDate} > o2.closed</if>
     </select>
 
+    <select id="selectRandomTradeProfit" resultType="decimal" parameterType="map">
+        select SUM(
+          IF(o1.symbol_type is null, (o1.price*0.998*o1.amount - o2.price*o2.amount),
+          IF(o1.symbol = 'BTC/USD', (100/o2.price - 100/o1.price)*o1.amount - 0.03*o1.amount,
+          IF(o1.symbol = 'LTC/USD', (10/o2.price - 10/o1.price)*o1.amount - 0.003*o1.amount, 0))))
+        from `order` o1 left join `order` o2 on o1.position_id = o2.position_id
+        where o1.position_id is not null and o2.position_id is not null and
+          o1.type in ('CLOSE_LONG', 'ASK') and o2.type in ('OPEN_LONG', 'BID') and
+          o1.status = 'CLOSED' and o2.status = 'CLOSED'
+          <if test="strategyId != null">and o1.strategy_id = #{strategyId} and o2.strategy_id = #{strategyId}</if>
+          <if test="startDate != null">and o1.closed > #{startDate} and o2.closed > #{startDate}</if>
+          <if test="endDate != null">and #{endDate} > o1.closed and #{endDate} > o2.closed</if>
+    </select>
+
+    <select id="selectMinTradeVolume" resultType="decimal" parameterType="map">
+        select SUM(
+        IF(o1.symbol_type is null, IF(o2.amount > o1.amount, o1.amount*2, o2.amount*2),
+        IF(o1.symbol = 'BTC/USD', o1.amount*200,
+        IF(o1.symbol = 'LTC/USD', o1.amount*20, 0))))
+        from `order` o1 left join `order` o2 on o1.position_id = o2.position_id
+        where o1.position_id is not null and o2.position_id is not null and
+        o1.type in ('CLOSE_LONG', 'ASK') and o2.type in ('OPEN_LONG', 'BID') and
+        o1.status = 'CLOSED' and o2.status = 'CLOSED'
+        <if test="strategyId != null">and o1.strategy_id = #{strategyId} and o2.strategy_id = #{strategyId}</if>
+        <if test="startDate != null">and o1.closed > #{startDate} and o2.closed > #{startDate}</if>
+        <if test="endDate != null">and #{endDate} > o1.closed and #{endDate} > o2.closed</if>
+    </select>
+
+    <select id="selectRandomTradeVolume" resultType="decimal" parameterType="map">
+        select SUM(
+          IF(symbol_type is null, price*amount,
+          IF(symbol = 'BTC/USD', 100*amount,
+          IF(symbol = 'LTC/USD', 10*amount, 0))))
+        from `order`
+        where position_id is not null and `status` = 'CLOSED'
+          <if test="strategyId != null">and strategy_id = #{strategyId}</if>
+          <if test="startDate != null">and closed > #{startDate}</if>
+          <if test="endDate != null">and #{endDate} > closed</if>
+    </select>
 </mapper>

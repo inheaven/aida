@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC>
+<wicket:head xmlns:wicket="http://wicket.apache.org">
+    <style>
+        .table{
+            font-family: 'Unica One', sans-serif;
+        }
+    </style>
+</wicket:head>
+<wicket:extend xmlns:wicket="http://wicket.apache.org">
+    <div>
+        <div class="panel" style="width: 1200px;  margin: auto">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>NAME</th>
+                    <th>MIN TRADE PROFIT</th>
+                    <th>MIN TRADE VOLUME</th>
+                    <th>RANDOM TRADE PROFIT</th>
+                    <th>RANDOM TRADE VOLUME</th>
+                    <th>SPREAD</th>
+                    <th>LOT</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr wicket:id="strategies">
+                    <td wicket:id="id"></td>
+                    <td wicket:id="name"></td>
+                    <td wicket:id="min_trade_profit"></td>
+                    <td wicket:id="min_trade_volume"></td>
+                    <td wicket:id="random_trade_profit"></td>
+                    <td wicket:id="random_trade_volume"></td>
+                    <td wicket:id="spread"></td>
+                    <td wicket:id="lot"></td>
+                </tr>
+                </tbody>
+                <tfoot>
+                <td colspan="2">TOTAL</td>
+                <td wicket:id="min_trade_profit"></td>
+                <td wicket:id="min_trade_volume"></td>
+                <td wicket:id="random_trade_profit"></td>
+                <td wicket:id="random_trade_volume"></td>
+                <td colspan="2"></td>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+</wicket:extend>

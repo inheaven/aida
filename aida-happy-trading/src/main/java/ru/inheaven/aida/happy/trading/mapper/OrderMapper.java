@@ -53,7 +53,39 @@ public class OrderMapper extends BaseMapper<Order>{
         return sqlSession().selectList("selectLast6HourOrderTimes");
     }
 
-    public BigDecimal getTradeProfit(){
-        return sqlSession().selectOne("selectTradeProfit");
+    public BigDecimal getMinTradeProfit(){
+        return sqlSession().selectOne("selectMinTradeProfit");
+    }
+
+    public BigDecimal getMinTradeProfit(Long strategyId, Date startDate, Date endDate){
+        return sqlSession().selectOne("selectMinTradeProfit", new HashMap<String, Object>(){{
+            put("strategyId", strategyId);
+            put("startDate", startDate);
+            put("endDate", endDate);
+        }});
+    }
+
+    public BigDecimal getRandomTradeProfit(Long strategyId, Date startDate, Date endDate){
+        return sqlSession().selectOne("selectRandomTradeProfit", new HashMap<String, Object>(){{
+            put("strategyId", strategyId);
+            put("startDate", startDate);
+            put("endDate", endDate);
+        }});
+    }
+
+    public BigDecimal getMinTradeVolume(Long strategyId, Date startDate, Date endDate){
+        return sqlSession().selectOne("selectMinTradeVolume", new HashMap<String, Object>(){{
+            put("strategyId", strategyId);
+            put("startDate", startDate);
+            put("endDate", endDate);
+        }});
+    }
+
+    public BigDecimal getRandomTradeVolume(Long strategyId, Date startDate, Date endDate){
+        return sqlSession().selectOne("selectRandomTradeVolume", new HashMap<String, Object>(){{
+            put("strategyId", strategyId);
+            put("startDate", startDate);
+            put("endDate", endDate);
+        }});
     }
 }

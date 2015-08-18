@@ -20,7 +20,7 @@ $(function () {
     Highcharts.setOptions({
         global: {
             useUTC: true,
-            timezoneOffset: 60
+            timezoneOffset: -360
         },
         lang:{
             rangeSelectorZoom: ''

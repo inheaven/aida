@@ -129,7 +129,7 @@ public class OrderService {
                     + order.getSymbol() + "_" + Objects.toString(order.getSymbolType(), ""), message);
         }
 
-        broadcastService.broadcast(getClass(), "trade_profit", orderMapper.getTradeProfit());
+        broadcastService.broadcast(getClass(), "trade_profit", orderMapper.getMinTradeProfit());
     }
 
     public Observable<Order> getClosedOrderObservable(){
