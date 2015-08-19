@@ -88,4 +88,12 @@ public class OrderMapper extends BaseMapper<Order>{
             put("endDate", endDate);
         }});
     }
+
+    public BigDecimal getTradeCount(Long strategyId, Date startDate, Date endDate){
+        return sqlSession().selectOne("selectTradeCount", new HashMap<String, Object>(){{
+            put("strategyId", strategyId);
+            put("startDate", startDate);
+            put("endDate", endDate);
+        }});
+    }
 }

@@ -14,7 +14,7 @@ import ru.inheaven.aida.happy.trading.web.BasePage;
  */
 public class StrategyPage extends BasePage{
     public StrategyPage() {
-        add(new ListView<Strategy>("strategies", Module.getInjector().getInstance(StrategyMapper.class).getActiveStrategies()) {
+        add(new ListView<Strategy>("strategies", Module.getInjector().getInstance(StrategyMapper.class).getStrategies()) {
             @Override
             protected void populateItem(ListItem<Strategy> item) {
                 OrderMapper orderMapper = Module.getInjector().getInstance(OrderMapper.class);
@@ -25,10 +25,12 @@ public class StrategyPage extends BasePage{
                 item.add(new Label("name", strategy.getName()));
                 item.add(new Label("spread", strategy.getLevelSpread()));
                 item.add(new Label("lot", strategy.getLevelLot()));
+                item.add(new Label("active", strategy.isActive()));
                 item.add(new Label("min_trade_profit", orderMapper.getMinTradeProfit(strategy.getId(), null, null)));
                 item.add(new Label("min_trade_volume", orderMapper.getMinTradeVolume(strategy.getId(), null, null)));
-                item.add(new Label("random_trade_profit", orderMapper.getRandomTradeProfit(strategy.getId(), null, null)));
-                item.add(new Label("random_trade_volume", orderMapper.getRandomTradeVolume(strategy.getId(), null, null)));
+                item.add(new Label("random_trade_profit", strategy.getSymbolType() == null ? orderMapper.getRandomTradeProfit(strategy.getId(), null, null) : "—"));
+                item.add(new Label("random_trade_volume", strategy.getSymbolType() == null ? orderMapper.getRandomTradeVolume(strategy.getId(), null, null) : "—"));
+                item.add(new Label("count", orderMapper.getTradeCount(strategy.getId(), null, null)));
             }
         });
 

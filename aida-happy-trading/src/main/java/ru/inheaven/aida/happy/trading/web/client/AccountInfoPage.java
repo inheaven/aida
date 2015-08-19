@@ -93,7 +93,7 @@ public class AccountInfoPage extends BasePage{
                                     .add((info.getKeepDeposit().setScale(3, HALF_UP)))
                                     .build().toString() + ", true);");
 
-                    if (info.getRiskRate().compareTo(BigDecimal.valueOf(6)) < 0){
+                    if (info.getRiskRate().compareTo(BigDecimal.valueOf(5)) < 0){
                         handler.appendJavaScript("" +
                                 "var msg = new SpeechSynthesisUtterance('уровень маржи предельный');\n" +
                                 "msg.lang='ru-RU'; msg.pitch=1.2;\n" +
@@ -138,7 +138,7 @@ public class AccountInfoPage extends BasePage{
             protected void onBroadcast(WebSocketRequestHandler handler, String key, Object payload) {
                 if (key.contains("trade_profit") && usdTotal.compareTo(ZERO) > 0 && btcPrice.compareTo(ZERO) > 0) {
                     BigDecimal tradeProfit = ((BigDecimal)payload);
-                    BigDecimal valuationProfit = usdTotal.add(tradeProfit).add(btcPrice.multiply(BigDecimal.valueOf(4.759)))
+                    BigDecimal valuationProfit = usdTotal.add(tradeProfit)
                             .subtract(BigDecimal.valueOf(10000))
                             .divide(BigDecimal.valueOf(100), 8, HALF_UP);
 

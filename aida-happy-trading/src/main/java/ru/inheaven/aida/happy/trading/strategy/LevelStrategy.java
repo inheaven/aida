@@ -94,7 +94,7 @@ public class LevelStrategy extends BaseStrategy{
                     }else if (time < 15000){
                         amountHFT = amountHFT.multiply(BigDecimal.valueOf(2));
 
-                        log.info("HFT -> {}s {} {} {}", time/1000, price, amountHFT, strategy.getSymbolType());
+                        log.info("HFT -> {}s {} {} {}", time/1000, price.setScale(3, HALF_UP), amountHFT.setScale(3, HALF_UP), strategy.getSymbolType());
                     }
                 }
 

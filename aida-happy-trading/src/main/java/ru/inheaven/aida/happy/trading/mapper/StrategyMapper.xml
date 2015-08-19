@@ -40,4 +40,8 @@
     <select id="selectActiveStrategies" resultMap="strategy">
         select * from strategy where active = true
     </select>
+
+    <select id="selectStrategies" resultMap="strategy">
+        select * from strategy
+    </select>
 </mapper>
