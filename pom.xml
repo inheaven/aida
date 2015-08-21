@@ -540,7 +540,7 @@
             <dependency>
                 <groupId>quickfixj</groupId>
                 <artifactId>quickfixj-core</artifactId>
-                <version>1.5.3</version>
+                <version>1.5.3-bd</version>
             </dependency>
             <dependency>
                 <groupId>quickfixj</groupId>
@@ -550,7 +550,7 @@
             <dependency>
                 <groupId>quickfixj</groupId>
                 <artifactId>quickfixj-msg-fix44</artifactId>
-                <version>1.5.3</version>
+                <version>1.5.3-bd</version>
             </dependency>
 
             <dependency>

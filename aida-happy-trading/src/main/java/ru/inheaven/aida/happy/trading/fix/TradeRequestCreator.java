@@ -30,50 +30,32 @@ public class TradeRequestCreator {
 		return message;
 	}
 
-	public NewOrderSingle createNewOrderSingle(
-			String clOrdId,
-			char side,
-			char ordType,
-			BigDecimal orderQty,
-			BigDecimal price,
-			String symbol) {
-		NewOrderSingle message = new NewOrderSingle(
-				new ClOrdID(clOrdId),
-				new Side(side),
-				new TransactTime(new Date()),
+    public NewOrderSingle createNewOrderSingle(String clOrdId, char side, char ordType, BigDecimal orderQty,
+                                               BigDecimal price, String symbol) {
+		NewOrderSingle message = new NewOrderSingle(new ClOrdID(clOrdId), new Side(side), new TransactTime(new Date()),
 				new OrdType(ordType));
 		message.set(new Account(account));
-		message.set(new OrderQty(orderQty.doubleValue()));
-		message.set(new Price(price.doubleValue()));
+		message.set(new OrderQty(orderQty));
+		message.set(new Price(price));
+		message.set(new Symbol(symbol));
+
+		return message;
+	}
+
+	public OrderCancelRequest createOrderCancelRequest(String clOrdId, String origClOrdId, char side, String symbol) {
+		OrderCancelRequest message = new OrderCancelRequest(new OrigClOrdID(origClOrdId), new ClOrdID(clOrdId),
+				new Side(side), new TransactTime(new Date()));
 		message.set(new Symbol(symbol));
 		return message;
 	}
 
-	public OrderCancelRequest createOrderCancelRequest(
-			String clOrdId,
-			String origClOrdId,
-			char side,
-			String symbol) {
-		OrderCancelRequest message = new OrderCancelRequest(
-				new OrigClOrdID(origClOrdId),
-				new ClOrdID(clOrdId),
-				new Side(side),
-				new TransactTime(new Date()));
-		message.set(new Symbol(symbol));
-		return message;
+	public OrderMassStatusRequest createOrderMassStatusRequest(String massStatusReqId, int massStatusReqType) {
+        return new OrderMassStatusRequest(
+                new MassStatusReqID(massStatusReqId),
+                new MassStatusReqType(massStatusReqType));
 	}
 
-	public OrderMassStatusRequest createOrderMassStatusRequest(
-			String massStatusReqId,
-			int massStatusReqType) {
-		OrderMassStatusRequest message  = new OrderMassStatusRequest(
-				new MassStatusReqID(massStatusReqId),
-				new MassStatusReqType(massStatusReqType));
-		return message;
-	}
-
-	public TradeCaptureReportRequest createTradeCaptureReportRequest(
-			String tradeRequestId, String symbol) {
+	public TradeCaptureReportRequest createTradeCaptureReportRequest(String tradeRequestId, String symbol) {
 		TradeCaptureReportRequest message = new TradeCaptureReportRequest(
 				new TradeRequestID(tradeRequestId),
 				new TradeRequestType(
@@ -82,14 +64,13 @@ public class TradeRequestCreator {
 		return message;
 	}
 
-	public OrdersInfoAfterSomeIDRequest createOrdersInfoAfterSomeIDRequest(
-			String tradeRequestId, String symbol, long orderId, char ordStatus) {
-		OrdersInfoAfterSomeIDRequest message = new OrdersInfoAfterSomeIDRequest(
-				new TradeRequestID(tradeRequestId),
-				new Symbol(symbol),
-				new OrderID(String.valueOf(orderId)),
-				new OrdStatus(ordStatus));
-		return message;
+	public OrdersInfoAfterSomeIDRequest createOrdersInfoAfterSomeIDRequest( String tradeRequestId, String symbol,
+                                                                            long orderId, char ordStatus) {
+        return new OrdersInfoAfterSomeIDRequest(
+                new TradeRequestID(tradeRequestId),
+                new Symbol(symbol),
+                new OrderID(String.valueOf(orderId)),
+                new OrdStatus(ordStatus));
 	}
 
 }

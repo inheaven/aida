@@ -29,6 +29,8 @@ public class Order extends AbstractEntity {
 
     private Long accountId;
 
+    private String internalId;
+
     public Order() {
     }
 
@@ -191,5 +193,37 @@ public class Order extends AbstractEntity {
 
     public void setAccountId(Long accountId) {
         this.accountId = accountId;
+    }
+
+    public String getInternalId() {
+        return internalId;
+    }
+
+    public void setInternalId(String internalId) {
+        this.internalId = internalId;
+    }
+
+    @Override
+    public String toString() {
+        return "Order{" +
+                "orderId='" + orderId + '\'' +
+                ", strategyId=" + strategyId +
+                ", positionId=" + positionId +
+                ", exchangeType=" + exchangeType +
+                ", type=" + type +
+                ", symbol='" + symbol + '\'' +
+                ", symbolType=" + symbolType +
+                ", price=" + price +
+                ", amount=" + amount +
+                ", filledAmount=" + filledAmount +
+                ", avgPrice=" + avgPrice +
+                ", fee=" + fee +
+                ", created=" + created +
+                ", open=" + open +
+                ", closed=" + closed +
+                ", status=" + status +
+                ", accountId=" + accountId +
+                ", internalId='" + internalId + '\'' +
+                '}';
     }
 }

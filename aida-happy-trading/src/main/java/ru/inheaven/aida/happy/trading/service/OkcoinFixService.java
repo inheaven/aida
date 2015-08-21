@@ -3,10 +3,8 @@ package ru.inheaven.aida.happy.trading.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.*;
-import quickfix.field.*;
-import quickfix.fix44.MarketDataSnapshotFullRefresh;
-import ru.inheaven.aida.happy.trading.entity.ExchangeType;
-import ru.inheaven.aida.happy.trading.entity.OrderType;
+import ru.inheaven.aida.happy.trading.entity.Account;
+import ru.inheaven.aida.happy.trading.entity.Order;
 import ru.inheaven.aida.happy.trading.entity.Trade;
 import ru.inheaven.aida.happy.trading.fix.OKCoinApplication;
 import ru.inheaven.aida.happy.trading.fix.fix44.OKCoinMessageFactory;
@@ -15,8 +13,6 @@ import rx.subjects.PublishSubject;
 
 import javax.inject.Singleton;
 import java.io.InputStream;
-import java.math.BigDecimal;
-import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -31,45 +27,24 @@ public class OkcoinFixService {
     private SessionID sessionId;
 
     private PublishSubject<Trade> tradePublishSubject = PublishSubject.create();
-
-    private long lastTrade = System.currentTimeMillis();
+    private PublishSubject<Order> orderPublishSubject = PublishSubject.create();
 
     public OkcoinFixService() {
-        okCoinApplication = new OKCoinApplication("00dff9d7-7d99-45f9-bd41-23d08d4665ce", "CB58C8091A0605AAD1F5815F215BB93B"){
+        okCoinApplication = new OKCoinApplication("832a335b-e627-49ca-b95d-bceafe6c3815", "8FAF74E300D67DCFA080A6425182C8B7"){
             @Override
-            public void onMessage(MarketDataSnapshotFullRefresh message, SessionID sessionID) throws FieldNotFound,
-                    UnsupportedMessageType, IncorrectTagValue {
-                String symbol = message.getSymbol().getValue();
-
-                for (int i = 1, l = message.getNoMDEntries().getValue(); i <= l; i++) {
-                    Group group = message.getGroup(i, NoMDEntries.FIELD);
-
-                    BigDecimal price = new BigDecimal(group.getString(MDEntryPx.FIELD));
-                    BigDecimal amount = group.isSetField(MDEntrySize.FIELD) ? new BigDecimal(group.getString(MDEntrySize.FIELD)) : null;
-                    char type = group.getChar(MDEntryType.FIELD);
-
-                    if (type == MDEntryType.TRADE){
-                        Trade trade = new Trade();
-                        trade.setTradeId(String.valueOf(System.nanoTime()));
-                        trade.setExchangeType(ExchangeType.OKCOIN);
-                        trade.setSymbol(symbol);
-                        trade.setOrderType(group.getField(new Side()).getValue() == Side.BUY ? OrderType.BID : OrderType.ASK);
-                        trade.setPrice(price);
-                        trade.setAmount(amount);
-                        trade.setTime(message.getString(OrigTime.FIELD));
-                        trade.setCreated(new Date());
-
-                        tradePublishSubject.onNext(trade);
-
-                        lastTrade = System.currentTimeMillis();
-                    }
-                }
+            public void onCreate(SessionID sessionId) {
+                requestLiveTrades(UUID.randomUUID().toString(), "LTC/USD", sessionId);
+                requestLiveTrades(UUID.randomUUID().toString(), "BTC/USD", sessionId);
             }
 
             @Override
-            public void onLogon(SessionID sessionId) {
-                requestLiveTrades(UUID.randomUUID().toString(), "LTC/USD", sessionId);
-                requestLiveTrades(UUID.randomUUID().toString(), "BTC/USD", sessionId);
+            protected void onTrade(Trade trade) {
+                tradePublishSubject.onNext(trade);
+            }
+
+            @Override
+            protected void onOrder(Order order) {
+                orderPublishSubject.onNext(order);
             }
         };
 
@@ -96,7 +71,15 @@ public class OkcoinFixService {
         }
     }
 
+    public void placeLimitOrder(Account account, Order order){
+        okCoinApplication.placeOrder(order, sessionId);
+    }
+
     public Observable<Trade> getTradeObservable(){
         return tradePublishSubject.asObservable();
+    }
+
+    public Observable<Order> getOrderObservable(){
+        return orderPublishSubject.asObservable();
     }
 }

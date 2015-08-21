@@ -160,8 +160,10 @@ public class OkcoinService {
             }, 0, 1, TimeUnit.MINUTES);
 
             //success
-            marketEndpoint.getJsonObservable().filter(j -> j.getString("success", null) != null).subscribe(System.out::println);
-            tradingEndpoint.getJsonObservable().filter(j -> j.getString("success", null) != null).subscribe(System.out::println);
+            marketEndpoint.getJsonObservable().filter(j -> j.getString("success", null) != null)
+                    .subscribe(j -> log.info(j.toString()));
+            tradingEndpoint.getJsonObservable().filter(j -> j.getString("success", null) != null)
+                    .subscribe(j -> log.info(j.toString()));
 
             //heartbeat
             Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
@@ -297,7 +299,7 @@ public class OkcoinService {
     public Observable<Trade> createSpotTradeObservable() {
         return marketEndpoint.getJsonObservable()
                 .filter(j -> j.getString("channel", "").contains("usd_trades_v1"))
-                .flatMapIterable(j -> j.getJsonArray("data"), (o, v) -> new JsonData<>(o.getString("channel"), v))
+                .flatMapIterable(j -> j.getJsonArray("data"), (o, v) -> new JsonData<JsonValue>(o.getString("channel"), v))
                 .filter(d -> d.value.getValueType().equals(JsonValue.ValueType.ARRAY))
                 .map(j -> {
                     lastTrade = System.currentTimeMillis();

@@ -2,8 +2,10 @@ package ru.inheaven.aida.happy.trading.strategy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.inheaven.aida.happy.trading.entity.*;
-import ru.inheaven.aida.happy.trading.exception.CreateOrderException;
+import ru.inheaven.aida.happy.trading.entity.Depth;
+import ru.inheaven.aida.happy.trading.entity.Order;
+import ru.inheaven.aida.happy.trading.entity.Strategy;
+import ru.inheaven.aida.happy.trading.entity.Trade;
 import ru.inheaven.aida.happy.trading.exception.OrderInfoException;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.DepthService;
@@ -40,7 +42,7 @@ public class BaseStrategy {
     private Observable<Trade> allTradeObservable;
     private Observable<Depth> depthObservable;
 
-    private Subscription closeOrderSubscription;
+    private Subscription orderSubscription;
     private Subscription tradeSubscription;
     private Subscription checkOrderSubscription;
     private Subscription depthSubscription;
@@ -102,10 +104,10 @@ public class BaseStrategy {
             return;
         }
 
-        closeOrderSubscription = orderObservable
-                .filter(o -> orderMap.containsKey(o.getOrderId()))
-                .filter(o -> o.getStatus().equals(OrderStatus.CLOSED) || o.getStatus().equals(OrderStatus.CANCELED))
-                .subscribe(this::closeOrder);
+        orderSubscription = orderObservable
+                .filter(o -> orderMap.containsKey(o.getOrderId()) ||
+                        (o.getInternalId() != null && orderMap.containsKey(o.getInternalId())))
+                .subscribe(this::onOrder);
 
         realTradeSubscription = orderObservable.subscribe(o -> {
             try {
@@ -144,7 +146,7 @@ public class BaseStrategy {
                 orderService.checkOrder(strategy.getAccount(), o);
 
                 if (o.getStatus().equals(CANCELED) || o.getStatus().equals(CLOSED)) {
-                    closeOrder(o);
+                    onOrder(o);
                     log.info("schedule close order -> {} {} {} {}", o.getOrderId(), o.getSymbol(),
                             Objects.toString(o.getSymbolType(), ""), o.getStatus());
                 }
@@ -158,16 +160,13 @@ public class BaseStrategy {
     }
 
     public void stop(){
-        closeOrderSubscription.unsubscribe();
+        orderSubscription.unsubscribe();
         tradeSubscription.unsubscribe();
         checkOrderSubscription.unsubscribe();
         depthSubscription.unsubscribe();
         realTradeSubscription.unsubscribe();
 
         flying = false;
-    }
-
-    protected void onCreateOrder(Order order){
     }
 
     protected void onCloseOrder(Order order){
@@ -197,79 +196,75 @@ public class BaseStrategy {
                         (SELL_SET.contains(o.getType()) && o.getPrice().compareTo(price) < 0))
                 .forEach(o -> {
                     o.setStatus(CLOSED);
-                    closeOrder(o);
+                    onOrder(o);
                 });
-    }
-
-    protected void createOrder(Order order) throws CreateOrderException {
-        order.setCreated(new Date());
-        order.setStatus(CREATED);
-        order.setPrice(order.getPrice().setScale(8, HALF_UP));
-
-        String createdOrderId = "CREATED->" + System.nanoTime();
-        order.setOrderId(createdOrderId);
-        orderMap.put(createdOrderId, order);
-
-        try {
-            orderService.createOrder(strategy.getAccount(), order);
-            orderMap.put(order.getOrderId(), order);
-
-            orderMapper.save(order);
-
-            onCreateOrder(order);
-            orderService.onCreateOrder(order);
-
-        } finally {
-            orderMap.remove(createdOrderId);
-        }
     }
 
     private ExecutorService executorService = Executors.newFixedThreadPool(2);
 
     protected Future<Order> createOrderAsync(Order order){
-        order.setCreated(new Date());
-        order.setStatus(CREATED);
+        order.setInternalId(String.valueOf(System.nanoTime()));
         order.setPrice(order.getPrice().setScale(8, HALF_UP));
+        order.setStatus(CREATED);
+        order.setCreated(new Date());
 
-        String createdOrderId = "CREATED->" + System.nanoTime();
-        order.setOrderId(createdOrderId);
-        orderMap.put(createdOrderId, order);
+        orderMap.put(order.getInternalId(), order);
 
         return executorService.submit(() -> {
             try {
                 orderService.createOrder(strategy.getAccount(), order);
-                orderMap.put(order.getOrderId(), order);
 
-                orderMapper.save(order);
+                if (order.getStatus().equals(OPEN)){
+                    orderMap.put(order.getOrderId(), order);
+                    orderMap.remove(order.getInternalId());
 
-                onCreateOrder(order);
-                orderService.onCreateOrder(order);
-            } catch (Exception e){
-                log.error("error create order -> ", e);
-            } finally{
-                orderMap.remove(createdOrderId);
+                    orderMapper.asyncSave(order);
+                }
+            } catch (Exception e) {
+                orderMap.remove(order.getInternalId());
+
+                log.error("error create order -> {}", order, e);
             }
 
             return order;
         });
     }
 
-    protected void closeOrder(Order o){
+    protected void onOrder(Order o){
         try {
-            Order order = orderMap.get(o.getOrderId());
+            if (o.getOrderId() != null && (o.getStatus().equals(CANCELED) || o.getStatus().equals(CLOSED))){
+                Order order = orderMap.get(o.getOrderId());
 
-            if (order != null) {
-                order.setAccountId(strategy.getAccount().getId());
-                orderMap.remove(o.getOrderId());
-                order.close(o);
+                if (order == null && o.getInternalId() != null){
+                    order = orderMap.get(o.getInternalId());
+                }
 
-                orderMapper.asyncSave(order);
+                if (order != null){
+                    order.setAccountId(strategy.getAccount().getId());
+                    orderMap.remove(o.getOrderId());
+                    order.close(o);
 
-                orderService.onCloseOrder(order);
-                onCloseOrder(order);
+                    orderMapper.asyncSave(order);
+
+                    orderService.onCloseOrder(order);
+                    onCloseOrder(order);
+                }
+            }else if (o.getInternalId() != null && o.getStatus().equals(OPEN)){
+                Order order = orderMap.get(o.getInternalId());
+
+                if (order != null){
+                    order.setOrderId(o.getOrderId());
+                    order.setStatus(OPEN);
+                    order.setOpen(o.getOpen());
+
+                    orderMap.put(o.getOrderId(), order);
+                    orderMap.remove(o.getInternalId());
+
+                    orderMapper.asyncSave(order);
+                }
             }
         } catch (Exception e) {
-            log.error("error on close order -> ", e);
+            log.error("error on order -> ", e);
         }
     }
 

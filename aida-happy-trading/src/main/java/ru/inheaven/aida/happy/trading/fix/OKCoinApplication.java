@@ -3,14 +3,17 @@ package ru.inheaven.aida.happy.trading.fix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.*;
-import quickfix.field.MsgType;
-import quickfix.field.Password;
-import quickfix.field.Username;
+import quickfix.field.*;
 import quickfix.fix44.ExecutionReport;
+import quickfix.fix44.MarketDataSnapshotFullRefresh;
 import quickfix.fix44.MessageCracker;
+import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.fix.fix44.AccountInfoResponse;
 
 import java.math.BigDecimal;
+import java.util.Date;
+
+import static java.math.RoundingMode.HALF_UP;
 
 public class OKCoinApplication extends MessageCracker implements Application {
 
@@ -108,14 +111,87 @@ public class OKCoinApplication extends MessageCracker implements Application {
 		}
 	}
 
-	@Override
-	public void onMessage(ExecutionReport message, SessionID sessionId)
-			throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
-	}
-
 	public void onMessage(AccountInfoResponse message, SessionID sessionId)
 			throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
 	}
+
+    @Override
+    public void onMessage(MarketDataSnapshotFullRefresh message, SessionID sessionID) throws FieldNotFound,
+            UnsupportedMessageType, IncorrectTagValue {
+        String symbol = message.getSymbol().getValue();
+
+        for (int i = 1, l = message.getNoMDEntries().getValue(); i <= l; i++) {
+            Group group = message.getGroup(i, NoMDEntries.FIELD);
+
+            BigDecimal price = new BigDecimal(group.getString(MDEntryPx.FIELD));
+            BigDecimal amount = group.isSetField(MDEntrySize.FIELD) ? new BigDecimal(group.getString(MDEntrySize.FIELD)) : null;
+            char type = group.getChar(MDEntryType.FIELD);
+
+            if (type == MDEntryType.TRADE){
+                Trade trade = new Trade();
+                trade.setTradeId(String.valueOf(System.nanoTime()));
+                trade.setExchangeType(ExchangeType.OKCOIN);
+                trade.setSymbol(symbol);
+                trade.setOrderType(group.getField(new Side()).getValue() == Side.BUY ? OrderType.BID : OrderType.ASK);
+                trade.setPrice(price);
+                trade.setAmount(amount);
+                trade.setTime(message.getString(OrigTime.FIELD));
+                trade.setCreated(new Date());
+
+                onTrade(trade);
+            }
+        }
+    }
+
+    @Override
+    public void onMessage(ExecutionReport message, SessionID sessionId) throws FieldNotFound, UnsupportedMessageType,
+            IncorrectTagValue {
+        Order order = new Order();
+
+        order.setExchangeType(ExchangeType.OKCOIN);
+        order.setSymbol(message.getSymbol().getValue());
+        order.setInternalId(message.getClOrdID().getValue().replace("\\", ""));
+        order.setOrderId(message.getOrderID().getValue());
+
+        order.setAvgPrice(message.getAvgPx().getValue());
+
+        if (message.isSetPrice()) {
+            order.setPrice(message.getPrice().getValue());
+        }
+
+        order.setAmount(message.getOrderQty().getValue());
+
+        Date time = message.isSetTransactTime() ? message.getTransactTime().getValue() : new Date();
+
+        switch (message.getOrdStatus().getValue()){
+            case '0':
+                order.setStatus(OrderStatus.OPEN);
+                order.setOpen(time);
+                break;
+            case '2':
+                order.setStatus(OrderStatus.CLOSED);
+                order.setClosed(time);
+                break;
+            case '4':
+            case '8':
+                order.setStatus(OrderStatus.CANCELED);
+                order.setClosed(time);
+                break;
+            default:
+                order.setStatus(OrderStatus.OPEN);
+        }
+
+        onOrder(order);
+
+        log.info(order.toString());
+    }
+
+
+    protected void onTrade(Trade trade){
+    }
+
+    protected void onOrder(Order order){
+    }
 
 	public void sendMessage(final Message message, final SessionID sessionId) {
 		log.trace("sending message: {}", message);
@@ -154,9 +230,19 @@ public class OKCoinApplication extends MessageCracker implements Application {
 		sendMessage(marketDataRequestCreator.create24HTickerRequest(mdReqId, symbol), sessionId);
 	}
 
-	public void placeOrder(String clOrdId, char side, char ordType, BigDecimal orderQty, BigDecimal price, String symbol,
-                           SessionID sessionId) {
-		sendMessage(tradeRequestCreator.createNewOrderSingle(clOrdId, side, ordType, orderQty, price, symbol), sessionId);
+	public void placeOrder(Order order, SessionID sessionId) {
+        char side;
+        switch (order.getType()){
+            case ASK: side = '2'; break;
+            case BID: side = '1'; break;
+            default: side = '0';
+        }
+
+		sendMessage(tradeRequestCreator.createNewOrderSingle(order.getInternalId(), side, '2', order.getAmount(),
+                order.getPrice(), order.getSymbol()), sessionId);
+
+        log.info("new order -> {} {} {} {}", order.getStrategyId(), order.getPrice().setScale(3, HALF_UP),
+                order.getAmount().setScale(3, HALF_UP), order.getType());
 	}
 
 	public void cancelOrder(String clOrdId, String origClOrdId, char side, String symbol, SessionID sessionId) {
