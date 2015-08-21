@@ -16,9 +16,11 @@ public class TradeService {
     private ConnectableObservable<Trade> tradeObservable;
 
     @Inject
-    public TradeService(OkcoinService okcoinService, TradeMapper tradeMapper, BroadcastService broadcastService) {
+    public TradeService(OkcoinService okcoinService,OkcoinFixService okcoinFixService, TradeMapper tradeMapper,
+                        BroadcastService broadcastService) {
         tradeObservable = okcoinService.createFutureTradeObservable()
                 .mergeWith(okcoinService.createSpotTradeObservable())
+                .mergeWith(okcoinFixService.getTradeObservable())
                 .onBackpressureBuffer()
                 .observeOn(Schedulers.io())
                 .publish();

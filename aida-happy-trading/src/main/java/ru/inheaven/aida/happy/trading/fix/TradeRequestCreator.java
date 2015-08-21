@@ -1,12 +1,13 @@
-package ru.inheaven.aida.fix;
+package  ru.inheaven.aida.happy.trading.fix;
 
 import quickfix.field.*;
 import quickfix.fix44.NewOrderSingle;
 import quickfix.fix44.OrderCancelRequest;
 import quickfix.fix44.OrderMassStatusRequest;
 import quickfix.fix44.TradeCaptureReportRequest;
-import ru.inheaven.aida.fix.field.AccReqID;
-import ru.inheaven.aida.fix.fix44.AccountInfoRequest;
+import ru.inheaven.aida.happy.trading.fix.field.AccReqID;
+import ru.inheaven.aida.happy.trading.fix.fix44.AccountInfoRequest;
+import ru.inheaven.aida.happy.trading.fix.fix44.OrdersInfoAfterSomeIDRequest;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -78,6 +79,16 @@ public class TradeRequestCreator {
 				new TradeRequestType(
 						TradeRequestType.MATCHED_TRADES_MATCHING_CRITERIA_PROVIDED_ON_REQUEST));
 		message.set(new Symbol(symbol));
+		return message;
+	}
+
+	public OrdersInfoAfterSomeIDRequest createOrdersInfoAfterSomeIDRequest(
+			String tradeRequestId, String symbol, long orderId, char ordStatus) {
+		OrdersInfoAfterSomeIDRequest message = new OrdersInfoAfterSomeIDRequest(
+				new TradeRequestID(tradeRequestId),
+				new Symbol(symbol),
+				new OrderID(String.valueOf(orderId)),
+				new OrdStatus(ordStatus));
 		return message;
 	}
 

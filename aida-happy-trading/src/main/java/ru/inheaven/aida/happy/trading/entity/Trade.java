@@ -93,4 +93,19 @@ public class Trade extends AbstractEntity {
     public void setSymbol(String symbol) {
         this.symbol = symbol;
     }
+
+    @Override
+    public String toString() {
+        return "Trade{" +
+                "tradeId='" + tradeId + '\'' +
+                ", exchangeType=" + exchangeType +
+                ", symbol='" + symbol + '\'' +
+                ", symbolType=" + symbolType +
+                ", orderType=" + orderType +
+                ", price=" + price +
+                ", amount=" + amount +
+                ", time='" + time + '\'' +
+                ", created=" + created +
+                '}';
+    }
 }

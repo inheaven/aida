@@ -71,10 +71,10 @@ public class OkcoinService {
             "{'event':'addChannel','channel':'ok_btcusd_future_depth_next_week', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}",
             "{'event':'addChannel','channel':'ok_btcusd_future_depth_quarter', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}",
 
-            "{'event':'addChannel','channel':'ok_ltcusd_trades_v1', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}",
+//            "{'event':'addChannel','channel':'ok_ltcusd_trades_v1', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}",
             "{'event':'addChannel','channel':'ok_ltcusd_depth', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}",
 
-            "{'event':'addChannel','channel':'ok_btcusd_trades_v1', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}",
+//            "{'event':'addChannel','channel':'ok_btcusd_trades_v1', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}",
             "{'event':'addChannel','channel':'ok_btcusd_depth', 'parameters':{'api_key':'00dff9d7-7d99-45f9-bd41-23d08d4665ce','sign':'CB58C8091A0605AAD1F5815F215BB93B'}}"
     );
 
@@ -267,7 +267,7 @@ public class OkcoinService {
     public Observable<Trade> createFutureTradeObservable() {
         return marketEndpoint.getJsonObservable()
                 .filter(j -> j.getString("channel", "").contains("_future_trade_v1_"))
-                .flatMapIterable(j -> j.getJsonArray("data"), (o, v) -> new JsonData<JsonValue>(o.getString("channel"), v))
+                .flatMapIterable(j -> j.getJsonArray("data"), (o, v) -> new JsonData<>(o.getString("channel"), v))
                 .filter(d -> d.value.getValueType().equals(JsonValue.ValueType.ARRAY))
                 .map(j -> {
                     lastTrade = System.currentTimeMillis();
@@ -297,7 +297,7 @@ public class OkcoinService {
     public Observable<Trade> createSpotTradeObservable() {
         return marketEndpoint.getJsonObservable()
                 .filter(j -> j.getString("channel", "").contains("usd_trades_v1"))
-                .flatMapIterable(j -> j.getJsonArray("data"), (o, v) -> new JsonData<JsonValue>(o.getString("channel"), v))
+                .flatMapIterable(j -> j.getJsonArray("data"), (o, v) -> new JsonData<>(o.getString("channel"), v))
                 .filter(d -> d.value.getValueType().equals(JsonValue.ValueType.ARRAY))
                 .map(j -> {
                     lastTrade = System.currentTimeMillis();
