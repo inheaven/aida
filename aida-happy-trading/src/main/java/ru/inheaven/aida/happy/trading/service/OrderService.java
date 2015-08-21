@@ -118,6 +118,8 @@ public class OrderService {
                 key + "_" + Objects.toString(order.getSymbolType(), ""), message);
     }
 
+    private long lastOnCloseOrder = System.currentTimeMillis();
+
     public void onCloseOrder(Order order){
         localClosedOrderPublishSubject.onNext(order);
 
@@ -129,7 +131,11 @@ public class OrderService {
                     + order.getSymbol() + "_" + Objects.toString(order.getSymbolType(), ""), message);
         }
 
-        broadcastService.broadcast(getClass(), "trade_profit", orderMapper.getMinTradeProfit());
+        if (System.currentTimeMillis() - lastOnCloseOrder > 1000) {
+            broadcastService.broadcast(getClass(), "trade_profit", orderMapper.getMinTradeProfit());
+
+            lastOnCloseOrder = System.currentTimeMillis();
+        }
     }
 
     public Observable<Order> getClosedOrderObservable(){

@@ -141,7 +141,7 @@ public class DepthPage extends BasePage{
 
         int index = 0;
         for (BigDecimal price : prices){
-            double open = ltcSpot.stream()
+            double open = ltcSpot.parallelStream()
                     .map(BaseStrategy::getOrderMap)
                     .flatMap(m -> m.values().stream())
                     .filter(o -> o.getPrice().setScale(3, HALF_UP).equals(price.setScale(3, HALF_UP)))

@@ -14,7 +14,9 @@ import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import static java.math.BigDecimal.*;
 import static java.math.RoundingMode.HALF_UP;
@@ -51,6 +53,8 @@ public class LevelStrategy extends BaseStrategy{
                         }
                     });
         }
+
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(levelTimeMap::clear, 0, 1, TimeUnit.HOURS);
     }
 
     private Semaphore lock = new Semaphore(1);
@@ -66,20 +70,36 @@ public class LevelStrategy extends BaseStrategy{
         }
 
         BigDecimal spread = strategy.getLevelSpread().multiply(risk);
-        BigDecimal spreadX2 = spread.multiply(BigDecimal.valueOf(2)).setScale(8, HALF_UP);
-        BigDecimal level = price.divideToIntegralValue(spreadX2);
+
+        if (strategy.getSymbolType() == null) {
+            BigDecimal minSpread = price.multiply(new BigDecimal("0.002"));
+
+            if (spread.compareTo(minSpread) < 0){
+                spread = minSpread;
+
+                log.warn("LOW Spread -> {} {} {} {}", strategy.getId(), minSpread.setScale(3, HALF_UP), strategy.getSymbol(),
+                        Objects.toString(strategy.getSymbolType(), ""));
+            }
+        }
 
         try {
             lock.acquire();
 
-            if (!getOrderMap().values().parallelStream()
-                    .filter(o -> LONG.contains(o.getType()))
-                    .filter(o -> (SELL_SET.contains(o.getType()) &&
-                            o.getPrice().subtract(price).abs().compareTo(spreadX2) < 0) ||
-                            (BUY_SET.contains(o.getType()) &&
-                                    price.subtract(o.getPrice()).abs().compareTo(spread) < 0))
-                    .findAny()
-                    .isPresent()){
+            BigDecimal spreadX2 = spread.multiply(BigDecimal.valueOf(2));
+            BigDecimal level = price.divideToIntegralValue(spreadX2);
+            BigDecimal spreadF = spread;
+
+            Order search = getOrderMap().searchValues(64, (o) -> {
+                if (LONG.contains(o.getType()) &&
+                        (SELL_SET.contains(o.getType()) && o.getPrice().subtract(price).abs().compareTo(spreadX2) < 0) ||
+                        (BUY_SET.contains(o.getType()) && price.subtract(o.getPrice()).abs().compareTo(spreadF) < 0)){
+                    return o;
+                }
+
+                return null;
+            });
+
+            if (search == null){
                 BigDecimal amountHFT = strategy.getLevelLot();
 
                 if (levelTimeMap.get(level) != null){
@@ -89,12 +109,14 @@ public class LevelStrategy extends BaseStrategy{
                         if (time < 60000){
                             amountHFT = amountHFT.multiply(BigDecimal.valueOf(-3.0*time/60000 + 4.0));
 
-                            log.info("HFT -> {}s {} {} -> {}", time/1000, price, strategy.getLevelLot(), amountHFT);
+                            log.info("HFT -> {}s {} {} -> {}", time/1000, price.setScale(3, HALF_UP),
+                                    strategy.getLevelLot().setScale(3, HALF_UP), amountHFT.setScale(3, HALF_UP));
                         }
                     }else if (time < 15000){
                         amountHFT = amountHFT.multiply(BigDecimal.valueOf(2));
 
-                        log.info("HFT -> {}s {} {} {}", time/1000, price.setScale(3, HALF_UP), amountHFT.setScale(3, HALF_UP), strategy.getSymbolType());
+                        log.info("HFT -> {}s {} {} {}", time/1000, price.setScale(3, HALF_UP),
+                                amountHFT.setScale(3, HALF_UP), strategy.getSymbolType());
                     }
                 }
 
@@ -121,7 +143,7 @@ public class LevelStrategy extends BaseStrategy{
 
                 BigDecimal sellAmount = amountHFT;
 
-                if (strategy.getSymbolType() == null && strategy.getSymbol().equals("LTC/USD")){
+                if (strategy.getSymbolType() == null){
                     sellAmount = sellAmount.multiply(BigDecimal.valueOf(1 + (random.nextDouble() / 5))).setScale(8, HALF_UP);
                 }
 

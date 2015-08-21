@@ -14,7 +14,6 @@ import rx.Subscription;
 
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.*;
 
@@ -47,7 +46,7 @@ public class BaseStrategy {
     private Subscription depthSubscription;
     private Subscription realTradeSubscription;
 
-    private Map<String, Order> orderMap = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, Order> orderMap = new ConcurrentHashMap<>();
 
     private Strategy strategy;
 
@@ -274,7 +273,7 @@ public class BaseStrategy {
         }
     }
 
-    public Map<String, Order> getOrderMap() {
+    public ConcurrentHashMap<String, Order> getOrderMap() {
         return orderMap;
     }
 
