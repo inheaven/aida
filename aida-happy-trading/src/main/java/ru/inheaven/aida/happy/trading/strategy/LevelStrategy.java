@@ -40,6 +40,9 @@ public class LevelStrategy extends BaseStrategy{
 
     private Map<BigDecimal, Long> levelTimeMap = new ConcurrentHashMap<>();
 
+    private BigDecimal lastAsk = ZERO;
+    private BigDecimal lastBid = ZERO;
+
     public LevelStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                          DepthService depthService, UserInfoService userInfoService) {
         super(strategy, orderService, orderMapper, tradeService, depthService);
@@ -90,8 +93,9 @@ public class LevelStrategy extends BaseStrategy{
             lock.acquire();
 
             BigDecimal spreadX2 = spread.multiply(BigDecimal.valueOf(2));
-            BigDecimal level = price.divideToIntegralValue(spreadX2);
             BigDecimal spreadF = spread;
+
+            BigDecimal level = price.divideToIntegralValue(spreadX2);
 
             Order search = getOrderMap().searchValues(64, (o) -> {
                 if (LONG.contains(o.getType()) && !CLOSED.equals(o.getStatus()) &&
@@ -140,7 +144,7 @@ public class LevelStrategy extends BaseStrategy{
                 createOrderAsync(new Order(strategy,
                         positionId,
                         strategy.getSymbolType() != null ? OPEN_LONG : BID,
-                        price.add(getStep()),
+                        price.add(getStep(price)),
                         buyAmount));
 
                 //SELL
@@ -190,11 +194,12 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal ask = depth.getAsk();
         BigDecimal bid = depth.getBid();
 
-        if (ask.subtract(bid).compareTo(spread.multiply(BigDecimal.valueOf(2))) > 0 && ask.compareTo(bid) > 0){
-            BigDecimal step = getStep().multiply(BigDecimal.valueOf(2));
+        lastAsk = ask;
+        lastBid = bid;
 
-            action("on depth ask", ask.subtract(spread).subtract(step));
-            action("on depth bid", bid.add(spread.multiply(BigDecimal.valueOf(2))).add(step));
+        if (ask.subtract(bid).compareTo(spread.multiply(BigDecimal.valueOf(2))) > 0 && ask.compareTo(bid) > 0){
+            action("on depth ask", ask.subtract(spread));
+            action("on depth bid", bid.add(spread.multiply(BigDecimal.valueOf(2))));
         }
 
         closeOnCheck(ask);
@@ -219,12 +224,14 @@ public class LevelStrategy extends BaseStrategy{
         }
     }
 
-    private BigDecimal getStep(){
+    private BigDecimal getStep(BigDecimal price){
+        int bid = price.subtract(lastAsk).abs().compareTo(price.subtract(lastBid).abs()) >= 0 ? 1 : -1;
+
         switch (strategy.getSymbol()){
             case "BTC/USD":
-                return BigDecimal.valueOf(0.01);
+                return new BigDecimal("0.01").multiply(BigDecimal.valueOf(bid));
             case "LTC/USD":
-                return BigDecimal.valueOf(0.001);
+                return new BigDecimal("0.001").multiply(BigDecimal.valueOf(bid));
         }
 
         return ZERO;
