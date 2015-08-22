@@ -32,7 +32,7 @@ public class OkcoinFixService {
     public OkcoinFixService() {
         okCoinApplication = new OKCoinApplication("832a335b-e627-49ca-b95d-bceafe6c3815", "8FAF74E300D67DCFA080A6425182C8B7"){
             @Override
-            public void onCreate(SessionID sessionId) {
+            public void onLogon(SessionID sessionId) {
                 requestLiveTrades(UUID.randomUUID().toString(), "LTC/USD", sessionId);
                 requestLiveTrades(UUID.randomUUID().toString(), "BTC/USD", sessionId);
             }

@@ -81,15 +81,13 @@ public class OrderService {
     }
 
     public void orderInfo(Strategy strategy, Order order){
-        if (order.getOrderId().contains("CREATED")){
-            return;
-        }
-
-        if (order.getExchangeType().equals(OKCOIN)){
-            if (order.getSymbolType() != null){
-                okcoinService.orderFutureInfo(strategy.getAccount().getApiKey(), strategy.getAccount().getSecretKey(), order);
-            }else {
-                okcoinService.orderSpotInfo(strategy.getAccount().getApiKey(), strategy.getAccount().getSecretKey(), order);
+        if (order.getOrderId() != null){
+            if (order.getExchangeType().equals(OKCOIN)){
+                if (order.getSymbolType() != null){
+                    okcoinService.orderFutureInfo(strategy.getAccount().getApiKey(), strategy.getAccount().getSecretKey(), order);
+                }else {
+                    okcoinService.orderSpotInfo(strategy.getAccount().getApiKey(), strategy.getAccount().getSecretKey(), order);
+                }
             }
         }
     }

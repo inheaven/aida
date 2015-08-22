@@ -13,8 +13,6 @@ import ru.inheaven.aida.happy.trading.fix.fix44.AccountInfoResponse;
 import java.math.BigDecimal;
 import java.util.Date;
 
-import static java.math.RoundingMode.HALF_UP;
-
 public class OKCoinApplication extends MessageCracker implements Application {
 
 	private final Logger log = LoggerFactory.getLogger(OKCoinApplication.class);
@@ -150,8 +148,11 @@ public class OKCoinApplication extends MessageCracker implements Application {
 
         order.setExchangeType(ExchangeType.OKCOIN);
         order.setSymbol(message.getSymbol().getValue());
-        order.setInternalId(message.getClOrdID().getValue().replace("\\", ""));
         order.setOrderId(message.getOrderID().getValue());
+
+        if (message.isSetClOrdID()) {
+            order.setInternalId(message.getClOrdID().getValue().replace("\\", ""));
+        }
 
         order.setAvgPrice(message.getAvgPx().getValue());
 
@@ -182,10 +183,7 @@ public class OKCoinApplication extends MessageCracker implements Application {
         }
 
         onOrder(order);
-
-        log.info(order.toString());
     }
-
 
     protected void onTrade(Trade trade){
     }
@@ -240,9 +238,6 @@ public class OKCoinApplication extends MessageCracker implements Application {
 
 		sendMessage(tradeRequestCreator.createNewOrderSingle(order.getInternalId(), side, '2', order.getAmount(),
                 order.getPrice(), order.getSymbol()), sessionId);
-
-        log.info("new order -> {} {} {} {}", order.getStrategyId(), order.getPrice().setScale(3, HALF_UP),
-                order.getAmount().setScale(3, HALF_UP), order.getType());
 	}
 
 	public void cancelOrder(String clOrdId, String origClOrdId, char side, String symbol, SessionID sessionId) {

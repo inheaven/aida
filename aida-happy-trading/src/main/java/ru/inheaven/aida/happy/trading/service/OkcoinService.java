@@ -160,10 +160,10 @@ public class OkcoinService {
             }, 0, 1, TimeUnit.MINUTES);
 
             //success
-            marketEndpoint.getJsonObservable().filter(j -> j.getString("success", null) != null)
-                    .subscribe(j -> log.info(j.toString()));
-            tradingEndpoint.getJsonObservable().filter(j -> j.getString("success", null) != null)
-                    .subscribe(j -> log.info(j.toString()));
+//            marketEndpoint.getJsonObservable().filter(j -> j.getString("success", null) != null)
+//                    .subscribe(j -> log.info(j.toString()));
+//            tradingEndpoint.getJsonObservable().filter(j -> j.getString("success", null) != null)
+//                    .subscribe(j -> log.info(j.toString()));
 
             //heartbeat
             Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {

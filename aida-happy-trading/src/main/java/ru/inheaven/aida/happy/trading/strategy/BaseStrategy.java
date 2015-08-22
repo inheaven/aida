@@ -200,7 +200,7 @@ public class BaseStrategy {
                 });
     }
 
-    private ExecutorService executorService = Executors.newFixedThreadPool(2);
+    private ExecutorService executorService = Executors.newWorkStealingPool();
 
     protected Future<Order> createOrderAsync(Order order){
         order.setInternalId(String.valueOf(System.nanoTime()));
@@ -220,6 +220,8 @@ public class BaseStrategy {
 
                     orderMapper.asyncSave(order);
                 }
+
+                logOrder(order);
             } catch (Exception e) {
                 orderMap.remove(order.getInternalId());
 
@@ -248,6 +250,8 @@ public class BaseStrategy {
 
                     orderService.onCloseOrder(order);
                     onCloseOrder(order);
+
+                    logOrder(order);
                 }
             }else if (o.getInternalId() != null && o.getStatus().equals(OPEN)){
                 Order order = orderMap.get(o.getInternalId());
@@ -261,11 +265,20 @@ public class BaseStrategy {
                     orderMap.remove(o.getInternalId());
 
                     orderMapper.asyncSave(order);
+
+                    logOrder(order);
                 }
             }
         } catch (Exception e) {
             log.error("error on order -> ", e);
         }
+    }
+
+    private void logOrder(Order order){
+        log.info("{} {} {} {} {} {} {} {}", order.getStrategyId(),
+                order.getOrderId() != null ? order.getOrderId() : order.getInternalId(), order.getStatus(),
+                order.getSymbol(), order.getPrice().setScale(3, HALF_UP), order.getAmount().setScale(3, HALF_UP),
+                order.getType(), Objects.toString(order.getSymbolType(), ""));
     }
 
     public ConcurrentHashMap<String, Order> getOrderMap() {

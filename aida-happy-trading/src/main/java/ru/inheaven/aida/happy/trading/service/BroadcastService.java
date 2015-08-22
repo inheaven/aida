@@ -25,7 +25,7 @@ public class BroadcastService {
     @Inject
     private AidaHappyTradingApplication application;
 
-    private ExecutorService executorService = Executors.newCachedThreadPool();
+    private ExecutorService executorService = Executors.newWorkStealingPool();
 
     @SuppressWarnings("unchecked")
     public  <T> void broadcast(Class producer, String key, T payload){

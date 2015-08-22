@@ -2,7 +2,10 @@ package ru.inheaven.aida.happy.trading.strategy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.inheaven.aida.happy.trading.entity.*;
+import ru.inheaven.aida.happy.trading.entity.Depth;
+import ru.inheaven.aida.happy.trading.entity.Order;
+import ru.inheaven.aida.happy.trading.entity.Strategy;
+import ru.inheaven.aida.happy.trading.entity.Trade;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.DepthService;
 import ru.inheaven.aida.happy.trading.service.OrderService;
@@ -20,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import static java.math.BigDecimal.*;
 import static java.math.RoundingMode.HALF_UP;
+import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CLOSED;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.*;
 
 /**
@@ -90,7 +94,7 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal spreadF = spread;
 
             Order search = getOrderMap().searchValues(64, (o) -> {
-                if (LONG.contains(o.getType()) &&
+                if (LONG.contains(o.getType()) && !CLOSED.equals(o.getStatus()) &&
                         (SELL_SET.contains(o.getType()) && o.getPrice().subtract(price).abs().compareTo(spreadX2) < 0) ||
                         (BUY_SET.contains(o.getType()) && price.subtract(o.getPrice()).abs().compareTo(spreadF) < 0)){
                     return o;
@@ -130,7 +134,7 @@ public class LevelStrategy extends BaseStrategy{
                 BigDecimal buyAmount = amountHFT;
 
                 if (strategy.getSymbolType() == null){
-                    buyAmount = buyAmount.multiply(BigDecimal.valueOf(1 + (random.nextDouble() / 5))).setScale(8, HALF_UP);
+                    buyAmount = buyAmount.multiply(BigDecimal.valueOf(1.0 + random.nextDouble()/5)).setScale(8, HALF_UP);
                 }
 
                 createOrderAsync(new Order(strategy,
@@ -144,7 +148,7 @@ public class LevelStrategy extends BaseStrategy{
                 BigDecimal sellAmount = amountHFT;
 
                 if (strategy.getSymbolType() == null){
-                    sellAmount = sellAmount.multiply(BigDecimal.valueOf(1 + (random.nextDouble() / 5))).setScale(8, HALF_UP);
+                    sellAmount = sellAmount.multiply(BigDecimal.valueOf(1.0 + random.nextDouble()/5)).setScale(8, HALF_UP);
                 }
 
                 createOrderAsync(new Order(strategy,
@@ -203,14 +207,14 @@ public class LevelStrategy extends BaseStrategy{
             decrementErrorCount();
         }
 
-        if (order.getStatus().equals(OrderStatus.CLOSED)){
+        if (order.getStatus().equals(CLOSED)){
             action("on close order", order.getPrice());
         }
     }
 
     @Override
     protected void onRealTrade(Order order) {
-        if (order.getStatus().equals(OrderStatus.CLOSED) && order.getAvgPrice().compareTo(ZERO) > 0){
+        if (order.getStatus().equals(CLOSED) && order.getAvgPrice().compareTo(ZERO) > 0){
             action("on real trade", order.getAvgPrice());
         }
     }
