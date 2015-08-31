@@ -7,6 +7,7 @@ import org.glassfish.tyrus.container.jdk.client.JdkClientContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
+import ru.inheaven.aida.happy.trading.util.OkcoinUtil;
 import ru.inhell.aida.common.rx.JsonObservableEndpoint;
 import rx.Observable;
 
@@ -633,8 +634,8 @@ public class OkcoinService {
     //REQUEST
 
     public void orderFutureInfo(String apiKey, String secretKey, Order order){
-        orderFutureInfo(apiKey, secretKey, toSymbol(order.getSymbol()), order.getOrderId(),
-                toContractName(order.getSymbolType()), "2", "1", "1");
+        orderFutureInfo(apiKey, secretKey, OkcoinUtil.toSymbol(order.getSymbol()), order.getOrderId(),
+                OkcoinUtil.toContractName(order.getSymbolType()), "2", "1", "1");
     }
 
     public void orderFutureInfo(String apiKey, String secretKey, String symbol, String orderId, String contractType,
@@ -673,7 +674,7 @@ public class OkcoinService {
     public void orderSpotInfo(String apiKey, String secretKey, Order order){
         try {
             String orderId = order.getOrderId();
-            String symbol = toSymbol(order.getSymbol());
+            String symbol = OkcoinUtil.toSymbol(order.getSymbol());
 
             JsonObject parameters = Json.createObjectBuilder()
                     .add("api_key", apiKey)
@@ -771,26 +772,6 @@ public class OkcoinService {
         }
 
         throw new IllegalArgumentException("error get symbol type -> " + channel);
-    }
-
-    public String toSymbol(String symbol){
-        if (symbol.equals("BTC/USD")){
-            return "btc_usd";
-        }else if (symbol.equals("LTC/USD")){
-            return "ltc_usd";
-        }
-
-        throw new IllegalArgumentException("error to symbol -> " + symbol);
-    }
-
-    public String toContractName(SymbolType symbolType){
-        switch (symbolType){
-            case THIS_WEEK: return "this_week";
-            case NEXT_WEEK: return "next_week";
-            case QUARTER: return "quarter";
-        }
-
-        throw new IllegalArgumentException("error to contract name -> " + symbolType);
     }
 
     private static final char HEX_DIGITS[] = {

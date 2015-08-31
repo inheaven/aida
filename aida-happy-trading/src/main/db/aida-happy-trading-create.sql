@@ -137,3 +137,36 @@ CREATE TABLE `depth`
   KEY `key_created` (created)
 );
 
+CREATE TABLE `futures_position`(
+  id BIGINT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+  account_id BIGINT NOT NULL,
+  symbol VARCHAR(8) NOT NULL,
+  symbol_type VARCHAR(10) NOT NULL,
+
+  buy_amount DECIMAL(19,8) NOT NULL,
+  buy_available DECIMAL(19,8) NOT NULL,
+  buy_price_avg DECIMAL(19,8) NOT NULL,
+  buy_price_cost DECIMAL(19,8) NOT NULL,
+  buy_profit_real DECIMAL(19,8) NOT NULL,
+
+  sell_amount DECIMAL(19,8) NOT NULL,
+  sell_available DECIMAL(19,8) NOT NULL,
+  sell_price_avg DECIMAL(19,8) NOT NULL,
+  sell_price_cost DECIMAL(19,8) NOT NULL,
+  sell_profit_real DECIMAL(19,8) NOT NULL,
+
+  lever_rate DECIMAL(19,8) NOT NULL,
+  force_liqu_price DECIMAL(19,8) NOT NULL,
+
+  contract_id BIGINT NOT NULL,
+  contract_date TIMESTAMP NOT NULL DEFAULT NOW(),
+  created TIMESTAMP NOT NULL DEFAULT NOW(),
+
+  KEY `key_account_id` (account_id),
+  KEY `key_symbol` (symbol),
+  KEY `key_symbol_type` (symbol_type),
+  KEY `key_contract_date` (contract_date),
+  KEY `key_created` (created),
+  FOREIGN KEY (account_id) REFERENCES account (id)
+);
+

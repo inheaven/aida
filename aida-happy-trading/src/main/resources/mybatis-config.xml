@@ -31,5 +31,6 @@
         <mapper resource="ru/inheaven/aida/happy/trading/mapper/UserInfoTotalMapper.xml"/>
         <mapper resource="ru/inheaven/aida/happy/trading/mapper/TradeMapper.xml"/>
         <mapper resource="ru/inheaven/aida/happy/trading/mapper/DepthMapper.xml"/>
+        <mapper resource="ru/inheaven/aida/happy/trading/mapper/FuturesPositionMapper.xml"/>
     </mappers>
 </configuration>

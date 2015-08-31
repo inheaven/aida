@@ -93,7 +93,7 @@ public class AccountInfoPage extends BasePage{
                                     .add((info.getKeepDeposit().setScale(3, HALF_UP)))
                                     .build().toString() + ", true);");
 
-                    if (info.getRiskRate().compareTo(BigDecimal.valueOf(5)) < 0){
+                    if (info.getRiskRate().compareTo(BigDecimal.valueOf(4)) < 0){
                         handler.appendJavaScript("" +
                                 "var msg = new SpeechSynthesisUtterance('уровень маржи предельный');\n" +
                                 "msg.lang='ru-RU'; msg.pitch=1.2;\n" +

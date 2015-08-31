@@ -1,0 +1,16 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ru.inheaven.aida.happy.trading.mapper.FuturesPositionMapper">
+    <insert id="insertFuturesPosition" parameterType="ru.inheaven.aida.happy.trading.entity.FuturesPosition"
+            keyProperty="id" useGeneratedKeys="true">
+        insert into futures_position (account_id, symbol, symbol_type, buy_amount, buy_available, buy_price_avg,
+                                      buy_price_cost, buy_profit_real, sell_amount, sell_available, sell_price_avg,
+                                      sell_price_cost, sell_profit_real, lever_rate, force_liqu_price, contract_id,
+                                      contract_date, created)
+            value (#{accountId}, #{symbol}, #{symbolType}, #{buyAmount}, #{buyAvailable}, #{buyPriceAvg},
+                   #{buyPriceCost}, #{buyProfitReal}, #{sellAmount}, #{sellAvailable}, #{sellPriceAvg},
+                   #{sellPriceCost}, #{sellProfitReal}, #{leverRate}, #{forceLiquPrice}, #{contractId},
+                   #{contractDate}, #{created})
+    </insert>
+</mapper>

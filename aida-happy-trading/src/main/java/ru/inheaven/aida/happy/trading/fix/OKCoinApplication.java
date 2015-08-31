@@ -162,6 +162,8 @@ public class OKCoinApplication extends MessageCracker implements Application {
 
         order.setAmount(message.getOrderQty().getValue());
 
+        order.setType(message.getSide().getValue() == Side.BUY ? OrderType.BID : OrderType.ASK);
+
         Date time = message.isSetTransactTime() ? message.getTransactTime().getValue() : new Date();
 
         switch (message.getOrdStatus().getValue()){

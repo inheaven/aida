@@ -10,151 +10,146 @@ import java.util.Date;
  * contract will be its own instance.
  */
 public class OkCoinPosition {
+    private final long contractId;
+    private final String symbol;
+    private final String type;
+    private final BigDecimal rate;
+    private final Date createDate;
 
-  private final long contractId;
+    private BigDecimal buyAmount;
+    private BigDecimal buyAmountAvailable;
+    private BigDecimal buyProfitReal;
+    private BigDecimal buyPriceAvg;
+    private BigDecimal buyPriceCost;
 
-  private final int status;
+    private BigDecimal sellAmount;
+    private BigDecimal sellAmountAvailable;
+    private BigDecimal sellProfitReal;
+    private BigDecimal sellPriceAvg;
+    private BigDecimal sellPriceCost;
 
-  private final String symbol;
+    public OkCoinPosition(@JsonProperty("contract_id") final long orderId,
+                          @JsonProperty("symbol") final String symbol,
+                          @JsonProperty("contract_type") final String type,
+                          @JsonProperty("lever_rate") final BigDecimal rate,
 
-  private final String type;
+                          @JsonProperty("buy_amount") final BigDecimal buyAmount,
+                          @JsonProperty("buy_available") final BigDecimal buyAmountAvailable,
+                          @JsonProperty("buy_profit_real") final BigDecimal buyProfitReal,
+                          @JsonProperty("buy_price_avg") final BigDecimal buyPriceAvg,
+                          @JsonProperty("buy_price_cost") final BigDecimal buyPriceCost,
 
-  private final BigDecimal rate;
+                          @JsonProperty("sell_amount") final BigDecimal sellAmount,
+                          @JsonProperty("sell_available") final BigDecimal sellAmountAvailable,
+                          @JsonProperty("sell_profit_real") final BigDecimal sellProfitReal,
+                          @JsonProperty("sell_price_avg") final BigDecimal sellPriceAvg,
+                          @JsonProperty("sell_price_cost") final BigDecimal sellPriceCost,
 
-  private final Date createDate;
+                          @JsonProperty("create_date") final Date createDate) {
 
-  private BigDecimal buyAmount;
+        this.contractId = orderId;
+        this.symbol = symbol;
+        this.type = type;
+        this.rate = rate;
 
-  private BigDecimal buyAmountAvailable;
+        this.buyAmount = buyAmount;
+        this.buyAmountAvailable = buyAmountAvailable;
+        this.buyProfitReal = buyProfitReal;
+        this.buyPriceAvg = buyPriceAvg;
+        this.buyPriceCost = buyPriceCost;
 
-  private BigDecimal buyProfitReal;
+        this.sellAmount = sellAmount;
+        this.sellAmountAvailable = sellAmountAvailable;
+        this.sellProfitReal = sellProfitReal;
+        this.sellPriceAvg = sellPriceAvg;
+        this.sellPriceCost = sellPriceCost;
 
-  private BigDecimal buyPriceAvg;
+        this.createDate = createDate;
+    }
 
-  private BigDecimal sellAmount;
 
-  private BigDecimal sellAmountAvailable;
+    public long getContractId() {
 
-  private BigDecimal sellProfitReal;
+        return contractId;
+    }
 
-  private BigDecimal sellPriceAvg;
 
-  public OkCoinPosition(@JsonProperty("contract_id") final long orderId, @JsonProperty("status") final int status,
-      @JsonProperty("symbol") final String symbol, @JsonProperty("type") final String type, @JsonProperty("lever_rate") final BigDecimal rate,
-      
-      @JsonProperty("buy_amount") final BigDecimal buyAmount,
-      @JsonProperty("buy_available") final BigDecimal buyAmountAvailable,
-      @JsonProperty("buy_profit_real") final BigDecimal buyProfitReal,
-      @JsonProperty("buy_price_avg") final BigDecimal buyPriceAvg, 
+    public String getSymbol() {
 
-      @JsonProperty("sell_amount") final BigDecimal sellAmount,
-      @JsonProperty("sell_available") final BigDecimal sellAmountAvailable,
-      @JsonProperty("sell_profit_real") final BigDecimal sellProfitReal,
-      @JsonProperty("sell_price_avg") final BigDecimal sellPriceAvg, 
+        return symbol;
+    }
 
-      @JsonProperty("create_date") final Date createDate) {
 
-    this.contractId = orderId;
-    this.status = status;
-    this.symbol = symbol;
-    this.type = type;
-    this.rate = rate;
-    
-    this.buyAmount = buyAmount;
-    this.buyAmountAvailable = buyAmountAvailable;
-    this.buyProfitReal = buyProfitReal;
-    this.buyPriceAvg = buyPriceAvg;
-    
-    this.sellAmount = sellAmount;
-    this.sellAmountAvailable = sellAmountAvailable;
-    this.sellProfitReal = sellProfitReal;
-    this.sellPriceAvg = sellPriceAvg;
-    
-    this.createDate = createDate;
-  }
+    public String getType() {
 
-  
-  public long getContractId() {
-  
-    return contractId;
-  }
+        return type;
+    }
 
-  
-  public int getStatus() {
-  
-    return status;
-  }
 
-  
-  public String getSymbol() {
-  
-    return symbol;
-  }
+    public BigDecimal getRate() {
 
-  
-  public String getType() {
-  
-    return type;
-  }
+        return rate;
+    }
 
-  
-  public BigDecimal getRate() {
-  
-    return rate;
-  }
 
-  
-  public Date getCreateDate() {
-  
-    return createDate;
-  }
+    public Date getCreateDate() {
 
-  
-  public BigDecimal getBuyAmount() {
-  
-    return buyAmount;
-  }
+        return createDate;
+    }
 
-  
-  public BigDecimal getBuyAmountAvailable() {
-  
-    return buyAmountAvailable;
-  }
 
-  
-  public BigDecimal getBuyProfitReal() {
-  
-    return buyProfitReal;
-  }
+    public BigDecimal getBuyAmount() {
 
-  
-  public BigDecimal getBuyPriceAvg() {
-  
-    return buyPriceAvg;
-  }
+        return buyAmount;
+    }
 
-  
-  public BigDecimal getSellAmount() {
-  
-    return sellAmount;
-  }
 
-  
-  public BigDecimal getSellAmountAvailable() {
-  
-    return sellAmountAvailable;
-  }
+    public BigDecimal getBuyAmountAvailable() {
 
-  
-  public BigDecimal getSellProfitReal() {
-  
-    return sellProfitReal;
-  }
+        return buyAmountAvailable;
+    }
 
-  
-  public BigDecimal getSellPriceAvg() {
-  
-    return sellPriceAvg;
-  }
 
+    public BigDecimal getBuyProfitReal() {
+
+        return buyProfitReal;
+    }
+
+
+    public BigDecimal getBuyPriceAvg() {
+
+        return buyPriceAvg;
+    }
+
+
+    public BigDecimal getSellAmount() {
+
+        return sellAmount;
+    }
+
+
+    public BigDecimal getSellAmountAvailable() {
+
+        return sellAmountAvailable;
+    }
+
+
+    public BigDecimal getSellProfitReal() {
+
+        return sellProfitReal;
+    }
+
+
+    public BigDecimal getSellPriceAvg() {
+
+        return sellPriceAvg;
+    }
+
+    public BigDecimal getBuyPriceCost() {
+        return buyPriceCost;
+    }
+
+    public BigDecimal getSellPriceCost() {
+        return sellPriceCost;
+    }
 }

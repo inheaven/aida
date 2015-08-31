@@ -237,10 +237,6 @@ public class BaseStrategy {
             if (o.getOrderId() != null && (o.getStatus().equals(CANCELED) || o.getStatus().equals(CLOSED))){
                 Order order = orderMap.get(o.getOrderId());
 
-                if (order == null && o.getInternalId() != null){
-                    order = orderMap.get(o.getInternalId());
-                }
-
                 if (order != null){
                     order.setAccountId(strategy.getAccount().getId());
                     orderMap.remove(o.getOrderId());

@@ -15,6 +15,7 @@ public class AidaHappyTradingApplicationFactory implements IWebApplicationFactor
         Module.getInjector().getInstance(StrategyService.class);
         Module.getInjector().getInstance(UserInfoService.class);
         Module.getInjector().getInstance(OkcoinFixService.class);
+        Module.getInjector().getInstance(FuturesPositionService.class);
 
         WebApplication application = Module.getInjector().getInstance(AidaHappyTradingApplication.class);
         application.getComponentInstantiationListeners().add(new GuiceComponentInjector(application, Module.getInjector()));

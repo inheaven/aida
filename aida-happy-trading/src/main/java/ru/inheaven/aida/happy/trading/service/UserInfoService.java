@@ -46,6 +46,7 @@ public class UserInfoService {
     private BigDecimal btcPrice = ZERO;
     private BigDecimal spotVolume = ZERO;
     private BigDecimal futuresVolume = ZERO;
+    private BigDecimal usdSpot = new BigDecimal(10000);
 
     @Inject
     public UserInfoService(AccountMapper accountMapper, XChangeService xChangeService, UserInfoMapper userInfoMapper,
@@ -110,6 +111,8 @@ public class UserInfoService {
                     saveTotal(account.getId(), funds.getAsset().get("net"), info.getInfo().getLtcFunds().getAccountRights(),
                             info.getInfo().getBtcFunds().getAccountRights());
                 }
+
+                usdSpot = funds.getFree().get("usd").add(funds.getFreezed().get("usd"));
             } catch (Exception e) {
                 log.error("error user info -> ", e);
             }
@@ -171,5 +174,9 @@ public class UserInfoService {
         broadcastService.broadcast(UserInfoTotal.class, "user_info_total", userInfoTotal);
 
         userInfoTotalMapper.save(userInfoTotal);
+    }
+
+    public BigDecimal getUsdSpot() {
+        return usdSpot;
     }
 }
