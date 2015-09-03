@@ -14,9 +14,7 @@ import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
 import static java.math.BigDecimal.*;
 import static java.math.RoundingMode.HALF_UP;
@@ -63,8 +61,6 @@ public class LevelStrategy extends BaseStrategy{
                         }
                     });
         }
-
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(levelTimeMap::clear, 0, 1, TimeUnit.HOURS);
     }
 
     private Semaphore lock = new Semaphore(1);
@@ -124,8 +120,8 @@ public class LevelStrategy extends BaseStrategy{
                     Long time = System.currentTimeMillis() - levelTimeMap.get(level);
 
                     if (strategy.getSymbolType() == null){
-                        if (time < 600000){
-                            amountHFT = amountHFT.multiply(BigDecimal.valueOf(10.0 - 9.0*time/600000));
+                        if (time < 3600000){
+                            amountHFT = amountHFT.multiply(BigDecimal.valueOf(20.0 - 19.0*time/3600000));
 
                             log.info("HFT -> {}s {} {} -> {}", time/1000, price.setScale(3, HALF_UP),
                                     strategy.getLevelLot().setScale(3, HALF_UP), amountHFT.setScale(3, HALF_UP));

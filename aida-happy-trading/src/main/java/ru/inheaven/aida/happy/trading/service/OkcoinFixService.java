@@ -38,6 +38,12 @@ public class OkcoinFixService {
             }
 
             @Override
+            public void onCreate(SessionID sessionId) {
+                requestLiveTrades(UUID.randomUUID().toString(), "LTC/USD", sessionId);
+                requestLiveTrades(UUID.randomUUID().toString(), "BTC/USD", sessionId);
+            }
+
+            @Override
             protected void onTrade(Trade trade) {
                 tradePublishSubject.onNext(trade);
             }

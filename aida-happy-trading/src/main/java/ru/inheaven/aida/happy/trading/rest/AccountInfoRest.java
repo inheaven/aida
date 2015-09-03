@@ -41,9 +41,9 @@ public class AccountInfoRest extends AbstractRestResource<JsonWebSerialDeserial>
 
     @MethodMapping("/user_info/{currency}")
     public List getUserInfo(@PathParam("currency") String currency){
-        return userInfoMapper.getUserInfoList(accountId, currency,startDate).stream()
+        return userInfoMapper.getUserInfoList(accountId, currency, startDate).stream()
                 .filter(i -> System.currentTimeMillis() - i.getCreated().getTime() < WEEK  ||
-                        i.getCreated().getTime() / 60000 % 5 == 0)
+                        i.getCreated().getTime() / 60000 % 60 == 0)
                 .map(i -> Arrays.asList(i.getCreated().getTime(),
                         i.getAccountRights().setScale(3, HALF_UP),
                         i.getKeepDeposit().setScale(3, HALF_UP),
@@ -55,7 +55,7 @@ public class AccountInfoRest extends AbstractRestResource<JsonWebSerialDeserial>
     public List getSpot(@PathParam("currency") String currency){
         return userInfoMapper.getUserInfoList(accountId, currency, startSpotDate).stream()
                 .filter(i -> System.currentTimeMillis() - i.getCreated().getTime() < WEEK ||
-                        i.getCreated().getTime() / 60000 % 5 == 0)
+                        i.getCreated().getTime() / 60000 % 60 == 0)
                 .map(i -> Arrays.asList(i.getCreated().getTime(),
                         i.getAccountRights().add(i.getKeepDeposit()).setScale(3, HALF_UP)))
                 .collect(Collectors.toList());
@@ -65,7 +65,7 @@ public class AccountInfoRest extends AbstractRestResource<JsonWebSerialDeserial>
     public List getUserInfoTotal(){
         return userInfoTotalMapper.getUserInfoTotals(accountId, startDate).stream()
                 .filter(i -> System.currentTimeMillis() - i.getCreated().getTime() < WEEK ||
-                        i.getCreated().getTime() / 60000 % 5 == 0)
+                        i.getCreated().getTime() / 60000 % 60 == 0)
                 .map(t -> Arrays.asList(t.getCreated().getTime(),
                         t.getFuturesTotal().add(t.getSpotTotal()).setScale(3, HALF_UP),
                         t.getFuturesVolume().add(t.getSpotVolume()).setScale(3, HALF_UP),
