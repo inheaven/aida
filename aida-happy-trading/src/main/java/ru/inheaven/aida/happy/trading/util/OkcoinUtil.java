@@ -1,6 +1,8 @@
 package ru.inheaven.aida.happy.trading.util;
 
 import com.xeiam.xchange.okcoin.FuturesContract;
+import ru.inheaven.aida.happy.trading.entity.Order;
+import ru.inheaven.aida.happy.trading.entity.OrderStatus;
 import ru.inheaven.aida.happy.trading.entity.SymbolType;
 
 /**
@@ -35,5 +37,38 @@ public class OkcoinUtil {
         }
 
         throw new IllegalArgumentException("error to contract name -> " + symbolType);
+    }
+
+    public static FuturesContract getFuturesContract(Order order) {
+        FuturesContract futuresContract;
+
+        //noinspection Duplicates
+        switch (order.getSymbolType()){
+            case THIS_WEEK:
+                futuresContract = FuturesContract.ThisWeek;
+                break;
+            case NEXT_WEEK:
+                futuresContract = FuturesContract.NextWeek;
+                break;
+            case QUARTER:
+                futuresContract = FuturesContract.Quarter;
+                break;
+
+            default: throw new IllegalArgumentException();
+        }
+        return futuresContract;
+    }
+
+    public static OrderStatus getOrderStatus(int status){
+        switch (status) {
+            case -1:
+            case 4:
+                return OrderStatus.CANCELED;
+            case 2:
+                return OrderStatus.CLOSED;
+            default:
+                return OrderStatus.OPEN;
+        }
+
     }
 }

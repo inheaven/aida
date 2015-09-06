@@ -35,10 +35,12 @@ public class Order extends AbstractEntity {
     }
 
     public Order(Strategy strategy, OrderType type, BigDecimal price, BigDecimal amount) {
-        this.strategyId = strategy.getId();
-        this.exchangeType = strategy.getAccount().getExchangeType();
-        this.symbol = strategy.getSymbol();
-        this.symbolType = strategy.getSymbolType();
+        if (strategy != null) {
+            this.strategyId = strategy.getId();
+            this.exchangeType = strategy.getAccount().getExchangeType();
+            this.symbol = strategy.getSymbol();
+            this.symbolType = strategy.getSymbolType();
+        }
 
         this.type = type;
         this.price = price;

@@ -21,6 +21,7 @@ import java.util.concurrent.*;
 
 import static java.math.RoundingMode.HALF_UP;
 import static java.util.concurrent.TimeUnit.HOURS;
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.*;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.BUY_SET;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.SELL_SET;
@@ -56,6 +57,8 @@ public class BaseStrategy {
 
     private int errorCount = 0;
     private long errorTime = 0;
+
+    private BigDecimal lastPrice;
 
     public BaseStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                         DepthService depthService) {
@@ -104,6 +107,16 @@ public class BaseStrategy {
             return;
         }
 
+        tradeSubscription = allTradeObservable.subscribe(t -> {
+            try {
+                lastPrice = t.getPrice();
+
+                onTrade(t);
+            } catch (Exception e) {
+                log.error("error on trader -> ", e);
+            }
+        });
+
         orderSubscription = orderObservable
                 .filter(o -> orderMap.containsKey(o.getOrderId()) ||
                         (o.getInternalId() != null && orderMap.containsKey(o.getInternalId())))
@@ -114,14 +127,6 @@ public class BaseStrategy {
                 onRealTrade(o);
             } catch (Exception e) {
                 log.error("error on real trade -> ", e);
-            }
-        });
-
-        tradeSubscription = allTradeObservable.subscribe(t -> {
-            try {
-                onTrade(t);
-            } catch (Exception e) {
-                log.error("error on trader -> ", e);
             }
         });
 
@@ -155,6 +160,23 @@ public class BaseStrategy {
             }
 
         }), 0, 1, HOURS);
+
+
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> orderMap.forEach((id, o) -> {
+            try {
+                BigDecimal range = new BigDecimal(strategy.getSymbol().contains("/CNY") ? "0.005" : "0.1");
+
+                if (lastPrice != null && lastPrice.subtract(o.getPrice()).abs().divide(lastPrice, 8, HALF_UP)
+                        .compareTo(range) > 0 && o.getOrderId() != null){
+                    orderService.cancelOrder(strategy.getAccount(), o);
+                }
+            } catch (OrderInfoException e) {
+                orderMap.remove(o.getOrderId());
+
+                log.error("error cancel order -> ", e);
+            }
+
+        }), 0, 1, MINUTES);
 
         flying = true;
     }
@@ -197,6 +219,8 @@ public class BaseStrategy {
                 .forEach(o -> {
                     o.setStatus(CLOSED);
                     onOrder(o);
+
+                    orderMap.remove(o.getInternalId());
                 });
     }
 
@@ -270,11 +294,11 @@ public class BaseStrategy {
         }
     }
 
-    private void logOrder(Order order){
-        log.info("{} {} {} {} {} {} {} {}", order.getStrategyId(),
-                order.getOrderId() != null ? order.getOrderId() : order.getInternalId(), order.getStatus(),
-                order.getSymbol(), order.getPrice().setScale(3, HALF_UP), order.getAmount().setScale(3, HALF_UP),
-                order.getType(), Objects.toString(order.getSymbolType(), ""));
+    private void logOrder(Order o){
+        log.info("{} {} {} {} {} {} {} {}", o.getStrategyId(),
+                o.getOrderId() != null ? o.getOrderId() : o.getInternalId(), o.getStatus(),
+                o.getSymbol(), o.getPrice().setScale(o.getSymbol().contains("/CNY") ? 2 : 3, HALF_UP),
+                o.getAmount().setScale(3, HALF_UP), o.getType(), Objects.toString(o.getSymbolType(), ""));
     }
 
     public ConcurrentHashMap<String, Order> getOrderMap() {

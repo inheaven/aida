@@ -100,13 +100,13 @@ CREATE TABLE `trade`
 (
   id BIGINT PRIMARY KEY NOT NULL AUTO_INCREMENT,
   trade_id VARCHAR(32) NOT NULL,
-  exchange_type VARCHAR(8) NOT NULL,
+  exchange_type VARCHAR(10) NOT NULL,
   symbol VARCHAR(8) NOT NULL,
   symbol_type VARCHAR(10),
   order_type VARCHAR(10),
   price DECIMAL(19,8) NOT NULL,
   amount DECIMAL(19,8) NOT NULL,
-  time VARCHAR(8),
+  time VARCHAR(21),
   created TIMESTAMP NOT NULL DEFAULT NOW(),
   UNIQUE KEY `key_trade_id` (trade_id),
   KEY `key_exchange_type` (exchange_type),
@@ -120,7 +120,7 @@ CREATE TABLE `trade`
 CREATE TABLE `depth`
 (
   id BIGINT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-  exchange_type VARCHAR(8) NOT NULL,
+  exchange_type VARCHAR(10) NOT NULL,
   symbol VARCHAR(8) NOT NULL,
   symbol_type VARCHAR(10),
   bid DECIMAL(19,8) NOT NULL,

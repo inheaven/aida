@@ -23,7 +23,6 @@ import static java.math.RoundingMode.HALF_UP;
  */
 @ResourcePath("/account_info_rest")
 public class AccountInfoRest extends AbstractRestResource<JsonWebSerialDeserial>{
-    private Long accountId = 7L;
     private Date startDate = new Date(Timestamp.valueOf("2015-07-21 00:00:00").getTime());
     private Date startSpotDate = new Date(Timestamp.valueOf("2015-07-24 00:00:00").getTime());
 
@@ -39,30 +38,24 @@ public class AccountInfoRest extends AbstractRestResource<JsonWebSerialDeserial>
 
     //todo array.map
 
-    @MethodMapping("/user_info/{currency}")
-    public List getUserInfo(@PathParam("currency") String currency){
+    @MethodMapping("/user_info/{accountId}/{currency}")
+    public List getUserInfo(@PathParam("accountId") Long accountId, @PathParam("currency") String currency){
         return userInfoMapper.getUserInfoList(accountId, currency, startDate).stream()
                 .filter(i -> System.currentTimeMillis() - i.getCreated().getTime() < WEEK  ||
                         i.getCreated().getTime() / 60000 % 60 == 0)
-                .map(i -> Arrays.asList(i.getCreated().getTime(),
-                        i.getAccountRights().setScale(3, HALF_UP),
-                        i.getKeepDeposit().setScale(3, HALF_UP),
-                        i.getProfitReal().add(i.getProfitUnreal()).setScale(3, HALF_UP)))
+                .map(i -> {
+                    if (i.getCurrency().contains("SPOT")){
+                        return Arrays.asList(i.getCreated().getTime(),
+                                i.getAccountRights().add(i.getKeepDeposit()).setScale(3, HALF_UP));
+                    }else {
+                        return Arrays.asList(i.getCreated().getTime(), i.getAccountRights().setScale(3, HALF_UP));
+                    }
+                })
                 .collect(Collectors.toList());
     }
 
-    @MethodMapping("/spot/{currency}")
-    public List getSpot(@PathParam("currency") String currency){
-        return userInfoMapper.getUserInfoList(accountId, currency, startSpotDate).stream()
-                .filter(i -> System.currentTimeMillis() - i.getCreated().getTime() < WEEK ||
-                        i.getCreated().getTime() / 60000 % 60 == 0)
-                .map(i -> Arrays.asList(i.getCreated().getTime(),
-                        i.getAccountRights().add(i.getKeepDeposit()).setScale(3, HALF_UP)))
-                .collect(Collectors.toList());
-    }
-
-    @MethodMapping("/user_info_total")
-    public List getUserInfoTotal(){
+    @MethodMapping("/user_info_total/{accountId}")
+    public List getUserInfoTotal(@PathParam("accountId") Long accountId){
         return userInfoTotalMapper.getUserInfoTotals(accountId, startDate).stream()
                 .filter(i -> System.currentTimeMillis() - i.getCreated().getTime() < WEEK ||
                         i.getCreated().getTime() / 60000 % 60 == 0)

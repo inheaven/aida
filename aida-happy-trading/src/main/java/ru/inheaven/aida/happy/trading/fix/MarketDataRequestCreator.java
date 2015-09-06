@@ -40,19 +40,27 @@ public class MarketDataRequestCreator {
 		return message;
 	}
 
+	/*
+	 *
+	 * @param mdReqId Unique ID assigned to this request.
+	 * @param symbol Symbol, BTC/CNY or LTC/CNY.
+	 * @param subscriptionRequestType 0 = Snapshot, 1 = Snapshot + Subscribe,
+	 * 2 = Unsubscribe.
+	 * @param marketDepth Applicable only to order book snapshot requests.
+	 * Should be ignored otherwise.
+	 * 0 = Full Book
+	 * @param mdUpdateType 0 = Full Refresh, 1 = Incremental Refresh.
+	 * @param sessionId FIX session ID.
+	 */
 	public MarketDataRequest createOrderBookRequest(
 			String mdReqId,
-			String symbol,
-			char subscriptionRequestType,
-			int marketDepth,
-			int mdUpdateType) {
+			String symbol) {
 		return createMarketDataRequest(
 				mdReqId,
 				symbol,
-				subscriptionRequestType,
-				marketDepth,
-				mdUpdateType,
-				new char[] { MDEntryType.BID, MDEntryType.OFFER, });
+				SubscriptionRequestType.SNAPSHOT_PLUS_UPDATES, 0,
+				MDUpdateType.FULL_REFRESH,
+                new char[] { MDEntryType.BID, MDEntryType.OFFER,});
 	}
 
 	public MarketDataRequest createLiveTradesRequest(String mdReqId, String symbol) {

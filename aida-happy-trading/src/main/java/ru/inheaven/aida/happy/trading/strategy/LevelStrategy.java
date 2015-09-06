@@ -18,6 +18,7 @@ import java.util.concurrent.Semaphore;
 
 import static java.math.BigDecimal.*;
 import static java.math.RoundingMode.HALF_UP;
+import static ru.inheaven.aida.happy.trading.entity.ExchangeType.OKCOIN;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.*;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.*;
 
@@ -33,22 +34,16 @@ public class LevelStrategy extends BaseStrategy{
 
     private BigDecimal risk = ONE;
 
-    private Map<BigDecimal, Long> levelTimeMap = new ConcurrentHashMap<>();
+    private Map<String, Long> levelTimeMap = new ConcurrentHashMap<>();
 
     private BigDecimal lastAsk = ZERO;
     private BigDecimal lastBid = ZERO;
-
-    private UserInfoService userInfoService;
-
-    private final static BigDecimal MIN_USD = new BigDecimal("500");
 
     public LevelStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                          DepthService depthService, UserInfoService userInfoService) {
         super(strategy, orderService, orderMapper, tradeService, depthService);
 
         this.strategy = strategy;
-
-        this.userInfoService = userInfoService;
 
         if (strategy.getSymbolType() != null) {
             userInfoService.createUserInfoObservable(strategy.getAccount().getId(), strategy.getSymbol().substring(0, 3))
@@ -83,7 +78,7 @@ public class LevelStrategy extends BaseStrategy{
             if (strategy.getSymbolType() == null) {
                 BigDecimal minSpread = price.multiply(new BigDecimal("0.002"));
 
-                if (spread.compareTo(minSpread) < 0){
+                if (strategy.getAccount().getExchangeType().equals(OKCOIN) && spread.compareTo(minSpread) < 0){
                     spread = minSpread;
 
                     log.warn("LOW Spread -> {} {} {} {}", strategy.getId(), minSpread.setScale(3, HALF_UP), strategy.getSymbol(),
@@ -100,10 +95,10 @@ public class LevelStrategy extends BaseStrategy{
 
             Order search = getOrderMap().searchValues(64, (o) -> {
                 if (LONG.contains(o.getType()) && (OPEN.equals(o.getStatus()) || CREATED.equals(o.getStatus())) &&
-                        (SELL_SET.contains(o.getType()) &&
-                                o.getPrice().subtract(price).abs().compareTo(reversing ? spreadF : spreadX2) < 0) ||
+                        ((SELL_SET.contains(o.getType()) &&
+                                o.getPrice().subtract(price).abs().compareTo(reversing ? spreadF : spreadX2) <= 0) ||
                         (BUY_SET.contains(o.getType()) &&
-                                price.subtract(o.getPrice()).abs().compareTo(reversing ? spreadX2 : spreadF) < 0)){
+                                price.subtract(o.getPrice()).abs().compareTo(reversing ? spreadX2 : spreadF) <= 0))){
 
                     return o;
                 }
@@ -112,15 +107,15 @@ public class LevelStrategy extends BaseStrategy{
             });
 
             if (search == null){
-                log.info(key + " {} {}", price.setScale(3, HALF_UP), orderType);
+                log.info(key + " {} {} {}", price.setScale(3, HALF_UP), orderType, reversing);
 
                 BigDecimal amountHFT = strategy.getLevelLot();
 
-                if (levelTimeMap.get(level) != null){
-                    Long time = System.currentTimeMillis() - levelTimeMap.get(level);
+                if (levelTimeMap.get(level.toString() + reversing) != null){
+                    Long time = System.currentTimeMillis() - levelTimeMap.get(level.toString() + reversing);
 
                     if (strategy.getSymbolType() == null){
-                        if (time < 3600000){
+                        if (time < 3600000 && !strategy.getSymbol().contains("BTC/CNY")){
                             amountHFT = amountHFT.multiply(BigDecimal.valueOf(20.0 - 19.0*time/3600000));
 
                             log.info("HFT -> {}s {} {} -> {}", time/1000, price.setScale(3, HALF_UP),
@@ -142,7 +137,7 @@ public class LevelStrategy extends BaseStrategy{
                 Long positionId = System.nanoTime();
 
                 BigDecimal buyAmount = amountHFT;
-                if (strategy.getSymbolType() == null && userInfoService.getUsdSpot().compareTo(MIN_USD) > 0){
+                if (strategy.getSymbolType() == null){
                     buyAmount = buyAmount.multiply(BigDecimal.valueOf(1.0 + random.nextDouble()/5)).setScale(8, HALF_UP);
                 }
 
@@ -153,17 +148,17 @@ public class LevelStrategy extends BaseStrategy{
 
                 if (reversing){
                     createOrderAsync(new Order(strategy, positionId, strategy.getSymbolType() != null ? OPEN_LONG : BID,
-                            price.subtract(spread), sellAmount));
+                            price.subtract(spread).add(step), sellAmount));
                     createOrderAsync(new Order(strategy, positionId, strategy.getSymbolType() != null ? CLOSE_LONG : ASK,
                             price.add(step), buyAmount));
                 }else{
                     createOrderAsync(new Order(strategy, positionId, strategy.getSymbolType() != null ? CLOSE_LONG : ASK,
-                            price.add(spread), sellAmount));
+                            price.add(spread).add(step), sellAmount));
                     createOrderAsync(new Order(strategy, positionId, strategy.getSymbolType() != null ? OPEN_LONG : BID,
                             price.add(step), buyAmount));
                 }
 
-                levelTimeMap.put(level, System.currentTimeMillis());
+                levelTimeMap.put(level.toString() + reversing,  System.currentTimeMillis());
             }
         } catch (Exception e) {
             incrementErrorCount();
@@ -194,16 +189,21 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal ask = depth.getAsk();
         BigDecimal bid = depth.getBid();
 
-        lastAsk = ask;
-        lastBid = bid;
+        if (ask != null && bid != null) {
+            lastAsk = ask;
+            lastBid = bid;
 
-        if (ask.subtract(bid).compareTo(spread.multiply(BigDecimal.valueOf(2))) > 0 && ask.compareTo(bid) > 0){
-            action("on depth ask", ask.subtract(spread), ASK);
-            action("on depth bid", bid.add(spread.multiply(BigDecimal.valueOf(2))), BID);
+            if (ask.subtract(bid).abs().compareTo(spread.multiply(BigDecimal.valueOf(2))) > 0 && ask.compareTo(bid) > 0){
+                action("on depth ask", ask, ASK);
+                action("on depth bid", bid, BID);
+
+                action("on depth ask spread", ask.subtract(spread), ASK);
+                action("on depth bid spread", bid.add(spread), BID);
+            }
+
+            closeOnCheck(ask);
+            closeOnCheck(bid);
         }
-
-        closeOnCheck(ask);
-        closeOnCheck(bid);
     }
 
     @Override
@@ -229,6 +229,8 @@ public class LevelStrategy extends BaseStrategy{
 
         switch (strategy.getSymbol()){
             case "BTC/USD":
+            case "BTC/CNY":
+            case "LTC/CNY":
                 return new BigDecimal("0.01").multiply(BigDecimal.valueOf(bid));
             case "LTC/USD":
                 return new BigDecimal("0.001").multiply(BigDecimal.valueOf(bid));

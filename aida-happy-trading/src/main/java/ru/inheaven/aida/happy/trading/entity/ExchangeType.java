@@ -5,5 +5,5 @@ package ru.inheaven.aida.happy.trading.entity;
  *         Date: 29.05.2014 4:12
  */
 public enum ExchangeType {
-    CEXIO, CRYPTSY, BITTREX, BTCE, BTER, BITFINEX, OKCOIN
+    CEXIO, CRYPTSY, BITTREX, BTCE, BTER, BITFINEX, OKCOIN, OKCOIN_CN
 }

@@ -26,19 +26,23 @@ public class StrategyPage extends BasePage{
                 item.add(new Label("spread", strategy.getLevelSpread()));
                 item.add(new Label("lot", strategy.getLevelLot()));
                 item.add(new Label("active", strategy.isActive()));
-                item.add(new Label("min_trade_profit", orderMapper.getMinTradeProfit(strategy.getId(), null, null)));
-                item.add(new Label("min_trade_volume", orderMapper.getMinTradeVolume(strategy.getId(), null, null)));
-                item.add(new Label("random_trade_profit", strategy.getSymbolType() == null ? orderMapper.getRandomTradeProfit(strategy.getId(), null, null) : "—"));
-                item.add(new Label("random_trade_volume", strategy.getSymbolType() == null ? orderMapper.getRandomTradeVolume(strategy.getId(), null, null) : "—"));
-                item.add(new Label("count", orderMapper.getTradeCount(strategy.getId(), null, null)));
+                item.add(new Label("min_trade_profit", orderMapper.getMinTradeProfit(null, strategy.getId(), null, null)));
+                item.add(new Label("min_trade_volume", orderMapper.getMinTradeVolume(null, strategy.getId(), null, null)));
+                item.add(new Label("random_trade_profit", strategy.getSymbolType() == null ? orderMapper.getRandomTradeProfit(null, strategy.getId(), null, null) : "—"));
+                item.add(new Label("random_trade_volume", strategy.getSymbolType() == null ? orderMapper.getRandomTradeVolume(null, strategy.getId(), null, null) : "—"));
+                item.add(new Label("count", orderMapper.getTradeCount(null, strategy.getId(), null, null)));
             }
         });
 
         OrderMapper orderMapper = Module.getInjector().getInstance(OrderMapper.class);
 
-        add(new Label("min_trade_profit", orderMapper.getMinTradeProfit(null, null, null)));
-        add(new Label("min_trade_volume", orderMapper.getMinTradeVolume(null, null, null)));
-        add(new Label("random_trade_profit", orderMapper.getRandomTradeProfit(null, null, null)));
-        add(new Label("random_trade_volume", orderMapper.getRandomTradeVolume(null, null, null)));
+        add(new Label("min_trade_profit", orderMapper.getMinTradeProfit(7L, null, null, null) + " " +
+                orderMapper.getMinTradeProfit(8L, null, null, null)));
+        add(new Label("min_trade_volume", orderMapper.getMinTradeVolume(7L, null, null, null) + " " +
+                orderMapper.getMinTradeVolume(8L, null, null, null)));
+        add(new Label("random_trade_profit", orderMapper.getRandomTradeProfit(7L, null, null, null) + " " +
+                orderMapper.getRandomTradeProfit(8L, null, null, null)));
+        add(new Label("random_trade_volume", orderMapper.getRandomTradeVolume(7L, null, null, null) + " " +
+                orderMapper.getRandomTradeVolume(8L, null, null, null)));
     }
 }

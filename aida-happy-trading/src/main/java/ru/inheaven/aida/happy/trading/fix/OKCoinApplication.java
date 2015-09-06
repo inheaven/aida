@@ -1,5 +1,6 @@
 package ru.inheaven.aida.happy.trading.fix;
 
+import com.google.common.base.Joiner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.*;
@@ -11,7 +12,9 @@ import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.fix.fix44.AccountInfoResponse;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class OKCoinApplication extends MessageCracker implements Application {
 
@@ -19,10 +22,13 @@ public class OKCoinApplication extends MessageCracker implements Application {
 	private final DataDictionary dataDictionary;
 	private final MarketDataRequestCreator marketDataRequestCreator;
 	private final TradeRequestCreator tradeRequestCreator;
+
+    private ExchangeType exchangeType;
 	private final String apiKey;
 	private final String secretKey;
 
-	public OKCoinApplication(String apiKey, String secretKey) {
+	public OKCoinApplication(ExchangeType exchangeType, String apiKey, String secretKey) {
+        this.exchangeType = exchangeType;
 		this.apiKey = apiKey;
 		this.secretKey = secretKey;
 		this.marketDataRequestCreator = new MarketDataRequestCreator();
@@ -117,27 +123,64 @@ public class OKCoinApplication extends MessageCracker implements Application {
     public void onMessage(MarketDataSnapshotFullRefresh message, SessionID sessionID) throws FieldNotFound,
             UnsupportedMessageType, IncorrectTagValue {
         String symbol = message.getSymbol().getValue();
+        List<PriceAmount> bids = null;
+        List<PriceAmount> asks = null;
 
         for (int i = 1, l = message.getNoMDEntries().getValue(); i <= l; i++) {
             Group group = message.getGroup(i, NoMDEntries.FIELD);
 
+            char type = group.getChar(MDEntryType.FIELD);
             BigDecimal price = new BigDecimal(group.getString(MDEntryPx.FIELD));
             BigDecimal amount = group.isSetField(MDEntrySize.FIELD) ? new BigDecimal(group.getString(MDEntrySize.FIELD)) : null;
-            char type = group.getChar(MDEntryType.FIELD);
 
-            if (type == MDEntryType.TRADE){
-                Trade trade = new Trade();
-                trade.setTradeId(String.valueOf(System.nanoTime()));
-                trade.setExchangeType(ExchangeType.OKCOIN);
-                trade.setSymbol(symbol);
-                trade.setOrderType(group.getField(new Side()).getValue() == Side.BUY ? OrderType.BID : OrderType.ASK);
-                trade.setPrice(price);
-                trade.setAmount(amount);
-                trade.setTime(message.getString(OrigTime.FIELD));
-                trade.setCreated(new Date());
+            switch (type){
+                case MDEntryType.TRADE:
+                    Trade trade = new Trade();
+                    trade.setTradeId(String.valueOf(System.nanoTime()));
+                    trade.setExchangeType(exchangeType);
+                    trade.setSymbol(symbol);
+                    trade.setOrderType(group.getField(new Side()).getValue() == Side.BUY ? OrderType.BID : OrderType.ASK);
+                    trade.setPrice(price);
+                    trade.setAmount(amount);
+                    trade.setTime(message.getString(OrigTime.FIELD));
+                    trade.setCreated(new Date());
 
-                onTrade(trade);
+                    onTrade(trade);
+                    break;
+                case MDEntryType.BID:
+                    if (bids == null){
+                        bids = new ArrayList<>();
+                    }
+
+                    bids.add(new PriceAmount(price, amount));
+                    break;
+                case MDEntryType.OFFER:
+                    if (asks == null){
+                        asks = new ArrayList<>();
+                    }
+
+                    asks.add(new PriceAmount(price, amount));
+                    break;
             }
+        }
+
+
+        if (asks != null && bids != null){
+            Depth depth = new Depth();
+
+            depth.setExchangeType(exchangeType);
+            depth.setSymbol(symbol);
+
+            depth.setAsk(asks.get(asks.size()-1).getPrice());
+            depth.setBid(bids.get(0).getPrice());
+
+            depth.setAskJson("[" + Joiner.on(",").join(asks) + "]");
+            depth.setBidJson("[" + Joiner.on(",").join(bids) + "]");
+
+            depth.setTime(message.getField(new OrigTime()).getValue());
+            depth.setCreated(new Date());
+
+            onDepth(depth);
         }
     }
 
@@ -146,7 +189,7 @@ public class OKCoinApplication extends MessageCracker implements Application {
             IncorrectTagValue {
         Order order = new Order();
 
-        order.setExchangeType(ExchangeType.OKCOIN);
+        order.setExchangeType(exchangeType);
         order.setSymbol(message.getSymbol().getValue());
         order.setOrderId(message.getOrderID().getValue());
 
@@ -193,6 +236,9 @@ public class OKCoinApplication extends MessageCracker implements Application {
     protected void onOrder(Order order){
     }
 
+    protected void onDepth(Depth depth){
+    }
+
 	public void sendMessage(final Message message, final SessionID sessionId) {
 		log.trace("sending message: {}", message);
 		Session.lookupSession(sessionId).send(message);
@@ -204,22 +250,9 @@ public class OKCoinApplication extends MessageCracker implements Application {
                 marketDepth, mdUpdateType, mdEntryTypes), sessionId);
 	}
 
-	/**
-	 *
-	 * @param mdReqId Unique ID assigned to this request.
-	 * @param symbol Symbol, BTC/CNY or LTC/CNY.
-	 * @param subscriptionRequestType 0 = Snapshot, 1 = Snapshot + Subscribe,
-	 * 2 = Unsubscribe.
-	 * @param marketDepth Applicable only to order book snapshot requests.
-	 * Should be ignored otherwise.
-	 * 0 = Full Book
-	 * @param mdUpdateType 0 = Full Refresh, 1 = Incremental Refresh.
-	 * @param sessionId FIX session ID.
-	 */
-	public void requestOrderBook(String mdReqId, String symbol, char subscriptionRequestType, int marketDepth,
-			int mdUpdateType, SessionID sessionId) {
-		sendMessage(marketDataRequestCreator.createOrderBookRequest(mdReqId, symbol, subscriptionRequestType,
-                marketDepth, mdUpdateType), sessionId);
+
+	public void requestOrderBook(String mdReqId, String symbol, SessionID sessionId) {
+		sendMessage(marketDataRequestCreator.createOrderBookRequest(mdReqId, symbol), sessionId);
 	}
 
 	public void requestLiveTrades(String mdReqId, String symbol, SessionID sessionId) {

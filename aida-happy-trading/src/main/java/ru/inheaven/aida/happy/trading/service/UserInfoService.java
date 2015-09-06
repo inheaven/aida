@@ -6,9 +6,7 @@ import com.xeiam.xchange.okcoin.dto.account.OkcoinFuturesFundsCross;
 import com.xeiam.xchange.okcoin.service.polling.OkCoinAccountServiceRaw;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.inheaven.aida.happy.trading.entity.Account;
-import ru.inheaven.aida.happy.trading.entity.UserInfo;
-import ru.inheaven.aida.happy.trading.entity.UserInfoTotal;
+import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.AccountMapper;
 import ru.inheaven.aida.happy.trading.mapper.UserInfoMapper;
 import ru.inheaven.aida.happy.trading.mapper.UserInfoTotalMapper;
@@ -20,12 +18,15 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.happy.trading.entity.ExchangeType.OKCOIN;
+import static ru.inheaven.aida.happy.trading.entity.ExchangeType.OKCOIN_CN;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CLOSED;
 
 /**
@@ -42,11 +43,7 @@ public class UserInfoService {
 
     private Subject<UserInfo, UserInfo> userInfoSubject = PublishSubject.create();
 
-    private BigDecimal ltcPrice = ZERO;
-    private BigDecimal btcPrice = ZERO;
-    private BigDecimal spotVolume = ZERO;
-    private BigDecimal futuresVolume = ZERO;
-    private BigDecimal usdSpot = new BigDecimal(10000);
+    private Map<String, BigDecimal> valueMap = new ConcurrentHashMap<>();
 
     @Inject
     public UserInfoService(AccountMapper accountMapper, XChangeService xChangeService, UserInfoMapper userInfoMapper,
@@ -58,34 +55,55 @@ public class UserInfoService {
         this.broadcastService = broadcastService;
 
         accountMapper.getAccounts(OKCOIN).forEach(this::startOkcoinUserInfoScheduler);
+        accountMapper.getAccounts(OKCOIN_CN).forEach(this::startOkcoinUserInfoScheduler);
 
         tradeService.getTradeObservable()
-                .filter(t -> t.getSymbolType() == null)
                 .subscribe(t -> {
-                    if (t.getSymbol().equals("BTC/USD")) {
-                        btcPrice = t.getPrice();
-                    } else if (t.getSymbol().equals("LTC/USD")) {
-                        ltcPrice = t.getPrice();
-                    }
+                    setPrice(t.getExchangeType(), t.getSymbol(), t.getSymbolType(), t.getPrice());
                 });
 
         orderService.getClosedOrderObservable()
                 .filter(o -> o.getStatus().equals(CLOSED))
                 .subscribe(o -> {
                     if (o.getSymbolType() != null) {
+                        BigDecimal volume = getVolume("futures", o.getAccountId(), null);
+
                         if (o.getSymbol().equals("BTC/USD")) {
-                            futuresVolume = futuresVolume.add(BigDecimal.valueOf(100).multiply(o.getAmount()));
+                            volume = volume.add(BigDecimal.valueOf(100).multiply(o.getAmount()));
                         } else if (o.getSymbol().equals("LTC/USD")) {
-                            futuresVolume = futuresVolume.add(BigDecimal.valueOf(10).multiply(o.getAmount()));
+                            volume = volume.add(BigDecimal.valueOf(10).multiply(o.getAmount()));
                         }
+
+                        setVolume("futures", o.getAccountId(), null, volume);
                     } else {
-                        if (o.getSymbol().equals("BTC/USD")) {
-                            spotVolume = spotVolume.add(o.getAmount().multiply(btcPrice));
-                        } else if (o.getSymbol().equals("LTC/USD")) {
-                            spotVolume = spotVolume.add(o.getAmount().multiply(ltcPrice));
+                        BigDecimal price = getPrice(o.getExchangeType(), o.getSymbol(), null);
+
+                        if (price != null){
+                            BigDecimal volume = getVolume("spot", o.getAccountId(), null);
+
+                            setVolume("spot", o.getAccountId(), null, volume.add(o.getAmount().multiply(price)));
                         }
+
                     }
                 }, e -> log.error("error add volume", e));
+    }
+
+    public void setVolume(String key, Long accountId, String symbol, BigDecimal volume){
+        valueMap.put("volume" + key + accountId + symbol, volume);
+    }
+
+    public BigDecimal getVolume(String key, Long accountId, String symbol){
+        BigDecimal volume = valueMap.get("volume" + key + accountId + symbol);
+
+        return volume != null ? volume : ZERO;
+    }
+
+    public void setPrice(ExchangeType exchangeType, String symbol, SymbolType symbolType, BigDecimal price){
+        valueMap.put("price" + exchangeType.name() + symbol + symbolType, price);
+    }
+
+    public BigDecimal getPrice(ExchangeType exchangeType, String symbol, SymbolType symbolType){
+        return valueMap.get("price" + exchangeType.name() + symbol + symbolType);
     }
 
     public Observable<UserInfo> createUserInfoObservable(Long accountId, String currency){
@@ -95,24 +113,39 @@ public class UserInfoService {
     private void startOkcoinUserInfoScheduler(Account account){
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
             try {
-                OkCoinFuturesUserInfoCross info = ((OkCoinAccountServiceRaw) xChangeService.getExchange(account)
-                        .getPollingAccountService()).getFutureUserInfo();
-                saveFunds(account.getId(), "BTC", info.getInfo().getBtcFunds());
-                saveFunds(account.getId(), "LTC", info.getInfo().getLtcFunds());
-
                 OkCoinFunds funds = ((OkCoinAccountServiceRaw) xChangeService.getExchange(account)
                         .getPollingAccountService()).getUserInfo().getInfo().getFunds();
                 saveFunds(account.getId(), "BTC_SPOT", funds.getFree().get("btc"), funds.getFreezed().get("btc"));
                 saveFunds(account.getId(), "LTC_SPOT", funds.getFree().get("ltc"), funds.getFreezed().get("ltc"));
-                saveFunds(account.getId(), "USD_SPOT", funds.getFree().get("usd"), funds.getFreezed().get("usd"));
-                saveFunds(account.getId(), "ASSET", funds.getAsset().get("total"), funds.getAsset().get("net"));
 
-                if (ltcPrice.compareTo(ZERO) > 0 && btcPrice.compareTo(ZERO) > 0){
-                    saveTotal(account.getId(), funds.getAsset().get("net"), info.getInfo().getLtcFunds().getAccountRights(),
-                            info.getInfo().getBtcFunds().getAccountRights());
+                setVolume("subtotal", account.getId(), "BTC", funds.getFree().get("btc").add(funds.getFreezed().get("btc")));
+                setVolume("subtotal", account.getId(), "LTC", funds.getFree().get("ltc").add(funds.getFreezed().get("ltc")));
+
+                switch (account.getExchangeType()){
+                    case OKCOIN:
+                        OkCoinFuturesUserInfoCross info = ((OkCoinAccountServiceRaw) xChangeService.getExchange(account)
+                                .getPollingAccountService()).getFutureUserInfo();
+                        saveFunds(account.getId(), "BTC", info.getInfo().getBtcFunds());
+                        saveFunds(account.getId(), "LTC", info.getInfo().getLtcFunds());
+
+                        saveTotal(account, funds.getAsset().get("net"), info.getInfo().getLtcFunds().getAccountRights(),
+                                info.getInfo().getBtcFunds().getAccountRights());
+
+                        saveFunds(account.getId(), "USD_SPOT", funds.getFree().get("usd"), funds.getFreezed().get("usd"));
+                        setVolume("subtotal", account.getId(), "USD", funds.getFree().get("usd").add(funds.getFreezed().get("usd")));
+                        break;
+                    case OKCOIN_CN:
+                        saveTotal(account, funds.getAsset().get("net"), null, null);
+
+                        saveFunds(account.getId(), "CNY_SPOT", funds.getFree().get("cny"), funds.getFreezed().get("cny"));
+                        setVolume("subtotal", account.getId(), "CNY", funds.getFree().get("cny").add(funds.getFreezed().get("cny")));
+
+                        break;
                 }
 
-                usdSpot = funds.getFree().get("usd").add(funds.getFreezed().get("usd"));
+                saveFunds(account.getId(), "ASSET", funds.getAsset().get("total"), funds.getAsset().get("net"));
+
+
             } catch (Exception e) {
                 log.error("error user info -> ", e);
             }
@@ -156,27 +189,36 @@ public class UserInfoService {
         userInfoMapper.save(userInfo);
     }
 
-    private void saveTotal(Long accountId, BigDecimal spotTotal, BigDecimal ltcAmount, BigDecimal btcAmount){
+    private void saveTotal(Account account, BigDecimal spotTotal, BigDecimal ltcAmount, BigDecimal btcAmount){
         UserInfoTotal userInfoTotal = new UserInfoTotal();
 
-        userInfoTotal.setAccountId(accountId);
-        userInfoTotal.setSpotTotal(spotTotal);
-        userInfoTotal.setFuturesTotal(ltcAmount.multiply(ltcPrice).add(btcAmount.multiply(btcPrice)).setScale(8, HALF_UP));
-        userInfoTotal.setFuturesVolume(futuresVolume);
-        userInfoTotal.setSpotVolume(spotVolume);
-        userInfoTotal.setLtcPrice(ltcPrice);
-        userInfoTotal.setBtcPrice(btcPrice);
-        userInfoTotal.setCreated(new Date());
+        String currency = account.getExchangeType().equals(OKCOIN_CN) ? "CNY" : "USD";
 
-        futuresVolume = ZERO;
-        spotVolume = ZERO;
+        BigDecimal ltcPrice = getPrice(account.getExchangeType(), "LTC/"+currency, null);
+        BigDecimal btcPrice = getPrice(account.getExchangeType(), "BTC/"+currency, null);
 
-        broadcastService.broadcast(UserInfoTotal.class, "user_info_total", userInfoTotal);
+        if (ltcPrice != null && btcPrice != null) {
+            userInfoTotal.setAccountId(account.getId());
+            userInfoTotal.setSpotTotal(spotTotal);
 
-        userInfoTotalMapper.save(userInfoTotal);
-    }
+            if (btcAmount != null && ltcAmount != null) {
+                userInfoTotal.setFuturesTotal(ltcAmount.multiply(ltcPrice).add(btcAmount.multiply(btcPrice)).setScale(8, HALF_UP));
+            }else {
+                userInfoTotal.setFuturesTotal(ZERO);
+            }
 
-    public BigDecimal getUsdSpot() {
-        return usdSpot;
+            userInfoTotal.setFuturesVolume(getVolume("futures", account.getId(), null));
+            userInfoTotal.setSpotVolume(getVolume("spot", account.getId(), null));
+            userInfoTotal.setLtcPrice(ltcPrice);
+            userInfoTotal.setBtcPrice(btcPrice);
+            userInfoTotal.setCreated(new Date());
+
+            setVolume("futures", account.getId(), null, ZERO);
+            setVolume("spot", account.getId(), null, ZERO);
+
+            userInfoTotalMapper.save(userInfoTotal);
+
+            broadcastService.broadcast(UserInfoTotal.class, "user_info_total", userInfoTotal);
+        }
     }
 }

@@ -54,6 +54,7 @@ public class XChangeService {
                 OkCoinTradeServiceRaw tradeService = (OkCoinTradeServiceRaw) getExchange(order.getAccount()).getPollingTradeService();
 
                 FuturesContract futuresContract;
+                //noinspection Duplicates
                 switch (order.getSymbolType()){
                     case THIS_WEEK:
                         futuresContract = FuturesContract.ThisWeek;
