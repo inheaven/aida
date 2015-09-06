@@ -44,10 +44,10 @@ public class DepthPage extends BasePage{
 
         add(getListView("ltc_depth"));
         add(getListView("ltc_this_depth"));
-        add(getListView("ltc_next_depth"));
+        add(getListView("ltc_cn_depth"));
         add(getListView("btc_depth"));
         add(getListView("btc_this_depth"));
-        add(getListView("btc_next_depth"));
+        add(getListView("btc_cn_depth"));
 
         add(new BroadcastBehavior<Depth>(DepthService.class) {
             @Override
@@ -76,6 +76,14 @@ public class DepthPage extends BasePage{
 
     @SuppressWarnings("Duplicates")
     private String getDepthId(String symbol, SymbolType symbolType) {
+        if (symbolType == null){
+            if (symbol.equals("LTC/CNY")){
+                return "ltc_cn_depth";
+            }else if (symbol.equals("BTC/CNY")){
+                return "btc_cn_depth";
+            }
+        }
+
         if (symbol.equals("LTC/USD")) {
             if (symbolType== null) {
                 return "ltc_depth";
@@ -148,7 +156,7 @@ public class DepthPage extends BasePage{
                     .collect(Collectors.summingDouble(o -> o.getAmount().doubleValue()));
 
             int volumeScale = depth.getSymbolType() == null ? 3 : 0;
-            int priceScale = depth.getSymbol().contains("BTC") ? 2 : 3;
+            int priceScale = depth.getSymbol().contains("BTC") || depth.getSymbol().contains("CNY") ? 2 : 3;
 
             Cell cell = new Cell(price.setScale(3, HALF_UP), map.get(price).setScale(volumeScale, HALF_UP),
                     BigDecimal.valueOf(open).setScale(volumeScale, HALF_UP));

@@ -164,16 +164,21 @@ public class BaseStrategy {
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> orderMap.forEach((id, o) -> {
             try {
-                BigDecimal range = new BigDecimal(strategy.getSymbol().contains("/CNY") ? "0.005" : "0.1");
+                BigDecimal range;
+                switch (strategy.getSymbol()){
+                    case "BTC/CNY":
+                        range = new BigDecimal("0.001");
+                        break;
+                    default:
+                        range = new BigDecimal("0.01");
+                }
 
                 if (lastPrice != null && lastPrice.subtract(o.getPrice()).abs().divide(lastPrice, 8, HALF_UP)
                         .compareTo(range) > 0 && o.getOrderId() != null){
                     orderService.cancelOrder(strategy.getAccount(), o);
                 }
             } catch (OrderInfoException e) {
-                orderMap.remove(o.getOrderId());
-
-                log.error("error cancel order -> ", e);
+                log.error("error cancel order -> {}", o);
             }
 
         }), 0, 1, MINUTES);
@@ -261,8 +266,13 @@ public class BaseStrategy {
             if (o.getOrderId() != null && (o.getStatus().equals(CANCELED) || o.getStatus().equals(CLOSED))){
                 Order order = orderMap.get(o.getOrderId());
 
+                if (order == null && o.getInternalId() != null){
+                    order = orderMap.get(o.getInternalId());
+                }
+
                 if (order != null){
                     order.setAccountId(strategy.getAccount().getId());
+                    order.setOrderId(o.getOrderId());
                     orderMap.remove(o.getOrderId());
                     order.close(o);
 

@@ -28,6 +28,10 @@ public abstract class BaseOkcoinFixService {
         okCoinApplication.placeOrder(order, sessionId);
     }
 
+    public void cancelOrder(Account account, Order order){
+        okCoinApplication.cancelOrder(order, sessionId);
+    }
+
     public Observable<Trade> getTradeObservable(){
         return tradePublishSubject.asObservable();
     }

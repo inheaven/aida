@@ -211,6 +211,7 @@ public class OKCoinApplication extends MessageCracker implements Application {
 
         switch (message.getOrdStatus().getValue()){
             case '0':
+            case '1':
                 order.setStatus(OrderStatus.OPEN);
                 order.setOpen(time);
                 break;
@@ -224,7 +225,8 @@ public class OKCoinApplication extends MessageCracker implements Application {
                 order.setClosed(time);
                 break;
             default:
-                order.setStatus(OrderStatus.OPEN);
+                order.setStatus(OrderStatus.CANCELED);
+                log.error("unknow order type - > {}", message.toString());
         }
 
         onOrder(order);
@@ -264,16 +266,21 @@ public class OKCoinApplication extends MessageCracker implements Application {
 	}
 
 	public void placeOrder(Order order, SessionID sessionId) {
-        char side;
-        switch (order.getType()){
-            case ASK: side = '2'; break;
-            case BID: side = '1'; break;
-            default: side = '0';
-        }
-
-		sendMessage(tradeRequestCreator.createNewOrderSingle(order.getInternalId(), side, '2', order.getAmount(),
+		sendMessage(tradeRequestCreator.createNewOrderSingle(order.getInternalId(), getSide(order.getType()), '2', order.getAmount(),
                 order.getPrice(), order.getSymbol()), sessionId);
 	}
+
+    public void cancelOrder(Order order, SessionID sessionId) {
+        cancelOrder(order.getInternalId(), order.getOrderId(), getSide(order.getType()), order.getSymbol(), sessionId);
+    }
+
+    public char getSide(OrderType orderType){
+        switch (orderType){
+            case ASK: return  '2';
+            case BID: return  '1';
+            default: return  '0';
+        }
+    }
 
 	public void cancelOrder(String clOrdId, String origClOrdId, char side, String symbol, SessionID sessionId) {
 		sendMessage(tradeRequestCreator.createOrderCancelRequest(clOrdId, origClOrdId, side, symbol), sessionId);

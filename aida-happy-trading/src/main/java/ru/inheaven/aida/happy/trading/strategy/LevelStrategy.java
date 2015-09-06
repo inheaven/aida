@@ -121,6 +121,14 @@ public class LevelStrategy extends BaseStrategy{
                             log.info("HFT -> {}s {} {} -> {}", time/1000, price.setScale(3, HALF_UP),
                                     strategy.getLevelLot().setScale(3, HALF_UP), amountHFT.setScale(3, HALF_UP));
                         }
+
+                        if (time < 1000 && strategy.getSymbol().contains("BTC/CNY")){
+                            amountHFT = amountHFT.multiply(BigDecimal.valueOf(2 - time/1000));
+
+                            log.info("HFT -> {}ms {} {} -> {}", time, price.setScale(3, HALF_UP),
+                                    strategy.getLevelLot().setScale(3, HALF_UP), amountHFT.setScale(3, HALF_UP));
+                        }
+
                     }else if (time < 15000){
                         amountHFT = amountHFT.multiply(BigDecimal.valueOf(2));
 

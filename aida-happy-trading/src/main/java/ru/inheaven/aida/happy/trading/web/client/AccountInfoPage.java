@@ -122,7 +122,7 @@ public class AccountInfoPage extends BasePage{
                         if (profit != null) {
                             if (u.getAccountId() == 7){
                                 BigDecimal valuationProfit = total.add(profit)
-                                        .subtract(BigDecimal.valueOf(9495))
+                                        .subtract(BigDecimal.valueOf(8714))
                                         .divide(BigDecimal.valueOf(100), 8, HALF_UP);
 
                                 handler.appendJavaScript("chart_" + u.getAccountId() + "_total.setTitle({text: '" +
@@ -131,7 +131,7 @@ public class AccountInfoPage extends BasePage{
 
                             }else if (u.getAccountId() == 8){
                                 BigDecimal valuationProfit = total.add(profit)
-                                        .subtract(BigDecimal.valueOf(3220))
+                                        .subtract(BigDecimal.valueOf(8212))
                                         .divide(BigDecimal.valueOf(100), 8, HALF_UP);
 
                                 handler.appendJavaScript("chart_" + u.getAccountId() + "_total.setTitle({text: '" +
