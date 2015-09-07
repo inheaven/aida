@@ -111,6 +111,12 @@ public class OKCoinApplication extends MessageCracker implements Application {
 		if (message instanceof AccountInfoResponse) {
 			onMessage((AccountInfoResponse) message, sessionId);
 		} else {
+            if ("9".equals(message.getHeader().getString(MsgType.FIELD))){
+                log.warn("crack -> {}", message.toString());
+
+                return;
+            }
+
 			super.crack(message, sessionId);
 		}
 	}
@@ -283,7 +289,8 @@ public class OKCoinApplication extends MessageCracker implements Application {
     }
 
 	public void cancelOrder(String clOrdId, String origClOrdId, char side, String symbol, SessionID sessionId) {
-		sendMessage(tradeRequestCreator.createOrderCancelRequest(clOrdId, origClOrdId, side, symbol), sessionId);
+		sendMessage(tradeRequestCreator.createOrderCancelRequest(clOrdId != null ? clOrdId : System.nanoTime() + "",
+				origClOrdId, side, symbol), sessionId);
 	}
 
 	/**

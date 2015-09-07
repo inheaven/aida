@@ -112,7 +112,7 @@ public class OrderService {
     }
 
     public void cancelOrder(Account account, Order order) throws OrderInfoException {
-        switch (order.getExchangeType()){
+        switch (account.getExchangeType()){
             case OKCOIN:
                 if (order.getSymbolType() == null){
                     okcoinFixUsService.cancelOrder(account, order);

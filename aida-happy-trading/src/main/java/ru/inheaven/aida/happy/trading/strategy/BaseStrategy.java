@@ -164,21 +164,15 @@ public class BaseStrategy {
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> orderMap.forEach((id, o) -> {
             try {
-                BigDecimal range;
-                switch (strategy.getSymbol()){
-                    case "BTC/CNY":
-                        range = new BigDecimal("0.001");
-                        break;
-                    default:
-                        range = new BigDecimal("0.01");
-                }
+                if (o.getStatus().equals(OPEN) && lastPrice != null &&
+                        lastPrice.subtract(o.getPrice()).abs().divide(lastPrice, 8, HALF_UP)
+                                .compareTo(new BigDecimal(o.getSymbol().equals("BTC/CNY") ? "0.005" : "0.05")) > 0){
 
-                if (lastPrice != null && lastPrice.subtract(o.getPrice()).abs().divide(lastPrice, 8, HALF_UP)
-                        .compareTo(range) > 0 && o.getOrderId() != null){
+                    log.info("cancel order -> {} {}", lastPrice, o);
                     orderService.cancelOrder(strategy.getAccount(), o);
                 }
-            } catch (OrderInfoException e) {
-                log.error("error cancel order -> {}", o);
+            } catch (Exception e) {
+                log.error("error cancel order -> {}", o, e);
             }
 
         }), 0, 1, MINUTES);
@@ -224,8 +218,6 @@ public class BaseStrategy {
                 .forEach(o -> {
                     o.setStatus(CLOSED);
                     onOrder(o);
-
-                    orderMap.remove(o.getInternalId());
                 });
     }
 
@@ -273,8 +265,13 @@ public class BaseStrategy {
                 if (order != null){
                     order.setAccountId(strategy.getAccount().getId());
                     order.setOrderId(o.getOrderId());
-                    orderMap.remove(o.getOrderId());
                     order.close(o);
+
+                    orderMap.remove(o.getOrderId());
+
+                    if (o.getInternalId() != null) {
+                        orderMap.remove(o.getInternalId());
+                    }
 
                     orderMapper.asyncSave(order);
 
@@ -305,8 +302,8 @@ public class BaseStrategy {
     }
 
     private void logOrder(Order o){
-        log.info("{} {} {} {} {} {} {} {}", o.getStrategyId(),
-                o.getOrderId() != null ? o.getOrderId() : o.getInternalId(), o.getStatus(),
+        log.info("{} {} {} {} {} {} {} {} {}", o.getStrategyId(),
+                Objects.toString(o.getInternalId(), "->"), Objects.toString(o.getOrderId(), "->"), o.getStatus(),
                 o.getSymbol(), o.getPrice().setScale(o.getSymbol().contains("/CNY") ? 2 : 3, HALF_UP),
                 o.getAmount().setScale(3, HALF_UP), o.getType(), Objects.toString(o.getSymbolType(), ""));
     }

@@ -96,10 +96,11 @@ public class LevelStrategy extends BaseStrategy{
             Order search = getOrderMap().searchValues(64, (o) -> {
                 if (LONG.contains(o.getType()) && (OPEN.equals(o.getStatus()) || CREATED.equals(o.getStatus())) &&
                         ((SELL_SET.contains(o.getType()) &&
-                                o.getPrice().subtract(price).abs().compareTo(reversing ? spreadF : spreadX2) <= 0) ||
+                                o.getPrice().subtract(price).abs().subtract(step.abs())
+                                        .compareTo(reversing ? spreadF : spreadX2) <= 0) ||
                         (BUY_SET.contains(o.getType()) &&
-                                price.subtract(o.getPrice()).abs().compareTo(reversing ? spreadX2 : spreadF) <= 0))){
-
+                                price.subtract(o.getPrice()).abs().subtract(step.abs())
+                                        .compareTo(reversing ? spreadX2 : spreadF) <= 0))){
                     return o;
                 }
 
@@ -107,7 +108,7 @@ public class LevelStrategy extends BaseStrategy{
             });
 
             if (search == null){
-                log.info(key + " {} {} {}", price.setScale(3, HALF_UP), orderType, reversing);
+                log.info(key + " {} {} {}", price.setScale(3, HALF_UP), orderType, reversing ? "reversing" : "");
 
                 BigDecimal amountHFT = strategy.getLevelLot();
 
@@ -122,8 +123,8 @@ public class LevelStrategy extends BaseStrategy{
                                     strategy.getLevelLot().setScale(3, HALF_UP), amountHFT.setScale(3, HALF_UP));
                         }
 
-                        if (time < 1000 && strategy.getSymbol().contains("BTC/CNY")){
-                            amountHFT = amountHFT.multiply(BigDecimal.valueOf(2 - time/1000));
+                        if (time < 2000 && strategy.getSymbol().contains("BTC/CNY")){
+                            amountHFT = amountHFT.multiply(BigDecimal.valueOf(20.0 - 19.0*time/2000));
 
                             log.info("HFT -> {}ms {} {} -> {}", time, price.setScale(3, HALF_UP),
                                     strategy.getLevelLot().setScale(3, HALF_UP), amountHFT.setScale(3, HALF_UP));
@@ -144,14 +145,18 @@ public class LevelStrategy extends BaseStrategy{
 
                 Long positionId = System.nanoTime();
 
-                BigDecimal buyAmount = amountHFT;
-                if (strategy.getSymbolType() == null){
-                    buyAmount = buyAmount.multiply(BigDecimal.valueOf(1.0 + random.nextDouble()/5)).setScale(8, HALF_UP);
-                }
+                BigDecimal buyAmount;
+                BigDecimal sellAmount;
 
-                BigDecimal sellAmount = amountHFT;
-                if (strategy.getSymbolType() == null){
-                    sellAmount = sellAmount.multiply(BigDecimal.valueOf(1.0 + random.nextDouble()/5)).setScale(8, HALF_UP);
+                if (strategy.getSymbol().contains("/CNY")){
+                    buyAmount = amountHFT.multiply(BigDecimal.valueOf(1.0 + random.nextDouble()/2)).setScale(8, HALF_UP);
+                    sellAmount = buyAmount;
+                }else if (strategy.getSymbolType() == null){
+                    buyAmount = amountHFT.multiply(BigDecimal.valueOf(1.0 + random.nextDouble()/5)).setScale(8, HALF_UP);
+                    sellAmount = amountHFT.multiply(BigDecimal.valueOf(1.0 + random.nextDouble()/5)).setScale(8, HALF_UP);
+                }else {
+                    buyAmount = amountHFT;
+                    sellAmount = amountHFT;
                 }
 
                 if (reversing){
