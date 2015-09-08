@@ -70,11 +70,11 @@ public class AccountInfoPage extends BasePage{
 
                 if (info.getAccountId() == 7 || info.getAccountId() == 8) {
                     if (FUTURES.contains(info.getCurrency())) {
-                        handler.appendJavaScript("chart_" + info.getAccountId() + "_" + info.getCurrency().toLowerCase() +
-                                "_equity.series[0].addPoint(" + Json.createArrayBuilder()
-                                .add(info.getCreated().getTime())
-                                .add((info.getAccountRights().setScale(3, HALF_UP)))
-                                .build().toString() + ", true)");
+//                        handler.appendJavaScript("chart_" + info.getAccountId() + "_" + info.getCurrency().toLowerCase() +
+//                                "_equity.series[0].addPoint(" + Json.createArrayBuilder()
+//                                .add(info.getCreated().getTime())
+//                                .add((info.getAccountRights().setScale(3, HALF_UP)))
+//                                .build().toString() + ", true)");
                     }else if (SPOT.contains(info.getCurrency())) {
                         handler.appendJavaScript("chart_" + info.getAccountId() + "_" + info.getCurrency().toLowerCase() +
                                 ".series[0].addPoint(" + Json.createArrayBuilder()
@@ -102,7 +102,7 @@ public class AccountInfoPage extends BasePage{
                         BigDecimal total = u.getFuturesTotal().add(u.getSpotTotal());
 
                         handler.appendJavaScript("chart_" + u.getAccountId() + "_total.series[0].addPoint([" +
-                                u.getCreated().getTime() + "," + total.divide(u.getBtcPrice(), 3, HALF_UP) + "])");
+                                u.getCreated().getTime() + "," + total.setScale(2, HALF_UP) + "])");
 
                         BigDecimal volume = u.getFuturesVolume().add(u.getSpotVolume()).setScale(3, HALF_UP);
 
@@ -150,7 +150,9 @@ public class AccountInfoPage extends BasePage{
     public void renderHead(IHeaderResponse response) {
         response.render(JavaScriptHeaderItem.forReference(JQueryResourceReference.get()));
         response.render(JavaScriptHeaderItem.forUrl("./highstock/highstock.js"));
-        response.render(JavaScriptHeaderItem.forUrl("./highstock/highcharts-more.js"));
+        response.render(JavaScriptHeaderItem.forUrl("./highstock/highcharts-3d.js"));
+//        response.render(JavaScriptHeaderItem.forUrl("./highstock/highcharts-more.js"));
+
         response.render(JavaScriptHeaderItem.forUrl("./js/dark-unica-mod.js"));
         response.render(JavaScriptHeaderItem.forUrl("./js/account.js"));
     }

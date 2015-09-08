@@ -18,10 +18,11 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static java.math.RoundingMode.HALF_UP;
 import static java.util.concurrent.TimeUnit.HOURS;
-import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.*;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.BUY_SET;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.SELL_SET;
@@ -58,7 +59,9 @@ public class BaseStrategy {
     private int errorCount = 0;
     private long errorTime = 0;
 
-    private BigDecimal lastPrice;
+    private AtomicReference<BigDecimal> lastPrice = new AtomicReference<>();
+
+    private long refusedTime = 0;
 
     public BaseStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                         DepthService depthService) {
@@ -109,7 +112,9 @@ public class BaseStrategy {
 
         tradeSubscription = allTradeObservable.subscribe(t -> {
             try {
-                lastPrice = t.getPrice();
+                if (t.getPrice() != null) {
+                    lastPrice.set(t.getPrice());
+                }
 
                 onTrade(t);
             } catch (Exception e) {
@@ -124,6 +129,10 @@ public class BaseStrategy {
 
         realTradeSubscription = orderObservable.subscribe(o -> {
             try {
+                if (o.getPrice() != null) {
+                    lastPrice.set(o.getPrice());
+                }
+
                 onRealTrade(o);
             } catch (Exception e) {
                 log.error("error on real trade -> ", e);
@@ -164,9 +173,9 @@ public class BaseStrategy {
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> orderMap.forEach((id, o) -> {
             try {
-                if (o.getStatus().equals(OPEN) && lastPrice != null &&
-                        lastPrice.subtract(o.getPrice()).abs().divide(lastPrice, 8, HALF_UP)
-                                .compareTo(new BigDecimal(o.getSymbol().equals("BTC/CNY") ? "0.005" : "0.05")) > 0){
+                if (o.getStatus().equals(OPEN) && lastPrice.get() != null &&
+                        lastPrice.get().subtract(o.getPrice()).abs().divide(o.getPrice(), 8, HALF_UP)
+                                .compareTo(new BigDecimal(o.getSymbol().contains("/CNY") ? "0.0025" : "0.05")) > 0){
 
                     log.info("cancel order -> {} {}", lastPrice, o);
                     orderService.cancelOrder(strategy.getAccount(), o);
@@ -175,7 +184,7 @@ public class BaseStrategy {
                 log.error("error cancel order -> {}", o, e);
             }
 
-        }), 0, 1, MINUTES);
+        }), 10, 42, SECONDS);
 
         flying = true;
     }
@@ -254,6 +263,10 @@ public class BaseStrategy {
     }
 
     protected void onOrder(Order o){
+        if ("refused".equals(o.getOrderId())){
+            refusedTime = System.currentTimeMillis();
+        }
+
         try {
             if (o.getOrderId() != null && (o.getStatus().equals(CANCELED) || o.getStatus().equals(CLOSED))){
                 Order order = orderMap.get(o.getOrderId());
@@ -338,5 +351,9 @@ public class BaseStrategy {
 
     public Strategy getStrategy() {
         return strategy;
+    }
+
+    public long getRefusedTime() {
+        return refusedTime;
     }
 }

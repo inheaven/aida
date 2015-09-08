@@ -27,7 +27,11 @@
     </select>
 
     <select id="selectUserInfoList" parameterType="map" resultMap="userInfo">
-        select * from user_info where account_id = #{accountId} and currency = #{currency} and created > #{date} order by created asc;
+        select * from user_info where account_id = #{accountId} and created > #{date}
+            <if test="currency != null">
+                and currency = #{currency}
+            </if>
+        order by created asc;
     </select>
 
 </mapper>

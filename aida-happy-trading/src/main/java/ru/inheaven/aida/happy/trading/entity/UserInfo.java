@@ -18,6 +18,10 @@ public class UserInfo extends AbstractEntity{
     private BigDecimal riskRate;
     private Date created;
 
+    public Long getCreatedMinute(){
+        return created.getTime()/1000;
+    }
+
     public Long getAccountId() {
         return accountId;
     }

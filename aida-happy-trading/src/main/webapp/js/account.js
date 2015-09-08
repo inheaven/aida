@@ -1,3 +1,6 @@
+var chart_3d;
+var chart_3d_cn;
+
 var chart_7_ltc_equity;
 var chart_7_btc_equity;
 var chart_7_btc_price;
@@ -62,18 +65,204 @@ $(function () {
     
     //FUTURES
     
-    $.getJSON('/account_info_rest/user_info/7/LTC', function (data) {
-        chart_7_ltc_equity = areaChart('ltc_equity', 'LTC Equity', data);
+    //$.getJSON('/account_info_rest/user_info/7/LTC', function (data) {
+    //    chart_7_ltc_equity = areaChart('ltc_equity', 'LTC Equity', data);
+    //});
+    //
+    //$.getJSON('/account_info_rest/user_info/7/BTC', function (data) {
+    //    chart_7_btc_equity = areaChart('btc_equity', 'BTC Equity', data);
+    //});
+
+
+
+    //3D
+
+    $.getJSON('/account_info_rest/3d/7', function (data) {
+        chart_3d =  $('#3d').highcharts( {
+            credits: {enabled: false},
+            title: {text: 'VOLUME', style:{"fontSize": "16px"}},
+            chart: {
+                type: 'scatter',
+                margin: 70,
+                options3d: {
+                    enabled: true,
+                    alpha: 10,
+                    beta: 30,
+                    depth: 500,
+                    viewDistance: 0,
+
+                    frame: {
+                        bottom: { size: 1, color: 'rgba(0,0,0,0.02)' },
+                        back: { size: 1, color: 'rgba(0,0,0,0.04)' },
+                        side: { size: 1, color: 'rgba(0,0,0,0.06)' }
+                    }
+                }
+            },
+            plotOptions: {
+                scatter: {
+                    width: 100,
+                    height: 100,
+                    depth: 100
+                }
+            },
+            yAxis: {
+              // min: 0,
+              // max: 3000,
+               title: null
+            },
+            xAxis: {
+                type: 'datetime',
+                gridLineWidth: 1
+            },
+            zAxis: {
+              // min: 0,
+             //  max: 3000,
+               showFirstLabel: false
+            },
+            legend: {
+                enabled: false
+            },
+            series: [{
+                name: 'LTC',
+                data: data.map(function(d){return [d[0], d[2], d[1]]}),
+                marker:{radius:3}
+            }
+                , {
+                name: 'BTC',
+                data: data.map(function(d){return [d[0], d[3], d[1]]})
+            }
+            ]
+        }).highcharts();
+
+        // Add mouse events for rotation
+        $(chart_3d.container).bind('mousedown.hc touchstart.hc', function (e) {
+            e = chart_3d.pointer.normalize(e);
+
+            var posX = e.pageX,
+                posY = e.pageY,
+                alpha = chart_3d.options.chart.options3d.alpha,
+                beta = chart_3d.options.chart.options3d.beta,
+                newAlpha,
+                newBeta,
+                sensitivity = 5; // lower is more sensitive
+
+            $(document).bind({
+                'mousemove.hc touchdrag.hc': function (e) {
+                    // Run beta
+                    newBeta = beta + (posX - e.pageX) / sensitivity;
+                    chart_3d.options.chart.options3d.beta = newBeta;
+
+                    // Run alpha
+                    newAlpha = alpha + (e.pageY - posY) / sensitivity;
+                    chart_3d.options.chart.options3d.alpha = newAlpha;
+
+                    chart_3d.redraw(false);
+                },
+                'mouseup touchend': function () {
+                    $(document).unbind('.hc');
+                }
+            });
+        });
     });
-    
-    $.getJSON('/account_info_rest/user_info/7/BTC', function (data) {
-        chart_7_btc_equity = areaChart('btc_equity', 'BTC Equity', data);        
-    });    
+
+    $.getJSON('/account_info_rest/3d/8', function (data) {
+        chart_3d_cn =  $('#3d_cn').highcharts( {
+            credits: {enabled: false},
+            title: {text: 'VOLUME CN', style:{"fontSize": "16px"}},
+            chart: {
+                type: 'scatter',
+                margin: 70,
+                options3d: {
+                    enabled: true,
+                    alpha: 10,
+                    beta: 30,
+                    depth: 500,
+                    viewDistance: 0,
+
+                    frame: {
+                        bottom: { size: 1, color: 'rgba(0,0,0,0.02)' },
+                        back: { size: 1, color: 'rgba(0,0,0,0.04)' },
+                        side: { size: 1, color: 'rgba(0,0,0,0.06)' }
+                    }
+                }
+            },
+            plotOptions: {
+                scatter: {
+                    width: 100,
+                    height: 100,
+                    depth: 100
+                }
+            },
+            yAxis: {
+                //min: 0,
+                //max: 10000,
+                title: null
+            },
+            xAxis: {
+                type: 'datetime',
+                gridLineWidth: 1
+            },
+            zAxis: {
+               // min: 0,
+               // max: 10000,
+                showFirstLabel: false
+            },
+            legend: {
+                enabled: false
+            },
+            series: [{
+                name: 'LTC',
+                data: data.map(function(d){return [d[0], d[2], d[1]]}),
+                marker:{radius:3}
+            }
+                , {
+                    name: 'BTC',
+                    data: data.map(function(d){return [d[0], d[3], d[1]]})
+                }
+            ]
+        }).highcharts();
+
+        // Add mouse events for rotation
+        $(chart_3d_cn.container).bind('mousedown.hc touchstart.hc', function (e) {
+            e = chart_3d_cn.pointer.normalize(e);
+
+            var posX = e.pageX,
+                posY = e.pageY,
+                alpha = chart_3d_cn.options.chart.options3d.alpha,
+                beta = chart_3d_cn.options.chart.options3d.beta,
+                newAlpha,
+                newBeta,
+                sensitivity = 5; // lower is more sensitive
+
+            $(document).bind({
+                'mousemove.hc touchdrag.hc': function (e) {
+                    // Run beta
+                    newBeta = beta + (posX - e.pageX) / sensitivity;
+                    chart_3d_cn.options.chart.options3d.beta = newBeta;
+
+                    // Run alpha
+                    newAlpha = alpha + (e.pageY - posY) / sensitivity;
+                    chart_3d_cn.options.chart.options3d.alpha = newAlpha;
+
+                    chart_3d_cn.redraw(false);
+                },
+                'mouseup touchend': function () {
+                    $(document).unbind('.hc');
+                }
+            });
+        });
+    });
+
+
+
+
     
     //USD
 
     $.getJSON('/account_info_rest/user_info/7/LTC_SPOT', function (data) {
         chart_7_ltc_spot = areaChart('ltc_spot', 'LTC Spot', data);
+
+
     });
 
     $.getJSON('/account_info_rest/user_info/7/BTC_SPOT', function (data) {
@@ -101,14 +290,14 @@ $(function () {
     //TOTAL
 
     $.getJSON('/account_info_rest/user_info_total/7', function (data) {
-        chart_7_total = areaChart('total', 'BTC Total', data.map(function(a){return [a[0], a[1]/a[3]]}));
+        chart_7_total = areaChart('total', 'BTC Total', data.map(function(a){return [a[0], a[1]]}));
         
         chart_7_ltc_price = areaChart('ltc_price', 'LTC Price', data.map(function(a){return [a[0], a[4]]}));
         chart_7_btc_price = areaChart('btc_price', 'BTC Price', data.map(function(a){return [a[0], a[3]]}));
     });
 
     $.getJSON('/account_info_rest/user_info_total/8', function (data) {
-        chart_8_total = areaChart('total_cn', 'BTC Total CN', data.map(function(a){return [a[0], a[1]/a[3]]}));
+        chart_8_total = areaChart('total_cn', 'BTC Total CN', data.map(function(a){return [a[0], a[1]]}));
     });
    
 

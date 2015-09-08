@@ -73,6 +73,10 @@ public class LevelStrategy extends BaseStrategy{
         try {
             lock.acquire();
 
+            if (System.currentTimeMillis() - getRefusedTime() < 1000){
+                return;
+            }
+
             BigDecimal spread = strategy.getLevelSpread().multiply(risk);
 
             if (strategy.getSymbolType() == null) {
@@ -116,15 +120,15 @@ public class LevelStrategy extends BaseStrategy{
                     Long time = System.currentTimeMillis() - levelTimeMap.get(level.toString() + reversing);
 
                     if (strategy.getSymbolType() == null){
-                        if (time < 3600000 && !strategy.getSymbol().contains("BTC/CNY")){
+                        if (time < 3600000 && !strategy.getSymbol().contains("/CNY")){
                             amountHFT = amountHFT.multiply(BigDecimal.valueOf(20.0 - 19.0*time/3600000));
 
                             log.info("HFT -> {}s {} {} -> {}", time/1000, price.setScale(3, HALF_UP),
                                     strategy.getLevelLot().setScale(3, HALF_UP), amountHFT.setScale(3, HALF_UP));
                         }
 
-                        if (time < 2000 && strategy.getSymbol().contains("BTC/CNY")){
-                            amountHFT = amountHFT.multiply(BigDecimal.valueOf(20.0 - 19.0*time/2000));
+                        if (time < 1000 && strategy.getSymbol().contains("/CNY")){
+                            amountHFT = amountHFT.multiply(BigDecimal.valueOf(10.0 - 9.0*time/1000));
 
                             log.info("HFT -> {}ms {} {} -> {}", time, price.setScale(3, HALF_UP),
                                     strategy.getLevelLot().setScale(3, HALF_UP), amountHFT.setScale(3, HALF_UP));

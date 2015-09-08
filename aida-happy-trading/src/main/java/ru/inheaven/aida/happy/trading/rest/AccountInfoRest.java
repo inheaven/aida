@@ -6,6 +6,7 @@ import org.wicketstuff.rest.annotations.parameters.PathParam;
 import org.wicketstuff.rest.contenthandling.json.objserialdeserial.JacksonObjectSerialDeserial;
 import org.wicketstuff.rest.contenthandling.json.webserialdeserial.JsonWebSerialDeserial;
 import org.wicketstuff.rest.resource.AbstractRestResource;
+import ru.inheaven.aida.happy.trading.entity.UserInfo;
 import ru.inheaven.aida.happy.trading.mapper.UserInfoMapper;
 import ru.inheaven.aida.happy.trading.mapper.UserInfoTotalMapper;
 import ru.inheaven.aida.happy.trading.service.Module;
@@ -65,5 +66,42 @@ public class AccountInfoRest extends AbstractRestResource<JsonWebSerialDeserial>
                         t.getBtcPrice().setScale(3, HALF_UP),
                         t.getLtcPrice().setScale(3, HALF_UP)))
                 .collect(Collectors.toList());
+    }
+
+    @MethodMapping("/3d/{accountId}")
+    public List get3D(@PathParam("accountId") Long accountId){
+        Date startDate = new Date(System.currentTimeMillis() - 1000*60*60*24*2);
+
+        return userInfoMapper.getUserInfoList(accountId, null, startDate).stream()
+                .filter(u -> u.getCurrency().contains("SPOT"))
+                .collect(Collectors.groupingByConcurrent(UserInfo::getCreatedMinute))
+                .entrySet()
+                .stream()
+                .map(e ->  {
+                    Object[] v = new Object[4];
+
+                    v[0] = e.getKey()*1000;
+
+                    for (UserInfo u : e.getValue()){
+                        switch (u.getCurrency()){
+                            case "CNY_SPOT":
+                            case "USD_SPOT":
+                                v[1] = u.getAccountRights().add(u.getKeepDeposit()).setScale(2, HALF_UP);
+                                break;
+                            case "LTC_SPOT":
+                                v[2] = u.getAccountRights().add(u.getKeepDeposit()).setScale(2, HALF_UP);
+                                break;
+                            case "BTC_SPOT":
+                                v[3] = u.getAccountRights().add(u.getKeepDeposit()).setScale(2, HALF_UP);
+                                break;
+                        }
+
+                    }
+
+                    return v;
+                })
+                .filter(o -> o[0] != null && o[1] != null && o[2] != null && o[3] != null)
+                .collect(Collectors.toList());
+
     }
 }

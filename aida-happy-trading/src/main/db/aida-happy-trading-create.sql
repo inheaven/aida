@@ -39,6 +39,7 @@ CREATE TABLE `order`
 (
   id BIGINT PRIMARY KEY NOT NULL AUTO_INCREMENT,
   order_id VARCHAR(32) NOT NULL,
+  internal_id BIGINT NOT NULL,
   strategy_id BIGINT NOT NULL,
   position_id BIGINT NULL,
   exchange_type VARCHAR(32) NOT NULL,
