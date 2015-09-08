@@ -5,6 +5,7 @@
     <resultMap id="order" type="ru.inheaven.aida.happy.trading.entity.Order">
         <id column="id" property="id"/>
         <result column="order_id" property="orderId"/>
+        <result column="internal_id" property="internalId"/>
         <result column="strategy_id" property="strategyId"/>
         <result column="position_id" property="positionId"/>
         <result column="exchange_type" property="exchangeType"/>
@@ -23,9 +24,9 @@
     </resultMap>
 
     <insert id="insertOrder" parameterType="ru.inheaven.aida.happy.trading.entity.Order" keyProperty="id" useGeneratedKeys="true">
-        insert ignore into `order` (order_id, strategy_id, position_id, exchange_type, type, symbol, symbol_type, price, amount,
+        insert ignore into `order` (order_id, `internal_id`, strategy_id, position_id, exchange_type, type, symbol, symbol_type, price, amount,
                              filled_amount, avg_price, fee, created, `open`, closed, `status`)
-        value (#{orderId}, #{strategyId}, #{positionId}, #{exchangeType}, #{type}, #{symbol}, #{symbolType}, #{price}, #{amount},
+        value (#{orderId}, #{internalId}, #{strategyId}, #{positionId}, #{exchangeType}, #{type}, #{symbol}, #{symbolType}, #{price}, #{amount},
                #{filledAmount}, #{avgPrice}, #{fee}, #{created}, #{open}, #{closed}, #{status})
     </insert>
 
