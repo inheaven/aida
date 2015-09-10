@@ -60,6 +60,17 @@ public class LevelStrategy extends BaseStrategy{
 
     private Semaphore lock = new Semaphore(1);
 
+    private void actionLevel(String key, BigDecimal price, OrderType orderType){
+        if (strategy.getSymbol().contains("CNY")) {
+            for (int i = -10; i < 10; ++i){
+                action(key, price.add(strategy.getLevelSpread().multiply(BigDecimal.valueOf(i))), orderType);
+            }
+        }else{
+            action(key, price, orderType);
+        }
+    }
+
+
     private void action(String key, BigDecimal price, OrderType orderType) {
         if (getErrorCount() > 10){
             if (System.currentTimeMillis() - getErrorTime() < 60000){
@@ -73,7 +84,7 @@ public class LevelStrategy extends BaseStrategy{
         try {
             lock.acquire();
 
-            if (System.currentTimeMillis() - getRefusedTime() < 1000){
+            if (System.currentTimeMillis() - getRefusedTime() < 60000){
                 return;
             }
 
@@ -190,10 +201,10 @@ public class LevelStrategy extends BaseStrategy{
     @Override
     protected void onTrade(Trade trade) {
         if (lastTrade.compareTo(ZERO) == 0 || lastTrade.subtract(trade.getPrice()).abs()
-                .divide(lastTrade, 8, HALF_UP).compareTo(BigDecimal.valueOf(0.1)) < 0){
-            action("on trade", trade.getPrice(), trade.getOrderType());
+                .divide(lastTrade, 8, HALF_UP).compareTo(BigDecimal.valueOf(0.05)) < 0){
+            actionLevel("on trade", trade.getPrice(), trade.getOrderType());
         }else{
-            log.warn("trade price diff 10% than last trade {} {} {}", trade.getPrice(), trade.getSymbol(), Objects.toString(trade.getSymbolType(), ""));
+            log.warn("trade price diff 5% than last trade {} {} {}", trade.getPrice(), trade.getSymbol(), Objects.toString(trade.getSymbolType(), ""));
         }
 
         lastTrade = trade.getPrice();

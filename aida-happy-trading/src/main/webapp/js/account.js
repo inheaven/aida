@@ -83,55 +83,61 @@ $(function () {
             title: {text: 'VOLUME', style:{"fontSize": "16px"}},
             chart: {
                 type: 'scatter',
-                margin: 70,
+                margin:55,
                 options3d: {
                     enabled: true,
-                    alpha: 10,
-                    beta: 30,
+                    alpha: 5,
+                    beta: 15,
                     depth: 500,
                     viewDistance: 0,
 
-                    frame: {
-                        bottom: { size: 1, color: 'rgba(0,0,0,0.02)' },
-                        back: { size: 1, color: 'rgba(0,0,0,0.04)' },
-                        side: { size: 1, color: 'rgba(0,0,0,0.06)' }
-                    }
+                    //frame: {
+                    //    bottom: { size: 1, color: 'rgba(0,0,0,0.02)' },
+                    //    back: { size: 1, color: 'rgba(0,0,0,0.04)' },
+                    //    side: { size: 1, color: 'rgba(0,0,0,0.06)' }
+                    //}
                 }
             },
             plotOptions: {
-                scatter: {
-                    width: 100,
-                    height: 100,
-                    depth: 100
-                }
+                //scatter: {
+                //    width: 100,
+                //    height: 100,
+                //    depth: 100
+                //}
             },
             yAxis: {
-              // min: 0,
-              // max: 3000,
-               title: null
+              min: 0,
+              max: 8000,
+               title: 'LTC'
             },
             xAxis: {
-                type: 'datetime',
-                gridLineWidth: 1
+                //type: 'datetime',
+                gridLineWidth: 1,
+                min: 0,
+                max: 8000,
+
+                title:'USD'
             },
             zAxis: {
-              // min: 0,
-             //  max: 3000,
-               showFirstLabel: false
+              min: 0,
+              max: 8000,
+               showFirstLabel: false,
+               title:'BTC'
             },
             legend: {
                 enabled: false
             },
             series: [{
-                name: 'LTC',
-                data: data.map(function(d){return [d[0], d[2], d[1]]}),
-                marker:{radius:3}
-            }
-                , {
-                name: 'BTC',
-                data: data.map(function(d){return [d[0], d[3], d[1]]})
-            }
-            ]
+                name: 'VOLUME',
+                data: data.map(function (d) {
+                    return [d[1], d[3]*245, d[2]*3]
+                }),
+                marker: {radius: 1}
+            }, {
+                name: 'VOLUME',
+                data: [[0,0,0]],
+                marker: {radius: 2, fillColor:'white'}
+            }]
         }).highcharts();
 
         // Add mouse events for rotation
@@ -171,54 +177,56 @@ $(function () {
             title: {text: 'VOLUME CN', style:{"fontSize": "16px"}},
             chart: {
                 type: 'scatter',
-                margin: 70,
+                margin: 55,
                 options3d: {
                     enabled: true,
-                    alpha: 10,
-                    beta: 30,
+                    alpha: 5,
+                    beta: 15,
                     depth: 500,
                     viewDistance: 0,
 
-                    frame: {
-                        bottom: { size: 1, color: 'rgba(0,0,0,0.02)' },
-                        back: { size: 1, color: 'rgba(0,0,0,0.04)' },
-                        side: { size: 1, color: 'rgba(0,0,0,0.06)' }
-                    }
+                    //frame: {
+                    //    bottom: { size: 1, color: 'rgba(0,0,0,0.02)' },
+                    //    back: { size: 1, color: 'rgba(0,0,0,0.04)' },
+                    //    side: { size: 1, color: 'rgba(0,0,0,0.06)' }
+                    //}
                 }
             },
             plotOptions: {
-                scatter: {
-                    width: 100,
-                    height: 100,
-                    depth: 100
-                }
+                //scatter: {
+                //    width: 100,
+                //    height: 100,
+                //    depth: 100
+                //}
             },
             yAxis: {
-                //min: 0,
-                //max: 10000,
+                min: 0,
+                max: 20000,
                 title: null
             },
             xAxis: {
-                type: 'datetime',
+                //type: 'datetime',
+                min: 0,
+                max: 20000,
                 gridLineWidth: 1
             },
             zAxis: {
-               // min: 0,
-               // max: 10000,
+                min: 0,
+                max: 5000,
                 showFirstLabel: false
             },
             legend: {
                 enabled: false
             },
             series: [{
-                name: 'LTC',
-                data: data.map(function(d){return [d[0], d[2], d[1]]}),
-                marker:{radius:3}
+                name: 'VOLUME',
+                data: data.map(function(d){return [d[1], d[3]*1560, d[2]*20]}),
+                marker:{radius:1}
+            }, {
+                name: 'VOLUME',
+                data: [[0,0,0]],
+                marker: {radius: 2, fillColor:'white'}
             }
-                , {
-                    name: 'BTC',
-                    data: data.map(function(d){return [d[0], d[3], d[1]]})
-                }
             ]
         }).highcharts();
 
@@ -319,7 +327,7 @@ $(function () {
         xAxis: {type: 'datetime', minRange: 3600000, min: new Date().getTime() - 24*3600000 + offset, max: new Date().getTime() + 60000 + offset},
         yAxis: [
             {labels: {enabled: true}, title:{text: null}, opposite: true, endOnTick:false, max: 500},
-            {labels: {enabled: true}, title:{text: null}, opposite: false, endOnTick:false, max: 5000}
+            {labels: {enabled: true}, title:{text: null}, opposite: false, endOnTick:false, max: 20000}
         ],
         series: [{
             type : 'column',
@@ -329,8 +337,8 @@ $(function () {
             color: {
                 linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
                 stops: [
-                    [0, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0.2).get('rgba')],
-                    [1, Highcharts.getOptions().colors[0]]
+                    [0, Highcharts.Color(Highcharts.getOptions().colors[4]).setOpacity(0.2).get('rgba')],
+                    [1, Highcharts.getOptions().colors[4]]
                 ]
             }
         }, {
@@ -386,8 +394,8 @@ function all(chart){
 
 
 function hourCharts(){
-    hour(chart_7_ltc_equity);
-    hour(chart_7_btc_equity);
+    //hour(chart_7_ltc_equity);
+    //hour(chart_7_btc_equity);
     hour(chart_7_btc_price);
     hour(chart_7_ltc_price);
     hour(chart_7_ltc_spot);
@@ -401,8 +409,8 @@ function hourCharts(){
 }
 
 function dayCharts(){
-    day(chart_7_ltc_equity);
-    day(chart_7_btc_equity);
+    //day(chart_7_ltc_equity);
+    //day(chart_7_btc_equity);
     day(chart_7_btc_price);
     day(chart_7_ltc_price);
     day(chart_7_ltc_spot);
@@ -416,8 +424,8 @@ function dayCharts(){
 }
 
 function weekCharts(){
-    week(chart_7_ltc_equity);
-    week(chart_7_btc_equity);
+    //week(chart_7_ltc_equity);
+    //week(chart_7_btc_equity);
     week(chart_7_btc_price);
     week(chart_7_ltc_price);
     week(chart_7_ltc_spot);
@@ -431,8 +439,8 @@ function weekCharts(){
 }
 
 function allCharts(){
-    all(chart_7_ltc_equity);
-    all(chart_7_btc_equity);
+    //all(chart_7_ltc_equity);
+    //all(chart_7_btc_equity);
     all(chart_7_btc_price);
     all(chart_7_ltc_price);
     all(chart_7_ltc_spot);

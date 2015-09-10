@@ -27,8 +27,6 @@ public class AccountInfoRest extends AbstractRestResource<JsonWebSerialDeserial>
     private Date startDate = new Date(Timestamp.valueOf("2015-07-21 00:00:00").getTime());
     private Date startSpotDate = new Date(Timestamp.valueOf("2015-07-24 00:00:00").getTime());
 
-    private static final long WEEK = 7 * 24 * 60 * 60 * 1000;
-
 
     private UserInfoMapper userInfoMapper = Module.getInjector().getInstance(UserInfoMapper.class);
     private UserInfoTotalMapper userInfoTotalMapper = Module.getInjector().getInstance(UserInfoTotalMapper.class);
@@ -42,8 +40,8 @@ public class AccountInfoRest extends AbstractRestResource<JsonWebSerialDeserial>
     @MethodMapping("/user_info/{accountId}/{currency}")
     public List getUserInfo(@PathParam("accountId") Long accountId, @PathParam("currency") String currency){
         return userInfoMapper.getUserInfoList(accountId, currency, startDate).stream()
-                .filter(i -> System.currentTimeMillis() - i.getCreated().getTime() < WEEK  ||
-                        i.getCreated().getTime() / 60000 % 60 == 0)
+                .filter(i -> System.currentTimeMillis() - i.getCreated().getTime() < 1000*60*60*24*2 ||
+                        i.getCreated().getTime()/60000 % 60 == 0)
                 .map(i -> {
                     if (i.getCurrency().contains("SPOT")){
                         return Arrays.asList(i.getCreated().getTime(),
@@ -58,8 +56,8 @@ public class AccountInfoRest extends AbstractRestResource<JsonWebSerialDeserial>
     @MethodMapping("/user_info_total/{accountId}")
     public List getUserInfoTotal(@PathParam("accountId") Long accountId){
         return userInfoTotalMapper.getUserInfoTotals(accountId, startDate).stream()
-                .filter(i -> System.currentTimeMillis() - i.getCreated().getTime() < WEEK ||
-                        i.getCreated().getTime() / 60000 % 60 == 0)
+                .filter(i -> System.currentTimeMillis() - i.getCreated().getTime() < 1000*60*60*24*2 ||
+                        i.getCreated().getTime()/60000 % 60 == 0)
                 .map(t -> Arrays.asList(t.getCreated().getTime(),
                         t.getFuturesTotal().add(t.getSpotTotal()).setScale(3, HALF_UP),
                         t.getFuturesVolume().add(t.getSpotVolume()).setScale(3, HALF_UP),
@@ -70,10 +68,11 @@ public class AccountInfoRest extends AbstractRestResource<JsonWebSerialDeserial>
 
     @MethodMapping("/3d/{accountId}")
     public List get3D(@PathParam("accountId") Long accountId){
-        Date startDate = new Date(System.currentTimeMillis() - 1000*60*60*24*2);
+        Date startDate = new Date(System.currentTimeMillis() - 1000*60*60*24*7);
 
         return userInfoMapper.getUserInfoList(accountId, null, startDate).stream()
                 .filter(u -> u.getCurrency().contains("SPOT"))
+                .filter(u -> u.getCreated().getTime()/60000 % 5 == 0)
                 .collect(Collectors.groupingByConcurrent(UserInfo::getCreatedMinute))
                 .entrySet()
                 .stream()

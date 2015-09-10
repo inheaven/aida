@@ -63,6 +63,12 @@ public class AccountInfoPage extends BasePage{
         });
 
         add(new BroadcastBehavior(UserInfoService.class){
+            private BigDecimal usd_spot;
+            private BigDecimal ltcSpot;
+            private BigDecimal btcSpot;
+            private BigDecimal cny_spot;
+            private BigDecimal ltcCnSpot;
+            private BigDecimal btcCnSpot;
 
             @Override
             protected void onBroadcast(WebSocketRequestHandler handler, String key, Object payload) {
@@ -76,11 +82,61 @@ public class AccountInfoPage extends BasePage{
 //                                .add((info.getAccountRights().setScale(3, HALF_UP)))
 //                                .build().toString() + ", true)");
                     }else if (SPOT.contains(info.getCurrency())) {
+                        BigDecimal volume = info.getAccountRights().add(info.getKeepDeposit());
+
                         handler.appendJavaScript("chart_" + info.getAccountId() + "_" + info.getCurrency().toLowerCase() +
                                 ".series[0].addPoint(" + Json.createArrayBuilder()
                                 .add(info.getCreated().getTime())
-                                .add((info.getAccountRights().add(info.getKeepDeposit()).setScale(3, HALF_UP)))
-                                .build().toString() + ", true)");
+                                .add(volume.setScale(3, HALF_UP))
+                                .build().toString() + ", true, true)");
+
+                        switch (info.getCurrency()){
+                            case "USD_SPOT":
+                                usd_spot = volume;
+                                break;
+                            case "CNY_SPOT":
+                                cny_spot = volume;
+                                break;
+                            case "LTC_SPOT":
+                                if (info.getAccountId() == 7){
+                                    ltcSpot = volume;
+                                }else if (info.getAccountId() == 8){
+                                    ltcCnSpot = volume;
+                                }
+                                break;
+                            case "BTC_SPOT":
+                                if (info.getAccountId() == 7){
+                                    btcSpot = volume;
+                                }else if (info.getAccountId() == 8){
+                                    btcCnSpot = volume;
+                                }
+                        }
+
+                        if (usd_spot != null && btcSpot != null && ltcSpot != null){
+                            handler.appendJavaScript("chart_3d" +
+                                    ".series[1].addPoint(" + Json.createArrayBuilder()
+                                    .add(usd_spot.setScale(3, HALF_UP))
+                                    .add(btcSpot.multiply(new BigDecimal(240)).setScale(3, HALF_UP))
+                                    .add(ltcSpot.multiply(new BigDecimal(3)).setScale(3, HALF_UP))
+                                    .build().toString() + ", true)");
+
+                            usd_spot = null;
+                            ltcCnSpot = null;
+                            btcCnSpot = null;
+                        }
+
+                        if (cny_spot != null && ltcCnSpot != null && btcCnSpot != null) {
+                            handler.appendJavaScript("chart_3d_cn" +
+                                    ".series[1].addPoint(" + Json.createArrayBuilder()
+                                    .add(cny_spot.setScale(3, HALF_UP))
+                                    .add(btcCnSpot.multiply(new BigDecimal(1550)).setScale(3, HALF_UP))
+                                    .add(ltcCnSpot.multiply(new BigDecimal(20)).setScale(3, HALF_UP))
+                                    .build().toString() + ", true)");
+
+                            cny_spot = null;
+                            ltcCnSpot = null;
+                            btcCnSpot = null;
+                        }
                     }
                 }
             }
@@ -102,7 +158,7 @@ public class AccountInfoPage extends BasePage{
                         BigDecimal total = u.getFuturesTotal().add(u.getSpotTotal());
 
                         handler.appendJavaScript("chart_" + u.getAccountId() + "_total.series[0].addPoint([" +
-                                u.getCreated().getTime() + "," + total.setScale(2, HALF_UP) + "])");
+                                u.getCreated().getTime() + "," + total.divide(u.getBtcPrice(),3, HALF_UP) + "])");
 
                         BigDecimal volume = u.getFuturesVolume().add(u.getSpotVolume()).setScale(3, HALF_UP);
 

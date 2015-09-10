@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.math.RoundingMode.HALF_UP;
@@ -61,7 +62,7 @@ public class BaseStrategy {
 
     private AtomicReference<BigDecimal> lastPrice = new AtomicReference<>();
 
-    private long refusedTime = 0;
+    private AtomicLong refusedTime = new AtomicLong(System.currentTimeMillis());
 
     public BaseStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                         DepthService depthService) {
@@ -175,7 +176,7 @@ public class BaseStrategy {
             try {
                 if (o.getStatus().equals(OPEN) && lastPrice.get() != null &&
                         lastPrice.get().subtract(o.getPrice()).abs().divide(o.getPrice(), 8, HALF_UP)
-                                .compareTo(new BigDecimal(o.getSymbol().contains("/CNY") ? "0.0025" : "0.05")) > 0){
+                                .compareTo(new BigDecimal(o.getSymbol().contains("/CNY") ? "0.005" : "0.05")) > 0){
 
                     log.info("cancel order -> {} {}", lastPrice, o);
                     orderService.cancelOrder(strategy.getAccount(), o);
@@ -264,7 +265,9 @@ public class BaseStrategy {
 
     protected void onOrder(Order o){
         if ("refused".equals(o.getOrderId())){
-            refusedTime = System.currentTimeMillis();
+            refusedTime.set(System.currentTimeMillis());
+
+            log.warn("REFUSED", o);
         }
 
         try {
@@ -354,6 +357,6 @@ public class BaseStrategy {
     }
 
     public long getRefusedTime() {
-        return refusedTime;
+        return refusedTime.get();
     }
 }
