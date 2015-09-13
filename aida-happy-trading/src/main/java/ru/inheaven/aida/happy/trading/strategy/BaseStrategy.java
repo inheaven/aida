@@ -25,8 +25,7 @@ import static java.math.RoundingMode.HALF_UP;
 import static java.util.concurrent.TimeUnit.HOURS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.*;
-import static ru.inheaven.aida.happy.trading.entity.OrderType.BUY_SET;
-import static ru.inheaven.aida.happy.trading.entity.OrderType.SELL_SET;
+import static ru.inheaven.aida.happy.trading.entity.OrderType.*;
 import static ru.inheaven.aida.happy.trading.entity.SymbolType.QUARTER;
 
 /**
@@ -176,7 +175,7 @@ public class BaseStrategy {
             try {
                 if (o.getStatus().equals(OPEN) && lastPrice.get() != null &&
                         lastPrice.get().subtract(o.getPrice()).abs().divide(o.getPrice(), 8, HALF_UP)
-                                .compareTo(new BigDecimal(o.getSymbol().contains("/CNY") ? "0.01" : "0.05")) > 0){
+                                .compareTo(new BigDecimal(o.getSymbol().contains("BTC/CNY") ? "0.005" : "0.1")) > 0){
 
                     log.info("cancel order -> {} {}", lastPrice, o);
                     orderService.cancelOrder(strategy.getAccount(), o);
@@ -221,10 +220,11 @@ public class BaseStrategy {
 
     protected void closeOnCheck(BigDecimal price){
         orderMap.forEach(64, (k, o) ->{
-            if ((BUY_SET.contains(o.getType()) && o.getPrice().compareTo(price) > 0) ||
-                    (SELL_SET.contains(o.getType()) && o.getPrice().compareTo(price) < 0)){
+            if ((o.getStatus().equals(OPEN) || o.getStatus().equals(CREATED)) &&
+                    ((BUY_SET.contains(o.getType()) && o.getPrice().compareTo(price) > 0) ||
+                    (SELL_SET.contains(o.getType()) && o.getPrice().compareTo(price) < 0))){
                 o.setStatus(CLOSED);
-                onOrder(o);
+                logOrder(o);
             }
         });
     }
@@ -264,6 +264,14 @@ public class BaseStrategy {
     protected void onOrder(Order o){
         if ("refused".equals(o.getOrderId())){
             refusedTime.set(System.currentTimeMillis());
+
+            Long positionId = System.nanoTime();
+
+            if (o.getType().equals(BID)){
+                createOrderAsync(new Order(strategy, positionId, ASK, o.getPrice().subtract(strategy.getLevelSpread()), strategy.getLevelLot()));
+            }else{
+                createOrderAsync(new Order(strategy, positionId, BID, o.getPrice().add(strategy.getLevelSpread()), strategy.getLevelLot()));
+            }
 
             log.warn("REFUSED", o);
         }

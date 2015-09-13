@@ -61,16 +61,8 @@ public class LevelStrategy extends BaseStrategy{
     private Semaphore lock = new Semaphore(1);
 
     private void actionLevel(String key, BigDecimal price, OrderType orderType){
-        if (strategy.getSymbol().contains("BTC/CNY")) {
-            for (int i = -3; i < 3; ++i){
-                action(key, price.add(strategy.getLevelSpread().multiply(BigDecimal.valueOf(i))), orderType);
-            }
-        }if (strategy.getSymbol().contains("LTC/CNY")) {
-            for (int i = -3; i < 3; ++i){
-                action(key, price.add(strategy.getLevelSpread().multiply(BigDecimal.valueOf(i))), orderType);
-            }
-        }else{
-            action(key, price, orderType);
+        for (int i = -10; i < 10; ++i){
+            action(key, price.add(strategy.getLevelSpread().multiply(BigDecimal.valueOf(i))), orderType);
         }
     }
 
@@ -119,9 +111,9 @@ public class LevelStrategy extends BaseStrategy{
                         ((SELL_SET.contains(o.getType()) &&
                                 o.getPrice().subtract(price).abs().subtract(step.abs())
                                         .compareTo(reversing ? spreadF : spreadX2) <= 0) ||
-                        (BUY_SET.contains(o.getType()) &&
-                                price.subtract(o.getPrice()).abs().subtract(step.abs())
-                                        .compareTo(reversing ? spreadX2 : spreadF) <= 0))){
+                                (BUY_SET.contains(o.getType()) &&
+                                        price.subtract(o.getPrice()).abs().subtract(step.abs())
+                                                .compareTo(reversing ? spreadX2 : spreadF) <= 0))){
                     return o;
                 }
 
