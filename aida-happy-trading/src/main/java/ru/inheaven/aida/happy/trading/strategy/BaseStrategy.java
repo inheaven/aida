@@ -176,7 +176,7 @@ public class BaseStrategy {
             try {
                 if (o.getStatus().equals(OPEN) && lastPrice.get() != null &&
                         lastPrice.get().subtract(o.getPrice()).abs().divide(o.getPrice(), 8, HALF_UP)
-                                .compareTo(new BigDecimal(o.getSymbol().contains("/CNY") ? "0.005" : "0.05")) > 0){
+                                .compareTo(new BigDecimal(o.getSymbol().contains("/CNY") ? "0.01" : "0.05")) > 0){
 
                     log.info("cancel order -> {} {}", lastPrice, o);
                     orderService.cancelOrder(strategy.getAccount(), o);
@@ -217,18 +217,16 @@ public class BaseStrategy {
                 .filter(o -> o.getPrice().subtract(trade.getPrice()).abs().compareTo(strategy.getLevelSpread()
                         .multiply(BigDecimal.valueOf(2))) < 0)
                 .forEach(o -> orderService.orderInfo(strategy, o));
-
-        closeOnCheck(trade.getPrice());
     }
 
     protected void closeOnCheck(BigDecimal price){
-        orderMap.values().parallelStream()
-                .filter(o -> (BUY_SET.contains(o.getType()) && o.getPrice().compareTo(price) > 0) ||
-                        (SELL_SET.contains(o.getType()) && o.getPrice().compareTo(price) < 0))
-                .forEach(o -> {
-                    o.setStatus(CLOSED);
-                    onOrder(o);
-                });
+        orderMap.forEach(64, (k, o) ->{
+            if ((BUY_SET.contains(o.getType()) && o.getPrice().compareTo(price) > 0) ||
+                    (SELL_SET.contains(o.getType()) && o.getPrice().compareTo(price) < 0)){
+                o.setStatus(CLOSED);
+                onOrder(o);
+            }
+        });
     }
 
     private ExecutorService executorService = Executors.newWorkStealingPool();
@@ -291,10 +289,10 @@ public class BaseStrategy {
 
                     orderMapper.asyncSave(order);
 
+                    logOrder(order);
+
                     orderService.onCloseOrder(order);
                     onCloseOrder(order);
-
-                    logOrder(order);
                 }
             }else if (o.getInternalId() != null && o.getStatus().equals(OPEN)){
                 Order order = orderMap.get(o.getInternalId());

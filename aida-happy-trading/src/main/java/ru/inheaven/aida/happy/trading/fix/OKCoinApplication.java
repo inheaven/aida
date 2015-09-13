@@ -145,7 +145,7 @@ public class OKCoinApplication extends MessageCracker implements Application {
                     trade.setTradeId(String.valueOf(System.nanoTime()));
                     trade.setExchangeType(exchangeType);
                     trade.setSymbol(symbol);
-                    trade.setOrderType(group.getField(new Side()).getValue() == Side.BUY ? OrderType.BID : OrderType.ASK);
+                    trade.setOrderType(group.getField(new Side()).getValue() == Side.SELL ? OrderType.BID : OrderType.ASK);
                     trade.setPrice(price);
                     trade.setAmount(amount);
                     trade.setTime(message.getString(OrigTime.FIELD));

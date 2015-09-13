@@ -18,7 +18,7 @@ var chart_8_total;
 
 var all_order_rate_chart;
 
-function areaChart(id, title, data){    
+function areaChart(id, title, data0, data1){
         return $('#'+id).highcharts('StockChart', {
             title: {text: title},
             chart: {animation: false, spacingBottom: 0},
@@ -27,9 +27,21 @@ function areaChart(id, title, data){
             navigator: {height: 0, xAxis: {labels: {enabled: false}}},
             scrollbar: {enabled: false},
             xAxis: {type: 'datetime'},
+            yAxis: [{opposite: true}, {opposite: false}],
             series: [{
-                type: 'area', threshold: null, name: title,
-                data: data,
+                type: 'area', threshold: null,
+                data: data0,
+                fillColor: {
+                    linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
+                    stops: [
+                        [0, Highcharts.getOptions().colors[0]],
+                        [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+                    ]
+                }
+            }, {
+                type: 'line', threshold: null,
+                data: data1,
+                yAxis:1,
                 fillColor: {
                     linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
                     stops: [
@@ -298,16 +310,17 @@ $(function () {
     //TOTAL
 
     $.getJSON('/account_info_rest/user_info_total/7', function (data) {
-        chart_7_total = areaChart('total', 'BTC Total', data.map(function(a){return [a[0], a[1]]}));
-        
-        chart_7_ltc_price = areaChart('ltc_price', 'LTC Price', data.map(function(a){return [a[0], a[4]]}));
-        chart_7_btc_price = areaChart('btc_price', 'BTC Price', data.map(function(a){return [a[0], a[3]]}));
+        chart_7_total = areaChart('total', 'BTC Total', data.map(function(a){return [a[0], a[1]/a[3]]}));
+
+        chart_7_ltc_price = areaChart('ltc_price', 'USD Profit', data.map(function(a){return [a[0], (a[1]-5173)/a[3]]}),
+            data.map(function(a){return [a[0], a[3]]}));
     });
 
     $.getJSON('/account_info_rest/user_info_total/8', function (data) {
-        chart_8_total = areaChart('total_cn', 'BTC Total CN', data.map(function(a){return [a[0], a[1]]}));
+        chart_8_total = areaChart('total_cn', 'BTC Total CN', data.map(function(a){return [a[0], a[1]/a[3]]}));
+        chart_7_btc_price = areaChart('btc_price', 'CNY Profit', data.map(function(a){return [a[0], (a[1]-10422)/a[3]]}),
+            data.map(function(a){return [a[0], a[3]]}));
     });
-   
 
     //ORDER
 
