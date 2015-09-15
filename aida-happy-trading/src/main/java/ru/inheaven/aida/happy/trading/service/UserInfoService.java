@@ -65,27 +65,25 @@ public class UserInfoService {
         orderService.getClosedOrderObservable()
                 .filter(o -> o.getStatus().equals(CLOSED))
                 .subscribe(o -> {
-                    if (o.getSymbolType() != null) {
-                        BigDecimal volume = getVolume("futures", o.getAccountId(), null);
+                    try {
+                        if (o.getSymbolType() != null) {
+                            BigDecimal volume = getVolume("futures", o.getAccountId(), null);
 
-                        if (o.getSymbol().equals("BTC/USD")) {
-                            volume = volume.add(BigDecimal.valueOf(100).multiply(o.getAmount()));
-                        } else if (o.getSymbol().equals("LTC/USD")) {
-                            volume = volume.add(BigDecimal.valueOf(10).multiply(o.getAmount()));
-                        }
+                            if (o.getSymbol().equals("BTC/USD")) {
+                                volume = volume.add(BigDecimal.valueOf(100).multiply(o.getAmount()));
+                            } else if (o.getSymbol().equals("LTC/USD")) {
+                                volume = volume.add(BigDecimal.valueOf(10).multiply(o.getAmount()));
+                            }
 
-                        setVolume("futures", o.getAccountId(), null, volume);
-                    } else {
-                        BigDecimal price = getPrice(o.getExchangeType(), o.getSymbol(), null);
-
-                        if (price != null){
+                            setVolume("futures", o.getAccountId(), null, volume);
+                        } else {
                             BigDecimal volume = getVolume("spot", o.getAccountId(), null);
-
-                            setVolume("spot", o.getAccountId(), null, volume.add(o.getAmount().multiply(price)));
+                            setVolume("spot", o.getAccountId(), null, volume.add(o.getAmount().multiply(o.getPrice())));
                         }
-
+                    } catch (Exception e) {
+                        log.error("on close volume -> {}", o);
                     }
-                }, e -> log.error("error add volume", e));
+                });
     }
 
     public void setVolume(String key, Long accountId, String symbol, BigDecimal volume){
@@ -121,6 +119,8 @@ public class UserInfoService {
                 setVolume("subtotal", account.getId(), "BTC", funds.getFree().get("btc").add(funds.getFreezed().get("btc")));
                 setVolume("subtotal", account.getId(), "LTC", funds.getFree().get("ltc").add(funds.getFreezed().get("ltc")));
 
+                saveFunds(account.getId(), "ASSET", funds.getAsset().get("total"), funds.getAsset().get("net"));
+
                 switch (account.getExchangeType()){
                     case OKCOIN:
                         OkCoinFuturesUserInfoCross info = ((OkCoinAccountServiceRaw) xChangeService.getExchange(account)
@@ -142,10 +142,6 @@ public class UserInfoService {
 
                         break;
                 }
-
-                saveFunds(account.getId(), "ASSET", funds.getAsset().get("total"), funds.getAsset().get("net"));
-
-
             } catch (Exception e) {
                 log.error("error user info -> ", e);
             }

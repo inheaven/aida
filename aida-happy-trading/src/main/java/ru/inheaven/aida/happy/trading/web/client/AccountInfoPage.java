@@ -38,6 +38,7 @@ public class AccountInfoPage extends BasePage{
             @Override
             public void renderHead(Component component, IHeaderResponse response) {
                 JsonArrayBuilder volumes = Json.createArrayBuilder();
+
                 Module.getInjector().getInstance(UserInfoTotalMapper.class)
                         .getUserInfoTotals(7L, new Date(System.currentTimeMillis() - 24*60*60*1000))
                         .forEach(i -> {
@@ -143,7 +144,7 @@ public class AccountInfoPage extends BasePage{
         });
 
         add(new BroadcastBehavior(UserInfoTotal.class){
-            Long lastProfit;
+            Long lastProfit = System.currentTimeMillis();
 
                 @Override
                 protected void onBroadcast(WebSocketRequestHandler handler, String key, Object payload) {
@@ -152,14 +153,14 @@ public class AccountInfoPage extends BasePage{
                     if (u.getAccountId() == 7){
                         handler.appendJavaScript("chart_7_ltc_price.series[0].addPoint([" +
                                 u.getCreated().getTime() + "," + u.getFuturesTotal().add(u.getSpotTotal())
-                                .subtract(BigDecimal.valueOf(5173)).divide(u.getBtcPrice(), 2, HALF_UP) + "]);");
+                                .subtract(BigDecimal.valueOf(7898)).divide(u.getBtcPrice(), 2, HALF_UP) + "]);");
                         handler.appendJavaScript("chart_7_ltc_price.series[1].addPoint([" +
                                 u.getCreated().getTime() + "," + u.getBtcPrice() + "]);");
 
                     }
                     if (u.getAccountId() == 8){
                         handler.appendJavaScript("chart_7_btc_price.series[0].addPoint([" +
-                                u.getCreated().getTime() + "," + u.getSpotTotal().subtract(BigDecimal.valueOf(10422))
+                                u.getCreated().getTime() + "," + u.getSpotTotal().subtract(BigDecimal.valueOf(13469))
                                 .divide(u.getBtcPrice(), 2, HALF_UP)+ "])");
                         handler.appendJavaScript("chart_7_btc_price.series[1].addPoint([" +
                                 u.getCreated().getTime() + "," + u.getBtcPrice() + "])");
@@ -192,7 +193,7 @@ public class AccountInfoPage extends BasePage{
                             if (profit != null) {
                                 if (u.getAccountId() == 7){
                                     BigDecimal valuationProfit = total.add(profit)
-                                            .subtract(BigDecimal.valueOf(8408.8))
+                                            .subtract(BigDecimal.valueOf(7898.79))
                                             .divide(BigDecimal.valueOf(100), 8, HALF_UP);
 
                                     handler.appendJavaScript("chart_" + u.getAccountId() + "_total.setTitle({text: '" +
@@ -201,7 +202,7 @@ public class AccountInfoPage extends BasePage{
 
                                 }else if (u.getAccountId() == 8){
                                     BigDecimal valuationProfit = total.add(profit)
-                                            .subtract(BigDecimal.valueOf(10159.0))
+                                            .subtract(BigDecimal.valueOf(13469.0))
                                             .divide(BigDecimal.valueOf(100), 8, HALF_UP);
 
                                     handler.appendJavaScript("chart_" + u.getAccountId() + "_total.setTitle({text: '" +

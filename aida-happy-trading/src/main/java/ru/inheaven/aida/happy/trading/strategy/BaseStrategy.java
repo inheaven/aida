@@ -60,8 +60,8 @@ public class BaseStrategy {
     private long errorTime = 0;
 
     private AtomicReference<BigDecimal> lastPrice = new AtomicReference<>();
-
     private AtomicLong refusedTime = new AtomicLong(System.currentTimeMillis());
+
 
     public BaseStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                         DepthService depthService) {
@@ -129,10 +129,6 @@ public class BaseStrategy {
 
         realTradeSubscription = orderObservable.subscribe(o -> {
             try {
-                if (o.getPrice() != null) {
-                    lastPrice.set(o.getPrice());
-                }
-
                 onRealTrade(o);
             } catch (Exception e) {
                 log.error("error on real trade -> ", e);
@@ -171,20 +167,38 @@ public class BaseStrategy {
         }), 0, 1, HOURS);
 
 
-        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> orderMap.forEach((id, o) -> {
-            try {
-                if (o.getStatus().equals(OPEN) && lastPrice.get() != null &&
-                        lastPrice.get().subtract(o.getPrice()).abs().divide(o.getPrice(), 8, HALF_UP)
-                                .compareTo(new BigDecimal(o.getSymbol().contains("BTC/CNY") ? "0.005" : "0.1")) > 0){
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(
+                () -> orderMap.forEach((id, o) -> {
+                    try {
+                        if (lastPrice != null && o.getStatus().equals(OPEN)) {
+                            boolean cancel = false;
 
-                    log.info("cancel order -> {} {}", lastPrice, o);
-                    orderService.cancelOrder(strategy.getAccount(), o);
-                }
-            } catch (Exception e) {
-                log.error("error cancel order -> {}", o, e);
-            }
+                            switch (o.getSymbol()) {
+                                case "BTC/CNY":
+                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("1"))  > 0) {
+                                        cancel = true;
+                                    }
+                                    break;
+                                case "LTC/CNY'":
+                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("0.5")) > 0) {
+                                        cancel = true;
+                                    }
+                                    break;
+                                default:
+                                    cancel = lastPrice.get().subtract(o.getPrice()).abs().divide(o.getPrice(), 8, HALF_UP)
+                                            .compareTo(new BigDecimal("0.05")) > 0;
+                            }
 
-        }), 10, 42, SECONDS);
+                            if (cancel) {
+                                orderService.cancelOrder(strategy.getAccount(), o);
+                                log.info("cancel order -> {} {}", lastPrice, o);
+                            }
+                        }
+                    } catch (Exception e) {
+                        log.error("error cancel order -> {}", o, e);
+                    }
+
+                }), 10, 5, SECONDS);
 
         flying = true;
     }
@@ -222,8 +236,9 @@ public class BaseStrategy {
         orderMap.forEach(64, (k, o) ->{
             if ((o.getStatus().equals(OPEN) || o.getStatus().equals(CREATED)) &&
                     ((BUY_SET.contains(o.getType()) && o.getPrice().compareTo(price) > 0) ||
-                    (SELL_SET.contains(o.getType()) && o.getPrice().compareTo(price) < 0))){
+                            (SELL_SET.contains(o.getType()) && o.getPrice().compareTo(price) < 0))){
                 o.setStatus(CLOSED);
+                onOrder(o);
                 logOrder(o);
             }
         });
@@ -263,44 +278,51 @@ public class BaseStrategy {
 
     protected void onOrder(Order o){
         if ("refused".equals(o.getOrderId())){
-            refusedTime.set(System.currentTimeMillis());
+            try {
+                Long positionId = System.nanoTime();
 
-            Long positionId = System.nanoTime();
+                if (o.getType().equals(BID)){
+                    createOrderAsync(new Order(strategy, positionId, ASK, lastPrice.get().subtract(strategy.getLevelSpread()),
+                            strategy.getLevelLot()));
+                }else{
+                    createOrderAsync(new Order(strategy, positionId, BID, lastPrice.get().add(strategy.getLevelSpread()),
+                            strategy.getLevelLot()));
+                }
 
-            if (o.getType().equals(BID)){
-                createOrderAsync(new Order(strategy, positionId, ASK, o.getPrice().subtract(strategy.getLevelSpread()), strategy.getLevelLot()));
-            }else{
-                createOrderAsync(new Order(strategy, positionId, BID, o.getPrice().add(strategy.getLevelSpread()), strategy.getLevelLot()));
+                Thread.sleep(1000);
+
+                refusedTime.set(System.currentTimeMillis());
+            } catch (Exception e) {
+                log.error("refused {}", o);
             }
-
-            log.warn("REFUSED", o);
         }
 
         try {
             if (o.getOrderId() != null && (o.getStatus().equals(CANCELED) || o.getStatus().equals(CLOSED))){
-                Order order = orderMap.get(o.getOrderId());
+                if (o.getOrderId() != null){
+                    Order order = orderMap.get(o.getOrderId());
 
-                if (order == null && o.getInternalId() != null){
-                    order = orderMap.get(o.getInternalId());
-                }
-
-                if (order != null){
-                    order.setAccountId(strategy.getAccount().getId());
-                    order.setOrderId(o.getOrderId());
-                    order.close(o);
-
-                    orderMap.remove(o.getOrderId());
-
-                    if (o.getInternalId() != null) {
-                        orderMap.remove(o.getInternalId());
+                    if (order == null && o.getInternalId() != null){
+                        order = orderMap.get(o.getInternalId());
                     }
 
-                    orderMapper.asyncSave(order);
+                    if (order != null) {
+                        order.setAccountId(strategy.getAccount().getId());
+                        order.setOrderId(o.getOrderId());
+                        order.close(o);
 
-                    logOrder(order);
+                        orderMap.remove(o.getOrderId());
 
-                    orderService.onCloseOrder(order);
-                    onCloseOrder(order);
+                        if (o.getInternalId() != null) {
+                            orderMap.remove(o.getInternalId());
+                        }
+
+                        orderMapper.asyncSave(order);
+
+                        logOrder(order);
+                        onCloseOrder(order);
+                        orderService.onCloseOrder(o);
+                    }
                 }
             }else if (o.getInternalId() != null && o.getStatus().equals(OPEN)){
                 Order order = orderMap.get(o.getInternalId());
@@ -317,6 +339,8 @@ public class BaseStrategy {
 
                     logOrder(order);
                 }
+            }else if (o.getStatus().equals(CLOSED)){
+                orderService.onCloseOrder(o);
             }
         } catch (Exception e) {
             log.error("error on order -> ", e);

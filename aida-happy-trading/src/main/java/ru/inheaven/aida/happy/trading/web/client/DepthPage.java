@@ -8,6 +8,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.protocol.ws.api.WebSocketRequestHandler;
 import ru.inheaven.aida.happy.trading.entity.Depth;
+import ru.inheaven.aida.happy.trading.entity.OrderStatus;
 import ru.inheaven.aida.happy.trading.entity.SymbolType;
 import ru.inheaven.aida.happy.trading.entity.Trade;
 import ru.inheaven.aida.happy.trading.service.DepthService;
@@ -152,7 +153,8 @@ public class DepthPage extends BasePage{
             double open = ltcSpot.parallelStream()
                     .map(BaseStrategy::getOrderMap)
                     .flatMap(m -> m.values().stream())
-                    .filter(o -> o.getPrice().setScale(3, HALF_UP).equals(price.setScale(3, HALF_UP)))
+                    .filter(o -> o.getPrice().setScale(3, HALF_UP).equals(price.setScale(3, HALF_UP)) &&
+                            o.getStatus().equals(OrderStatus.OPEN))
                     .collect(Collectors.summingDouble(o -> o.getAmount().doubleValue()));
 
             int volumeScale = depth.getSymbolType() == null ? 3 : 0;

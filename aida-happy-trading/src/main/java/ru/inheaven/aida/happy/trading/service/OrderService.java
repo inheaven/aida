@@ -2,6 +2,7 @@ package ru.inheaven.aida.happy.trading.service;
 
 import ru.inheaven.aida.happy.trading.entity.Account;
 import ru.inheaven.aida.happy.trading.entity.Order;
+import ru.inheaven.aida.happy.trading.entity.OrderStatus;
 import ru.inheaven.aida.happy.trading.entity.Strategy;
 import ru.inheaven.aida.happy.trading.exception.CreateOrderException;
 import ru.inheaven.aida.happy.trading.exception.OrderInfoException;
@@ -124,6 +125,11 @@ public class OrderService {
             case OKCOIN_CN:
                 if (order.getSymbolType() == null){
                     okcoinFixCnService.cancelOrder(account, order);
+                    try {
+                        xChangeService.cancelOrder(account, order);
+                    } catch (Exception e) {
+                        order.setStatus(OrderStatus.CLOSED);
+                    }
                 }else{
                     xChangeService.cancelOrder(account, order);
                 }

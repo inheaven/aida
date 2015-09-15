@@ -312,13 +312,13 @@ $(function () {
     $.getJSON('/account_info_rest/user_info_total/7', function (data) {
         chart_7_total = areaChart('total', 'BTC Total', data.map(function(a){return [a[0], a[1]/a[3]]}));
 
-        chart_7_ltc_price = areaChart('ltc_price', 'USD Profit', data.map(function(a){return [a[0], (a[1]-5173)/a[3]]}),
+        chart_7_ltc_price = areaChart('ltc_price', 'USD Profit', data.map(function(a){return [a[0], (a[1]-7898)/a[3]]}),
             data.map(function(a){return [a[0], a[3]]}));
     });
 
     $.getJSON('/account_info_rest/user_info_total/8', function (data) {
         chart_8_total = areaChart('total_cn', 'BTC Total CN', data.map(function(a){return [a[0], a[1]/a[3]]}));
-        chart_7_btc_price = areaChart('btc_price', 'CNY Profit', data.map(function(a){return [a[0], (a[1]-10422)/a[3]]}),
+        chart_7_btc_price = areaChart('btc_price', 'CNY Profit', data.map(function(a){return [a[0], (a[1]-13469)/a[3]]}),
             data.map(function(a){return [a[0], a[3]]}));
     });
 
