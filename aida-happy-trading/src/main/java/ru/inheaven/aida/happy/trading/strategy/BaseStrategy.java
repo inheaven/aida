@@ -22,11 +22,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.math.RoundingMode.HALF_UP;
-import static java.util.concurrent.TimeUnit.HOURS;
-import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.*;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.*;
-import static ru.inheaven.aida.happy.trading.entity.SymbolType.QUARTER;
 
 /**
  * @author inheaven on 002 02.07.15 16:43
@@ -97,8 +95,7 @@ public class BaseStrategy {
         return tradeService.getTradeObservable()
                 .filter(t -> Objects.equals(strategy.getAccount().getExchangeType(), t.getExchangeType()))
                 .filter(t -> Objects.equals(strategy.getSymbol(), t.getSymbol()))
-                .filter(t -> (QUARTER.equals(strategy.getSymbolType()) && QUARTER.equals(t.getSymbolType())) ||
-                        (!QUARTER.equals(strategy.getSymbolType()) && !QUARTER.equals(t.getSymbolType())));
+                .filter(t -> Objects.equals(strategy.getSymbolType(), t.getSymbolType()));
     }
 
     protected Observable<Depth> createDepthObservable(){
@@ -164,7 +161,7 @@ public class BaseStrategy {
                 log.error("error check order -> ", e);
             }
 
-        }), 0, 1, HOURS);
+        }), 0, 1, MINUTES);
 
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(
@@ -175,12 +172,12 @@ public class BaseStrategy {
 
                             switch (o.getSymbol()) {
                                 case "BTC/CNY":
-                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("1"))  > 0) {
+                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("5"))  > 0) {
                                         cancel = true;
                                     }
                                     break;
                                 case "LTC/CNY'":
-                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("0.5")) > 0) {
+                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("1")) > 0) {
                                         cancel = true;
                                     }
                                     break;
@@ -189,16 +186,18 @@ public class BaseStrategy {
                                             .compareTo(new BigDecimal("0.05")) > 0;
                             }
 
-                            if (cancel) {
+                            if (cancel && !o.getStatus().equals(CANCELED)) {
                                 orderService.cancelOrder(strategy.getAccount(), o);
-                                log.info("cancel order -> {} {}", lastPrice, o);
+                                o.setStatus(CANCELED);
+                                onOrder(o);
+                                //log.info("cancel order -> {} {}", lastPrice, o);
                             }
                         }
                     } catch (Exception e) {
                         log.error("error cancel order -> {}", o, e);
                     }
 
-                }), 10, 5, SECONDS);
+                }), 0, 1, MINUTES);
 
         flying = true;
     }
@@ -232,14 +231,12 @@ public class BaseStrategy {
                 .forEach(o -> orderService.orderInfo(strategy, o));
     }
 
-    protected void closeOnCheck(BigDecimal price){
+    protected void closeOnCheck(BigDecimal bid, BigDecimal ask){
         orderMap.forEach(64, (k, o) ->{
             if ((o.getStatus().equals(OPEN) || o.getStatus().equals(CREATED)) &&
-                    ((BUY_SET.contains(o.getType()) && o.getPrice().compareTo(price) > 0) ||
-                            (SELL_SET.contains(o.getType()) && o.getPrice().compareTo(price) < 0))){
+                    ((BUY_SET.contains(o.getType()) && o.getPrice().compareTo(ask) > 0) ||
+                            (SELL_SET.contains(o.getType()) && o.getPrice().compareTo(bid) < 0))){
                 o.setStatus(CLOSED);
-                onOrder(o);
-                logOrder(o);
             }
         });
     }
@@ -289,8 +286,6 @@ public class BaseStrategy {
                             strategy.getLevelLot()));
                 }
 
-                Thread.sleep(1000);
-
                 refusedTime.set(System.currentTimeMillis());
             } catch (Exception e) {
                 log.error("refused {}", o);
@@ -321,7 +316,7 @@ public class BaseStrategy {
 
                         logOrder(order);
                         onCloseOrder(order);
-                        orderService.onCloseOrder(o);
+                        orderService.onCloseOrder(order);
                     }
                 }
             }else if (o.getInternalId() != null && o.getStatus().equals(OPEN)){
@@ -339,8 +334,6 @@ public class BaseStrategy {
 
                     logOrder(order);
                 }
-            }else if (o.getStatus().equals(CLOSED)){
-                orderService.onCloseOrder(o);
             }
         } catch (Exception e) {
             log.error("error on order -> ", e);
@@ -349,8 +342,8 @@ public class BaseStrategy {
 
     private void logOrder(Order o){
         log.info("{} {} {} {} {} {} {} {} {}", o.getStrategyId(),
-                Objects.toString(o.getInternalId(), "->"), Objects.toString(o.getOrderId(), "->"), o.getStatus(),
-                o.getSymbol(), o.getPrice().setScale(o.getSymbol().contains("/CNY") ? 2 : 3, HALF_UP),
+                Objects.toString(o.getPositionId(), "->"), Objects.toString(o.getOrderId(), "->"), o.getStatus(),
+                o.getSymbol(), o.getPrice().setScale(3, HALF_UP),
                 o.getAmount().setScale(3, HALF_UP), o.getType(), Objects.toString(o.getSymbolType(), ""));
     }
 

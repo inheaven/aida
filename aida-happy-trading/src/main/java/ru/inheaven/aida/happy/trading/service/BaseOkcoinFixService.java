@@ -18,18 +18,20 @@ import java.util.UUID;
  */
 public abstract class BaseOkcoinFixService {
     private Logger log = LoggerFactory.getLogger(getClass());
-    private OKCoinApplication okCoinApplication;
-    private SessionID sessionId;
+    private OKCoinApplication okCoinApplicationMarket;
+    private OKCoinApplication okCoinApplicationTrade;
+    private SessionID marketSessionId;
+    private SessionID tradeSessionId;
     private PublishSubject<Trade> tradePublishSubject = PublishSubject.create();
     private PublishSubject<Order> orderPublishSubject = PublishSubject.create();
     private PublishSubject<Depth> depthPublishSubject = PublishSubject.create();
 
     public void placeLimitOrder(Account account, Order order){
-        okCoinApplication.placeOrder(order, sessionId);
+        okCoinApplicationTrade.placeOrder(order, tradeSessionId);
     }
 
     public void cancelOrder(Account account, Order order){
-        okCoinApplication.cancelOrder(order, sessionId);
+        okCoinApplicationTrade.cancelOrder(order, tradeSessionId);
     }
 
     public Observable<Trade> getTradeObservable(){
@@ -44,11 +46,12 @@ public abstract class BaseOkcoinFixService {
         return depthPublishSubject.asObservable();
     }
 
-    public BaseOkcoinFixService(ExchangeType exchangeType, String apiKey, String secretKey, String config, List<String> symbols) {
-        okCoinApplication = new OKCoinApplication(exchangeType, apiKey, secretKey){
+    public BaseOkcoinFixService(ExchangeType exchangeType, String apiKey, String secretKey, String marketConfig,  String tradeConfig, List<String> symbols) {
+        //MARKET
+        okCoinApplicationMarket = new OKCoinApplication(exchangeType, apiKey, secretKey){
             @Override
             public void onLogon(SessionID sessionId) {
-                BaseOkcoinFixService.this.sessionId = sessionId;
+                BaseOkcoinFixService.this.marketSessionId = sessionId;
 
                 symbols.forEach(s -> {
                     requestLiveTrades(UUID.randomUUID().toString(), s, sessionId);
@@ -58,7 +61,7 @@ public abstract class BaseOkcoinFixService {
 
             @Override
             public void onCreate(SessionID sessionId) {
-                BaseOkcoinFixService.this.sessionId = sessionId;
+                BaseOkcoinFixService.this.marketSessionId = sessionId;
 
                 symbols.forEach(s -> {
                     requestLiveTrades(UUID.randomUUID().toString(), s, sessionId);
@@ -72,26 +75,43 @@ public abstract class BaseOkcoinFixService {
             }
 
             @Override
-            protected void onOrder(Order order) {
-                orderPublishSubject.onNext(order);
-            }
-
-            @Override
             protected void onDepth(Depth depth) {
                 depthPublishSubject.onNext(depth);
             }
         };
+        init(okCoinApplicationMarket, marketConfig);
 
+        //TRADE
+        okCoinApplicationTrade = new OKCoinApplication(exchangeType, apiKey, secretKey){
+            @Override
+            public void onLogon(SessionID sessionId) {
+                BaseOkcoinFixService.this.tradeSessionId = sessionId;
+            }
+
+            @Override
+            public void onCreate(SessionID sessionId) {
+                BaseOkcoinFixService.this.tradeSessionId = sessionId;
+            }
+
+            @Override
+            protected void onOrder(Order order) {
+                orderPublishSubject.onNext(order);
+            }
+        };
+        init(okCoinApplicationTrade, tradeConfig);
+    }
+
+    private void init(OKCoinApplication application, String config){
         try {
             SessionSettings settings;
             try (InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(config)) {
                 settings = new SessionSettings(inputStream);
             }
 
-            MessageStoreFactory storeFactory = new FileStoreFactory(settings);
+            MessageStoreFactory storeFactory = new MemoryStoreFactory();
             LogFactory logFactory = new FileLogFactory(settings);
             MessageFactory messageFactory = new OKCoinMessageFactory();
-            SocketInitiator initiator = new SocketInitiator(okCoinApplication, storeFactory, settings, logFactory, messageFactory);
+            ThreadedSocketInitiator initiator = new ThreadedSocketInitiator(application, storeFactory, settings, logFactory, messageFactory);
             initiator.start();
         } catch (Exception e) {
             log.error("error init okcoin fix");

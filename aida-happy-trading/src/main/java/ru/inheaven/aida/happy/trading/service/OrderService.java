@@ -1,8 +1,9 @@
 package ru.inheaven.aida.happy.trading.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.Account;
 import ru.inheaven.aida.happy.trading.entity.Order;
-import ru.inheaven.aida.happy.trading.entity.OrderStatus;
 import ru.inheaven.aida.happy.trading.entity.Strategy;
 import ru.inheaven.aida.happy.trading.exception.CreateOrderException;
 import ru.inheaven.aida.happy.trading.exception.OrderInfoException;
@@ -23,6 +24,7 @@ import static ru.inheaven.aida.happy.trading.entity.ExchangeType.OKCOIN;
 @Singleton
 public class OrderService {
     private ConnectableObservable<Order> orderObservable;
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private OkcoinService okcoinService;
     private BaseOkcoinFixService okcoinFixUsService;
@@ -124,11 +126,11 @@ public class OrderService {
                 break;
             case OKCOIN_CN:
                 if (order.getSymbolType() == null){
-                    okcoinFixCnService.cancelOrder(account, order);
                     try {
+//                        okcoinFixCnService.cancelOrder(account, order);
                         xChangeService.cancelOrder(account, order);
                     } catch (Exception e) {
-                        order.setStatus(OrderStatus.CLOSED);
+                        log.error("cancel order error{}", order, e);
                     }
                 }else{
                     xChangeService.cancelOrder(account, order);

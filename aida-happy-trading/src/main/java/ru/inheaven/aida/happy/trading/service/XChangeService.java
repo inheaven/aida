@@ -144,8 +144,7 @@ public class XChangeService {
     public void cancelOrder(Account account, Order order) throws OrderInfoException {
         try {
             if (account.getExchangeType().equals(OKCOIN) || account.getExchangeType().equals(OKCOIN_CN)) {
-                OkCoinTradeServiceRaw tradeService = (OkCoinTradeServiceRaw) getExchange(account).getPollingTradeService();
-                tradeService.cancelOrder(Long.parseLong(order.getOrderId()),  adaptSymbol(new CurrencyPair(order.getSymbol())));
+                getExchange(account).getPollingTradeService().cancelOrder(order.getOrderId());
 
                 log.info("cancel order -> {} {} {} {} {}", order.getStrategyId(), order.getPrice().setScale(3, HALF_UP),
                         order.getAmount().setScale(3, HALF_UP), order.getType(), Objects.toString(order.getSymbolType(), ""));

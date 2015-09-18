@@ -272,8 +272,8 @@ public class OKCoinApplication extends MessageCracker implements Application {
 	}
 
 	public void placeOrder(Order order, SessionID sessionId) {
-		sendMessage(tradeRequestCreator.createNewOrderSingle(order.getInternalId(), getSide(order.getType()), '2', order.getAmount(),
-                order.getPrice(), order.getSymbol()), sessionId);
+		sendMessage(tradeRequestCreator.createNewOrderSingle(order.getInternalId(), getSide(order.getType()),
+                OrdType.LIMIT, order.getAmount(), order.getPrice(), order.getSymbol()), sessionId);
 	}
 
     public void cancelOrder(Order order, SessionID sessionId) {
@@ -282,8 +282,8 @@ public class OKCoinApplication extends MessageCracker implements Application {
 
     public char getSide(OrderType orderType){
         switch (orderType){
-            case ASK: return  '2';
-            case BID: return  '1';
+            case ASK: return  Side.SELL;
+            case BID: return  Side.BUY;
             default: return  '0';
         }
     }
