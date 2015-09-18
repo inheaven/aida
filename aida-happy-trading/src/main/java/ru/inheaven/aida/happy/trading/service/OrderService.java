@@ -50,7 +50,7 @@ public class OrderService {
                 .mergeWith(okcoinService.createSpotRealTrades())
                 .mergeWith(okcoinFixService.getOrderObservable())
                 .mergeWith(okcoinCnFixService.getOrderObservable())
-                .onBackpressureBuffer()
+                .onBackpressureLatest()
                 .observeOn(Schedulers.io())
                 .publish();
         orderObservable.connect();

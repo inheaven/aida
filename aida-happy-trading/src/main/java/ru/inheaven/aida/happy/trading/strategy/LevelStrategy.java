@@ -17,6 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static java.math.BigDecimal.*;
 import static java.math.RoundingMode.HALF_UP;
@@ -76,6 +77,8 @@ public class LevelStrategy extends BaseStrategy{
         actionExecutor.execute(()-> actionSync(key, price, orderType));
     }
 
+    private static AtomicLong positionId = new AtomicLong(System.nanoTime());
+
     private void actionSync(String key, BigDecimal price, OrderType orderType) {
         if (getErrorCount() > 10){
             if (System.currentTimeMillis() - getErrorTime() < 60000){
@@ -87,8 +90,6 @@ public class LevelStrategy extends BaseStrategy{
         }
 
         try {
-            //lock.acquire();
-
             if (System.currentTimeMillis() - getRefusedTime() < 5000){
                 return;
             }
@@ -111,9 +112,7 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal level = price.divideToIntegralValue(spread);
             BigDecimal step = getStep(orderType);
 
-            //V * (sum(fibonnaci(n))/100, n=n1..n2)/(D * (n2-n1)^2)
-
-            boolean reversing = false;
+            boolean reversing = random.nextBoolean();
 
             Order search = getOrderMap().searchValues(64, (o) -> {
                 if (LONG.contains(o.getType()) && (OPEN.equals(o.getStatus()) || CREATED.equals(o.getStatus())) &&
@@ -165,7 +164,7 @@ public class LevelStrategy extends BaseStrategy{
                             Objects.toString(strategy.getSymbolType(), ""));
                 }
 
-                Long positionId = System.nanoTime();
+                Long positionId = this.positionId.incrementAndGet();
 
                 BigDecimal buyAmount;
                 BigDecimal sellAmount;
@@ -194,13 +193,13 @@ public class LevelStrategy extends BaseStrategy{
                             price.add(spreadX2), sellAmount));
                 }
 
-                levelTimeMap.put(level.toString() + reversing,  System.currentTimeMillis());
+                if (orderType.equals(ASK)) {
+                    levelTimeMap.put(level.toString() + reversing,  System.currentTimeMillis());
+                }
             }
         } catch (Exception e) {
             incrementErrorCount();
             setErrorTime(System.currentTimeMillis());
-        } finally {
-            //lock.release();
         }
     }
 
@@ -235,9 +234,6 @@ public class LevelStrategy extends BaseStrategy{
                 action("on depth ask spread", ask.subtract(spread), ASK);
                 action("on depth bid spread", bid.add(spread), BID);
             }
-
-//            closeOnCheck(ask);
-//            closeOnCheck(bid);
         }
     }
 
@@ -245,10 +241,6 @@ public class LevelStrategy extends BaseStrategy{
     protected void onCloseOrder(Order order) {
         if (getErrorCount() > 0 && SELL_SET.contains(order.getType())){
             decrementErrorCount();
-        }
-
-        if (order.getStatus().equals(CLOSED)){
-            action("on close order", order.getPrice(), order.getType());
         }
     }
 

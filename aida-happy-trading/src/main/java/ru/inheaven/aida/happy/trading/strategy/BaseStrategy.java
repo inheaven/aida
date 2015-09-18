@@ -148,7 +148,7 @@ public class BaseStrategy {
             }
         });
 
-        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> orderMap.forEach((id, o) -> {
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> orderMap.forEach((id, o) -> {
             try {
                 orderService.checkOrder(strategy.getAccount(), o);
 
@@ -164,7 +164,7 @@ public class BaseStrategy {
         }), 0, 1, MINUTES);
 
 
-        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
                 () -> orderMap.forEach((id, o) -> {
                     try {
                         if (lastPrice != null && o.getStatus().equals(OPEN)) {
@@ -243,8 +243,10 @@ public class BaseStrategy {
 
     private ExecutorService executorService = Executors.newWorkStealingPool();
 
+    private static AtomicLong internalId = new AtomicLong(System.nanoTime());
+
     protected Future<Order> createOrderAsync(Order order){
-        order.setInternalId(String.valueOf(System.nanoTime()));
+        order.setInternalId(String.valueOf(internalId.incrementAndGet()));
         order.setPrice(order.getPrice().setScale(8, HALF_UP));
         order.setStatus(CREATED);
         order.setCreated(new Date());
@@ -293,31 +295,33 @@ public class BaseStrategy {
         }
 
         try {
-            if (o.getOrderId() != null && (o.getStatus().equals(CANCELED) || o.getStatus().equals(CLOSED))){
-                if (o.getOrderId() != null){
-                    Order order = orderMap.get(o.getOrderId());
+            if (o.getStatus().equals(CANCELED) || o.getStatus().equals(CLOSED)){
+                Order order = null;
 
-                    if (order == null && o.getInternalId() != null){
-                        order = orderMap.get(o.getInternalId());
+                if (o.getOrderId() != null) {
+                    order = orderMap.get(o.getOrderId());
+                }
+
+                if (order == null && o.getInternalId() != null){
+                    order = orderMap.get(o.getInternalId());
+                }
+
+                if (order != null) {
+                    order.setAccountId(strategy.getAccount().getId());
+                    order.setOrderId(o.getOrderId());
+                    order.close(o);
+
+                    orderMap.remove(o.getOrderId());
+
+                    if (o.getInternalId() != null) {
+                        orderMap.remove(o.getInternalId());
                     }
 
-                    if (order != null) {
-                        order.setAccountId(strategy.getAccount().getId());
-                        order.setOrderId(o.getOrderId());
-                        order.close(o);
+                    orderMapper.asyncSave(order);
 
-                        orderMap.remove(o.getOrderId());
-
-                        if (o.getInternalId() != null) {
-                            orderMap.remove(o.getInternalId());
-                        }
-
-                        orderMapper.asyncSave(order);
-
-                        logOrder(order);
-                        onCloseOrder(order);
-                        orderService.onCloseOrder(order);
-                    }
+                    logOrder(order);
+                    onCloseOrder(order);
+                    orderService.onCloseOrder(order);
                 }
             }else if (o.getInternalId() != null && o.getStatus().equals(OPEN)){
                 Order order = orderMap.get(o.getInternalId());
