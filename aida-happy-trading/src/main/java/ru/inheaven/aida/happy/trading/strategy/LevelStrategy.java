@@ -16,7 +16,6 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static java.math.BigDecimal.*;
@@ -39,11 +38,16 @@ public class LevelStrategy extends BaseStrategy{
 
     private Map<String, Long> levelTimeMap = new ConcurrentHashMap<>();
 
+    private UserInfoService userInfoService;
+
+    private static AtomicLong positionId = new AtomicLong(System.nanoTime());
+
     public LevelStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                          DepthService depthService, UserInfoService userInfoService) {
         super(strategy, orderService, orderMapper, tradeService, depthService);
 
         this.strategy = strategy;
+        this.userInfoService = userInfoService;
 
         if (strategy.getSymbolType() != null) {
             userInfoService.createUserInfoObservable(strategy.getAccount().getId(), strategy.getSymbol().substring(0, 3))
@@ -57,8 +61,6 @@ public class LevelStrategy extends BaseStrategy{
                     });
         }
     }
-
-    private Semaphore lock = new Semaphore(1);
 
     private void actionLevel(String key, BigDecimal price, OrderType orderType){
         if (strategy.getSymbol().equals("BTC/CNY")) {
@@ -76,8 +78,6 @@ public class LevelStrategy extends BaseStrategy{
     private void action(String key, BigDecimal price, OrderType orderType){
         actionExecutor.execute(()-> actionSync(key, price, orderType));
     }
-
-    private static AtomicLong positionId = new AtomicLong(System.nanoTime());
 
     private void actionSync(String key, BigDecimal price, OrderType orderType) {
         if (getErrorCount() > 10){
@@ -112,7 +112,18 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal level = price.divideToIntegralValue(spread);
             BigDecimal step = getStep(orderType);
 
-            boolean reversing = random.nextBoolean();
+            //MEAN REVERSING
+            boolean reversing;
+            UserInfoTotal avg = userInfoService.getAvg(strategy.getAccount().getId());
+
+            if (avg != null){
+                if (strategy.getSymbol().contains("LTC")) {
+                    reversing = price.compareTo(avg.getLtcPrice()) > 0;
+                } else
+                    reversing = strategy.getSymbol().contains("BTC") && price.compareTo(avg.getBtcPrice()) > 0;
+            }else {
+                reversing = false;
+            }
 
             Order search = getOrderMap().searchValues(64, (o) -> {
                 if (LONG.contains(o.getType()) && (OPEN.equals(o.getStatus()) || CREATED.equals(o.getStatus())) &&
@@ -129,7 +140,7 @@ public class LevelStrategy extends BaseStrategy{
             });
 
             if (search == null){
-                log.info(key + " {} {}", price.setScale(3, HALF_UP), orderType);
+                log.info(key + " {} {} {}", price.setScale(3, HALF_UP), orderType, reversing);
 
                 BigDecimal amountHFT = strategy.getLevelLot();
 
@@ -164,7 +175,7 @@ public class LevelStrategy extends BaseStrategy{
                             Objects.toString(strategy.getSymbolType(), ""));
                 }
 
-                Long positionId = this.positionId.incrementAndGet();
+                Long positionId = LevelStrategy.positionId.incrementAndGet();
 
                 BigDecimal buyAmount;
                 BigDecimal sellAmount;
@@ -182,7 +193,7 @@ public class LevelStrategy extends BaseStrategy{
 
                 if (reversing){
                     createOrderAsync(new Order(strategy, positionId, strategy.getSymbolType() != null ? OPEN_LONG : BID,
-                            price.subtract(spreadX2), buyAmount));
+                            price.subtract(spread), buyAmount));
                     createOrderAsync(new Order(strategy, positionId, strategy.getSymbolType() != null ? CLOSE_LONG : ASK,
                             price, sellAmount));
                 }else{
@@ -190,7 +201,7 @@ public class LevelStrategy extends BaseStrategy{
                             price, buyAmount));
 
                     createOrderAsync(new Order(strategy, positionId, strategy.getSymbolType() != null ? CLOSE_LONG : ASK,
-                            price.add(spreadX2), sellAmount));
+                            price.add(spread), sellAmount));
                 }
 
                 if (orderType.equals(ASK)) {

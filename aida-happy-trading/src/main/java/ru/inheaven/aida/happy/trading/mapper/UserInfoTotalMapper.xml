@@ -25,4 +25,9 @@
     <select id="selectUserInfoTotals" parameterType="map" resultMap="userInfoTotal">
         select * from user_info_total where account_id = #{accountId} and created > #{startDate} order by created asc;
     </select>
+
+    <select id="selectAvgUserInfoTotal60" parameterType="long" resultMap="userInfoTotal">
+        select avg(ltc_price) as ltcPrice, avg(btc_price) as btcPrice from user_info_total
+          where created > date_sub(now(), INTERVAL 1 HOUR) and account_id = #{accountId}
+    </select>
 </mapper>

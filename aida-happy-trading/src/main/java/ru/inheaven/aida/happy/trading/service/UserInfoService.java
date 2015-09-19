@@ -44,6 +44,7 @@ public class UserInfoService {
     private Subject<UserInfo, UserInfo> userInfoSubject = PublishSubject.create();
 
     private Map<String, BigDecimal> valueMap = new ConcurrentHashMap<>();
+    private Map<Long, UserInfoTotal> avgMap = new ConcurrentHashMap<>();
 
     @Inject
     public UserInfoService(AccountMapper accountMapper, XChangeService xChangeService, UserInfoMapper userInfoMapper,
@@ -84,6 +85,16 @@ public class UserInfoService {
                         log.error("on close volume -> {}", o);
                     }
                 });
+
+        //AVG
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(()->{
+            accountMapper.getAccounts(OKCOIN).forEach(a -> avgMap.put(a.getId(), userInfoTotalMapper.getAvgUserInfoTotal60(a.getId())));
+            accountMapper.getAccounts(OKCOIN_CN).forEach(a -> avgMap.put(a.getId(), userInfoTotalMapper.getAvgUserInfoTotal60(a.getId())));
+        }, 0, 1, TimeUnit.MINUTES);
+    }
+
+    public UserInfoTotal getAvg(Long accountId){
+        return avgMap.get(accountId);
     }
 
     public void setVolume(String key, Long accountId, String symbol, BigDecimal volume){

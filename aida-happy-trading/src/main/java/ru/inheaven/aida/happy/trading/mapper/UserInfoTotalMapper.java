@@ -16,4 +16,8 @@ public class UserInfoTotalMapper extends BaseMapper<UserInfoTotal> {
             put("startDate", startDate);
         }});
     }
+
+    public UserInfoTotal getAvgUserInfoTotal60(Long accountId){
+        return sqlSession().selectOne("selectAvgUserInfoTotal60", accountId);
+    }
 }
