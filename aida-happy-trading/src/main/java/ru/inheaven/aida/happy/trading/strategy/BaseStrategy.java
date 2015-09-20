@@ -150,7 +150,7 @@ public class BaseStrategy {
 
                             switch (o.getSymbol()) {
                                 case "BTC/CNY":
-                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("4"))  > 0) {
+                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("2"))  > 0) {
                                         cancel = true;
                                     }
                                     break;
@@ -166,9 +166,9 @@ public class BaseStrategy {
 
                             if (cancel && !o.getStatus().equals(CANCELED)) {
                                 orderService.cancelOrder(strategy.getAccount(), o);
-                                o.setStatus(CANCELED);
-                                onOrder(o);
-                                //log.info("cancel order -> {} {}", lastPrice, o);
+                                o.setStatus(WAIT);
+                                orderMapper.asyncSave(o);
+                                log.info("CLOSED -> WAIT {} {}", lastPrice, o.getPrice());
                             }
                         }
                     } catch (Exception e) {
