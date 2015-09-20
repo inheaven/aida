@@ -31,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static java.math.RoundingMode.HALF_EVEN;
 import static java.math.RoundingMode.HALF_UP;
 
 /**
@@ -70,7 +71,7 @@ public class DepthPage extends BasePage{
                 BigDecimal amount = tradeMap.get(k);
 
                 //noinspection RedundantStringConstructorCall
-                tradeMap.put(new String(k), trade.getAmount().add(amount != null ? amount : BigDecimal.ZERO).setScale(3, HALF_UP));
+                tradeMap.put(new String(k), trade.getAmount().add(amount != null ? amount : BigDecimal.ZERO).setScale(3, HALF_EVEN));
             }
         });
     }
@@ -153,14 +154,14 @@ public class DepthPage extends BasePage{
             double open = ltcSpot.parallelStream()
                     .map(BaseStrategy::getOrderMap)
                     .flatMap(m -> m.values().stream())
-                    .filter(o -> o.getPrice().setScale(3, HALF_UP).equals(price.setScale(3, HALF_UP)) &&
+                    .filter(o -> o.getPrice().setScale(3, HALF_EVEN).equals(price.setScale(3, HALF_EVEN)) &&
                             o.getStatus().equals(OrderStatus.OPEN))
                     .collect(Collectors.summingDouble(o -> o.getAmount().doubleValue()));
 
             int volumeScale = depth.getSymbolType() == null ? 3 : 0;
             int priceScale = depth.getSymbol().contains("BTC") || depth.getSymbol().contains("CNY") ? 2 : 3;
 
-            Cell cell = new Cell(price.setScale(3, HALF_UP), map.get(price).setScale(volumeScale, HALF_UP),
+            Cell cell = new Cell(price.setScale(3, HALF_EVEN), map.get(price).setScale(volumeScale, HALF_EVEN),
                     BigDecimal.valueOf(open).setScale(volumeScale, HALF_UP));
             Cell c = cacheMap.get(id+index);
 
@@ -168,13 +169,13 @@ public class DepthPage extends BasePage{
                 BigDecimal trade = tradeMap.get(id+cell.price);
 
                 handler.appendJavaScript("$('#" + id + " #price_" + index + "').text('" +
-                        cell.price.setScale(priceScale, HALF_UP) + "')");
+                        cell.price.setScale(priceScale, HALF_EVEN) + "')");
                 handler.appendJavaScript("$('#" + id +" #volume_" + index + "').text('" +
                         cell.volume + "')");
                 handler.appendJavaScript("$('#" + id + " #open_" + index + "').text('" +
                         (open > 0 ? cell.open : "") + "')");
                 handler.appendJavaScript("$('#" + id + " #trade_" + index + "').text('" +
-                        (trade != null ? trade.setScale(volumeScale, HALF_UP) : "") + "')");
+                        (trade != null ? trade.setScale(volumeScale, HALF_EVEN) : "") + "')");
             }
 
             cacheMap.put(id + index, cell);

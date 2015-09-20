@@ -21,7 +21,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static java.math.RoundingMode.HALF_UP;
+import static java.math.RoundingMode.HALF_EVEN;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.*;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.*;
@@ -182,7 +182,7 @@ public class BaseStrategy {
                                     }
                                     break;
                                 default:
-                                    cancel = lastPrice.get().subtract(o.getPrice()).abs().divide(o.getPrice(), 8, HALF_UP)
+                                    cancel = lastPrice.get().subtract(o.getPrice()).abs().divide(o.getPrice(), 8, HALF_EVEN)
                                             .compareTo(new BigDecimal("0.05")) > 0;
                             }
 
@@ -247,7 +247,7 @@ public class BaseStrategy {
 
     protected Future<Order> createOrderAsync(Order order){
         order.setInternalId(String.valueOf(internalId.incrementAndGet()));
-        order.setPrice(order.getPrice().setScale(8, HALF_UP));
+        order.setPrice(order.getPrice().setScale(8, HALF_EVEN));
         order.setStatus(CREATED);
         order.setCreated(new Date());
 
@@ -345,10 +345,10 @@ public class BaseStrategy {
     }
 
     private void logOrder(Order o){
-        log.info("{} {} {} {} {} {} {} {} {}", o.getStrategyId(),
-                Objects.toString(o.getPositionId(), "->"), Objects.toString(o.getOrderId(), "->"), o.getStatus(),
-                o.getSymbol(), o.getPrice().setScale(3, HALF_UP),
-                o.getAmount().setScale(3, HALF_UP), o.getType(), Objects.toString(o.getSymbolType(), ""));
+        log.info("{} {} {} {} {} {} {} {}", o.getStrategyId(),
+                Objects.toString(o.getOrderId(), "->"), o.getStatus(),
+                o.getSymbol(), o.getPrice().setScale(3, HALF_EVEN),
+                o.getAmount().setScale(3, HALF_EVEN), o.getType(), Objects.toString(o.getSymbolType(), ""));
     }
 
     public ConcurrentHashMap<String, Order> getOrderMap() {

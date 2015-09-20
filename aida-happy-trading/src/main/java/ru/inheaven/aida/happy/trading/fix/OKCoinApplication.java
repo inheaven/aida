@@ -282,8 +282,8 @@ public class OKCoinApplication extends MessageCracker implements Application {
 
     public char getSide(OrderType orderType){
         switch (orderType){
-            case ASK: return  Side.SELL;
-            case BID: return  Side.BUY;
+            case ASK: return Side.SELL;
+            case BID: return Side.BUY;
             default: return  '0';
         }
     }
