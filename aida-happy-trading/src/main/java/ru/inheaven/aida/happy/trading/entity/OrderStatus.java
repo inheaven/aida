@@ -5,5 +5,5 @@ package ru.inheaven.aida.happy.trading.entity;
  *         Date: 09.11.2014 14:09
  */
 public enum OrderStatus {
-    CREATED, OPEN, CLOSED, CANCELED
+    CREATED, OPEN, CLOSED, CANCELED, WAIT
 }

@@ -24,7 +24,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import static java.math.RoundingMode.HALF_EVEN;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.*;
-import static ru.inheaven.aida.happy.trading.entity.OrderType.*;
 
 /**
  * @author inheaven on 002 02.07.15 16:43
@@ -39,12 +38,10 @@ public class BaseStrategy {
 
     private Observable<Order> orderObservable;
     private Observable<Trade> tradeObservable;
-    private Observable<Trade> allTradeObservable;
     private Observable<Depth> depthObservable;
 
     private Subscription orderSubscription;
     private Subscription tradeSubscription;
-    private Subscription checkOrderSubscription;
     private Subscription depthSubscription;
     private Subscription realTradeSubscription;
 
@@ -54,11 +51,8 @@ public class BaseStrategy {
 
     private boolean flying = false;
 
-    private int errorCount = 0;
-    private long errorTime = 0;
-
     private AtomicReference<BigDecimal> lastPrice = new AtomicReference<>();
-    private AtomicLong refusedTime = new AtomicLong(System.currentTimeMillis());
+    private static AtomicLong refusedTime = new AtomicLong(System.currentTimeMillis());
 
 
     public BaseStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
@@ -71,7 +65,6 @@ public class BaseStrategy {
 
         orderObservable = createOrderObservable();
         tradeObservable = createTradeObservable();
-        allTradeObservable = createAllTradeObservable();
         depthObservable = createDepthObservable();
 
         orderMapper.getOpenOrders(strategy.getId()).forEach(o -> orderMap.put(o.getOrderId(), o));
@@ -91,13 +84,6 @@ public class BaseStrategy {
                 .filter(t -> Objects.equals(strategy.getSymbolType(), t.getSymbolType()));
     }
 
-    protected Observable<Trade> createAllTradeObservable(){
-        return tradeService.getTradeObservable()
-                .filter(t -> Objects.equals(strategy.getAccount().getExchangeType(), t.getExchangeType()))
-                .filter(t -> Objects.equals(strategy.getSymbol(), t.getSymbol()))
-                .filter(t -> Objects.equals(strategy.getSymbolType(), t.getSymbolType()));
-    }
-
     protected Observable<Depth> createDepthObservable(){
         return depthService.createDepthObservable(strategy);
     }
@@ -107,7 +93,7 @@ public class BaseStrategy {
             return;
         }
 
-        tradeSubscription = allTradeObservable.subscribe(t -> {
+        tradeSubscription = tradeObservable.subscribe(t -> {
             try {
                 if (t.getPrice() != null) {
                     lastPrice.set(t.getPrice());
@@ -120,8 +106,8 @@ public class BaseStrategy {
         });
 
         orderSubscription = orderObservable
-                .filter(o -> orderMap.containsKey(o.getOrderId()) ||
-                        (o.getInternalId() != null && orderMap.containsKey(o.getInternalId())))
+                .filter(o -> orderMap.containsKey(o.getOrderId()) || (o.getInternalId() != null &&
+                        orderMap.containsKey(o.getInternalId())))
                 .subscribe(this::onOrder);
 
         realTradeSubscription = orderObservable.subscribe(o -> {
@@ -129,14 +115,6 @@ public class BaseStrategy {
                 onRealTrade(o);
             } catch (Exception e) {
                 log.error("error on real trade -> ", e);
-            }
-        });
-
-        checkOrderSubscription = tradeObservable.throttleLast(1, TimeUnit.MINUTES).subscribe(t -> {
-            try {
-                checkOrders(t);
-            } catch (Exception e) {
-                log.error("error check order -> ", e);
             }
         });
 
@@ -150,9 +128,9 @@ public class BaseStrategy {
 
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> orderMap.forEach((id, o) -> {
             try {
-                orderService.checkOrder(strategy.getAccount(), o);
-
-                if (o.getStatus().equals(CANCELED) || o.getStatus().equals(CLOSED)) {
+                if (o.getStatus().equals(OPEN)) {
+                    orderService.checkOrder(strategy.getAccount(), o);
+                }else if (o.getStatus().equals(CANCELED) || o.getStatus().equals(CLOSED)) {
                     onOrder(o);
                     log.info("schedule close order -> {} {} {} {}", o.getOrderId(), o.getSymbol(),
                             Objects.toString(o.getSymbolType(), ""), o.getStatus());
@@ -167,12 +145,12 @@ public class BaseStrategy {
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
                 () -> orderMap.forEach((id, o) -> {
                     try {
-                        if (lastPrice != null && o.getStatus().equals(OPEN)) {
+                        if (lastPrice != null && lastPrice.get() != null && o.getStatus().equals(OPEN)) {
                             boolean cancel = false;
 
                             switch (o.getSymbol()) {
                                 case "BTC/CNY":
-                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("5"))  > 0) {
+                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("4"))  > 0) {
                                         cancel = true;
                                     }
                                     break;
@@ -183,7 +161,7 @@ public class BaseStrategy {
                                     break;
                                 default:
                                     cancel = lastPrice.get().subtract(o.getPrice()).abs().divide(o.getPrice(), 8, HALF_EVEN)
-                                            .compareTo(new BigDecimal("0.05")) > 0;
+                                            .compareTo(new BigDecimal("0.1")) > 0;
                             }
 
                             if (cancel && !o.getStatus().equals(CANCELED)) {
@@ -205,7 +183,6 @@ public class BaseStrategy {
     public void stop(){
         orderSubscription.unsubscribe();
         tradeSubscription.unsubscribe();
-        checkOrderSubscription.unsubscribe();
         depthSubscription.unsubscribe();
         realTradeSubscription.unsubscribe();
 
@@ -224,27 +201,11 @@ public class BaseStrategy {
     protected void onDepth(Depth depth){
     }
 
-    protected void checkOrders(Trade trade){
-        orderMap.values().parallelStream()
-                .filter(o -> o.getPrice().subtract(trade.getPrice()).abs().compareTo(strategy.getLevelSpread()
-                        .multiply(BigDecimal.valueOf(2))) < 0)
-                .forEach(o -> orderService.orderInfo(strategy, o));
-    }
-
-    protected void closeOnCheck(BigDecimal bid, BigDecimal ask){
-        orderMap.forEach(64, (k, o) ->{
-            if ((o.getStatus().equals(OPEN) || o.getStatus().equals(CREATED)) &&
-                    ((BUY_SET.contains(o.getType()) && o.getPrice().compareTo(ask) > 0) ||
-                            (SELL_SET.contains(o.getType()) && o.getPrice().compareTo(bid) < 0))){
-                o.setStatus(CLOSED);
-            }
-        });
-    }
-
     private ExecutorService executorService = Executors.newWorkStealingPool();
 
     private static AtomicLong internalId = new AtomicLong(System.nanoTime());
 
+    @SuppressWarnings("Duplicates")
     protected Future<Order> createOrderAsync(Order order){
         order.setInternalId(String.valueOf(internalId.incrementAndGet()));
         order.setPrice(order.getPrice().setScale(8, HALF_EVEN));
@@ -275,23 +236,47 @@ public class BaseStrategy {
         });
     }
 
-    protected void onOrder(Order o){
-        if ("refused".equals(o.getOrderId())){
-            try {
-                Long positionId = System.nanoTime();
+    protected void createWaitOrder(Order order){
+        order.setInternalId(String.valueOf(internalId.incrementAndGet()));
+        order.setOrderId(order.getInternalId());
+        order.setPrice(order.getPrice().setScale(8, HALF_EVEN));
+        order.setStatus(WAIT);
+        order.setCreated(new Date());
 
-                if (o.getType().equals(BID)){
-                    createOrderAsync(new Order(strategy, positionId, ASK, lastPrice.get().subtract(strategy.getLevelSpread()),
-                            strategy.getLevelLot()));
-                }else{
-                    createOrderAsync(new Order(strategy, positionId, BID, lastPrice.get().add(strategy.getLevelSpread()),
-                            strategy.getLevelLot()));
+        orderMap.put(order.getInternalId(), order);
+        orderMapper.asyncSave(order);
+        logOrder(order);
+    }
+
+    @SuppressWarnings("Duplicates")
+    protected Future<Order> pushWaitOrderAsync(Order order){
+        order.setStatus(CREATED);
+
+        return executorService.submit(() -> {
+            try {
+                orderService.createOrder(strategy.getAccount(), order);
+
+                if (order.getStatus().equals(OPEN)){
+                    orderMap.put(order.getOrderId(), order);
+                    orderMap.remove(order.getInternalId());
+
+                    orderMapper.asyncSave(order);
                 }
 
-                refusedTime.set(System.currentTimeMillis());
+                logOrder(order);
             } catch (Exception e) {
-                log.error("refused {}", o);
+                orderMap.remove(order.getInternalId());
+
+                log.error("error create order -> {}", order, e);
             }
+
+            return order;
+        });
+    }
+
+    protected void onOrder(Order o){
+        if (o.getOrderId() != null && o.getOrderId().contains("refused")){
+            refusedTime.set(System.currentTimeMillis());
         }
 
         try {
@@ -308,7 +293,9 @@ public class BaseStrategy {
 
                 if (order != null) {
                     order.setAccountId(strategy.getAccount().getId());
-                    order.setOrderId(o.getOrderId());
+                    if (!o.getOrderId().contains("refused")) {
+                        order.setOrderId(o.getOrderId());
+                    }
                     order.close(o);
 
                     orderMap.remove(o.getOrderId());
@@ -347,36 +334,12 @@ public class BaseStrategy {
     private void logOrder(Order o){
         log.info("{} {} {} {} {} {} {} {}", o.getStrategyId(),
                 Objects.toString(o.getOrderId(), "->"), o.getStatus(),
-                o.getSymbol(), o.getPrice().setScale(3, HALF_EVEN),
-                o.getAmount().setScale(3, HALF_EVEN), o.getType(), Objects.toString(o.getSymbolType(), ""));
+                o.getSymbol(), o.getPrice().setScale(2, HALF_EVEN),
+                o.getAmount().setScale(2, HALF_EVEN), o.getType(), Objects.toString(o.getSymbolType(), ""));
     }
 
     public ConcurrentHashMap<String, Order> getOrderMap() {
         return orderMap;
-    }
-
-    public void incrementErrorCount(){
-        errorCount++;
-    }
-
-    public void decrementErrorCount(){
-        errorCount--;
-    }
-
-    public int getErrorCount() {
-        return errorCount;
-    }
-
-    public void setErrorCount(int errorCount) {
-        this.errorCount = errorCount;
-    }
-
-    public long getErrorTime() {
-        return errorTime;
-    }
-
-    public void setErrorTime(long errorTime) {
-        this.errorTime = errorTime;
     }
 
     public Strategy getStrategy() {

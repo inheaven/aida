@@ -50,7 +50,7 @@ public class OrderService {
                 .mergeWith(okcoinService.createSpotRealTrades())
                 .mergeWith(okcoinFixService.getOrderObservable())
                 .mergeWith(okcoinCnFixService.getOrderObservable())
-                .onBackpressureLatest()
+                .onBackpressureBuffer()
                 .observeOn(Schedulers.io())
                 .publish();
         orderObservable.connect();
@@ -102,10 +102,6 @@ public class OrderService {
     }
 
     public void checkOrder(Account account, Order order) throws OrderInfoException {
-        if (order.getOrderId().contains("CREATED")){
-            return;
-        }
-
         switch (order.getExchangeType()){
             case OKCOIN:
             case OKCOIN_CN:

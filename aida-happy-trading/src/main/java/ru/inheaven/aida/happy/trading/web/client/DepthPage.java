@@ -111,11 +111,13 @@ public class DepthPage extends BasePage{
         private BigDecimal price;
         private BigDecimal volume;
         private BigDecimal open;
+        private BigDecimal wait;
 
-        public Cell(BigDecimal price, BigDecimal volume, BigDecimal open) {
+        public Cell(BigDecimal price, BigDecimal volume, BigDecimal open, BigDecimal wait) {
             this.price = price;
             this.volume = volume;
             this.open = open;
+            this.wait = wait;
         }
 
         @Override
@@ -127,12 +129,14 @@ public class DepthPage extends BasePage{
 
             if (price != null ? !price.equals(cell.price) : cell.price != null) return false;
             if (volume != null ? !volume.equals(cell.volume) : cell.volume != null) return false;
+            if (wait != null ? !wait.equals(cell.wait) : cell.wait != null) return false;
             return !(open != null ? !open.equals(cell.open) : cell.open != null);
+
 
         }
     }
 
-    private void update(String id, WebSocketRequestHandler handler, Depth depth, List<BaseStrategy> ltcSpot) {
+    private void update(String id, WebSocketRequestHandler handler, Depth depth, List<BaseStrategy> spot) {
         Map<BigDecimal, BigDecimal> map = new HashMap<>();
 
         Json.createReader(new StringReader(depth.getAskJson())).readArray()
@@ -150,19 +154,28 @@ public class DepthPage extends BasePage{
         List<BigDecimal> prices = map.keySet().stream().sorted((p1, p2) -> p2.compareTo(p1)).collect(Collectors.toList());
 
         int index = 0;
+
+        int priceScale = depth.getSymbol().contains("BTC") || depth.getSymbol().contains("CNY") ? 2 : 3;
+        int volumeScale = depth.getSymbolType() == null ? 2 : 0;
+
         for (BigDecimal price : prices){
-            double open = ltcSpot.parallelStream()
+            double open = spot.parallelStream()
                     .map(BaseStrategy::getOrderMap)
                     .flatMap(m -> m.values().stream())
-                    .filter(o -> o.getPrice().setScale(3, HALF_EVEN).equals(price.setScale(3, HALF_EVEN)) &&
+                    .filter(o -> o.getPrice().setScale(priceScale, HALF_EVEN).equals(price.setScale(priceScale, HALF_EVEN)) &&
                             o.getStatus().equals(OrderStatus.OPEN))
                     .collect(Collectors.summingDouble(o -> o.getAmount().doubleValue()));
 
-            int volumeScale = depth.getSymbolType() == null ? 3 : 0;
-            int priceScale = depth.getSymbol().contains("BTC") || depth.getSymbol().contains("CNY") ? 2 : 3;
+            double wait = spot.parallelStream()
+                    .map(BaseStrategy::getOrderMap)
+                    .flatMap(m -> m.values().stream())
+                    .filter(o -> o.getPrice().setScale(priceScale, HALF_EVEN).equals(price.setScale(priceScale, HALF_EVEN)) &&
+                            o.getStatus().equals(OrderStatus.WAIT))
+                    .collect(Collectors.summingDouble(o -> o.getAmount().doubleValue()));
+
 
             Cell cell = new Cell(price.setScale(3, HALF_EVEN), map.get(price).setScale(volumeScale, HALF_EVEN),
-                    BigDecimal.valueOf(open).setScale(volumeScale, HALF_UP));
+                    BigDecimal.valueOf(open).setScale(volumeScale, HALF_EVEN), BigDecimal.valueOf(wait).setScale(volumeScale, HALF_EVEN));
             Cell c = cacheMap.get(id+index);
 
             if (c == null || !c.equals(cell)){
@@ -173,7 +186,7 @@ public class DepthPage extends BasePage{
                 handler.appendJavaScript("$('#" + id +" #volume_" + index + "').text('" +
                         cell.volume + "')");
                 handler.appendJavaScript("$('#" + id + " #open_" + index + "').text('" +
-                        (open > 0 ? cell.open : "") + "')");
+                        (open+wait > 0 ? (cell.open.add(cell.wait)) : "") + (wait > 0 ? "*" : "") + "')");
                 handler.appendJavaScript("$('#" + id + " #trade_" + index + "').text('" +
                         (trade != null ? trade.setScale(volumeScale, HALF_EVEN) : "") + "')");
             }

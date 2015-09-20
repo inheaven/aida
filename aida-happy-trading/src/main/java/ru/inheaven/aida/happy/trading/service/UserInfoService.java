@@ -144,12 +144,14 @@ public class UserInfoService {
 
                         saveFunds(account.getId(), "USD_SPOT", funds.getFree().get("usd"), funds.getFreezed().get("usd"));
                         setVolume("subtotal", account.getId(), "USD", funds.getFree().get("usd").add(funds.getFreezed().get("usd")));
+                        setVolume("free_spot", account.getId(), null, funds.getFree().get("usd"));
                         break;
                     case OKCOIN_CN:
                         saveTotal(account, funds.getAsset().get("net"), null, null);
 
                         saveFunds(account.getId(), "CNY_SPOT", funds.getFree().get("cny"), funds.getFreezed().get("cny"));
                         setVolume("subtotal", account.getId(), "CNY", funds.getFree().get("cny").add(funds.getFreezed().get("cny")));
+                        setVolume("free_spot", account.getId(), null, funds.getFree().get("cny"));
 
                         break;
                 }
