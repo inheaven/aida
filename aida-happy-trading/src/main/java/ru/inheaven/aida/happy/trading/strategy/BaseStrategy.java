@@ -277,6 +277,16 @@ public class BaseStrategy {
     protected void onOrder(Order o){
         if (o.getOrderId() != null && o.getOrderId().contains("refused")){
             refusedTime.set(System.currentTimeMillis());
+
+            Order order = orderMap.get(o.getInternalId());
+
+            if (order != null){
+                order.setStatus(WAIT);
+                orderMapper.asyncSave(order);
+                logOrder(order);
+
+                return;
+            }
         }
 
         try {
@@ -293,9 +303,7 @@ public class BaseStrategy {
 
                 if (order != null) {
                     order.setAccountId(strategy.getAccount().getId());
-                    if (!o.getOrderId().contains("refused")) {
-                        order.setOrderId(o.getOrderId());
-                    }
+                    order.setOrderId(o.getOrderId());
                     order.close(o);
 
                     orderMap.remove(o.getOrderId());
@@ -334,7 +342,7 @@ public class BaseStrategy {
     private void logOrder(Order o){
         log.info("{} {} {} {} {} {} {} {}", o.getStrategyId(),
                 Objects.toString(o.getOrderId(), "->"), o.getStatus(),
-                o.getSymbol(), o.getPrice().setScale(2, HALF_EVEN),
+                o.getSymbol(), o.getAvgPrice() != null ? o.getAvgPrice().setScale(2, HALF_EVEN) : o.getPrice().setScale(2, HALF_EVEN),
                 o.getAmount().setScale(2, HALF_EVEN), o.getType(), Objects.toString(o.getSymbolType(), ""));
     }
 

@@ -123,8 +123,7 @@ public class OrderService {
             case OKCOIN_CN:
                 if (order.getSymbolType() == null){
                     try {
-//                        okcoinFixCnService.cancelOrder(account, order);
-                        xChangeService.cancelOrder(account, order);
+                        okcoinFixCnService.cancelOrder(account, order);
                     } catch (Exception e) {
                         log.error("cancel order error{}", order, e);
                     }

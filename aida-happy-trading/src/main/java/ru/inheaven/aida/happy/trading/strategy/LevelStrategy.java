@@ -64,10 +64,8 @@ public class LevelStrategy extends BaseStrategy{
 
     private void actionLevel(String key, BigDecimal price, OrderType orderType){
         if (strategy.getSymbol().contains("BTC/CNY")) {
-            int rev = isReversing(price) ? -1 : 1;
-
             for (int i = 0; i <= 10; ++i){
-                actionAsync(key, price.add(BigDecimal.valueOf(i*rev).multiply(strategy.getLevelSpread())), orderType);
+                actionAsync(key, price.add(BigDecimal.valueOf(i).multiply(strategy.getLevelSpread())), orderType);
             }
         }else{
             actionAsync(key, price, orderType);
@@ -139,18 +137,18 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal spreadP = spread.multiply(new BigDecimal(Math.PI));
             BigDecimal spreadPF = spreadP.add(spread);
             BigDecimal level = price.divideToIntegralValue(spread);
-            BigDecimal step = getStep(orderType);
+            BigDecimal step = getStep();
 
             //MEAN REVERSING
             boolean reversing = isReversing(price);
 
             Order search = getOrderMap().searchValues(64, (o) -> {
                 if (LONG.contains(o.getType()) && (OPEN.equals(o.getStatus()) || CREATED.equals(o.getStatus()) || WAIT.equals(o.getStatus())) &&
-                        ((SELL_SET.contains(o.getType()) &&
-                                o.getPrice().subtract(price).abs().subtract(step.abs())
+                        ((SELL_SET.contains(o.getType()) && o.getPrice().compareTo(price) >= 0 &&
+                                o.getPrice().subtract(price).subtract(step)
                                         .compareTo(reversing ? spreadF : spreadPF) <= 0) ||
-                        (BUY_SET.contains(o.getType()) &&
-                                price.subtract(o.getPrice()).abs().subtract(step.abs())
+                        (BUY_SET.contains(o.getType()) && price.compareTo(o.getPrice()) >= 0 &&
+                                price.subtract(o.getPrice()).subtract(step)
                                         .compareTo(reversing ? spreadPF : spreadF) <= 0))){
                     return o;
                 }
@@ -218,13 +216,13 @@ public class LevelStrategy extends BaseStrategy{
                 }else{
                     if (strategy.getSymbol().contains("/CNY")){
                         buyAmount = amountHFT;
-                        sellAmount = amountHFT.multiply(price).divide(price.add(spreadP), 8, HALF_EVEN);
+                        sellAmount = amountHFT.multiply(price.add(step)).divide(price.add(spreadP.add(step)), 8, HALF_EVEN);
                     }
 
-                    createOrderAsync(new Order(strategy, positionId, strategy.getSymbolType() != null ? OPEN_LONG : BID,
-                            price, buyAmount));
+                    createWaitOrder(new Order(strategy, positionId, strategy.getSymbolType() != null ? OPEN_LONG : BID,
+                            price.add(step), buyAmount));
                     createWaitOrder(new Order(strategy, positionId, strategy.getSymbolType() != null ? CLOSE_LONG : ASK,
-                            price.add(spreadP), sellAmount));
+                            price.add(spreadP.add(step)), sellAmount));
                 }
 
                 if (orderType.equals(ASK)) {
@@ -275,16 +273,14 @@ public class LevelStrategy extends BaseStrategy{
         }
     }
 
-    private BigDecimal getStep(OrderType orderType){
-        int bid = orderType.equals(BID) ? 1 : -1;
-
+    private BigDecimal getStep(){
         switch (strategy.getSymbol()){
             case "BTC/USD":
             case "BTC/CNY":
             case "LTC/CNY":
-                return new BigDecimal("0.01").multiply(BigDecimal.valueOf(bid));
+                return new BigDecimal("0.01");
             case "LTC/USD":
-                return new BigDecimal("0.001").multiply(BigDecimal.valueOf(bid));
+                return new BigDecimal("0.001");
         }
 
         return ZERO;

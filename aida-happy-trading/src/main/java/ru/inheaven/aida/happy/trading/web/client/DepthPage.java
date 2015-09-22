@@ -186,7 +186,7 @@ public class DepthPage extends BasePage{
                 handler.appendJavaScript("$('#" + id +" #volume_" + index + "').text('" +
                         cell.volume + "')");
                 handler.appendJavaScript("$('#" + id + " #open_" + index + "').text('" +
-                        (open+wait > 0 ? (cell.open.add(cell.wait)) : "") + (wait > 0 ? "*" : "") + "')");
+                        (wait > 0 ? "[" : "") + (open+wait > 0 ? (cell.open.add(cell.wait)) : "") + (wait > 0 ? "]" : "") + "')");
                 handler.appendJavaScript("$('#" + id + " #trade_" + index + "').text('" +
                         (trade != null ? trade.setScale(volumeScale, HALF_EVEN) : "") + "')");
             }

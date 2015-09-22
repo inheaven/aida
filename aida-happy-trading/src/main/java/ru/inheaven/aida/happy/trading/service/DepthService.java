@@ -33,7 +33,7 @@ public class DepthService {
         depthObservable = okcoinService.createFutureDepthObservable()
                 .mergeWith(okcoinFixService.getDepthObservable())
                 .mergeWith(okcoinCnFixService.getDepthObservable())
-                .onBackpressureLatest()
+                .onBackpressureBuffer()
                 .observeOn(Schedulers.io())
                 .publish();
         depthObservable.connect();
