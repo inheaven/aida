@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static java.math.RoundingMode.HALF_EVEN;
 import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.*;
 
 /**
@@ -150,7 +151,7 @@ public class BaseStrategy {
 
                             switch (o.getSymbol()) {
                                 case "BTC/CNY":
-                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("2"))  > 0) {
+                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("0.5"))  > 0) {
                                         cancel = true;
                                     }
                                     break;
@@ -175,7 +176,7 @@ public class BaseStrategy {
                         log.error("error cancel order -> {}", o, e);
                     }
 
-                }), 0, 1, MINUTES);
+                }), 0, 10, SECONDS);
 
         flying = true;
     }

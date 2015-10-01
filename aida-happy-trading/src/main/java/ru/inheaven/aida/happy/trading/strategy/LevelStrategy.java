@@ -14,13 +14,11 @@ import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static java.math.BigDecimal.*;
 import static java.math.RoundingMode.HALF_EVEN;
-import static ru.inheaven.aida.happy.trading.entity.ExchangeType.OKCOIN;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.*;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.*;
 
@@ -63,12 +61,8 @@ public class LevelStrategy extends BaseStrategy{
     }
 
     private void actionLevel(String key, BigDecimal price, OrderType orderType){
-        if (strategy.getSymbol().contains("BTC/CNY")) {
-            for (int i = 0; i <= 10; ++i){
-                actionAsync(key, price.add(BigDecimal.valueOf(i).multiply(strategy.getLevelSpread())), orderType);
-            }
-        }else{
-            actionAsync(key, price, orderType);
+        for (int i = 0; i < strategy.getLevelSize().intValue(); ++i){
+            action(key, price.add(BigDecimal.valueOf(isReversing(price) ? i : -i).multiply(getSpreadF(price))), orderType);
         }
 
         //WAIT PUSH
@@ -93,39 +87,50 @@ public class LevelStrategy extends BaseStrategy{
         });
     }
 
-    private Executor actionExecutor = Executors.newWorkStealingPool();
-
-    private void actionAsync(String key, BigDecimal price, OrderType orderType){
-        actionExecutor.execute(()-> actionSync(key, price, orderType));
-    }
-
     private boolean isReversing(BigDecimal price){
-//        UserInfoTotal avg = userInfoService.getAvg(strategy.getAccount().getId());
-//
-//        if (avg != null){
-//            if (strategy.getSymbol().contains("LTC")) {
-//                return price.compareTo(avg.getLtcPrice()) > 0;
-//            } else {
-//                return strategy.getSymbol().contains("BTC") && price.compareTo(avg.getBtcPrice()) > 0;
-//            }
-//        }
+        UserInfoTotal avg = userInfoService.getAvg(strategy.getAccount().getId());
+
+        if (avg != null){
+            if (strategy.getSymbol().contains("LTC")) {
+                return price.compareTo(avg.getLtcPrice()) > 0;
+            } else {
+                return strategy.getSymbol().contains("BTC") && price.compareTo(avg.getBtcPrice()) > 0;
+            }
+        }
 
         return false;
     }
 
-    private void actionSync(String key, BigDecimal price, OrderType orderType) {
+    private BigDecimal getSpread(BigDecimal price){
+        return strategy.getSymbolType() == null ? strategy.getLevelSpread().multiply(price) : strategy.getLevelSpread();
+    }
+
+    private BigDecimal getSpreadF(BigDecimal price){
+        return getSpread(price).divide(BigDecimal.valueOf(2), 8, HALF_EVEN);
+    }
+
+    private Semaphore semaphore = new Semaphore(1);
+
+    private void action(String key, BigDecimal price, OrderType orderType) {
         try {
+            semaphore.acquire();
+
             //REFUSED
             if (System.currentTimeMillis() - getRefusedTime() < 10000){
                 return;
             }
 
-            BigDecimal spread = strategy.getLevelSpread().multiply(risk);
+            //MEAN REVERSING
+            boolean reversing = isReversing(price);
 
-            if (strategy.getSymbolType() == null) {
+            BigDecimal priceF = reversing ? price.subtract(getStep()) : price.add(getStep());
+            BigDecimal spread = getSpread(priceF);
+            BigDecimal spreadF = getSpreadF(priceF);
+
+            if (strategy.getSymbolType() == null && strategy.getAccount().getExchangeType().equals(ExchangeType.OKCOIN)) {
                 BigDecimal minSpread = price.multiply(new BigDecimal("0.0014"));
 
-                if (strategy.getAccount().getExchangeType().equals(OKCOIN) && spread.compareTo(minSpread) < 0){
+                if (spread.compareTo(minSpread) < 0){
                     spread = minSpread;
 
                     log.warn("LOW Spread -> {} {} {} {}", strategy.getId(), minSpread.setScale(3, HALF_EVEN), strategy.getSymbol(),
@@ -133,23 +138,15 @@ public class LevelStrategy extends BaseStrategy{
                 }
             }
 
-            BigDecimal spreadF = spread;
-            BigDecimal spreadP = spread.multiply(new BigDecimal(Math.PI));
-            BigDecimal spreadPF = spreadP.add(spread);
-            BigDecimal level = price.divideToIntegralValue(spread);
-            BigDecimal step = getStep();
-
-            //MEAN REVERSING
-            boolean reversing = isReversing(price);
+            BigDecimal spreadPF = spread.add(spreadF);
+            BigDecimal level = spreadF.divideToIntegralValue(spread);
 
             Order search = getOrderMap().searchValues(64, (o) -> {
                 if (LONG.contains(o.getType()) && (OPEN.equals(o.getStatus()) || CREATED.equals(o.getStatus()) || WAIT.equals(o.getStatus())) &&
-                        ((SELL_SET.contains(o.getType()) && o.getPrice().compareTo(price) >= 0 &&
-                                o.getPrice().subtract(price).subtract(step)
-                                        .compareTo(reversing ? spreadF : spreadPF) <= 0) ||
-                        (BUY_SET.contains(o.getType()) && price.compareTo(o.getPrice()) >= 0 &&
-                                price.subtract(o.getPrice()).subtract(step)
-                                        .compareTo(reversing ? spreadPF : spreadF) <= 0))){
+                        ((SELL_SET.contains(o.getType()) &&
+                                o.getPrice().subtract(priceF).abs().compareTo(reversing ? spreadF : spreadPF) <= 0) ||
+                        (BUY_SET.contains(o.getType()) &&
+                                priceF.subtract(o.getPrice()).abs().compareTo(reversing ? spreadPF : spreadF) <= 0))){
                     return o;
                 }
 
@@ -161,30 +158,30 @@ public class LevelStrategy extends BaseStrategy{
 
                 BigDecimal amountHFT = strategy.getLevelLot();
 
-                if (levelTimeMap.get(level.toString() + reversing) != null){
-                    Long time = System.currentTimeMillis() - levelTimeMap.get(level.toString() + reversing);
-
-                    if (strategy.getSymbolType() == null){
-                        if (time < 600000 && !strategy.getSymbol().contains("/CNY")){
-                            amountHFT = amountHFT.multiply(BigDecimal.valueOf(10.0 - 9.0*time/600000));
-
-                            log.info("HFT -> {}s {} {} -> {}", time/1000, price.setScale(3, HALF_EVEN),
-                                    strategy.getLevelLot().setScale(3, HALF_EVEN), amountHFT.setScale(3, HALF_EVEN));
-                        }
-
-                        if (time < 5000 && strategy.getSymbol().contains("/CNY")){
-                            amountHFT = amountHFT.multiply(BigDecimal.valueOf(3.0 - 2.0*time/5000));
-
-                            log.info("HFT -> {}ms {} {} -> {}", time, price.setScale(3, HALF_EVEN),
-                                    strategy.getLevelLot().setScale(3, HALF_EVEN), amountHFT.setScale(3, HALF_EVEN));
-                        }
-                    }else if (time < 15000){
-                        amountHFT = amountHFT.multiply(BigDecimal.valueOf(2));
-
-                        log.info("HFT -> {}s {} {} {}", time/1000, price.setScale(3, HALF_EVEN),
-                                amountHFT.setScale(3, HALF_EVEN), strategy.getSymbolType());
-                    }
-                }
+//                if (levelTimeMap.get(level.toString() + reversing) != null){
+//                    Long time = System.currentTimeMillis() - levelTimeMap.get(level.toString() + reversing);
+//
+//                    if (strategy.getSymbolType() == null){
+//                        if (time < 600000 && strategy.getAccount().getExchangeType().equals(ExchangeType.OKCOIN)){
+//                            amountHFT = amountHFT.multiply(BigDecimal.valueOf(10.0 - 9.0*time/600000));
+//
+//                            log.info("HFT -> {}s {} {} -> {}", time/1000, price.setScale(3, HALF_EVEN),
+//                                    strategy.getLevelLot().setScale(3, HALF_EVEN), amountHFT.setScale(3, HALF_EVEN));
+//                        }
+//
+//                        if (time < 5000 && strategy.getAccount().getExchangeType().equals(ExchangeType.OKCOIN_CN)){
+//                            amountHFT = amountHFT.multiply(BigDecimal.valueOf(3.0 - 2.0*time/5000));
+//
+//                            log.info("HFT -> {}ms {} {} -> {}", time, price.setScale(3, HALF_EVEN),
+//                                    strategy.getLevelLot().setScale(3, HALF_EVEN), amountHFT.setScale(3, HALF_EVEN));
+//                        }
+//                    }else if (time < 15000){
+//                        amountHFT = amountHFT.multiply(BigDecimal.valueOf(2));
+//
+//                        log.info("HFT -> {}s {} {} {}", time/1000, price.setScale(3, HALF_EVEN),
+//                                amountHFT.setScale(3, HALF_EVEN), strategy.getSymbolType());
+//                    }
+//                }
 
                 if (risk.compareTo(ONE) > 0){
                     log.warn("RISK RATE {} {} {}", risk.setScale(3, HALF_EVEN), strategy.getSymbol(),
@@ -193,36 +190,29 @@ public class LevelStrategy extends BaseStrategy{
 
                 Long positionId = LevelStrategy.positionId.incrementAndGet();
 
-                BigDecimal buyAmount;
-                BigDecimal sellAmount;
-
-                if (strategy.getSymbolType() == null){
-                    buyAmount = amountHFT.multiply(BigDecimal.valueOf(1.0 + random.nextDouble()/5)).setScale(8, HALF_EVEN);
-                    sellAmount = amountHFT.multiply(BigDecimal.valueOf(1.0 + random.nextDouble()/5)).setScale(8, HALF_EVEN);
-                }else {
-                    buyAmount = amountHFT;
-                    sellAmount = amountHFT;
-                }
+                BigDecimal buyAmount = amountHFT;
+                BigDecimal sellAmount = amountHFT;
 
                 if (reversing){
-                    if (strategy.getSymbol().contains("/CNY")){
-                        buyAmount = amountHFT;
-                        sellAmount = amountHFT.multiply(price.subtract(spreadP)).divide(price, 8, HALF_EVEN);
+                    if (strategy.getSymbolType() == null){
+                        sellAmount = amountHFT;
+                        buyAmount = amountHFT.add(amountHFT.multiply(spread).divide(priceF.subtract(spread), 8, HALF_EVEN));
                     }
-                    createWaitOrder(new Order(strategy, positionId, strategy.getSymbolType() != null ? OPEN_LONG : BID,
-                            price.subtract(spreadP), buyAmount));
+
                     createWaitOrder(new Order(strategy, positionId, strategy.getSymbolType() != null ? CLOSE_LONG : ASK,
-                            price, sellAmount));
+                            priceF, sellAmount));
+                    createWaitOrder(new Order(strategy, positionId, strategy.getSymbolType() != null ? OPEN_LONG : BID,
+                            priceF.subtract(spread), buyAmount));
                 }else{
-                    if (strategy.getSymbol().contains("/CNY")){
-                        buyAmount = amountHFT;
-                        sellAmount = amountHFT.multiply(price.add(step)).divide(price.add(spreadP.add(step)), 8, HALF_EVEN);
+                    if (strategy.getSymbolType() == null){
+                        buyAmount = amountHFT.add(amountHFT.multiply(spread).divide(priceF, 8, HALF_EVEN));
+                        sellAmount = amountHFT;
                     }
 
                     createWaitOrder(new Order(strategy, positionId, strategy.getSymbolType() != null ? OPEN_LONG : BID,
-                            price.add(step), buyAmount));
+                            priceF, buyAmount));
                     createWaitOrder(new Order(strategy, positionId, strategy.getSymbolType() != null ? CLOSE_LONG : ASK,
-                            price.add(spreadP.add(step)), sellAmount));
+                            priceF.add(spread), sellAmount));
                 }
 
                 if (orderType.equals(ASK)) {
@@ -231,6 +221,8 @@ public class LevelStrategy extends BaseStrategy{
             }
         } catch (Exception e) {
             log.error("action error -> ", e);
+        }finally {
+            semaphore.release();
         }
     }
 
@@ -257,11 +249,11 @@ public class LevelStrategy extends BaseStrategy{
 
         if (ask != null && bid != null) {
             if (ask.subtract(bid).abs().compareTo(spread.multiply(BigDecimal.valueOf(2))) > 0 && ask.compareTo(bid) > 0){
-                actionAsync("on depth ask", ask, ASK);
-                actionAsync("on depth bid", bid, BID);
+                action("on depth ask", ask, ASK);
+                action("on depth bid", bid, BID);
 
-                actionAsync("on depth ask spread", ask.subtract(spread), ASK);
-                actionAsync("on depth bid spread", bid.add(spread), BID);
+                action("on depth ask spread", ask.subtract(spread), ASK);
+                action("on depth bid spread", bid.add(spread), BID);
             }
         }
     }
