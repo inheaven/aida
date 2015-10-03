@@ -156,20 +156,29 @@ public class BaseStrategy {
                                     }
                                     break;
                                 case "LTC/CNY'":
-                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("1")) > 0) {
+                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("0.5")) > 0) {
                                         cancel = true;
                                     }
                                     break;
+                                case "BTC/USD":
+                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("1"))  > 0) {
+                                        cancel = true;
+                                    }
+                                    break;
+                                case "LTC/USD":
+                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("0.1")) > 0) {
+                                        cancel = true;
+                                    }
+                                    break;
+
                                 default:
                                     cancel = lastPrice.get().subtract(o.getPrice()).abs().divide(o.getPrice(), 8, HALF_EVEN)
                                             .compareTo(new BigDecimal("0.1")) > 0;
                             }
 
-                            if (cancel && !o.getStatus().equals(CANCELED)) {
+                            if (cancel) {
+                                o.setStatus(CREATED);
                                 orderService.cancelOrder(strategy.getAccount(), o);
-                                o.setStatus(WAIT);
-                                orderMapper.asyncSave(o);
-                                log.info("CLOSED -> WAIT {} {}", lastPrice, o.getPrice());
                             }
                         }
                     } catch (Exception e) {
@@ -303,6 +312,22 @@ public class BaseStrategy {
                 }
 
                 if (order != null) {
+                    if (order.getStatus().equals(CREATED) && o.getStatus().equals(CANCELED)){
+                        orderMap.remove(order.getInternalId());
+                        orderMap.remove(order.getOrderId());
+
+                        order.setInternalId(String.valueOf(internalId.incrementAndGet()));
+                        order.setOrderId(order.getInternalId());
+
+                        order.setStatus(WAIT);
+                        orderMap.put(order.getInternalId(), order);
+
+                        orderMapper.asyncSave(order);
+                        logOrder(order);
+
+                        return;
+                    }
+
                     order.setAccountId(strategy.getAccount().getId());
                     order.setOrderId(o.getOrderId());
                     order.close(o);
@@ -343,7 +368,8 @@ public class BaseStrategy {
     private void logOrder(Order o){
         log.info("{} {} {} {} {} {} {} {}", o.getStrategyId(),
                 Objects.toString(o.getOrderId(), "->"), o.getStatus(),
-                o.getSymbol(), o.getAvgPrice() != null ? o.getAvgPrice().setScale(2, HALF_EVEN) : o.getPrice().setScale(2, HALF_EVEN),
+                o.getSymbol(), o.getAvgPrice() != null && o.getAvgPrice().compareTo(BigDecimal.ZERO) > 0 ?
+                        o.getAvgPrice().setScale(2, HALF_EVEN) : o.getPrice().setScale(2, HALF_EVEN),
                 o.getAmount().setScale(2, HALF_EVEN), o.getType(), Objects.toString(o.getSymbolType(), ""));
     }
 
