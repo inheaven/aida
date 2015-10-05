@@ -2,10 +2,7 @@ package ru.inheaven.aida.happy.trading.strategy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.inheaven.aida.happy.trading.entity.Depth;
-import ru.inheaven.aida.happy.trading.entity.Order;
-import ru.inheaven.aida.happy.trading.entity.Strategy;
-import ru.inheaven.aida.happy.trading.entity.Trade;
+import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.exception.OrderInfoException;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.DepthService;
@@ -53,7 +50,8 @@ public class BaseStrategy {
     private boolean flying = false;
 
     private AtomicReference<BigDecimal> lastPrice = new AtomicReference<>();
-    private static AtomicLong refusedTime = new AtomicLong(System.currentTimeMillis());
+    private AtomicLong askRefusedTime = new AtomicLong(System.currentTimeMillis());
+    private AtomicLong bidRefusedTime = new AtomicLong(System.currentTimeMillis());
 
 
     public BaseStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
@@ -107,8 +105,8 @@ public class BaseStrategy {
         });
 
         orderSubscription = orderObservable
-                .filter(o -> orderMap.containsKey(o.getOrderId()) || (o.getInternalId() != null &&
-                        orderMap.containsKey(o.getInternalId())))
+                .filter(o -> orderMap.containsKey(o.getOrderId()) ||
+                        (o.getInternalId() != null && orderMap.containsKey(o.getInternalId())))
                 .subscribe(this::onOrder);
 
         realTradeSubscription = orderObservable.subscribe(o -> {
@@ -133,8 +131,10 @@ public class BaseStrategy {
                     orderService.checkOrder(strategy.getAccount(), o);
                 }else if (o.getStatus().equals(CANCELED) || o.getStatus().equals(CLOSED)) {
                     onOrder(o);
-                    log.info("schedule close order -> {} {} {} {}", o.getOrderId(), o.getSymbol(),
+                    log.info("schedule close order -> {} {} {} {} {}", o.getOrderId(), o.getPrice(), o.getSymbol(),
                             Objects.toString(o.getSymbolType(), ""), o.getStatus());
+                }else if (o.getStatus().equals(CREATED) && System.currentTimeMillis() - o.getCreated().getTime() > 60000){
+                    o.setStatus(WAIT);
                 }
             } catch (OrderInfoException e) {
                 log.error("error check order -> ", e);
@@ -218,6 +218,7 @@ public class BaseStrategy {
     @SuppressWarnings("Duplicates")
     protected Future<Order> createOrderAsync(Order order){
         order.setInternalId(String.valueOf(internalId.incrementAndGet()));
+        order.setOrderId(order.getInternalId());
         order.setPrice(order.getPrice().setScale(8, HALF_EVEN));
         order.setStatus(CREATED);
         order.setCreated(new Date());
@@ -261,6 +262,7 @@ public class BaseStrategy {
     @SuppressWarnings("Duplicates")
     protected Future<Order> pushWaitOrderAsync(Order order){
         order.setStatus(CREATED);
+        order.setCreated(new Date());
 
         return executorService.submit(() -> {
             try {
@@ -286,7 +288,11 @@ public class BaseStrategy {
 
     protected void onOrder(Order o){
         if (o.getOrderId() != null && o.getOrderId().contains("refused")){
-            refusedTime.set(System.currentTimeMillis());
+            if (o.getType().equals(OrderType.ASK)){
+                askRefusedTime.set(System.currentTimeMillis());
+            }else{
+                bidRefusedTime.set(System.currentTimeMillis());
+            }
 
             Order order = orderMap.get(o.getInternalId());
 
@@ -332,11 +338,8 @@ public class BaseStrategy {
                     order.setOrderId(o.getOrderId());
                     order.close(o);
 
+                    orderMap.remove(o.getInternalId());
                     orderMap.remove(o.getOrderId());
-
-                    if (o.getInternalId() != null) {
-                        orderMap.remove(o.getInternalId());
-                    }
 
                     orderMapper.asyncSave(order);
 
@@ -366,8 +369,8 @@ public class BaseStrategy {
     }
 
     private void logOrder(Order o){
-        log.info("{} {} {} {} {} {} {} {}", o.getStrategyId(),
-                Objects.toString(o.getOrderId(), "->"), o.getStatus(),
+        log.info("{} {} {} {} {} {} {}", o.getStrategyId(),
+                o.getStatus(),
                 o.getSymbol(), o.getAvgPrice() != null && o.getAvgPrice().compareTo(BigDecimal.ZERO) > 0 ?
                         o.getAvgPrice().setScale(2, HALF_EVEN) : o.getPrice().setScale(2, HALF_EVEN),
                 o.getAmount().setScale(2, HALF_EVEN), o.getType(), Objects.toString(o.getSymbolType(), ""));
@@ -381,7 +384,11 @@ public class BaseStrategy {
         return strategy;
     }
 
-    public long getRefusedTime() {
-        return refusedTime.get();
+    public boolean isBidRefused(){
+        return System.currentTimeMillis() - bidRefusedTime.get() < 10000;
+    }
+
+    public boolean isAskRefused(){
+        return System.currentTimeMillis() - askRefusedTime.get() < 10000;
     }
 }

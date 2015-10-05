@@ -9,7 +9,7 @@ function areaChart(id, title, data0, data1, data2){
         xAxis: {type: 'datetime'},
         yAxis: [{}, {}, {}],
         series: [{
-            type: 'line', threshold: null,
+            type: 'spline', threshold: null,
             data: data0,
             name: 'SPOT',
             fillColor: {
@@ -20,7 +20,7 @@ function areaChart(id, title, data0, data1, data2){
                 ]
             }
         }, {
-            type: 'line', threshold: null,
+            type: 'spline', threshold: null,
             data: data1,
             name: 'SPOT/BTC',
             yAxis:1,
@@ -32,7 +32,7 @@ function areaChart(id, title, data0, data1, data2){
                 ]
             }
         }, {
-            type: 'line', threshold: null,
+            type: 'spline', threshold: null,
             data: data2,
             name: 'BTC',
             yAxis:2,

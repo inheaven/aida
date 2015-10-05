@@ -30,6 +30,7 @@ public class OrderService {
     private BaseOkcoinFixService okcoinFixUsService;
     private BaseOkcoinFixService okcoinFixCnService;
     private XChangeService xChangeService;
+    private BroadcastService broadcastService;
 
     private PublishSubject<Order> localClosedOrderPublishSubject = PublishSubject.create();
     private ConnectableObservable<Order> localClosedOrderObservable;
@@ -37,11 +38,12 @@ public class OrderService {
     @Inject
     public OrderService(OkcoinService okcoinService, OkcoinFixService okcoinFixService,
                         OkcoinCnFixService okcoinCnFixService, XChangeService xChangeService,
-                        AccountMapper accountMapper) {
+                        AccountMapper accountMapper, BroadcastService broadcastService) {
         this.okcoinService = okcoinService;
         this.okcoinFixUsService = okcoinFixService;
         this.okcoinFixCnService = okcoinCnFixService;
         this.xChangeService = xChangeService;
+        this.broadcastService = broadcastService;
 
 
         orderObservable = okcoinService.createFutureOrderObservable()
@@ -137,6 +139,7 @@ public class OrderService {
 
     public void onCloseOrder(Order order){
         localClosedOrderPublishSubject.onNext(order);
+        broadcastService.broadcast(getClass(), "close", order);
     }
 
     public Observable<Order> getClosedOrderObservable(){

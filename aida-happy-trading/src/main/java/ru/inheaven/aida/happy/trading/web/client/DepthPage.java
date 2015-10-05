@@ -7,14 +7,11 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.protocol.ws.api.WebSocketRequestHandler;
-import ru.inheaven.aida.happy.trading.entity.Depth;
-import ru.inheaven.aida.happy.trading.entity.OrderStatus;
-import ru.inheaven.aida.happy.trading.entity.SymbolType;
-import ru.inheaven.aida.happy.trading.entity.Trade;
+import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.service.DepthService;
 import ru.inheaven.aida.happy.trading.service.Module;
+import ru.inheaven.aida.happy.trading.service.OrderService;
 import ru.inheaven.aida.happy.trading.service.StrategyService;
-import ru.inheaven.aida.happy.trading.service.TradeService;
 import ru.inheaven.aida.happy.trading.strategy.BaseStrategy;
 import ru.inheaven.aida.happy.trading.web.BasePage;
 import ru.inhell.aida.common.wicket.BroadcastBehavior;
@@ -63,15 +60,27 @@ public class DepthPage extends BasePage{
             }
         });
 
-        add(new BroadcastBehavior<Trade>(TradeService.class) {
+//        add(new BroadcastBehavior<Trade>(TradeService.class) {
+//            @Override
+//            protected void onBroadcast(WebSocketRequestHandler handler, String key, Trade trade) {
+//                String id = getDepthId(trade.getSymbol(), trade.getSymbolType());
+//                String k = id+trade.getPrice().setScale(3, HALF_UP);
+//                BigDecimal amount = tradeMap.get(k);
+//
+//                //noinspection RedundantStringConstructorCall
+//                tradeMap.put(new String(k), trade.getAmount().add(amount != null ? amount : BigDecimal.ZERO).setScale(3, HALF_EVEN));
+//            }
+//        });
+
+        add(new BroadcastBehavior<Order>(OrderService.class) {
             @Override
-            protected void onBroadcast(WebSocketRequestHandler handler, String key, Trade trade) {
-                String id = getDepthId(trade.getSymbol(), trade.getSymbolType());
-                String k = id+trade.getPrice().setScale(3, HALF_UP);
+            protected void onBroadcast(WebSocketRequestHandler handler, String key, Order order) {
+                String id = getDepthId(order.getSymbol(), order.getSymbolType());
+                String k = id+order.getAvgPrice().setScale(3, HALF_UP);
                 BigDecimal amount = tradeMap.get(k);
 
                 //noinspection RedundantStringConstructorCall
-                tradeMap.put(new String(k), trade.getAmount().add(amount != null ? amount : BigDecimal.ZERO).setScale(3, HALF_EVEN));
+                tradeMap.put(new String(k), order.getAmount().add(amount != null ? amount : BigDecimal.ZERO).setScale(3, HALF_EVEN));
             }
         });
     }

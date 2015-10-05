@@ -68,10 +68,10 @@ public class LevelStrategy extends BaseStrategy{
 
         getOrderMap().forEachValue(64, (o) -> {
             if (o.getStatus().equals(WAIT)) {
-                if (BUY_SET.contains(o.getType()) && compare(price.subtract(spreadF), o.getPrice()) <= 0 && isMinSpotAvailable()){
+                if (BUY_SET.contains(o.getType()) && compare(price.subtract(spreadF), o.getPrice()) <= 0 && !isBidRefused()){
                     pushWaitOrderAsync(o);
-                }else if (SELL_SET.contains(o.getType()) && compare(price.add(spreadF), o.getPrice()) >= 0){
-                    if (isSpotAvailable() && !reversing){
+                }else if (SELL_SET.contains(o.getType()) && compare(price.add(spreadF), o.getPrice()) >= 0 && !isAskRefused()){
+                    if (!reversing){
                         Order buy = getOrderMap().searchValues(64, (open)->
                                 open.getPositionId().equals(o.getPositionId()) && BUY_SET.contains(open.getType())
                                         ? open
@@ -90,19 +90,19 @@ public class LevelStrategy extends BaseStrategy{
 
     Executor executor = Executors.newWorkStealingPool();
 
-    private void actionLevel(String key, BigDecimal price, OrderType orderType){
-        //WAIT PUSH
+    private void action(String key, BigDecimal price, OrderType orderType){
         executor.execute(() -> pushOrders(price));
+        actionLevel(key, price, orderType);
+    }
 
-        //ACTION
+    private void actionLevel(String key, BigDecimal price, OrderType orderType){
         BigDecimal spreadF = getSpreadF(price);
 
-        for (int i = 0; i < strategy.getLevelSize().intValue(); ++i){
-            action(key, price.add(BigDecimal.valueOf(i).multiply(spreadF)), orderType);
-        }
+        action(key, price, orderType, 0);
 
         for (int i = 1; i < strategy.getLevelSize().intValue(); ++i){
-            action(key, price.add(BigDecimal.valueOf(-i).multiply(spreadF)), orderType);
+            action(key, price.add(BigDecimal.valueOf(i).multiply(spreadF)), orderType, i);
+            action(key, price.add(BigDecimal.valueOf(-i).multiply(spreadF)), orderType, -i);
         }
     }
 
@@ -120,52 +120,20 @@ public class LevelStrategy extends BaseStrategy{
         return false;
     }
 
-    private boolean isSpotAvailable(){
-        BigDecimal freeSpot = userInfoService.getVolume("free_spot", strategy.getAccount().getId(), null);
-
-        if (freeSpot.compareTo(ZERO) > 0) {
-            if (strategy.getSymbol().contains("USD")){
-                return freeSpot.compareTo(new BigDecimal("800")) > 0;
-            }else if (strategy.getSymbol().contains("CNY")){
-                return freeSpot.compareTo(new BigDecimal("2300")) > 0;
-            }
-        }
-
-        return true;
-    }
-
-    private boolean isMinSpotAvailable(){
-        BigDecimal freeSpot = userInfoService.getVolume("free_spot", strategy.getAccount().getId(), null);
-
-        if (strategy.getSymbol().contains("USD")){
-            return freeSpot.compareTo(new BigDecimal("50")) > 0;
-        }else if (strategy.getSymbol().contains("CNY")){
-            return freeSpot.compareTo(new BigDecimal("300")) > 0;
-        }
-
-        return false;
-    }
-
     private BigDecimal getSpread(BigDecimal price){
         return strategy.getSymbolType() == null ? strategy.getLevelSpread().multiply(price) : strategy.getLevelSpread();
     }
 
     private BigDecimal getSpreadF(BigDecimal price){
-        return getSpread(price).divide(BigDecimal.valueOf(2), 8, HALF_EVEN);
+        return strategy.getId() == 39 ? new BigDecimal("0.01") : getSpread(price).divide(BigDecimal.valueOf(2), 8, HALF_EVEN);
     }
 
     private Semaphore semaphore = new Semaphore(1);
 
-    private void action(String key, BigDecimal price, OrderType orderType) {
+    private void action(String key, BigDecimal price, OrderType orderType, int priceLevel) {
         try {
             semaphore.acquire();
 
-            //REFUSED
-            if (System.currentTimeMillis() - getRefusedTime() < 10000){
-                return;
-            }
-
-            //MEAN REVERSING
             boolean reversing = isReversing(price);
 
             BigDecimal priceF = scale(orderType.equals(ASK) ? price.subtract(getStep()) : price.add(getStep()));
@@ -191,8 +159,8 @@ public class LevelStrategy extends BaseStrategy{
             Order search = getOrderMap().searchValues(64, (o) -> {
                 if (LONG.contains(o.getType()) &&
                         (OPEN.equals(o.getStatus()) || CREATED.equals(o.getStatus()) || WAIT.equals(o.getStatus())) &&
-                        ((SELL_SET.contains(o.getType()) && compare(o.getPrice().subtract(sellPrice).abs(), spreadF) <= 0) ||
-                                (BUY_SET.contains(o.getType()) && compare(o.getPrice().subtract(buyPrice).abs(), spreadF) <= 0))){
+                        ((SELL_SET.contains(o.getType()) && compare(o.getPrice().subtract(sellPrice).abs(), spreadF) < 0) ||
+                                (BUY_SET.contains(o.getType()) && compare(o.getPrice().subtract(buyPrice).abs(), spreadF) < 0))){
                     return o;
                 }
 
@@ -200,7 +168,7 @@ public class LevelStrategy extends BaseStrategy{
             });
 
             if (search == null){
-                log.info(key + " {} {} r={} sa={} {}", price.setScale(3, HALF_EVEN), orderType, reversing, isSpotAvailable(), level);
+                log.info(key + " {} {} r={} {}", price.setScale(3, HALF_EVEN), orderType, reversing, level);
 
                 BigDecimal amountHFT = strategy.getLevelLot();
 
@@ -244,10 +212,18 @@ public class LevelStrategy extends BaseStrategy{
                     sellAmount = amountHFT;
                 }
 
-                createWaitOrder(new Order(strategy, positionId, strategy.getSymbolType() != null ? OPEN_LONG : BID,
-                        buyPrice, buyAmount));
-                createWaitOrder(new Order(strategy, positionId, strategy.getSymbolType() != null ? CLOSE_LONG : ASK,
-                        sellPrice, sellAmount));
+                Order buyOrder = new Order(strategy, positionId, strategy.getSymbolType() != null ? OPEN_LONG : BID,
+                        buyPrice, buyAmount);
+                Order sellOrder = new Order(strategy, positionId, strategy.getSymbolType() != null ? CLOSE_LONG : ASK,
+                        sellPrice, sellAmount);
+
+                if (priceLevel >= -1 && priceLevel <= 1){
+                    createOrderAsync(buyOrder);
+                    createOrderAsync(sellOrder);
+                }else {
+                    createWaitOrder(buyOrder);
+                    createWaitOrder(sellOrder);
+                }
 
                 if (orderType.equals(ASK)) {
                     levelTimeMap.put(level.toString() + reversing,  System.currentTimeMillis());
@@ -266,7 +242,7 @@ public class LevelStrategy extends BaseStrategy{
     protected void onTrade(Trade trade) {
         if (lastTrade.compareTo(ZERO) != 0 &&
                 lastTrade.subtract(trade.getPrice()).abs().divide(lastTrade, 8, HALF_EVEN).compareTo(new BigDecimal("0.01")) < 0){
-            actionLevel("on trade", trade.getPrice(), trade.getOrderType());
+            action("on trade", trade.getPrice(), trade.getOrderType());
         }else{
             log.warn("trade price diff 1% than last trade {} {} {}", trade.getPrice(), trade.getSymbol(), Objects.toString(trade.getSymbolType(), ""));
         }
@@ -282,15 +258,15 @@ public class LevelStrategy extends BaseStrategy{
         if (ask != null && bid != null && lastTrade.compareTo(ZERO) != 0 &&
                 lastTrade.subtract(ask).abs().divide(lastTrade, 8, HALF_EVEN).compareTo(new BigDecimal("0.01")) < 0 &&
                 lastTrade.subtract(bid).abs().divide(lastTrade, 8, HALF_EVEN).compareTo(new BigDecimal("0.01")) < 0) {
-            actionLevel("on depth ask", ask, ASK);
-            actionLevel("on depth bid", bid, BID);
+            action("on depth ask", ask, ASK);
+            action("on depth bid", bid, BID);
         }
     }
 
     @Override
     protected void onRealTrade(Order order) {
         if (order.getStatus().equals(CLOSED) && order.getAvgPrice().compareTo(ZERO) > 0){
-            actionLevel("on real trade", order.getAvgPrice(), order.getType());
+            action("on real trade", order.getAvgPrice(), order.getType());
         }
     }
 
