@@ -14,8 +14,6 @@ import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -88,22 +86,20 @@ public class LevelStrategy extends BaseStrategy{
         });
     }
 
-    Executor executor = Executors.newWorkStealingPool();
-
     private void action(String key, BigDecimal price, OrderType orderType){
-        executor.execute(() -> pushOrders(price));
         actionLevel(key, price, orderType);
+        pushOrders(price);
     }
 
     private void actionLevel(String key, BigDecimal price, OrderType orderType){
         BigDecimal spreadF = getSpreadF(price);
 
-        action(key, price, orderType, 0);
-
-        for (int i = 1; i < strategy.getLevelSize().intValue(); ++i){
+        for (int i = strategy.getLevelSize().intValue(); i > 0 ; --i){
             action(key, price.add(BigDecimal.valueOf(i).multiply(spreadF)), orderType, i);
             action(key, price.add(BigDecimal.valueOf(-i).multiply(spreadF)), orderType, -i);
         }
+
+        action(key, price, orderType, 0);
     }
 
     private boolean isReversing(BigDecimal price){
@@ -219,7 +215,7 @@ public class LevelStrategy extends BaseStrategy{
 
                 if (priceLevel >= -1 && priceLevel <= 1){
                     createOrderAsync(buyOrder);
-                    createOrderAsync(sellOrder);
+                    createWaitOrder(sellOrder);
                 }else {
                     createWaitOrder(buyOrder);
                     createWaitOrder(sellOrder);
