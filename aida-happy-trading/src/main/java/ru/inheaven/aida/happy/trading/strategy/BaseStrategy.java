@@ -18,6 +18,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_EVEN;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -130,9 +131,10 @@ public class BaseStrategy {
                 if (o.getStatus().equals(OPEN)) {
                     orderService.checkOrder(strategy.getAccount(), o);
                 }else if (o.getStatus().equals(CANCELED) || o.getStatus().equals(CLOSED)) {
-                    onOrder(o);
-                    log.info("schedule close order -> {} {} {} {} {}", o.getOrderId(), o.getPrice(), o.getSymbol(),
-                            Objects.toString(o.getSymbolType(), ""), o.getStatus());
+//                    onOrder(o);
+//                    log.info("{} CLOSED by schedule {}", o.getStrategyId(), scale(o.getPrice()));
+                    orderService.orderInfo(strategy.getAccount(), o);
+                    log.info("{} CLOSED by order info {}", o.getStrategyId(), scale(o.getPrice()));
                 }else if (o.getStatus().equals(CREATED) && System.currentTimeMillis() - o.getCreated().getTime() > 60000){
                     o.setStatus(WAIT);
                 }
@@ -369,11 +371,50 @@ public class BaseStrategy {
     }
 
     private void logOrder(Order o){
-        log.info("{} {} {} {} {} {} {}", o.getStrategyId(),
-                o.getStatus(),
-                o.getSymbol(), o.getAvgPrice() != null && o.getAvgPrice().compareTo(BigDecimal.ZERO) > 0 ?
-                        o.getAvgPrice().setScale(2, HALF_EVEN) : o.getPrice().setScale(2, HALF_EVEN),
-                o.getAmount().setScale(2, HALF_EVEN), o.getType(), Objects.toString(o.getSymbolType(), ""));
+        log.info("{} {} {} {} {} {} {} {}",
+                o.getStrategyId(),o.getStatus(), o.getSymbol(), scale(o.getPrice()),
+                o.getAvgPrice() != null
+                        ? scale(o.getType().equals(OrderType.ASK)
+                        ? o.getAvgPrice().subtract(o.getPrice()) : o.getPrice().subtract(o.getAvgPrice()))
+                        : scale(ZERO),
+                o.getAmount().setScale(3, HALF_EVEN), o.getType(), Objects.toString(o.getSymbolType(), ""));
+    }
+
+    public static final BigDecimal STEP01 = new BigDecimal("0.01");
+    public static final BigDecimal STEP001 = new BigDecimal("0.001");
+
+    public BigDecimal getStep(){
+        switch (strategy.getSymbol()){
+            case "BTC/USD":
+            case "BTC/CNY":
+            case "LTC/CNY":
+                return STEP01;
+            case "LTC/USD":
+                return STEP001;
+        }
+
+        return ZERO;
+    }
+
+    public BigDecimal scale(BigDecimal value){
+        if (value == null){
+            return null;
+        }
+
+        switch (strategy.getSymbol()){
+            case "BTC/USD":
+            case "BTC/CNY":
+            case "LTC/CNY":
+                return value.setScale(2, HALF_EVEN);
+            case "LTC/USD":
+                return value.setScale(3, HALF_EVEN);
+        }
+
+        return value;
+    }
+
+    public int compare(BigDecimal v1, BigDecimal v2){
+        return scale(v1).compareTo(scale(v2));
     }
 
     public ConcurrentHashMap<String, Order> getOrderMap() {

@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.Account;
 import ru.inheaven.aida.happy.trading.entity.Order;
-import ru.inheaven.aida.happy.trading.entity.Strategy;
 import ru.inheaven.aida.happy.trading.exception.CreateOrderException;
 import ru.inheaven.aida.happy.trading.exception.OrderInfoException;
 import ru.inheaven.aida.happy.trading.mapper.AccountMapper;
@@ -91,15 +90,24 @@ public class OrderService {
         }
     }
 
-    public void orderInfo(Strategy strategy, Order order){
-        if (order.getOrderId() != null){
-            if (order.getExchangeType().equals(OKCOIN)){
-                if (order.getSymbolType() != null){
-                    okcoinService.orderFutureInfo(strategy.getAccount().getApiKey(), strategy.getAccount().getSecretKey(), order);
-                }else {
-                    okcoinService.orderSpotInfo(strategy.getAccount().getApiKey(), strategy.getAccount().getSecretKey(), order);
+    public void orderInfo(Account account, Order order){
+        switch (order.getExchangeType()){
+            case OKCOIN:
+                if (order.getSymbolType() == null){
+                    okcoinFixUsService.orderInfo(order);
+                }else{
+                    okcoinService.orderFutureInfo(account.getApiKey(), account.getSecretKey(), order);
                 }
-            }
+
+                break;
+            case OKCOIN_CN:
+                if (order.getSymbolType() == null){
+                    okcoinFixCnService.orderInfo(order);
+                }else{
+                    okcoinService.orderFutureInfo(account.getApiKey(), account.getSecretKey(), order);
+                }
+
+                break;
         }
     }
 

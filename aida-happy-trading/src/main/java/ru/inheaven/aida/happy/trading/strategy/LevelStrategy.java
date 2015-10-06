@@ -86,6 +86,17 @@ public class LevelStrategy extends BaseStrategy{
         });
     }
 
+    private void closeByMarket(BigDecimal price){
+        getOrderMap().forEachValue(64, o -> {
+            if (o.getStatus().equals(OPEN) &&
+                    ((BUY_SET.contains(o.getType()) && compare(o.getPrice(), price) > 0) ||
+                            (SELL_SET.contains(o.getType()) && compare(o.getPrice(), price) < 0))){
+                o.setStatus(CLOSED);
+                log.info("{} CLOSED by market {} {} {}", o.getStrategyId(), scale(o.getPrice()), price, o.getType());
+            }
+        });
+    }
+
     private void action(String key, BigDecimal price, OrderType orderType){
         actionLevel(key, price, orderType);
         pushOrders(price);
@@ -150,8 +161,8 @@ public class LevelStrategy extends BaseStrategy{
             Order search = getOrderMap().searchValues(64, (o) -> {
                 if (LONG.contains(o.getType()) &&
                         (OPEN.equals(o.getStatus()) || CREATED.equals(o.getStatus()) || WAIT.equals(o.getStatus())) &&
-                        ((SELL_SET.contains(o.getType()) && compare(o.getPrice().subtract(sellPrice).abs(), sideSpread) < 0) ||
-                                (BUY_SET.contains(o.getType()) && compare(o.getPrice().subtract(buyPrice).abs(), sideSpread) < 0))){
+                        ((SELL_SET.contains(o.getType()) && compare(o.getPrice().subtract(sellPrice).abs(), sideSpread) <= 0) ||
+                                (BUY_SET.contains(o.getType()) && compare(o.getPrice().subtract(buyPrice).abs(), sideSpread) <= 0))){
                     return o;
                 }
 
@@ -239,6 +250,7 @@ public class LevelStrategy extends BaseStrategy{
         if (lastTrade.compareTo(ZERO) != 0 &&
                 lastTrade.subtract(trade.getPrice()).abs().divide(lastTrade, 8, HALF_EVEN).compareTo(getStep()) < 0){
             action("on trade", trade.getPrice(), trade.getOrderType());
+            closeByMarket(trade.getPrice());
         }else{
             log.warn("trade price diff 1% than last trade {} {} {}", trade.getPrice(), trade.getSymbol(), Objects.toString(trade.getSymbolType(), ""));
         }
@@ -264,38 +276,5 @@ public class LevelStrategy extends BaseStrategy{
         if (order.getStatus().equals(CLOSED) && order.getAvgPrice().compareTo(ZERO) > 0){
             action("on real trade", order.getAvgPrice(), order.getType());
         }
-    }
-
-    private static final BigDecimal STEP01 = new BigDecimal("0.01");
-    private static final BigDecimal STEP001 = new BigDecimal("0.001");
-
-    private BigDecimal getStep(){
-        switch (strategy.getSymbol()){
-            case "BTC/USD":
-            case "BTC/CNY":
-            case "LTC/CNY":
-                return STEP01;
-            case "LTC/USD":
-                return STEP001;
-        }
-
-        return ZERO;
-    }
-
-    private BigDecimal scale(BigDecimal value){
-        switch (strategy.getSymbol()){
-            case "BTC/USD":
-            case "BTC/CNY":
-            case "LTC/CNY":
-                return value.setScale(2, HALF_EVEN);
-            case "LTC/USD":
-                return value.setScale(3, HALF_EVEN);
-        }
-
-        return value;
-    }
-
-    private int compare(BigDecimal v1, BigDecimal v2){
-        return scale(v1).compareTo(scale(v2));
     }
 }

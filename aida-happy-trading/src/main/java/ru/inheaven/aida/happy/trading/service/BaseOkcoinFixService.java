@@ -43,6 +43,10 @@ public abstract class BaseOkcoinFixService {
         okCoinApplicationTrade.cancelOrder(order, tradeSessionId);
     }
 
+    public void orderInfo(Order order){
+        okCoinApplicationTrade.requestOrderMassStatus(order.getOrderId(), 1, tradeSessionId);
+    }
+
     public Observable<Trade> getTradeObservable(){
         return tradePublishSubject.asObservable();
     }
