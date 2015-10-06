@@ -62,7 +62,7 @@ public class LevelStrategy extends BaseStrategy{
 
     private void pushOrders(BigDecimal price){
         boolean reversing = isReversing(price);
-        BigDecimal spreadF = getSpreadF(price);
+        BigDecimal spreadF = getSideSpread(price);
 
         getOrderMap().forEachValue(64, (o) -> {
             if (o.getStatus().equals(WAIT)) {
@@ -92,7 +92,7 @@ public class LevelStrategy extends BaseStrategy{
     }
 
     private void actionLevel(String key, BigDecimal price, OrderType orderType){
-        BigDecimal spreadF = getSpreadF(price);
+        BigDecimal spreadF = getSideSpread(price);
 
         for (int i = strategy.getLevelSize().intValue(); i > 0 ; --i){
             action(key, price.add(BigDecimal.valueOf(i).multiply(spreadF)), orderType, i);
@@ -117,11 +117,19 @@ public class LevelStrategy extends BaseStrategy{
     }
 
     private BigDecimal getSpread(BigDecimal price){
-        return strategy.getSymbolType() == null ? strategy.getLevelSpread().multiply(price) : strategy.getLevelSpread();
+        BigDecimal spread = strategy.getSymbolType() == null
+                ? strategy.getLevelSpread().multiply(price)
+                : strategy.getLevelSpread();
+
+        return spread.compareTo(getStep()) > 0 ? spread : getStep();
     }
 
-    private BigDecimal getSpreadF(BigDecimal price){
-        return strategy.getId() == 39 ? new BigDecimal("0.01") : getSpread(price).divide(BigDecimal.valueOf(2), 8, HALF_EVEN);
+    private BigDecimal getSideSpread(BigDecimal price){
+        BigDecimal sideSpread = strategy.getSymbolType() == null
+                ? strategy.getLevelSideSpread().multiply(price)
+                : strategy.getLevelSideSpread();
+
+        return sideSpread.compareTo(getStep()) > 0 ? sideSpread : getStep();
     }
 
     private Semaphore semaphore = new Semaphore(1);
@@ -134,29 +142,16 @@ public class LevelStrategy extends BaseStrategy{
 
             BigDecimal priceF = scale(orderType.equals(ASK) ? price.subtract(getStep()) : price.add(getStep()));
             BigDecimal spread = scale(getSpread(priceF));
-            BigDecimal spreadF = scale(getSpreadF(priceF));
-
-            if (strategy.getSymbolType() == null && strategy.getAccount().getExchangeType().equals(ExchangeType.OKCOIN)) {
-                BigDecimal minSpread = price.multiply(new BigDecimal("0.0014"));
-
-                if (spread.compareTo(minSpread) < 0){
-                    spread = minSpread;
-
-                    log.warn("LOW Spread -> {} {} {} {}", strategy.getId(), minSpread.setScale(3, HALF_EVEN), strategy.getSymbol(),
-                            Objects.toString(strategy.getSymbolType(), ""));
-                }
-            }
-
+            BigDecimal sideSpread = scale(getSideSpread(priceF));
             BigDecimal level = priceF.divideToIntegralValue(spread);
-
             BigDecimal buyPrice = reversing ? priceF.subtract(spread) : priceF;
             BigDecimal sellPrice = reversing ? priceF : priceF.add(spread);
 
             Order search = getOrderMap().searchValues(64, (o) -> {
                 if (LONG.contains(o.getType()) &&
                         (OPEN.equals(o.getStatus()) || CREATED.equals(o.getStatus()) || WAIT.equals(o.getStatus())) &&
-                        ((SELL_SET.contains(o.getType()) && compare(o.getPrice().subtract(sellPrice).abs(), spreadF) < 0) ||
-                                (BUY_SET.contains(o.getType()) && compare(o.getPrice().subtract(buyPrice).abs(), spreadF) < 0))){
+                        ((SELL_SET.contains(o.getType()) && compare(o.getPrice().subtract(sellPrice).abs(), sideSpread) < 0) ||
+                                (BUY_SET.contains(o.getType()) && compare(o.getPrice().subtract(buyPrice).abs(), sideSpread) < 0))){
                     return o;
                 }
 
@@ -213,11 +208,16 @@ public class LevelStrategy extends BaseStrategy{
                 Order sellOrder = new Order(strategy, positionId, strategy.getSymbolType() != null ? CLOSE_LONG : ASK,
                         sellPrice, sellAmount);
 
-                if (priceLevel >= -1 && priceLevel <= 1){
-                    createOrderAsync(buyOrder);
-                    createWaitOrder(sellOrder);
-                }else {
+                if (priceLevel < 1){
                     createWaitOrder(buyOrder);
+
+                    if (reversing){
+                        createOrderAsync(sellOrder);
+                    }else {
+                        createWaitOrder(sellOrder);
+                    }
+                }else{
+                    createOrderAsync(buyOrder);
                     createWaitOrder(sellOrder);
                 }
 
@@ -237,7 +237,7 @@ public class LevelStrategy extends BaseStrategy{
     @Override
     protected void onTrade(Trade trade) {
         if (lastTrade.compareTo(ZERO) != 0 &&
-                lastTrade.subtract(trade.getPrice()).abs().divide(lastTrade, 8, HALF_EVEN).compareTo(new BigDecimal("0.01")) < 0){
+                lastTrade.subtract(trade.getPrice()).abs().divide(lastTrade, 8, HALF_EVEN).compareTo(getStep()) < 0){
             action("on trade", trade.getPrice(), trade.getOrderType());
         }else{
             log.warn("trade price diff 1% than last trade {} {} {}", trade.getPrice(), trade.getSymbol(), Objects.toString(trade.getSymbolType(), ""));
@@ -252,8 +252,8 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal bid = depth.getBid();
 
         if (ask != null && bid != null && lastTrade.compareTo(ZERO) != 0 &&
-                lastTrade.subtract(ask).abs().divide(lastTrade, 8, HALF_EVEN).compareTo(new BigDecimal("0.01")) < 0 &&
-                lastTrade.subtract(bid).abs().divide(lastTrade, 8, HALF_EVEN).compareTo(new BigDecimal("0.01")) < 0) {
+                lastTrade.subtract(ask).abs().divide(lastTrade, 8, HALF_EVEN).compareTo(getStep()) < 0 &&
+                lastTrade.subtract(bid).abs().divide(lastTrade, 8, HALF_EVEN).compareTo(getStep()) < 0) {
             action("on depth ask", ask, ASK);
             action("on depth bid", bid, BID);
         }
@@ -266,14 +266,17 @@ public class LevelStrategy extends BaseStrategy{
         }
     }
 
+    private static final BigDecimal STEP01 = new BigDecimal("0.01");
+    private static final BigDecimal STEP001 = new BigDecimal("0.001");
+
     private BigDecimal getStep(){
         switch (strategy.getSymbol()){
             case "BTC/USD":
             case "BTC/CNY":
             case "LTC/CNY":
-                return new BigDecimal("0.01");
+                return STEP01;
             case "LTC/USD":
-                return new BigDecimal("0.001");
+                return STEP001;
         }
 
         return ZERO;

@@ -17,6 +17,7 @@ public class Strategy extends AbstractEntity {
 
     private BigDecimal levelLot;
     private BigDecimal levelSpread;
+    private BigDecimal levelSideSpread;
     private BigDecimal levelSize;
 
     private boolean active;
@@ -71,6 +72,14 @@ public class Strategy extends AbstractEntity {
 
     public void setLevelSpread(BigDecimal levelSpread) {
         this.levelSpread = levelSpread;
+    }
+
+    public BigDecimal getLevelSideSpread() {
+        return levelSideSpread;
+    }
+
+    public void setLevelSideSpread(BigDecimal levelSideSpread) {
+        this.levelSideSpread = levelSideSpread;
     }
 
     public BigDecimal getLevelSize() {

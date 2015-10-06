@@ -10,6 +10,7 @@
         <result column="symbol_type" property="symbolType"/>
         <result column="level_lot" property="levelLot"/>
         <result column="level_spread" property="levelSpread"/>
+        <result column="level_side_spread" property="levelSideSpread"/>
         <result column="level_size" property="levelSize"/>
         <result column="active" property="active"/>
         <result column="session_start" property="sessionStart"/>
@@ -19,13 +20,13 @@
     </resultMap>
 
     <insert id="insertStrategy" parameterType="ru.inheaven.aida.happy.trading.entity.Strategy" keyProperty="id" useGeneratedKeys="true">
-        insert into strategy (`name`, type, account_id, symbol, symbol_type, level_lot, level_spread, level_size, active, session_start)
-            value (#{name}, #{type}, #{account.id}, #{symbol}, #{symbolType}, #{levelLot}, #{levelSpread}, #{levelSize}, #{active}, #{sessionStart})
+        insert into strategy (`name`, type, account_id, symbol, symbol_type, level_lot, level_spread, level_side_spread, level_size, active, session_start)
+            value (#{name}, #{type}, #{account.id}, #{symbol}, #{symbolType}, #{levelLot}, #{levelSpread}, #{levelSideSpread}, #{levelSize}, #{active}, #{sessionStart})
     </insert>
 
     <update id="updateStrategy" parameterType="ru.inheaven.aida.happy.trading.entity.Strategy">
         update strategy set `name` = #{name}, type = #{type}, account_id = #{account.id}, level_lot = #{levelLot},
-            level_spread = #{levelSpread}, level_size = #{levelSize}
+            level_spread = #{levelSpread}, level_side_spread = #{levelSideSpread}, level_size = #{levelSize}
         where id = #{id}
     </update>
 

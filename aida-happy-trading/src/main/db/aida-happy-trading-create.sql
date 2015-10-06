@@ -28,6 +28,7 @@ CREATE TABLE strategy
   symbol_type VARCHAR(255),
   level_lot DECIMAL(19,8) NOT NULL,
   level_spread DECIMAL(19,8) NOT NULL,
+  level_side_spread DECIMAL(19,8) NOT NULL,
   level_size INT NOT NULL,
   active BOOLEAN NOT NULL,
   session_start DATETIME NOT NULL,
