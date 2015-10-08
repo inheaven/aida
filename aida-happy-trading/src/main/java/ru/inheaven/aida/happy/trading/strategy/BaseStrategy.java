@@ -8,6 +8,7 @@ import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.DepthService;
 import ru.inheaven.aida.happy.trading.service.OrderService;
 import ru.inheaven.aida.happy.trading.service.TradeService;
+import ru.inheaven.aida.happy.trading.util.OrderMap;
 import rx.Observable;
 import rx.Subscription;
 
@@ -44,7 +45,7 @@ public class BaseStrategy {
     private Subscription depthSubscription;
     private Subscription realTradeSubscription;
 
-    private ConcurrentHashMap<String, Order> orderMap = new ConcurrentHashMap<>();
+    private OrderMap orderMap;
 
     private Strategy strategy;
 
@@ -67,7 +68,9 @@ public class BaseStrategy {
         tradeObservable = createTradeObservable();
         depthObservable = createDepthObservable();
 
-        orderMapper.getOpenOrders(strategy.getId()).forEach(o -> orderMap.put(o.getOrderId(), o));
+        orderMap = new OrderMap(getScale(strategy.getSymbol()));
+
+        orderMapper.getOpenOrders(strategy.getId()).forEach(o -> orderMap.put(o));
     }
 
     protected Observable<Order> createOrderObservable(){
@@ -106,8 +109,8 @@ public class BaseStrategy {
         });
 
         orderSubscription = orderObservable
-                .filter(o -> orderMap.containsKey(o.getOrderId()) ||
-                        (o.getInternalId() != null && orderMap.containsKey(o.getInternalId())))
+                .filter(o -> orderMap.contains(o.getOrderId()) ||
+                        (o.getInternalId() != null && orderMap.contains(o.getInternalId())))
                 .subscribe(this::onOrder);
 
         realTradeSubscription = orderObservable.subscribe(o -> {
@@ -131,10 +134,8 @@ public class BaseStrategy {
                 if (o.getStatus().equals(OPEN)) {
                     orderService.checkOrder(strategy.getAccount(), o);
                 }else if (o.getStatus().equals(CANCELED) || o.getStatus().equals(CLOSED)) {
-//                    onOrder(o);
-//                    log.info("{} CLOSED by schedule {}", o.getStrategyId(), scale(o.getPrice()));
-                    orderService.orderInfo(strategy.getAccount(), o);
-                    log.info("{} CLOSED by order info {}", o.getStrategyId(), scale(o.getPrice()));
+                    onOrder(o);
+                    log.info("{} CLOSED by schedule {}", o.getStrategyId(), scale(o.getPrice()));
                 }else if (o.getStatus().equals(CREATED) && System.currentTimeMillis() - o.getCreated().getTime() > 60000){
                     o.setStatus(WAIT);
                 }
@@ -179,7 +180,7 @@ public class BaseStrategy {
                             }
 
                             if (cancel) {
-                                o.setStatus(CREATED);
+                                o.setStatus(WAIT);
                                 orderService.cancelOrder(strategy.getAccount(), o);
                             }
                         }
@@ -221,20 +222,17 @@ public class BaseStrategy {
     protected Future<Order> createOrderAsync(Order order){
         order.setInternalId(String.valueOf(internalId.incrementAndGet()));
         order.setOrderId(order.getInternalId());
-        order.setPrice(order.getPrice().setScale(8, HALF_EVEN));
         order.setStatus(CREATED);
         order.setCreated(new Date());
 
-        orderMap.put(order.getInternalId(), order);
+        orderMap.put(order);
 
         return executorService.submit(() -> {
             try {
                 orderService.createOrder(strategy.getAccount(), order);
 
                 if (order.getStatus().equals(OPEN)){
-                    orderMap.put(order.getOrderId(), order);
-                    orderMap.remove(order.getInternalId());
-
+                    orderMap.update(order);
                     orderMapper.asyncSave(order);
                 }
 
@@ -252,12 +250,12 @@ public class BaseStrategy {
     protected void createWaitOrder(Order order){
         order.setInternalId(String.valueOf(internalId.incrementAndGet()));
         order.setOrderId(order.getInternalId());
-        order.setPrice(order.getPrice().setScale(8, HALF_EVEN));
         order.setStatus(WAIT);
         order.setCreated(new Date());
 
-        orderMap.put(order.getInternalId(), order);
+        orderMap.put(order);
         orderMapper.asyncSave(order);
+
         logOrder(order);
     }
 
@@ -271,9 +269,7 @@ public class BaseStrategy {
                 orderService.createOrder(strategy.getAccount(), order);
 
                 if (order.getStatus().equals(OPEN)){
-                    orderMap.put(order.getOrderId(), order);
-                    orderMap.remove(order.getInternalId());
-
+                    orderMap.update(order);
                     orderMapper.asyncSave(order);
                 }
 
@@ -320,17 +316,17 @@ public class BaseStrategy {
                 }
 
                 if (order != null) {
-                    if (order.getStatus().equals(CREATED) && o.getStatus().equals(CANCELED)){
-                        orderMap.remove(order.getInternalId());
-                        orderMap.remove(order.getOrderId());
+                    if (order.getStatus().equals(WAIT) && o.getStatus().equals(CANCELED)){
+                        String removeOrderId = order.getOrderId();
 
                         order.setInternalId(String.valueOf(internalId.incrementAndGet()));
                         order.setOrderId(order.getInternalId());
 
-                        order.setStatus(WAIT);
-                        orderMap.put(order.getInternalId(), order);
-
+                        orderMap.put(order);
                         orderMapper.asyncSave(order);
+
+                        orderMap.remove(removeOrderId);
+
                         logOrder(order);
 
                         return;
@@ -340,8 +336,8 @@ public class BaseStrategy {
                     order.setOrderId(o.getOrderId());
                     order.close(o);
 
-                    orderMap.remove(o.getInternalId());
-                    orderMap.remove(o.getOrderId());
+                    orderMap.remove(order.getInternalId());
+                    orderMap.remove(order.getOrderId());
 
                     orderMapper.asyncSave(order);
 
@@ -357,8 +353,7 @@ public class BaseStrategy {
                     order.setStatus(OPEN);
                     order.setOpen(o.getOpen());
 
-                    orderMap.put(o.getOrderId(), order);
-                    orderMap.remove(o.getInternalId());
+                    orderMap.update(order);
 
                     orderMapper.asyncSave(order);
 
@@ -396,28 +391,32 @@ public class BaseStrategy {
         return ZERO;
     }
 
+    public static int getScale(String symbol){
+        switch (symbol){
+            case "BTC/USD":
+            case "BTC/CNY":
+            case "LTC/CNY":
+                return 2;
+            case "LTC/USD":
+                return 3;
+        }
+
+        return 8;
+    }
+
     public BigDecimal scale(BigDecimal value){
         if (value == null){
             return null;
         }
 
-        switch (strategy.getSymbol()){
-            case "BTC/USD":
-            case "BTC/CNY":
-            case "LTC/CNY":
-                return value.setScale(2, HALF_EVEN);
-            case "LTC/USD":
-                return value.setScale(3, HALF_EVEN);
-        }
-
-        return value;
+        return value.setScale(getScale(strategy.getSymbol()), HALF_EVEN);
     }
 
     public int compare(BigDecimal v1, BigDecimal v2){
         return scale(v1).compareTo(scale(v2));
     }
 
-    public ConcurrentHashMap<String, Order> getOrderMap() {
+    public OrderMap getOrderMap() {
         return orderMap;
     }
 

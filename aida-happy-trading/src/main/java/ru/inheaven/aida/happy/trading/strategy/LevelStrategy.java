@@ -64,36 +64,45 @@ public class LevelStrategy extends BaseStrategy{
         boolean reversing = isReversing(price);
         BigDecimal spreadF = getSideSpread(price);
 
-        getOrderMap().forEachValue(64, (o) -> {
-            if (o.getStatus().equals(WAIT)) {
-                if (BUY_SET.contains(o.getType()) && compare(price.subtract(spreadF), o.getPrice()) <= 0 && !isBidRefused()){
-                    pushWaitOrderAsync(o);
-                }else if (SELL_SET.contains(o.getType()) && compare(price.add(spreadF), o.getPrice()) >= 0 && !isAskRefused()){
-                    if (!reversing){
-                        Order buy = getOrderMap().searchValues(64, (open)->
-                                open.getPositionId().equals(o.getPositionId()) && BUY_SET.contains(open.getType())
-                                        ? open
-                                        : null);
-
-                        if (buy == null) {
-                            pushWaitOrderAsync(o);
-                        }
-                    }else {
+        if (!isBidRefused()){
+            getOrderMap().get(price.subtract(spreadF), BID).forEach((k,v) -> {
+                v.forEach(o -> {
+                    if (o.getStatus().equals(WAIT)){
                         pushWaitOrderAsync(o);
                     }
-                }
-            }
-        });
+                });
+            });
+        }
+
+        if (!isAskRefused()){
+            getOrderMap().get(price.add(spreadF), ASK).forEach((k,v) -> {
+                v.forEach(o -> {
+                    if (o.getStatus().equals(WAIT) && (!reversing || !getOrderMap().containsBid(o.getPositionId()))){
+                        pushWaitOrderAsync(o);
+                    }
+                });
+            });
+        }
     }
 
+    @SuppressWarnings("Duplicates")
     private void closeByMarket(BigDecimal price){
-        getOrderMap().forEachValue(64, o -> {
-            if (o.getStatus().equals(OPEN) &&
-                    ((BUY_SET.contains(o.getType()) && compare(o.getPrice(), price) > 0) ||
-                            (SELL_SET.contains(o.getType()) && compare(o.getPrice(), price) < 0))){
-                o.setStatus(CLOSED);
-                log.info("{} CLOSED by market {} {} {}", o.getStrategyId(), scale(o.getPrice()), price, o.getType());
-            }
+        getOrderMap().get(price, BID, false).forEach((k,v) -> {
+            v.forEach(o -> {
+                if (o.getStatus().equals(OPEN)){
+                    o.setStatus(CLOSED);
+                    log.info("{} CLOSED by market {} {} {}", o.getStrategyId(), scale(o.getPrice()), price, o.getType());
+                }
+            });
+        });
+
+        getOrderMap().get(price, ASK, false).forEach((k,v) -> {
+            v.forEach(o -> {
+                if (o.getStatus().equals(OPEN)){
+                    o.setStatus(CLOSED);
+                    log.info("{} CLOSED by market {} {} {}", o.getStrategyId(), scale(o.getPrice()), price, o.getType());
+                }
+            });
         });
     }
 
@@ -158,18 +167,7 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal buyPrice = reversing ? priceF.subtract(spread) : priceF;
             BigDecimal sellPrice = reversing ? priceF : priceF.add(spread);
 
-            Order search = getOrderMap().searchValues(64, (o) -> {
-                if (LONG.contains(o.getType()) &&
-                        (OPEN.equals(o.getStatus()) || CREATED.equals(o.getStatus()) || WAIT.equals(o.getStatus())) &&
-                        ((SELL_SET.contains(o.getType()) && compare(o.getPrice().subtract(sellPrice).abs(), sideSpread) <= 0) ||
-                                (BUY_SET.contains(o.getType()) && compare(o.getPrice().subtract(buyPrice).abs(), sideSpread) <= 0))){
-                    return o;
-                }
-
-                return null;
-            });
-
-            if (search == null){
+            if (!getOrderMap().contains(buyPrice, sideSpread, BID) && !getOrderMap().contains(sellPrice, sideSpread, ASK)){
                 log.info(key + " {} {} r={} {}", price.setScale(3, HALF_EVEN), orderType, reversing, level);
 
                 BigDecimal amountHFT = strategy.getLevelLot();
