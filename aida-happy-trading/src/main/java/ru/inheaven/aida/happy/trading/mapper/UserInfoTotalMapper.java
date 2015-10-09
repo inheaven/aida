@@ -20,4 +20,8 @@ public class UserInfoTotalMapper extends BaseMapper<UserInfoTotal> {
     public UserInfoTotal getAvgUserInfoTotal60(Long accountId){
         return sqlSession().selectOne("selectAvgUserInfoTotal60", accountId);
     }
+
+    public UserInfoTotal getAvgUserInfoTotal10(Long accountId){
+        return sqlSession().selectOne("selectAvgUserInfoTotal10", accountId);
+    }
 }

@@ -133,11 +133,14 @@ public class BaseStrategy {
             try {
                 if (o.getStatus().equals(OPEN)) {
                     orderService.checkOrder(strategy.getAccount(), o);
-                }else if (o.getStatus().equals(CANCELED) || o.getStatus().equals(CLOSED)) {
+                }else if ((o.getStatus().equals(CANCELED) || o.getStatus().equals(CLOSED)) &&
+                        System.currentTimeMillis() - o.getClosed().getTime() > 60000) {
                     onOrder(o);
                     log.info("{} CLOSED by schedule {}", o.getStrategyId(), scale(o.getPrice()));
-                }else if (o.getStatus().equals(CREATED) && System.currentTimeMillis() - o.getCreated().getTime() > 60000){
+                }else if (o.getStatus().equals(CREATED) &&
+                        System.currentTimeMillis() - o.getCreated().getTime() > 60000){
                     o.setStatus(WAIT);
+                    log.info("{} CLOSED by created {}", o.getStrategyId(), scale(o.getPrice()));
                 }
             } catch (OrderInfoException e) {
                 log.error("error check order -> ", e);
@@ -154,7 +157,7 @@ public class BaseStrategy {
 
                             switch (o.getSymbol()) {
                                 case "BTC/CNY":
-                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("0.5"))  > 0) {
+                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("1"))  > 0) {
                                         cancel = true;
                                     }
                                     break;
@@ -317,15 +320,11 @@ public class BaseStrategy {
 
                 if (order != null) {
                     if (order.getStatus().equals(WAIT) && o.getStatus().equals(CANCELED)){
-                        String removeOrderId = order.getOrderId();
-
                         order.setInternalId(String.valueOf(internalId.incrementAndGet()));
                         order.setOrderId(order.getInternalId());
 
-                        orderMap.put(order);
+                        orderMap.update(order);
                         orderMapper.asyncSave(order);
-
-                        orderMap.remove(removeOrderId);
 
                         logOrder(order);
 
@@ -348,7 +347,7 @@ public class BaseStrategy {
             }else if (o.getInternalId() != null && o.getStatus().equals(OPEN)){
                 Order order = orderMap.get(o.getInternalId());
 
-                if (order != null){
+                if (order != null && order.getStatus().equals(CREATED)){
                     order.setOrderId(o.getOrderId());
                     order.setStatus(OPEN);
                     order.setOpen(o.getOpen());
@@ -367,7 +366,8 @@ public class BaseStrategy {
 
     private void logOrder(Order o){
         log.info("{} {} {} {} {} {} {} {}",
-                o.getStrategyId(),o.getStatus(), o.getSymbol(), scale(o.getPrice()),
+                o.getStrategyId(),o.getStatus(), o.getSymbol(),
+                scale(o.getAvgPrice() != null ? o.getAvgPrice() : o.getPrice()),
                 o.getAvgPrice() != null
                         ? scale(o.getType().equals(OrderType.ASK)
                         ? o.getAvgPrice().subtract(o.getPrice()) : o.getPrice().subtract(o.getAvgPrice()))

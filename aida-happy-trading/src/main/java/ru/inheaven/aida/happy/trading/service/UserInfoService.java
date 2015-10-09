@@ -88,8 +88,8 @@ public class UserInfoService {
 
         //AVG
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(()->{
-            accountMapper.getAccounts(OKCOIN).forEach(a -> avgMap.put(a.getId(), userInfoTotalMapper.getAvgUserInfoTotal60(a.getId())));
-            accountMapper.getAccounts(OKCOIN_CN).forEach(a -> avgMap.put(a.getId(), userInfoTotalMapper.getAvgUserInfoTotal60(a.getId())));
+            accountMapper.getAccounts(OKCOIN).forEach(a -> avgMap.put(a.getId(), userInfoTotalMapper.getAvgUserInfoTotal10(a.getId())));
+            accountMapper.getAccounts(OKCOIN_CN).forEach(a -> avgMap.put(a.getId(), userInfoTotalMapper.getAvgUserInfoTotal10(a.getId())));
         }, 0, 1, TimeUnit.MINUTES);
     }
 

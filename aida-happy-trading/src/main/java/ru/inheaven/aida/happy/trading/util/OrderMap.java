@@ -77,8 +77,7 @@ public class OrderMap {
         if (order != null){
             idMap.remove(order.getInternalId());
 
-            Collection<Order> collection = (order.getType().equals(BID) ? bidMap : askMap)
-                    .get(scale(order.getPrice()));
+            Collection<Order> collection = (order.getType().equals(BID) ? bidMap : askMap).get(scale(order.getPrice()));
 
             if (collection != null){
                 collection.removeIf(o -> order.getOrderId().equals(o.getOrderId()) ||
@@ -109,8 +108,8 @@ public class OrderMap {
 
     public boolean contains(BigDecimal price, BigDecimal spread, OrderType type){
         ConcurrentNavigableMap<BigDecimal, Collection<Order>> map =  type.equals(BID)
-                ? bidMap.subMap(scale(price).subtract(scale(spread)), scale(price).add(scale(spread)))
-                : askMap.subMap(scale(price).subtract(scale(spread)), scale(price).add(scale(spread)));
+                ? bidMap.subMap(scale(price).subtract(scale(spread)), true, scale(price).add(scale(spread)), true)
+                : askMap.subMap(scale(price).subtract(scale(spread)), true, scale(price).add(scale(spread)), true);
 
         boolean contains = false;
 

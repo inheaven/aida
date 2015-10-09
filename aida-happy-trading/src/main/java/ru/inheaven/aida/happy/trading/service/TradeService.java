@@ -7,6 +7,11 @@ import rx.schedulers.Schedulers;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author inheaven on 002 02.07.15 16:45
@@ -14,6 +19,8 @@ import javax.inject.Singleton;
 @Singleton
 public class TradeService {
     private ConnectableObservable<Trade> tradeObservable;
+
+    private Map<String, BigDecimal> stdDevMap = new HashMap<>();
 
     @Inject
     public TradeService(OkcoinService okcoinService, OkcoinFixService okcoinFixService,
@@ -23,7 +30,7 @@ public class TradeService {
                 .mergeWith(okcoinService.createSpotTradeObservable())
                 .mergeWith(okcoinFixService.getTradeObservable())
                 .mergeWith(okcoinCnFixService.getTradeObservable())
-                .onBackpressureLatest()
+                .onBackpressureBuffer()
                 .observeOn(Schedulers.io())
                 .publish();
         tradeObservable.connect();
@@ -31,9 +38,17 @@ public class TradeService {
         tradeObservable.subscribe(tradeMapper::asyncSave);
 
         tradeObservable.subscribe(t -> broadcastService.broadcast(getClass(), "trade", t));
+
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
+            stdDevMap.put("BTC/CNY", tradeMapper.getTradeStdDev("BTC/CNY", 10));
+        }, 0, 1, TimeUnit.MINUTES);
     }
 
     public ConnectableObservable<Trade> getTradeObservable() {
         return tradeObservable;
+    }
+
+    public BigDecimal getStdDev(String symbol){
+        return stdDevMap.get(symbol);
     }
 }

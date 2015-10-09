@@ -30,4 +30,9 @@
         select avg(ltc_price) as ltcPrice, avg(btc_price) as btcPrice from user_info_total
           where created > date_sub(now(), INTERVAL 1 HOUR) and account_id = #{accountId}
     </select>
+
+    <select id="selectAvgUserInfoTotal10" parameterType="long" resultMap="userInfoTotal">
+        select avg(ltc_price) as ltcPrice, avg(btc_price) as btcPrice from user_info_total
+        where created > date_sub(now(), INTERVAL 10 MINUTE) and account_id = #{accountId}
+    </select>
 </mapper>

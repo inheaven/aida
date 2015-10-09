@@ -6,4 +6,8 @@
         insert ignore into trade (trade_id, exchange_type, symbol, symbol_type, order_type, price, amount, `time`, created)
                 value (#{tradeId}, #{exchangeType}, #{symbol}, #{symbolType}, #{orderType}, #{price}, #{amount}, #{time}, #{created})
     </insert>
+
+    <select id="selectTradeStdDev" parameterType="map" resultType="decimal">
+        select stddev_pop(price) from trade where symbol = #{symbol} and created > date_sub(now(), INTERVAL #{minute} MINUTE);
+    </select>
 </mapper>
