@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_EVEN;
 import static java.math.RoundingMode.HALF_UP;
 
@@ -36,7 +37,8 @@ import static java.math.RoundingMode.HALF_UP;
  */
 public class DepthPage extends BasePage{
     private static Map<String, Cell> cacheMap = new ConcurrentHashMap<>();
-    private Map<String, BigDecimal> tradeMap = new ConcurrentHashMap<>();
+    private Map<String, BigDecimal> orderBidMap = new ConcurrentHashMap<>();
+    private Map<String, BigDecimal> orderAskMap = new ConcurrentHashMap<>();
 
     public DepthPage() {
         setVersioned(false);
@@ -77,10 +79,13 @@ public class DepthPage extends BasePage{
             protected void onBroadcast(WebSocketRequestHandler handler, String key, Order order) {
                 String id = getDepthId(order.getSymbol(), order.getSymbolType());
                 String k = id+order.getAvgPrice().setScale(3, HALF_UP);
-                BigDecimal amount = tradeMap.get(k);
+
+                Map<String, BigDecimal> map = order.getType().equals(OrderType.BID) ? orderBidMap : orderAskMap;
+
+                BigDecimal amount = map.get(k);
 
                 //noinspection RedundantStringConstructorCall
-                tradeMap.put(new String(k), order.getAmount().add(amount != null ? amount : BigDecimal.ZERO).setScale(3, HALF_EVEN));
+                map.put(new String(k), order.getAmount().add(amount != null ? amount : ZERO).setScale(3, HALF_EVEN));
             }
         });
     }
@@ -188,7 +193,8 @@ public class DepthPage extends BasePage{
             Cell c = cacheMap.get(id+index);
 
             if (c == null || !c.equals(cell)){
-                BigDecimal trade = tradeMap.get(id+cell.price);
+                BigDecimal bid = orderBidMap.get(id+cell.price);
+                BigDecimal ask = orderAskMap.get(id+cell.price);
 
                 handler.appendJavaScript("$('#" + id + " #price_" + index + "').text('" +
                         cell.price.setScale(priceScale, HALF_EVEN) + "')");
@@ -197,7 +203,10 @@ public class DepthPage extends BasePage{
                 handler.appendJavaScript("$('#" + id + " #open_" + index + "').text('" +
                         (wait > 0 ? "[" : "") + (open+wait > 0 ? (cell.open.add(cell.wait)) : "") + (wait > 0 ? "]" : "") + "')");
                 handler.appendJavaScript("$('#" + id + " #trade_" + index + "').text('" +
-                        (trade != null ? trade.setScale(volumeScale, HALF_EVEN) : "") + "')");
+                        (ask != null || bid != null ?
+                        ((bid != null ? bid.setScale(volumeScale, HALF_EVEN) : ZERO.setScale(volumeScale, HALF_EVEN))
+                                .subtract(ask != null ? ask.setScale(volumeScale, HALF_EVEN) : ZERO.setScale(volumeScale, HALF_EVEN)))
+                                : "") + "')");
             }
 
             cacheMap.put(id + index, cell);

@@ -157,7 +157,7 @@ public class BaseStrategy {
 
                             switch (o.getSymbol()) {
                                 case "BTC/CNY":
-                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("1"))  > 0) {
+                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("3"))  > 0) {
                                         cancel = true;
                                     }
                                     break;

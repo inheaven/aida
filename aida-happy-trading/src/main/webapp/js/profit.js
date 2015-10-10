@@ -7,7 +7,11 @@ function areaChart(id, title, data0, data1, data2){
         navigator: {xAxis: {labels: {enabled: false}}},
         scrollbar: {enabled: true},
         xAxis: {type: 'datetime'},
-        yAxis: [{}, {}, {}],
+        yAxis: [{labels: {
+            formatter: function () {
+                return this.value + '%';
+            }
+        }}, {}, {}],
         series: [{
             type: 'spline', threshold: null,
             data: data0,
@@ -23,7 +27,7 @@ function areaChart(id, title, data0, data1, data2){
             type: 'spline', threshold: null,
             data: data1,
             name: 'SPOT/BTC',
-            yAxis:1,
+            yAxis:0,
             fillColor: {
                 linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
                 stops: [
@@ -35,7 +39,7 @@ function areaChart(id, title, data0, data1, data2){
             type: 'spline', threshold: null,
             data: data2,
             name: 'BTC',
-            yAxis:2,
+            yAxis:0,
             fillColor: {
                 linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
                 stops: [
@@ -45,29 +49,33 @@ function areaChart(id, title, data0, data1, data2){
             }
         }],
         rangeSelector: {
-            enabled: false,
+            enabled: true,
             buttons: [
-                {type: 'hour', count: 1, text: ' '},
-                {type: 'day', count: 1, text: ' '},
-                {type: 'week', count: 1, text: ' '},
-                {type: 'all', count: 1, text: ' '}
+                {type: 'hour', count: 1, text: 'Hour'},
+                {type: 'day', count: 1, text: 'Day'},
+                {type: 'week', count: 1, text: 'Week'},
+                {type: 'all', count: 1, text: 'All'}
             ],
-            //selected : 1,
+            selected : 1,
             inputEnabled: false
         }
     }).highcharts();
 }
 
 $.getJSON('/account_info_rest/user_info_total/7', function (data) {
+    var last = data[data.length - 1440];
+
     areaChart('usd_profit', 'USD Profit',
-        data.map(function(a){return [a[0], (a[1])]}),
-        data.map(function(a){return [a[0], (a[1]/a[3])]}),
-        data.map(function(a){return [a[0], (a[3])]}));
+        data.map(function(a){return [a[0], 100*(a[1] - last[1])/(last[1])]}),
+        data.map(function(a){return [a[0], 100*((a[1]/a[3]) - (last[1]/last[3]))/(last[1]/last[3])]}),
+        data.map(function(a){return [a[0], 100*(a[3] - last[3])/(last[3])]}));
 });
 
 $.getJSON('/account_info_rest/user_info_total/8', function (data) {
+    var last = data[data.length - 1440];
+
     areaChart('cny_profit', 'CNY Profit',
-        data.map(function(a){return [a[0], (a[1])]}),
-        data.map(function(a){return [a[0], (a[1]/a[3])]}),
-        data.map(function(a){return [a[0], (a[3])]}));
+        data.map(function(a){return [a[0], 100*(a[1] - last[1])/(last[1])]}),
+        data.map(function(a){return [a[0], 100*((a[1]/a[3]) - (last[1]/last[3]))/(last[1]/last[3])]}),
+        data.map(function(a){return [a[0], 100*(a[3] - last[3])/(last[3])]}));
 });

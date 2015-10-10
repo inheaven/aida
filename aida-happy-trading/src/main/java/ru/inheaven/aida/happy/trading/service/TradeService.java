@@ -8,8 +8,8 @@ import rx.schedulers.Schedulers;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 public class TradeService {
     private ConnectableObservable<Trade> tradeObservable;
 
-    private Map<String, BigDecimal> stdDevMap = new HashMap<>();
+    private Map<String, BigDecimal> stdDevMap = new ConcurrentHashMap<>();
 
     @Inject
     public TradeService(OkcoinService okcoinService, OkcoinFixService okcoinFixService,
@@ -41,7 +41,7 @@ public class TradeService {
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             stdDevMap.put("BTC/CNY", tradeMapper.getTradeStdDev("BTC/CNY", 10));
-        }, 0, 1, TimeUnit.MINUTES);
+        }, 0, 10, TimeUnit.SECONDS);
     }
 
     public ConnectableObservable<Trade> getTradeObservable() {

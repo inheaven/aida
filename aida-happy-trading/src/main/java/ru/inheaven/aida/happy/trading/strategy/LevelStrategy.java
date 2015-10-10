@@ -77,7 +77,7 @@ public class LevelStrategy extends BaseStrategy{
         if (!isAskRefused()){
             getOrderMap().get(price.add(sideSpread), ASK).forEach((k,v) -> {
                 v.forEach(o -> {
-                    if (o.getStatus().equals(WAIT) && (!reversing || !getOrderMap().containsBid(o.getPositionId()))){
+                    if (o.getStatus().equals(WAIT) && (reversing || !getOrderMap().containsBid(o.getPositionId()))){
                         pushWaitOrderAsync(o);
                     }
                 });
@@ -122,30 +122,30 @@ public class LevelStrategy extends BaseStrategy{
     }
 
     private void actionLevel(String key, BigDecimal price, OrderType orderType){
-        BigDecimal spreadF = getSideSpread(price);
+        boolean reversing = isReversing(price);
+        BigDecimal sideSpread = getSideSpread(price);
 
-//        for (int i = strategy.getLevelSize().intValue(); i > 0 ; --i){
-//            action(key, price.add(BigDecimal.valueOf(i).multiply(spreadF)), orderType, i);
-//            action(key, price.add(BigDecimal.valueOf(-i).multiply(spreadF)), orderType, -i);
-//        }
+        for (int i = strategy.getLevelSize().intValue(); i > 0 ; --i){
+            if (reversing){
+                action(key, price.add(BigDecimal.valueOf(-i).multiply(sideSpread)), orderType, -i);
+            }else{
+                action(key, price.add(BigDecimal.valueOf(i).multiply(sideSpread)), orderType, i);
+            }
+        }
 
-        int i = random.nextInt(strategy.getLevelSize().intValue());
-        action(key, price.add(BigDecimal.valueOf(i).multiply(spreadF)), orderType, i);
-
-        i = random.nextInt(strategy.getLevelSize().intValue());
-        action(key, price.add(BigDecimal.valueOf(-i).multiply(spreadF)), orderType, -i);
+        action(key, price, orderType, 0);
     }
 
     private boolean isReversing(BigDecimal price){
-        UserInfoTotal avg = userInfoService.getAvg(strategy.getAccount().getId());
-
-        if (avg != null){
-            if (strategy.getSymbol().contains("LTC")) {
-                return price.compareTo(avg.getLtcPrice()) < 0;
-            } else {
-                return strategy.getSymbol().contains("BTC") && price.compareTo(avg.getBtcPrice()) < 0;
-            }
-        }
+//        UserInfoTotal avg = userInfoService.getAvg(strategy.getAccount().getId());
+//
+//        if (avg != null){
+//            if (strategy.getSymbol().contains("LTC")) {
+//                return price.compareTo(avg.getLtcPrice()) < 0;
+//            } else {
+//                return strategy.getSymbol().contains("BTC") && price.compareTo(avg.getBtcPrice()) < 0;
+//            }
+//        }
 
         return false;
     }
@@ -186,8 +186,8 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal spread = scale(getSpread(priceF));
             BigDecimal sideSpread = scale(getSideSpread(priceF));
             BigDecimal level = priceF.divideToIntegralValue(spread);
-            BigDecimal buyPrice = reversing ? priceF.subtract(spread) : priceF;
-            BigDecimal sellPrice = reversing ? priceF : priceF.add(spread);
+            BigDecimal buyPrice = orderType.equals(ASK) ? priceF.subtract(spread) : priceF;
+            BigDecimal sellPrice = orderType.equals(ASK) ? priceF : priceF.add(spread);
 
             if (!getOrderMap().contains(buyPrice, sideSpread, BID) && !getOrderMap().contains(sellPrice, sideSpread, ASK)){
                 log.info(key + " {} {} r={} {}", price.setScale(3, HALF_EVEN), orderType, reversing, spread);
@@ -238,19 +238,6 @@ public class LevelStrategy extends BaseStrategy{
                         buyPrice, buyAmount);
                 Order sellOrder = new Order(strategy, positionId, strategy.getSymbolType() != null ? CLOSE_LONG : ASK,
                         sellPrice, sellAmount);
-
-//                if (priceLevel < 1){
-//                    createWaitOrder(buyOrder);
-//
-//                    if (reversing){
-//                        createOrderAsync(sellOrder);
-//                    }else {
-//                        createWaitOrder(sellOrder);
-//                    }
-//                }else{
-//                    createOrderAsync(buyOrder);
-//                    createWaitOrder(sellOrder);
-//                }
 
                 createWaitOrder(buyOrder);
                 createWaitOrder(sellOrder);
