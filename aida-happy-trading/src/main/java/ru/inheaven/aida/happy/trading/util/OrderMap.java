@@ -4,13 +4,13 @@ import ru.inheaven.aida.happy.trading.entity.Order;
 import ru.inheaven.aida.happy.trading.entity.OrderType;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 
 import static java.lang.Boolean.TRUE;
@@ -44,7 +44,7 @@ public class OrderMap {
         Collection<Order> collection = map.get(price);
 
         if (collection == null){
-            collection = new ArrayList<>();
+            collection = new CopyOnWriteArrayList<>();
             map.put(price, collection);
         }
 
@@ -64,7 +64,15 @@ public class OrderMap {
     }
 
     public void update(Order order){
+        update(order, null);
+    }
+
+    public void update(Order order, String removeOrderId){
         idMap.put(order.getOrderId(), order);
+
+        if (removeOrderId != null){
+            idMap.remove(removeOrderId);
+        }
 
         if (order.getInternalId() != null && !order.getInternalId().equals(order.getOrderId())){
             idMap.remove(order.getInternalId());
@@ -108,8 +116,8 @@ public class OrderMap {
 
     public boolean contains(BigDecimal price, BigDecimal spread, OrderType type){
         ConcurrentNavigableMap<BigDecimal, Collection<Order>> map =  type.equals(BID)
-                ? bidMap.subMap(scale(price).subtract(scale(spread)), true, scale(price).add(scale(spread)), true)
-                : askMap.subMap(scale(price).subtract(scale(spread)), true, scale(price).add(scale(spread)), true);
+                ? bidMap.subMap(scale(price).subtract(scale(spread)), false, scale(price).add(scale(spread)), false)
+                : askMap.subMap(scale(price).subtract(scale(spread)), false, scale(price).add(scale(spread)), false);
 
         boolean contains = false;
 

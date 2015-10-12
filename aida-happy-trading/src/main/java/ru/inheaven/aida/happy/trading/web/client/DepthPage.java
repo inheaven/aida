@@ -31,6 +31,7 @@ import java.util.stream.IntStream;
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_EVEN;
 import static java.math.RoundingMode.HALF_UP;
+import static ru.inheaven.aida.happy.trading.entity.OrderType.ASK;
 
 /**
  * @author inheaven on 12.08.2015 21:12.
@@ -178,14 +179,14 @@ public class DepthPage extends BasePage{
                     .flatMap(m -> m.values().stream())
                     .filter(o -> o.getPrice().setScale(priceScale, HALF_EVEN).equals(price.setScale(priceScale, HALF_EVEN)) &&
                             o.getStatus().equals(OrderStatus.OPEN))
-                    .collect(Collectors.summingDouble(o -> o.getAmount().doubleValue()));
+                    .collect(Collectors.summingDouble(o -> o.getAmount().doubleValue() * (o.getType().equals(ASK) ? -1 : 1)));
 
             double wait = spot.parallelStream()
                     .map(BaseStrategy::getOrderMap)
                     .flatMap(m -> m.values().stream())
                     .filter(o -> o.getPrice().setScale(priceScale, HALF_EVEN).equals(price.setScale(priceScale, HALF_EVEN)) &&
                             o.getStatus().equals(OrderStatus.WAIT))
-                    .collect(Collectors.summingDouble(o -> o.getAmount().doubleValue()));
+                    .collect(Collectors.summingDouble(o -> o.getAmount().doubleValue() * (o.getType().equals(ASK) ? -1 : 1)));
 
 
             Cell cell = new Cell(price.setScale(3, HALF_EVEN), map.get(price).setScale(volumeScale, HALF_EVEN),
@@ -198,10 +199,9 @@ public class DepthPage extends BasePage{
 
                 handler.appendJavaScript("$('#" + id + " #price_" + index + "').text('" +
                         cell.price.setScale(priceScale, HALF_EVEN) + "')");
-                handler.appendJavaScript("$('#" + id +" #volume_" + index + "').text('" +
-                        cell.volume + "')");
-                handler.appendJavaScript("$('#" + id + " #open_" + index + "').text('" +
-                        (wait > 0 ? "[" : "") + (open+wait > 0 ? (cell.open.add(cell.wait)) : "") + (wait > 0 ? "]" : "") + "')");
+                handler.appendJavaScript("$('#" + id +" #volume_" + index + "').text('" + cell.volume + "')");
+                handler.appendJavaScript("$('#" + id + " #open_" + index + "').text('" + (open != 0 ? cell.open : "") + "')");
+                handler.appendJavaScript("$('#" + id + " #wait_" + index + "').text('" + (wait != 0 ? cell.wait : "") + "')");
                 handler.appendJavaScript("$('#" + id + " #trade_" + index + "').text('" +
                         (ask != null || bid != null ?
                         ((bid != null ? bid.setScale(volumeScale, HALF_EVEN) : ZERO.setScale(volumeScale, HALF_EVEN))
@@ -228,6 +228,7 @@ public class DepthPage extends BasePage{
                 item.add(new Label("price", Model.of("")).setMarkupId("price_" + index).add(ClassAttributeModifier.append("class", rowClass)));
                 item.add(new Label("volume", Model.of("")).setMarkupId("volume_" + index).add(ClassAttributeModifier.append("class", rowClass)));
                 item.add(new Label("open", Model.of("")).setMarkupId("open_" + index).add(ClassAttributeModifier.append("class", rowClass)));
+                item.add(new Label("wait", Model.of("")).setMarkupId("wait_" + index).add(ClassAttributeModifier.append("class", rowClass)));
                 item.add(new Label("trade", Model.of("")).setMarkupId("trade_" + index).add(ClassAttributeModifier.append("class", rowClass)));
             }
         };

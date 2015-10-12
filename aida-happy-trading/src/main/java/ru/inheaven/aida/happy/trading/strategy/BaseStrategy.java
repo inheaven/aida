@@ -3,7 +3,6 @@ package ru.inheaven.aida.happy.trading.strategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
-import ru.inheaven.aida.happy.trading.exception.OrderInfoException;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.DepthService;
 import ru.inheaven.aida.happy.trading.service.OrderService;
@@ -15,7 +14,9 @@ import rx.Subscription;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Objects;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -133,16 +134,17 @@ public class BaseStrategy {
             try {
                 if (o.getStatus().equals(OPEN)) {
                     orderService.checkOrder(strategy.getAccount(), o);
-                }else if ((o.getStatus().equals(CANCELED) || o.getStatus().equals(CLOSED)) &&
-                        System.currentTimeMillis() - o.getClosed().getTime() > 60000) {
+                }else if ((o.getStatus().equals(CANCELED) || o.getStatus().equals(CLOSED)) && (o.getClosed() == null ||
+                        System.currentTimeMillis() - o.getClosed().getTime() > 60000)) {
                     onOrder(o);
                     log.info("{} CLOSED by schedule {}", o.getStrategyId(), scale(o.getPrice()));
                 }else if (o.getStatus().equals(CREATED) &&
                         System.currentTimeMillis() - o.getCreated().getTime() > 60000){
-                    o.setStatus(WAIT);
+                    o.setStatus(CLOSED);
+                    o.setClosed(new Date());
                     log.info("{} CLOSED by created {}", o.getStrategyId(), scale(o.getPrice()));
                 }
-            } catch (OrderInfoException e) {
+            } catch (Exception e) {
                 log.error("error check order -> ", e);
             }
 
@@ -157,7 +159,7 @@ public class BaseStrategy {
 
                             switch (o.getSymbol()) {
                                 case "BTC/CNY":
-                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("3"))  > 0) {
+                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("5"))  > 0) {
                                         cancel = true;
                                     }
                                     break;
@@ -320,10 +322,12 @@ public class BaseStrategy {
 
                 if (order != null) {
                     if (order.getStatus().equals(WAIT) && o.getStatus().equals(CANCELED)){
+                        String removeOrderId = order.getOrderId();
+
                         order.setInternalId(String.valueOf(internalId.incrementAndGet()));
                         order.setOrderId(order.getInternalId());
 
-                        orderMap.update(order);
+                        orderMap.update(order, removeOrderId);
                         orderMapper.asyncSave(order);
 
                         logOrder(order);
