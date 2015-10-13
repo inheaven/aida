@@ -19,7 +19,7 @@ public class Strategy extends AbstractEntity {
     private BigDecimal levelSpread;
     private BigDecimal levelSideSpread;
     private BigDecimal levelSize;
-
+    private boolean levelInverse;
     private boolean active;
 
     private Account account;
@@ -88,6 +88,14 @@ public class Strategy extends AbstractEntity {
 
     public void setLevelSize(BigDecimal levelSize) {
         this.levelSize = levelSize;
+    }
+
+    public boolean isLevelInverse() {
+        return levelInverse;
+    }
+
+    public void setLevelInverse(boolean levelInverse) {
+        this.levelInverse = levelInverse;
     }
 
     public boolean isActive() {

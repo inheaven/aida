@@ -15,7 +15,6 @@ import ru.inheaven.aida.happy.trading.web.admin.ServiceStatusPage;
 import ru.inheaven.aida.happy.trading.web.client.AccountInfoPage;
 import ru.inheaven.aida.happy.trading.web.client.DepthPage;
 import ru.inheaven.aida.happy.trading.web.client.ProfitPage;
-import ru.inheaven.aida.happy.trading.web.client.StrategyPage;
 
 import javax.inject.Singleton;
 
@@ -38,7 +37,6 @@ public class AidaHappyTradingApplication extends WebApplication{
         mountPage("order_stream", OrderStreamPage.class);
         mountPage("account", AccountInfoPage.class);
         mountPage("depth", DepthPage.class);
-        mountPage("strategy", StrategyPage.class);
         mountPage("profit", ProfitPage.class);
 
         getDebugSettings().setDevelopmentUtilitiesEnabled(true);

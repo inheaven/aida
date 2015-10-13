@@ -12,7 +12,6 @@ import rx.subjects.PublishSubject;
 import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.Semaphore;
 
 /**
  * @author inheaven on 21.08.2015 21:19.
@@ -27,16 +26,9 @@ public abstract class BaseOkcoinFixService {
     private PublishSubject<Order> orderPublishSubject = PublishSubject.create();
     private PublishSubject<Depth> depthPublishSubject = PublishSubject.create();
 
-    private Semaphore semaphore = new Semaphore(1);
 
     public void placeLimitOrder(Account account, Order order){
-        try {
-            semaphore.acquire();
-            okCoinApplicationTrade.placeOrder(order, tradeSessionId);
-            semaphore.release();
-        } catch (InterruptedException e) {
-            log.error("error place limit order", e);
-        }
+        okCoinApplicationTrade.placeOrder(order, tradeSessionId);
     }
 
     public void cancelOrder(Account account, Order order){
@@ -124,7 +116,7 @@ public abstract class BaseOkcoinFixService {
             MessageStoreFactory storeFactory = new MemoryStoreFactory();
             LogFactory logFactory = !config.contains("market") ? new FileLogFactory(settings) : null;
             MessageFactory messageFactory = new OKCoinMessageFactory();
-            SocketInitiator initiator = new SocketInitiator(application, storeFactory, settings, logFactory, messageFactory);
+            ThreadedSocketInitiator initiator = new ThreadedSocketInitiator(application, storeFactory, settings, logFactory, messageFactory);
             initiator.start();
         } catch (Exception e) {
             log.error("error init okcoin fix");

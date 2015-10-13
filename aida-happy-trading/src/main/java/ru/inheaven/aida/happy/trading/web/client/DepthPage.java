@@ -78,15 +78,17 @@ public class DepthPage extends BasePage{
         add(new BroadcastBehavior<Order>(OrderService.class) {
             @Override
             protected void onBroadcast(WebSocketRequestHandler handler, String key, Order order) {
-                String id = getDepthId(order.getSymbol(), order.getSymbolType());
-                String k = id+order.getAvgPrice().setScale(3, HALF_UP);
+                if (order.getAvgPrice() != null) {
+                    String id = getDepthId(order.getSymbol(), order.getSymbolType());
+                    String k = id+order.getAvgPrice().setScale(3, HALF_UP);
 
-                Map<String, BigDecimal> map = order.getType().equals(OrderType.BID) ? orderBidMap : orderAskMap;
+                    Map<String, BigDecimal> map = order.getType().equals(OrderType.BID) ? orderBidMap : orderAskMap;
 
-                BigDecimal amount = map.get(k);
+                    BigDecimal amount = map.get(k);
 
-                //noinspection RedundantStringConstructorCall
-                map.put(new String(k), order.getAmount().add(amount != null ? amount : ZERO).setScale(3, HALF_EVEN));
+                    //noinspection RedundantStringConstructorCall
+                    map.put(new String(k), order.getAmount().add(amount != null ? amount : ZERO).setScale(3, HALF_EVEN));
+                }
             }
         });
     }

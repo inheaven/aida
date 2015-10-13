@@ -28,6 +28,7 @@ public class OrderMap {
     private ConcurrentSkipListMap<BigDecimal, Collection<Order>> askMap = new ConcurrentSkipListMap<>();
 
     private ConcurrentHashMap<Long, Boolean> bidPositionMap = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<Long, Boolean> askPositionMap = new ConcurrentHashMap<>();
 
     private int scale;
 
@@ -50,9 +51,7 @@ public class OrderMap {
 
         collection.add(order);
 
-        if (order.getType().equals(BID)){
-            bidPositionMap.put(order.getPositionId(), TRUE);
-        }
+        (order.getType().equals(BID) ? bidPositionMap : askPositionMap).put(order.getPositionId(), TRUE);
     }
 
     public void forEach(BiConsumer<String, Order> action){
@@ -92,9 +91,7 @@ public class OrderMap {
                         order.getInternalId().equals(o.getInternalId()));
             }
 
-            if (order.getType().equals(BID)){
-                bidPositionMap.remove(order.getPositionId());
-            }
+            (order.getType().equals(BID) ? bidPositionMap : askPositionMap).remove(order.getPositionId());
         }
     }
 
@@ -140,6 +137,10 @@ public class OrderMap {
 
     public boolean containsBid(Long positionId){
         return bidPositionMap.containsKey(positionId);
+    }
+
+    public boolean containsAsk(Long positionId){
+        return askPositionMap.containsKey(positionId);
     }
 
     private BigDecimal scale(BigDecimal value){

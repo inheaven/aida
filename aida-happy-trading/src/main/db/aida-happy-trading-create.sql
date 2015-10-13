@@ -30,6 +30,7 @@ CREATE TABLE strategy
   level_spread DECIMAL(19,8) NOT NULL,
   level_side_spread DECIMAL(19,8) NOT NULL,
   level_size INT NOT NULL,
+  level_inverse BOOLEAN NOT NULL,
   active BOOLEAN NOT NULL,
   session_start DATETIME NOT NULL,
   KEY `key_account_id` (account_id),

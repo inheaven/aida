@@ -24,8 +24,8 @@ import static java.math.RoundingMode.HALF_UP;
  */
 @ResourcePath("/account_info_rest")
 public class AccountInfoRest extends AbstractRestResource<JsonWebSerialDeserial>{
-    private Date startDate = new Date(Timestamp.valueOf("2015-10-09 12:00:00").getTime());
-    private Date startCnDate = new Date(Timestamp.valueOf("2015-10-09 12:00:00").getTime());
+    private Date startDate = new Date(Timestamp.valueOf("2015-10-13 3:00:00").getTime());
+    private Date startCnDate = new Date(Timestamp.valueOf("2015-10-13 3:00:00").getTime());
 
 
     private UserInfoMapper userInfoMapper = Module.getInjector().getInstance(UserInfoMapper.class);

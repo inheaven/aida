@@ -139,7 +139,7 @@ public class BaseStrategy {
                     onOrder(o);
                     log.info("{} CLOSED by schedule {}", o.getStrategyId(), scale(o.getPrice()));
                 }else if (o.getStatus().equals(CREATED) &&
-                        System.currentTimeMillis() - o.getCreated().getTime() > 60000){
+                        System.currentTimeMillis() - o.getCreated().getTime() > 10000){
                     o.setStatus(CLOSED);
                     o.setClosed(new Date());
                     log.info("{} CLOSED by created {}", o.getStrategyId(), scale(o.getPrice()));

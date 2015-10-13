@@ -1,3 +1,13 @@
+Highcharts.setOptions({
+    global: {
+        useUTC: true,
+        timezoneOffset: -360
+    },
+    lang:{
+        rangeSelectorZoom: ''
+    }
+});
+
 function areaChart(id, title, data0, data1, data2){
     return $('#'+id).highcharts('StockChart', {
         title: {text: title},
@@ -63,7 +73,8 @@ function areaChart(id, title, data0, data1, data2){
 }
 
 $.getJSON('/account_info_rest/user_info_total/7', function (data) {
-    var last = data[data.length - 1440];
+    //var last = data[data.length - 1440];
+    var last = data[data.length - 500];
 
     areaChart('usd_profit', 'USD Profit',
         data.map(function(a){return [a[0], 100*(a[1] - last[1])/(last[1])]}),
@@ -72,7 +83,8 @@ $.getJSON('/account_info_rest/user_info_total/7', function (data) {
 });
 
 $.getJSON('/account_info_rest/user_info_total/8', function (data) {
-    var last = data[data.length - 1440];
+    //var last = data[data.length - 1440];
+    var last = data[data.length - 500];
 
     areaChart('cny_profit', 'CNY Profit',
         data.map(function(a){return [a[0], 100*(a[1] - last[1])/(last[1])]}),

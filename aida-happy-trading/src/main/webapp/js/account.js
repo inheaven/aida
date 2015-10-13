@@ -29,7 +29,7 @@ function areaChart(id, title, data0, data1){
             xAxis: {type: 'datetime'},
             yAxis: [{opposite: true}, {opposite: false}],
             series: [{
-                type: 'area', threshold: null,
+                type: 'areaspline', threshold: null,
                 data: data0,
                 fillColor: {
                     linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
@@ -39,7 +39,7 @@ function areaChart(id, title, data0, data1){
                     ]
                 }
             }, {
-                type: 'line', threshold: null,
+                type: 'spline', threshold: null,
                 data: data1,
                 yAxis:1,
                 fillColor: {
@@ -312,13 +312,13 @@ $(function () {
     $.getJSON('/account_info_rest/user_info_total/7', function (data) {
         chart_7_total = areaChart('total', 'BTC Total', data.map(function(a){return [a[0], a[1]/a[3]]}));
 
-        chart_7_ltc_price = areaChart('ltc_price', 'USD Profit', data.map(function(a){return [a[0], (a[1]-7166)/a[3]]}),
+        chart_7_ltc_price = areaChart('ltc_price', 'USD Profit', data.map(function(a){return [a[0], (a[1]-6674)/a[3]]}),
             data.map(function(a){return [a[0], a[3]]}));
     });
 
     $.getJSON('/account_info_rest/user_info_total/8', function (data) {
         chart_8_total = areaChart('total_cn', 'BTC Total CN', data.map(function(a){return [a[0], a[1]/a[3]]}));
-        chart_7_btc_price = areaChart('btc_price', 'CNY Profit', data.map(function(a){return [a[0], (a[1]-18173)/a[3]]}),
+        chart_7_btc_price = areaChart('btc_price', 'CNY Profit', data.map(function(a){return [a[0], (a[1]-21329)/a[3]]}),
             data.map(function(a){return [a[0], a[3]]}));
     });
 
@@ -339,8 +339,8 @@ $(function () {
         legend: {enabled: false},
         xAxis: {type: 'datetime', minRange: 3600000, min: new Date().getTime() - 24*3600000 + offset, max: new Date().getTime() + 60000 + offset},
         yAxis: [
-            {labels: {enabled: true}, title:{text: null}, opposite: true, endOnTick:false, max: 500},
-            {labels: {enabled: true}, title:{text: null}, opposite: false, endOnTick:false, max: 20000}
+            {labels: {enabled: true}, title:{text: null}, opposite: true, endOnTick:false, max: 100},
+            {labels: {enabled: true}, title:{text: null}, opposite: false, endOnTick:false, max: 6000}
         ],
         series: [{
             type : 'column',
