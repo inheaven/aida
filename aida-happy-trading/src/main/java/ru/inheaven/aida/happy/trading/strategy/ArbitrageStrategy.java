@@ -13,7 +13,7 @@ public class ArbitrageStrategy extends BaseStrategy{
 
     public ArbitrageStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper,
                              TradeService tradeService, DepthService depthService) {
-        super(strategy, orderService, orderMapper, tradeService, depthService);
+        super(strategy, orderService, orderMapper, tradeService, depthService, null);
     }
 
     private void action(){

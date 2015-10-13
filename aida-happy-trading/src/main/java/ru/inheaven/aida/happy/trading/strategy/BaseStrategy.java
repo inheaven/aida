@@ -1,5 +1,7 @@
 package ru.inheaven.aida.happy.trading.strategy;
 
+import com.xeiam.xchange.Exchange;
+import com.xeiam.xchange.dto.trade.OpenOrders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
@@ -7,10 +9,12 @@ import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.DepthService;
 import ru.inheaven.aida.happy.trading.service.OrderService;
 import ru.inheaven.aida.happy.trading.service.TradeService;
+import ru.inheaven.aida.happy.trading.service.XChangeService;
 import ru.inheaven.aida.happy.trading.util.OrderMap;
 import rx.Observable;
 import rx.Subscription;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Objects;
@@ -46,6 +50,8 @@ public class BaseStrategy {
     private Subscription depthSubscription;
     private Subscription realTradeSubscription;
 
+    private XChangeService xChangeService;
+
     private OrderMap orderMap;
 
     private Strategy strategy;
@@ -58,12 +64,13 @@ public class BaseStrategy {
 
 
     public BaseStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
-                        DepthService depthService) {
+                        DepthService depthService,  XChangeService xChangeService) {
         this.strategy = strategy;
         this.orderService = orderService;
         this.orderMapper = orderMapper;
         this.tradeService = tradeService;
         this.depthService = depthService;
+        this.xChangeService = xChangeService;
 
         orderObservable = createOrderObservable();
         tradeObservable = createTradeObservable();
@@ -194,6 +201,29 @@ public class BaseStrategy {
                     }
 
                 }), 0, 10, SECONDS);
+
+        if (strategy.getSymbol().equals("BTC/CNY")) {
+            Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+                try {
+                    Exchange exchange = xChangeService.getExchange(strategy.getAccount());
+                    OpenOrders openOrders = exchange.getPollingTradeService().getOpenOrders();
+
+                    openOrders.getOpenOrders().forEach(o -> {
+                        try {
+                            if (orderMap.get(o.getId()) == null &&
+                                    o.getLimitPrice().subtract(lastPrice.get()).abs().compareTo(BigDecimal.valueOf(10)) > 0) {
+                                System.out.println("cancel " + o);
+                                exchange.getPollingTradeService().cancelOrder(o.getId());
+                            }
+                        } catch (IOException e) {
+                            log.error("error cancel order -> {}", o, e);
+                        }
+                    });
+                } catch (IOException e) {
+                    log.error("error cancel order -> {}", e);
+                }
+            }, 0, 10, MINUTES);
+        }
 
         flying = true;
     }

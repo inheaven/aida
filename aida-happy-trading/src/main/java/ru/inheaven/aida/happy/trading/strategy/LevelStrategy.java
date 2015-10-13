@@ -4,10 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
-import ru.inheaven.aida.happy.trading.service.DepthService;
-import ru.inheaven.aida.happy.trading.service.OrderService;
-import ru.inheaven.aida.happy.trading.service.TradeService;
-import ru.inheaven.aida.happy.trading.service.UserInfoService;
+import ru.inheaven.aida.happy.trading.service.*;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
@@ -44,8 +41,8 @@ public class LevelStrategy extends BaseStrategy{
     private static AtomicLong positionId = new AtomicLong(System.nanoTime());
 
     public LevelStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
-                         DepthService depthService, UserInfoService userInfoService) {
-        super(strategy, orderService, orderMapper, tradeService, depthService);
+                         DepthService depthService, UserInfoService userInfoService,  XChangeService xChangeService) {
+        super(strategy, orderService, orderMapper, tradeService, depthService, xChangeService);
 
         this.strategy = strategy;
         this.userInfoService = userInfoService;
@@ -71,7 +68,8 @@ public class LevelStrategy extends BaseStrategy{
         if (!isBidRefused()){
             getOrderMap().get(price.subtract(spread), BID).forEach((k,v) -> {
                 v.forEach(o -> {
-                    if (o.getStatus().equals(WAIT) && (!inverse || !getOrderMap().containsAsk(o.getPositionId()))){
+                    if (o.getStatus().equals(WAIT) && (!inverse || !getOrderMap().containsAsk(o.getPositionId())) &&
+                            !isMinSpot()){
                         pushWaitOrderAsync(o);
                     }
                 });
@@ -81,7 +79,8 @@ public class LevelStrategy extends BaseStrategy{
         if (!isAskRefused()){
             getOrderMap().get(price.add(spread), ASK).forEach((k,v) -> {
                 v.forEach(o -> {
-                    if (o.getStatus().equals(WAIT) && (inverse || !getOrderMap().containsBid(o.getPositionId()))){
+                    if (o.getStatus().equals(WAIT) && (inverse || !getOrderMap().containsBid(o.getPositionId())) &&
+                            !isMaxSpot()){
                         pushWaitOrderAsync(o);
                     }
                 });
@@ -160,12 +159,12 @@ public class LevelStrategy extends BaseStrategy{
         }
     }
 
-    private static final BigDecimal CNY_MIN = BigDecimal.valueOf(3000);
+    private static final BigDecimal CNY_MIN = BigDecimal.valueOf(10000);
     private static final BigDecimal USD_MIN = BigDecimal.valueOf(300);
 
     @SuppressWarnings("Duplicates")
     private boolean isMinSpot(){
-        BigDecimal volume = userInfoService.getVolume("free_spot", strategy.getAccount().getId(), null);
+        BigDecimal volume = userInfoService.getVolume("subtotal_spot", strategy.getAccount().getId(), null);
 
         if (volume != null){
             if (strategy.getSymbol().contains("CNY")){
@@ -175,7 +174,7 @@ public class LevelStrategy extends BaseStrategy{
             }
         }
 
-        return false;
+        return true;
     }
 
     private static final BigDecimal CNY_MAX = BigDecimal.valueOf(42000);
@@ -183,7 +182,7 @@ public class LevelStrategy extends BaseStrategy{
 
     @SuppressWarnings("Duplicates")
     private boolean isMaxSpot(){
-        BigDecimal volume = userInfoService.getVolume("free_spot", strategy.getAccount().getId(), null);
+        BigDecimal volume = userInfoService.getVolume("subtotal_spot", strategy.getAccount().getId(), null);
 
         if (volume != null){
             if (strategy.getSymbol().contains("CNY")){
@@ -193,7 +192,7 @@ public class LevelStrategy extends BaseStrategy{
             }
         }
 
-        return false;
+        return true;
     }
 
     private static final BigDecimal TWO = BigDecimal.valueOf(2);
@@ -217,10 +216,20 @@ public class LevelStrategy extends BaseStrategy{
         return spread.compareTo(sideSpread) > 0 ? spread : sideSpread;
     }
 
+    private static final BigDecimal BD05 = new BigDecimal("0.5");
+
     private BigDecimal getSideSpread(BigDecimal price){
         BigDecimal sideSpread = strategy.getSymbolType() == null
                 ? strategy.getLevelSideSpread().multiply(price)
                 : strategy.getLevelSideSpread();
+
+        if (strategy.getSymbol().equals("BTC/CNY")){
+            BigDecimal stdDev = tradeService.getStdDev("BTC/CNY");
+
+            if (stdDev != null && stdDev.compareTo(BD05) > 0){
+                sideSpread = sideSpread.multiply(stdDev.multiply(TWO));
+            }
+        }
 
         return sideSpread.compareTo(getStep()) > 0 ? sideSpread : getStep();
     }

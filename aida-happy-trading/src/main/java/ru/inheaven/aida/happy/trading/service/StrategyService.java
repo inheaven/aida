@@ -25,7 +25,8 @@ public class StrategyService {
 
     @Inject
     public StrategyService(StrategyMapper strategyMapper, OrderService orderService, OrderMapper orderMapper,
-                           TradeService tradeService, DepthService depthService, UserInfoService userInfoService) {
+                           TradeService tradeService, DepthService depthService, UserInfoService userInfoService,
+                           XChangeService xChangeService) {
         List<Strategy> strategies = strategyMapper.getActiveStrategies();
 
         strategies.stream()
@@ -36,7 +37,8 @@ public class StrategyService {
             switch (s.getType()) {
                 case LEVEL_SPOT:
                 case LEVEL_FUTURES:
-                    baseStrategy = new LevelStrategy(s, orderService, orderMapper, tradeService, depthService, userInfoService);
+                    baseStrategy = new LevelStrategy(s, orderService, orderMapper, tradeService, depthService,
+                            userInfoService, xChangeService);
                     baseStrategy.start();
                     break;
                 case PARAGLIDER:
