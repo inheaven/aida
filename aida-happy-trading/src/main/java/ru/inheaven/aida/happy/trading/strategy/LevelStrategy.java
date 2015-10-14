@@ -11,10 +11,7 @@ import java.security.SecureRandom;
 import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -68,8 +65,7 @@ public class LevelStrategy extends BaseStrategy{
         if (!isBidRefused()){
             getOrderMap().get(price.subtract(spread), BID).forEach((k,v) -> {
                 v.forEach(o -> {
-                    if (o.getStatus().equals(WAIT) && (!inverse || !getOrderMap().containsAsk(o.getPositionId())) &&
-                            !isMinSpot()){
+                    if (o.getStatus().equals(WAIT) && (!inverse || !getOrderMap().containsAsk(o.getPositionId()))){
                         pushWaitOrderAsync(o);
                     }
                 });
@@ -79,8 +75,7 @@ public class LevelStrategy extends BaseStrategy{
         if (!isAskRefused()){
             getOrderMap().get(price.add(spread), ASK).forEach((k,v) -> {
                 v.forEach(o -> {
-                    if (o.getStatus().equals(WAIT) && (inverse || !getOrderMap().containsBid(o.getPositionId())) &&
-                            !isMaxSpot()){
+                    if (o.getStatus().equals(WAIT) && (inverse || !getOrderMap().containsBid(o.getPositionId()))){
                         pushWaitOrderAsync(o);
                     }
                 });
@@ -91,42 +86,49 @@ public class LevelStrategy extends BaseStrategy{
     private Executor executor = Executors.newWorkStealingPool();
     private AtomicReference<BigDecimal> lastMarket = new AtomicReference<>(ZERO);
 
-    private void closeByMarketAsync(BigDecimal price){
+    private void closeByMarketAsync(BigDecimal price, Date time){
         if (lastMarket.get().compareTo(price) != 0) {
-            executor.execute(() -> closeByMarket(price));
+            executor.execute(() -> closeByMarket(price, time));
             lastMarket.set(price);
         }
     }
 
     @SuppressWarnings("Duplicates")
-    private void closeByMarket(BigDecimal price){
-        getOrderMap().get(price.add(getSideSpread(price)), BID, false).forEach((k,v) -> {
-            v.forEach(o -> {
-                if (o.getStatus().equals(OPEN)){
-                    o.setStatus(CLOSED);
-                    o.setClosed(new Date());
-                    log.info("{} CLOSED by market {} {} {}", o.getStrategyId(), scale(o.getPrice()), price, o.getType());
-                }
+    private void closeByMarket(BigDecimal price, Date time){
+        try {
+            getOrderMap().get(price.add(getSideSpread(price)), BID, false).forEach((k,v) -> {
+                v.forEach(o -> {
+                    if (o.getStatus().equals(OPEN) && o.getCreated().compareTo(time) > 0){
+                        o.setStatus(CLOSED);
+                        o.setClosed(new Date());
+                        log.info("{} CLOSED by market {} {} {}", o.getStrategyId(), scale(o.getPrice()), price, o.getType());
+                    }
+                });
             });
-        });
 
-        getOrderMap().get(price.subtract(getSideSpread(price)), ASK, false).forEach((k,v) -> {
-            v.forEach(o -> {
-                if (o.getStatus().equals(OPEN)){
-                    o.setStatus(CLOSED);
-                    o.setClosed(new Date());
-                    log.info("{} CLOSED by market {} {} {}", o.getStrategyId(), scale(o.getPrice()), price, o.getType());
-                }
+            getOrderMap().get(price.subtract(getSideSpread(price)), ASK, false).forEach((k,v) -> {
+                v.forEach(o -> {
+                    if (o.getStatus().equals(OPEN) && o.getCreated().compareTo(time) > 0){
+                        o.setStatus(CLOSED);
+                        o.setClosed(new Date());
+                        log.info("{} CLOSED by market {} {} {}", o.getStrategyId(), scale(o.getPrice()), price, o.getType());
+                    }
+                });
             });
-        });
+        } catch (Exception e) {
+            log.error("error close by market", e);
+        }
     }
 
     private Executor executor2 = Executors.newWorkStealingPool();
     private AtomicReference<BigDecimal> lastAction = new AtomicReference<>(ZERO);
+    private ConcurrentLinkedDeque<BigDecimal> actionDeque = new ConcurrentLinkedDeque<>();
 
     private void actionAsync(String key, BigDecimal price, OrderType orderType){
         if (lastAction.get().compareTo(price) != 0) {
             lastAction.set(price);
+            actionDeque.add(price);
+
             executor2.execute(() -> action(key, price, orderType));
         }
     }
@@ -136,8 +138,14 @@ public class LevelStrategy extends BaseStrategy{
     private void action(String key, BigDecimal price, OrderType orderType){
         try {
             semaphore.acquire();
-            actionLevel(key, price, orderType);
-            pushOrders(price);
+
+            BigDecimal dequePrice = actionDeque.poll();
+
+            boolean inverse = strategy.isLevelInverse();
+            if ((!inverse && !isMinSpot()) || (inverse && !isMaxSpot())) {
+                actionLevel(key, dequePrice, orderType);
+                pushOrders(dequePrice);
+            }
         } catch (Exception e) {
             log.error("error action level", e);
         } finally {
@@ -146,17 +154,13 @@ public class LevelStrategy extends BaseStrategy{
     }
 
     private void actionLevel(String key, BigDecimal price, OrderType orderType){
-        boolean inverse = strategy.isLevelInverse();
+        BigDecimal sideSpread = getSideSpread(price);
 
-        if ((!inverse && !isMinSpot()) || (inverse && !isMaxSpot())) {
-            BigDecimal sideSpread = getSideSpread(price);
-
-            for (int i = strategy.getLevelSize().intValue(); i > 0 ; --i){
-                action(key, price.add(BigDecimal.valueOf(i).multiply(sideSpread)), orderType, i);
-            }
-
-            action(key, price, orderType, 0);
+        for (int i = strategy.getLevelSize().intValue(); i > 0 ; --i){
+            action(key, price.add(BigDecimal.valueOf(i).multiply(sideSpread)), orderType, i);
         }
+
+        action(key, price, orderType, 0);
     }
 
     private static final BigDecimal CNY_MIN = BigDecimal.valueOf(10000);
@@ -223,13 +227,13 @@ public class LevelStrategy extends BaseStrategy{
                 ? strategy.getLevelSideSpread().multiply(price)
                 : strategy.getLevelSideSpread();
 
-        if (strategy.getSymbol().equals("BTC/CNY")){
-            BigDecimal stdDev = tradeService.getStdDev("BTC/CNY");
-
-            if (stdDev != null && stdDev.compareTo(BD05) > 0){
-                sideSpread = sideSpread.multiply(stdDev.multiply(TWO));
-            }
-        }
+//        if (strategy.getSymbol().equals("BTC/CNY")){
+//            BigDecimal stdDev = tradeService.getStdDev("BTC/CNY");
+//
+//            if (stdDev != null && stdDev.compareTo(BD05) > 0){
+//                sideSpread = sideSpread.multiply(stdDev.multiply(TWO));
+//            }
+//        }
 
         return sideSpread.compareTo(getStep()) > 0 ? sideSpread : getStep();
     }
@@ -244,7 +248,7 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal sellPrice = orderType.equals(ASK) ? priceF : priceF.add(spread);
 
             if (!getOrderMap().contains(buyPrice, sideSpread, BID) && !getOrderMap().contains(sellPrice, sideSpread, ASK)){
-                log.info(key + " {} {} {}", price.setScale(3, HALF_EVEN), orderType, spread);
+                log.info("{} "  + key + " {} {} {} {}", strategy.getId(), price.setScale(3, HALF_EVEN), orderType, sideSpread, spread);
 
                 BigDecimal amountHFT = strategy.getLevelLot();
 
@@ -316,8 +320,8 @@ public class LevelStrategy extends BaseStrategy{
     protected void onTrade(Trade trade) {
         if (lastTrade.compareTo(ZERO) != 0 &&
                 lastTrade.subtract(trade.getPrice()).abs().divide(lastTrade, 8, HALF_EVEN).compareTo(getStep()) < 0){
-            actionAsync("on trade", trade.getPrice(), trade.getOrderType());
-            closeByMarketAsync(trade.getPrice());
+            actionAsync("TRADE", trade.getPrice(), trade.getOrderType());
+            closeByMarketAsync(trade.getPrice(), trade.getOrigTime());
         }else{
             log.warn("trade price diff 1% {} {} {}", trade.getPrice(), trade.getSymbol(), Objects.toString(trade.getSymbolType(), ""));
         }
@@ -333,15 +337,15 @@ public class LevelStrategy extends BaseStrategy{
         if (ask != null && bid != null && lastTrade.compareTo(ZERO) != 0 &&
                 lastTrade.subtract(ask).abs().divide(lastTrade, 8, HALF_EVEN).compareTo(getStep()) < 0 &&
                 lastTrade.subtract(bid).abs().divide(lastTrade, 8, HALF_EVEN).compareTo(getStep()) < 0) {
-            actionAsync("on depth ask", ask, ASK);
-            actionAsync("on depth bid", bid, BID);
+            actionAsync("DEPTH", ask, ASK);
+            actionAsync("DEPTH", bid, BID);
         }
     }
 
     @Override
     protected void onRealTrade(Order order) {
         if (order.getStatus().equals(CLOSED) && order.getAvgPrice().compareTo(ZERO) > 0){
-            actionAsync("on real trade", order.getAvgPrice(), order.getType());
+            actionAsync("REAL", order.getAvgPrice(), order.getType());
         }
     }
 }

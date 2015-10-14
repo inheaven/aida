@@ -150,6 +150,7 @@ public class OKCoinApplication extends MessageCracker implements Application {
                     trade.setAmount(amount);
                     trade.setTime(message.getString(OrigTime.FIELD));
                     trade.setCreated(new Date());
+                    trade.setOrigTime(message.getField(new OrigTime()).getValue());
 
                     onTrade(trade);
                     break;

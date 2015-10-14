@@ -1,3 +1,6 @@
+var chart_usd;
+var chart_cny;
+
 Highcharts.setOptions({
     global: {
         useUTC: true,
@@ -76,7 +79,7 @@ $.getJSON('/account_info_rest/user_info_total/7', function (data) {
     //var last = data[data.length - 1440];
     var last = data[0];
 
-    areaChart('usd_profit', 'USD Profit',
+    chart_usd = areaChart('usd_profit', 'USD Profit',
         data.map(function(a){return [a[0], 100*(a[1] - last[1])/(last[1])]}),
         data.map(function(a){return [a[0], 100*((a[1]/a[3]) - (last[1]/last[3]))/(last[1]/last[3])]}),
         data.map(function(a){return [a[0], 100*(a[3] - last[3])/(last[3])]}));
@@ -86,7 +89,7 @@ $.getJSON('/account_info_rest/user_info_total/8', function (data) {
     //var last = data[data.length - 1440];
     var last = data[0];
 
-    areaChart('cny_profit', 'CNY Profit',
+    chart_cny = areaChart('cny_profit', 'CNY Profit',
         data.map(function(a){return [a[0], 100*(a[1] - last[1])/(last[1])]}),
         data.map(function(a){return [a[0], 100*((a[1]/a[3]) - (last[1]/last[3]))/(last[1]/last[3])]}),
         data.map(function(a){return [a[0], 100*(a[3] - last[3])/(last[3])]}));

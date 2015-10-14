@@ -14,6 +14,7 @@ import javax.inject.Singleton;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author inheaven on 10.07.2015 0:22.
@@ -54,7 +55,7 @@ public class DepthService {
             }
         });
 
-        depthObservable.subscribe(d -> broadcastService.broadcast(getClass(), "depth", d));
+        depthObservable.sample(1, TimeUnit.SECONDS).subscribe(d -> broadcastService.broadcast(getClass(), "depth", d));
     }
 
     public Observable<Depth> createDepthObservable(Strategy strategy){

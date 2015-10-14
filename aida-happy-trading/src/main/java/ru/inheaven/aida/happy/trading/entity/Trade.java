@@ -18,6 +18,7 @@ public class Trade extends AbstractEntity {
     private BigDecimal amount;
     private String time;
     private Date created;
+    private Date origTime;
 
     public Trade() {
     }
@@ -36,6 +37,30 @@ public class Trade extends AbstractEntity {
 
     public void setExchangeType(ExchangeType exchangeType) {
         this.exchangeType = exchangeType;
+    }
+
+    public String getSymbol() {
+        return symbol;
+    }
+
+    public void setSymbol(String symbol) {
+        this.symbol = symbol;
+    }
+
+    public SymbolType getSymbolType() {
+        return symbolType;
+    }
+
+    public void setSymbolType(SymbolType symbolType) {
+        this.symbolType = symbolType;
+    }
+
+    public OrderType getOrderType() {
+        return orderType;
+    }
+
+    public void setOrderType(OrderType orderType) {
+        this.orderType = orderType;
     }
 
     public BigDecimal getPrice() {
@@ -70,28 +95,12 @@ public class Trade extends AbstractEntity {
         this.created = created;
     }
 
-    public OrderType getOrderType() {
-        return orderType;
+    public Date getOrigTime() {
+        return origTime;
     }
 
-    public void setOrderType(OrderType orderType) {
-        this.orderType = orderType;
-    }
-
-    public SymbolType getSymbolType() {
-        return symbolType;
-    }
-
-    public void setSymbolType(SymbolType symbolType) {
-        this.symbolType = symbolType;
-    }
-
-    public String getSymbol() {
-        return symbol;
-    }
-
-    public void setSymbol(String symbol) {
-        this.symbol = symbol;
+    public void setOrigTime(Date origTime) {
+        this.origTime = origTime;
     }
 
     @Override

@@ -119,20 +119,20 @@ $(function () {
             },
             yAxis: {
               min: 0,
-              max: 8000,
+              max: 4000,
                title: 'LTC'
             },
             xAxis: {
                 //type: 'datetime',
                 gridLineWidth: 1,
                 min: 0,
-                max: 8000,
+                max: 4000,
 
                 title:'USD'
             },
             zAxis: {
               min: 0,
-              max: 8000,
+              max: 4000,
                showFirstLabel: false,
                title:'BTC'
             },
@@ -213,18 +213,18 @@ $(function () {
             },
             yAxis: {
                 min: 0,
-                max: 20000,
+                max: 60000,
                 title: null
             },
             xAxis: {
                 //type: 'datetime',
                 min: 0,
-                max: 20000,
+                max: 60000,
                 gridLineWidth: 1
             },
             zAxis: {
                 min: 0,
-                max: 5000,
+                max: 2000,
                 showFirstLabel: false
             },
             legend: {

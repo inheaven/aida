@@ -31,7 +31,7 @@ public class TradeService {
                 .mergeWith(okcoinFixService.getTradeObservable())
                 .mergeWith(okcoinCnFixService.getTradeObservable())
                 .onBackpressureBuffer()
-                .observeOn(Schedulers.io())
+                .observeOn(Schedulers.computation())
                 .publish();
         tradeObservable.connect();
 
