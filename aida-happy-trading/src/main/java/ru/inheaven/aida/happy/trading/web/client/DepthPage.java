@@ -148,8 +148,6 @@ public class DepthPage extends BasePage{
             if (volume != null ? !volume.equals(cell.volume) : cell.volume != null) return false;
             if (wait != null ? !wait.equals(cell.wait) : cell.wait != null) return false;
             return !(open != null ? !open.equals(cell.open) : cell.open != null);
-
-
         }
     }
 

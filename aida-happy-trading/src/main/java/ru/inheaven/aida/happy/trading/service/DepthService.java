@@ -34,8 +34,8 @@ public class DepthService {
         depthObservable = okcoinService.createFutureDepthObservable()
                 .mergeWith(okcoinFixService.getDepthObservable())
                 .mergeWith(okcoinCnFixService.getDepthObservable())
-                .onBackpressureLatest()
-                .observeOn(Schedulers.io())
+                .onBackpressureBuffer()
+                .observeOn(Schedulers.computation())
                 .publish();
         depthObservable.connect();
 
@@ -55,7 +55,7 @@ public class DepthService {
             }
         });
 
-        depthObservable.sample(1, TimeUnit.SECONDS).subscribe(d -> broadcastService.broadcast(getClass(), "depth", d));
+        depthObservable.sample(500, TimeUnit.MILLISECONDS).subscribe(d -> broadcastService.broadcast(getClass(), "depth", d));
     }
 
     public Observable<Depth> createDepthObservable(Strategy strategy){

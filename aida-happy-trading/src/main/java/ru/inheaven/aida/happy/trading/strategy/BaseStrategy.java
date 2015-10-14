@@ -355,7 +355,7 @@ public class BaseStrategy {
             }else if (o.getInternalId() != null && o.getStatus().equals(OPEN)){
                 Order order = orderMap.get(o.getInternalId());
 
-                if (order != null && order.getStatus().equals(CREATED)){
+                if (order != null){
                     order.setOrderId(o.getOrderId());
                     order.setStatus(OPEN);
                     order.setOpen(o.getOpen());

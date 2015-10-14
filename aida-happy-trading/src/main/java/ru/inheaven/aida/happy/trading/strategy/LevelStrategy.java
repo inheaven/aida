@@ -98,7 +98,7 @@ public class LevelStrategy extends BaseStrategy{
         try {
             getOrderMap().get(price.add(getSideSpread(price)), BID, false).forEach((k,v) -> {
                 v.forEach(o -> {
-                    if (o.getStatus().equals(OPEN) && o.getCreated().compareTo(time) > 0){
+                    if (o.getStatus().equals(OPEN) && o.getOpen().compareTo(time) < 0){
                         o.setStatus(CLOSED);
                         o.setClosed(new Date());
                         log.info("{} CLOSED by market {} {} {}", o.getStrategyId(), scale(o.getPrice()), price, o.getType());
@@ -108,7 +108,7 @@ public class LevelStrategy extends BaseStrategy{
 
             getOrderMap().get(price.subtract(getSideSpread(price)), ASK, false).forEach((k,v) -> {
                 v.forEach(o -> {
-                    if (o.getStatus().equals(OPEN) && o.getCreated().compareTo(time) > 0){
+                    if (o.getStatus().equals(OPEN) && o.getOpen().compareTo(time) < 0){
                         o.setStatus(CLOSED);
                         o.setClosed(new Date());
                         log.info("{} CLOSED by market {} {} {}", o.getStrategyId(), scale(o.getPrice()), price, o.getType());
