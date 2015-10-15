@@ -101,30 +101,32 @@ public class BaseStrategy {
             return;
         }
 
-        tradeSubscription = tradeObservable.subscribe(t -> {
-            try {
-                if (t.getPrice() != null) {
-                    lastPrice.set(t.getPrice());
-                }
+        tradeSubscription = tradeObservable
+                .subscribe(t -> {
+                    try {
+                        if (t.getPrice() != null) {
+                            lastPrice.set(t.getPrice());
+                        }
 
-                onTrade(t);
-            } catch (Exception e) {
-                log.error("error on trader -> ", e);
-            }
-        });
+                        onTrade(t);
+                    } catch (Exception e) {
+                        log.error("error on trader -> ", e);
+                    }
+                });
 
         orderSubscription = orderObservable
                 .filter(o -> orderMap.contains(o.getOrderId()) ||
                         (o.getInternalId() != null && orderMap.contains(o.getInternalId())))
                 .subscribe(this::onOrder);
 
-        realTradeSubscription = orderObservable.subscribe(o -> {
-            try {
-                onRealTrade(o);
-            } catch (Exception e) {
-                log.error("error on real trade -> ", e);
-            }
-        });
+        realTradeSubscription = orderObservable
+                .subscribe(o -> {
+                    try {
+                        onRealTrade(o);
+                    } catch (Exception e) {
+                        log.error("error on real trade -> ", e);
+                    }
+                });
 
         depthSubscription = depthObservable.subscribe(d -> {
             try {
@@ -163,7 +165,7 @@ public class BaseStrategy {
 
                             switch (o.getSymbol()) {
                                 case "BTC/CNY":
-                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("5"))  > 0) {
+                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("7"))  > 0) {
                                         cancel = true;
                                     }
                                     break;
@@ -223,7 +225,7 @@ public class BaseStrategy {
     protected void onDepth(Depth depth){
     }
 
-    private ExecutorService executorService = Executors.newWorkStealingPool();
+    private ExecutorService executorService = Executors.newCachedThreadPool();
 
     private static AtomicLong internalId = new AtomicLong(System.nanoTime());
 
@@ -270,6 +272,12 @@ public class BaseStrategy {
 
     @SuppressWarnings("Duplicates")
     protected Future<Order> pushWaitOrderAsync(Order order){
+        if (order.getStatus().equals(CREATED)){
+
+            log.warn("CREATED already");
+            return null;
+        }
+
         order.setStatus(CREATED);
         order.setCreated(new Date());
 

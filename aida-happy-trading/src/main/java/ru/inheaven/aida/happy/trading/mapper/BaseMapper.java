@@ -30,7 +30,7 @@ public class BaseMapper<T extends AbstractEntity> {
         }
     }
 
-    private Executor executor = Executors.newWorkStealingPool();
+    private Executor executor = Executors.newCachedThreadPool();
 
     public void asyncSave(T entity){
         executor.execute(() -> {

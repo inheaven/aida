@@ -76,8 +76,15 @@ function areaChart(id, title, data0, data1, data2){
 }
 
 $.getJSON('/account_info_rest/user_info_total/7', function (data) {
-    //var last = data[data.length - 1440];
-    var last = data[0];
+    var last;
+    var day = getParameterByName('d');
+
+    if (day != null){
+        var i = data.length - 1440*day;
+        last = data[i > 0 ? i : data.length - 1440];
+    }else{
+        last = data[data.length - 1440];
+    }
 
     chart_usd = areaChart('usd_profit', 'USD Profit',
         data.map(function(a){return [a[0], 100*(a[1] - last[1])/(last[1])]}),
@@ -86,11 +93,25 @@ $.getJSON('/account_info_rest/user_info_total/7', function (data) {
 });
 
 $.getJSON('/account_info_rest/user_info_total/8', function (data) {
-    //var last = data[data.length - 1440];
-    var last = data[0];
+    var last;
+    var day = getParameterByName('d');
+
+    if (day != null){
+        var i = data.length - 1440*day;
+        last = data[i > 0 ? i : data.length - 1440];
+    }else{
+        last = data[data.length - 1440];
+    }
 
     chart_cny = areaChart('cny_profit', 'CNY Profit',
         data.map(function(a){return [a[0], 100*(a[1] - last[1])/(last[1])]}),
         data.map(function(a){return [a[0], 100*((a[1]/a[3]) - (last[1]/last[3]))/(last[1]/last[3])]}),
         data.map(function(a){return [a[0], 100*(a[3] - last[3])/(last[3])]}));
 });
+
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results === null ? null : decodeURIComponent(results[1].replace(/\+/g, " "));
+}

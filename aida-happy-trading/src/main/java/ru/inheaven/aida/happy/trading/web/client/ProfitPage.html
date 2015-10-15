@@ -3,10 +3,18 @@
 
 </wicket:head>
 <wicket:extend xmlns:wicket="http://wicket.apache.org">
+    <div style="position: absolute; top: 10px; right: 5px; z-index: 1000;">
+        <a href="/profit?d=1" class="btn btn-default">DAY</a>
+        <a href="/profit" class="btn btn-default">ALL</a>
+        <!--<a href="/profit?d=2">2</a>
+        <a href="/profit?d=3">3</a>
+        <a href="/profit?d=4">4</a>
+        <a href="/profit?d=5">5</a>-->
+    </div>
     <table style="width: 100%">
         <tr>
-            <td style="width: 50%"><div id="usd_profit" style="height: 950px"></div></td>
-            <td style="width: 50%"><div id="cny_profit" style="height: 950px"></div></td>
+            <td style="width: 50%"><div id="usd_profit" style="height: 900px"></div></td>
+            <td style="width: 50%"><div id="cny_profit" style="height: 900px"></div></td>
         </tr>
     </table>
 </wicket:extend>
