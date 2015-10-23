@@ -34,11 +34,13 @@ public class LevelStrategy extends BaseStrategy{
 
     private UserInfoService userInfoService;
     private TradeService tradeService;
+    private OrderService orderService;
 
     private static AtomicLong positionId = new AtomicLong(System.nanoTime());
 
     private AtomicReference<BigDecimal> profit = new AtomicReference<>(ZERO);
     private final static BigDecimal BD0_001 = new BigDecimal("0.001");
+    private final static BigDecimal BD0_002 = new BigDecimal("0.002");
 
     public LevelStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                          DepthService depthService, UserInfoService userInfoService,  XChangeService xChangeService) {
@@ -47,6 +49,7 @@ public class LevelStrategy extends BaseStrategy{
         this.strategy = strategy;
         this.userInfoService = userInfoService;
         this.tradeService = tradeService;
+        this.orderService = orderService;
 
         if (strategy.getSymbolType() != null) {
             userInfoService.createUserInfoObservable(strategy.getAccount().getId(), strategy.getSymbol().substring(0, 3))
@@ -155,17 +158,18 @@ public class LevelStrategy extends BaseStrategy{
         }
     }
 
+    private AtomicLong index = new AtomicLong(0);
+
     private void actionLevel(String key, BigDecimal price, OrderType orderType){
         BigDecimal sideSpread = getSideSpread(price);
 
-        for (int i = strategy.getLevelSize().intValue(); i > 0 ; --i){
-            action(key, price.add(BigDecimal.valueOf(i).multiply(sideSpread)), price, orderType, i);
-        }
-
+        int i = (int) (index.incrementAndGet() % strategy.getLevelSize().intValue());
+        action(key, price.add(BigDecimal.valueOf(i).multiply(sideSpread)), price, orderType, i);
+        action(key, price.add(BigDecimal.valueOf(-i).multiply(sideSpread)), price, orderType, -i);
         action(key, price, price, orderType, 0);
     }
 
-    private static final BigDecimal CNY_MIN = BigDecimal.valueOf(10000);
+    private static final BigDecimal CNY_MIN = BigDecimal.valueOf(30000);
     private static final BigDecimal USD_MIN = BigDecimal.valueOf(300);
 
     @SuppressWarnings("Duplicates")
@@ -183,8 +187,8 @@ public class LevelStrategy extends BaseStrategy{
         return true;
     }
 
-    private static final BigDecimal CNY_MAX = BigDecimal.valueOf(42000);
-    private static final BigDecimal USD_MAX = BigDecimal.valueOf(7000);
+    private static final BigDecimal CNY_MAX = BigDecimal.valueOf(33000);
+    private static final BigDecimal USD_MAX = BigDecimal.valueOf(6000);
 
     @SuppressWarnings("Duplicates")
     private boolean isMaxSpot(){
@@ -201,8 +205,25 @@ public class LevelStrategy extends BaseStrategy{
         return true;
     }
 
+    private static final BigDecimal CNY_MIDDLE = BigDecimal.valueOf(26000);
+    private static final BigDecimal USD_MIDDLE = BigDecimal.valueOf(3250);
+
+    @SuppressWarnings("Duplicates")
+    private boolean isUpSpot(){
+        BigDecimal volume = userInfoService.getVolume("subtotal_spot", strategy.getAccount().getId(), null);
+
+        if (volume != null){
+            if (strategy.getSymbol().contains("CNY")){
+                return volume.compareTo(CNY_MIDDLE) > 0;
+            }else if (strategy.getSymbol().contains("USD")){
+                return volume.compareTo(USD_MIDDLE) > 0;
+            }
+        }
+
+        return true;
+    }
+
     private static final BigDecimal TWO = BigDecimal.valueOf(2);
-    private static final BigDecimal FOUR = BigDecimal.valueOf(4);
 
     private BigDecimal getSpread(BigDecimal price){
         BigDecimal spread = ZERO;
@@ -212,7 +233,7 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal stdDev = tradeService.getStdDev("BTC/CNY");
 
             if (stdDev != null){
-                spread = stdDev.divide(FOUR, HALF_EVEN).subtract(sideSpread).divide(TWO, HALF_EVEN);
+                spread = stdDev.subtract(sideSpread).divide(TWO, HALF_EVEN);
             }
         }else {
             spread = strategy.getSymbolType() == null
@@ -241,16 +262,20 @@ public class LevelStrategy extends BaseStrategy{
         return sideSpread.compareTo(getStep()) > 0 ? sideSpread : getStep();
     }
 
+    private final static BigDecimal BD1_1 = new BigDecimal("1.1");
+
     private void action(String key, BigDecimal price, BigDecimal realPrice, OrderType orderType, int priceLevel) {
         try {
-            BigDecimal priceF = scale(orderType.equals(ASK) ? price.subtract(getStep()) : price.add(getStep()));
+            boolean up = isUpSpot();
+
+            BigDecimal priceF = scale(up ? price.add(getStep()) : price.subtract(getStep()));
             BigDecimal spread = scale(getSpread(priceF));
             BigDecimal sideSpread = scale(getSideSpread(priceF));
             BigDecimal level = priceF.divideToIntegralValue(spread);
 
-            boolean side = random.nextBoolean();
-            BigDecimal buyPrice = side ? priceF.subtract(spread) : priceF;
-            BigDecimal sellPrice = side ? priceF : priceF.add(spread);
+
+            BigDecimal buyPrice = up ? priceF : priceF.subtract(spread);
+            BigDecimal sellPrice = up ? priceF.add(spread) : priceF;
 
             if (!getOrderMap().contains(buyPrice, sideSpread, BID, realPrice) && !getOrderMap().contains(sellPrice, sideSpread, ASK, realPrice)){
                 log.info("{} "  + key + " {} {} {} {} {} {}", strategy.getId(), price.setScale(3, HALF_EVEN), orderType,
@@ -261,26 +286,26 @@ public class LevelStrategy extends BaseStrategy{
                 if (priceLevel == 0 && levelTimeMap.get(level) != null){
                     Long time = System.currentTimeMillis() - levelTimeMap.get(level);
 
-                    if (strategy.getSymbolType() == null){
-                        if (time < 60000 && strategy.getAccount().getExchangeType().equals(ExchangeType.OKCOIN)){
-                            amountHFT = amountHFT.multiply(BigDecimal.valueOf(10.0 - 9.0*time/60000));
-
-                            log.info("{} HFT {} {} {} {}", strategy.getId(), (int) (time/1000), priceF,
-                                    scale(strategy.getLevelLot()), scale(amountHFT));
-                        }
-
-                        if (time < 5000 && strategy.getAccount().getExchangeType().equals(ExchangeType.OKCOIN_CN)){
-                            amountHFT = amountHFT.multiply(BigDecimal.valueOf(3.0 - 2.0*time/5000));
-
-                            log.info("{} HFT {} {} {} {}", strategy.getId(), priceF, time,
-                                    scale(strategy.getLevelLot()), scale(amountHFT));
-                        }
-                    }else if (time < 15000){
-                        amountHFT = amountHFT.multiply(BigDecimal.valueOf(2));
-
-                        log.info("HFT -> {}s {} {} {}", time/1000, price.setScale(3, HALF_EVEN),
-                                amountHFT.setScale(3, HALF_EVEN), strategy.getSymbolType());
-                    }
+//                    if (strategy.getSymbolType() == null){
+//                        if (time < 60000 && strategy.getAccount().getExchangeType().equals(ExchangeType.OKCOIN)){
+//                            amountHFT = amountHFT.multiply(BigDecimal.valueOf(5.0 - 4.0*time/60000));
+//
+//                            log.info("{} HFT {} {} {} {}", strategy.getId(), (int) (time/1000), priceF,
+//                                    scale(strategy.getLevelLot()), scale(amountHFT));
+//                        }
+//
+//                        if (time < 5000 && strategy.getAccount().getExchangeType().equals(ExchangeType.OKCOIN_CN)){
+//                            amountHFT = amountHFT.multiply(BigDecimal.valueOf(5.0 - 4.0*time/5000));
+//
+//                            log.info("{} HFT {} {} {} {}", strategy.getId(), priceF, time,
+//                                    scale(strategy.getLevelLot()), scale(amountHFT));
+//                        }
+//                    }else if (time < 15000){
+//                        amountHFT = amountHFT.multiply(BigDecimal.valueOf(2));
+//
+//                        log.info("HFT -> {}s {} {} {}", time/1000, price.setScale(3, HALF_EVEN),
+//                                amountHFT.setScale(3, HALF_EVEN), strategy.getSymbolType());
+//                    }
                 }
 
                 if (risk.compareTo(ONE) > 0){
@@ -299,8 +324,20 @@ public class LevelStrategy extends BaseStrategy{
 
                     profit.set(profit.get().add(amountHFT.multiply(spread).divide(buyPrice, 8, HALF_EVEN)));
 
-                    if (profit.get().compareTo(BD0_001) > 0){
-                        buyAmount = buyAmount.add(profit.get());
+                    if (profit.get().compareTo(BD0_002) > 0){
+                        if (strategy.getSymbol().equals("BTC/CNY")){
+                            BigDecimal ltcPrice = userInfoService.getPrice(ExchangeType.OKCOIN_CN, "LTC/CNY", null);
+                            Order ltcOrder = new Order(null, null, BID, ltcPrice.multiply(BD1_1),
+                                    profit.get().multiply(realPrice).divide(ltcPrice, 8, HALF_EVEN));
+                            ltcOrder.setExchangeType(ExchangeType.OKCOIN_CN);
+                            ltcOrder.setInternalId(String.valueOf(System.nanoTime()));
+                            ltcOrder.setSymbol("LTC/CNY");
+
+                            orderService.createOrder(strategy.getAccount(), ltcOrder);
+                        }else{
+                            buyAmount = buyAmount.add(profit.get());
+                        }
+
                         profit.set(ZERO);
 
                         log.info("{} !!!!!!!!!!!!!!! PROFIT !!!!!!!!!!!!!!!", strategy.getId());
@@ -313,10 +350,12 @@ public class LevelStrategy extends BaseStrategy{
                         sellPrice, sellAmount);
 
                 if (strategy.isLevelInverse()){
-                    createOrderAsync(sellOrder);
+                    sellOrder.setAmount(sellOrder.getAmount().multiply(TWO));
+
+                    createOrderSync(sellOrder);
                     createWaitOrder(buyOrder);
                 }else {
-                    createOrderAsync(buyOrder);
+                    createOrderSync(buyOrder);
                     createWaitOrder(sellOrder);
                 }
 

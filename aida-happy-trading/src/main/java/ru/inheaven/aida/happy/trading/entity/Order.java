@@ -10,26 +10,25 @@ import java.util.Date;
  *         Date: 09.11.2014 14:06
  */
 public class Order extends AbstractEntity {
-    private String orderId;
-    private Long strategyId;
-    private Long positionId;
-    private ExchangeType exchangeType;
-    private OrderType type;
-    private String symbol;
-    private SymbolType symbolType;
-    private BigDecimal price;
-    private BigDecimal amount;
-    private BigDecimal filledAmount;
-    private BigDecimal avgPrice;
-    private BigDecimal fee;
-    private Date created;
-    private Date open;
-    private Date closed;
-    private OrderStatus status;
+    private volatile String orderId;
+    private volatile String internalId;
+    private volatile Long strategyId;
+    private volatile  Long positionId;
+    private volatile  ExchangeType exchangeType;
+    private volatile  OrderType type;
+    private volatile  String symbol;
+    private volatile  SymbolType symbolType;
+    private volatile  BigDecimal price;
+    private volatile  BigDecimal amount;
+    private volatile  BigDecimal filledAmount;
+    private volatile  BigDecimal avgPrice;
+    private volatile  BigDecimal fee;
+    private volatile Date created;
+    private volatile Date open;
+    private volatile Date closed;
+    private volatile OrderStatus status;
 
-    private Long accountId;
-
-    private String internalId;
+    private volatile Long accountId;
 
     public Order() {
     }

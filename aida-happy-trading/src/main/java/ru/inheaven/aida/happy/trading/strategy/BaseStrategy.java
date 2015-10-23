@@ -165,7 +165,7 @@ public class BaseStrategy {
 
                             switch (o.getSymbol()) {
                                 case "BTC/CNY":
-                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("7"))  > 0) {
+                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("10"))  > 0) {
                                         cancel = true;
                                     }
                                     break;
@@ -256,6 +256,31 @@ public class BaseStrategy {
 
             return order;
         });
+    }
+
+    @SuppressWarnings("Duplicates")
+    protected void createOrderSync(Order order){
+        order.setInternalId(String.valueOf(internalId.incrementAndGet()));
+        order.setOrderId(order.getInternalId());
+        order.setStatus(CREATED);
+        order.setCreated(new Date());
+
+        orderMap.put(order);
+
+        try {
+            orderService.createOrder(strategy.getAccount(), order);
+
+            if (order.getStatus().equals(OPEN)){
+                orderMap.update(order);
+                orderMapper.asyncSave(order);
+            }
+
+            logOrder(order);
+        } catch (Exception e) {
+            orderMap.remove(order.getInternalId());
+
+            log.error("error create order -> {}", order, e);
+        }
     }
 
     protected void createWaitOrder(Order order){

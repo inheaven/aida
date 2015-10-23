@@ -11,7 +11,7 @@ Highcharts.setOptions({
     }
 });
 
-function areaChart(id, title, data0, data1, data2){
+function areaChart(id, title, data0, data1, data2, data3){
     return $('#'+id).highcharts('StockChart', {
         title: {text: title},
         chart: {animation: false, spacingBottom: 0},
@@ -28,36 +28,28 @@ function areaChart(id, title, data0, data1, data2){
         series: [{
             type: 'spline', threshold: null,
             data: data0,
-            name: 'SPOT',
-            fillColor: {
-                linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
-                stops: [
-                    [0, Highcharts.getOptions().colors[0]],
-                    [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
-                ]
-            }
+            name: 'SPOT'
         }, {
             type: 'spline', threshold: null,
             data: data1,
             name: 'SPOT/BTC',
-            yAxis:0,
-            fillColor: {
-                linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
-                stops: [
-                    [0, Highcharts.getOptions().colors[0]],
-                    [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
-                ]
-            }
+            yAxis:0
         }, {
             type: 'spline', threshold: null,
             data: data2,
             name: 'BTC',
+            yAxis:0
+        }, {
+            type: 'areaspline', threshold: null,
+            data: data3,
+            name: 'BTC PROFIT',
             yAxis:0,
+            lineWidth:0,
             fillColor: {
                 linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
                 stops: [
-                    [0, Highcharts.getOptions().colors[0]],
-                    [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+                    [0, Highcharts.Color(Highcharts.getOptions().colors[3]).setOpacity(0.1).get('rgba')],
+                    [1, Highcharts.Color(Highcharts.getOptions().colors[3]).setOpacity(0).get('rgba')]
                 ]
             }
         }],
@@ -69,7 +61,7 @@ function areaChart(id, title, data0, data1, data2){
                 {type: 'week', count: 1, text: 'Week'},
                 {type: 'all', count: 1, text: 'All'}
             ],
-            selected : 1,
+            selected : 4,
             inputEnabled: false
         }
     }).highcharts();
@@ -81,15 +73,17 @@ $.getJSON('/account_info_rest/user_info_total/7', function (data) {
 
     if (day != null){
         var i = data.length - 1440*day;
-        last = data[i > 0 ? i : data.length - 1440];
+        last = data[i > 0 ? i : 0];
     }else{
-        last = data[data.length - 1440];
+        last = data[0];
     }
 
     chart_usd = areaChart('usd_profit', 'USD Profit',
         data.map(function(a){return [a[0], 100*(a[1] - last[1])/(last[1])]}),
         data.map(function(a){return [a[0], 100*((a[1]/a[3]) - (last[1]/last[3]))/(last[1]/last[3])]}),
-        data.map(function(a){return [a[0], 100*(a[3] - last[3])/(last[3])]}));
+        data.map(function(a){return [a[0], 100*(a[3] - last[3])/(last[3])]}),
+        data.map(function(a){return [a[0], 100*((((a[1]/a[3]) - (last[1]/last[3]))/(last[1]/last[3])) - (a[3] - last[3])/(last[3]))]})
+    );
 });
 
 $.getJSON('/account_info_rest/user_info_total/8', function (data) {
@@ -98,15 +92,17 @@ $.getJSON('/account_info_rest/user_info_total/8', function (data) {
 
     if (day != null){
         var i = data.length - 1440*day;
-        last = data[i > 0 ? i : data.length - 1440];
+        last = data[i > 0 ? i : 0];
     }else{
-        last = data[data.length - 1440];
+        last = data[0];
     }
 
     chart_cny = areaChart('cny_profit', 'CNY Profit',
         data.map(function(a){return [a[0], 100*(a[1] - last[1])/(last[1])]}),
         data.map(function(a){return [a[0], 100*((a[1]/a[3]) - (last[1]/last[3]))/(last[1]/last[3])]}),
-        data.map(function(a){return [a[0], 100*(a[3] - last[3])/(last[3])]}));
+        data.map(function(a){return [a[0], 100*(a[3] - last[3])/(last[3])]}),
+        data.map(function(a){return [a[0], 100*((((a[1]/a[3]) - (last[1]/last[3]))/(last[1]/last[3])) - (a[3] - last[3])/(last[3]))]})
+    );
 });
 
 function getParameterByName(name) {

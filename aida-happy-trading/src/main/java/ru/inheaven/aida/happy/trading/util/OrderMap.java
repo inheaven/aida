@@ -7,13 +7,9 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Map;
 import java.util.NavigableMap;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentNavigableMap;
-import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.*;
 import java.util.function.BiConsumer;
 
-import static java.lang.Boolean.TRUE;
 import static java.math.RoundingMode.HALF_EVEN;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.*;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.ASK;
@@ -28,8 +24,8 @@ public class OrderMap {
     private ConcurrentSkipListMap<BigDecimal, Collection<Order>> bidMap = new ConcurrentSkipListMap<>();
     private ConcurrentSkipListMap<BigDecimal, Collection<Order>> askMap = new ConcurrentSkipListMap<>();
 
-    private ConcurrentHashMap<Long, Boolean> bidPositionMap = new ConcurrentHashMap<>();
-    private ConcurrentHashMap<Long, Boolean> askPositionMap = new ConcurrentHashMap<>();
+    private ConcurrentSkipListSet<Long> bidPositionMap = new ConcurrentSkipListSet<>();
+    private ConcurrentSkipListSet<Long> askPositionMap = new ConcurrentSkipListSet<>();
 
     private int scale;
 
@@ -52,7 +48,7 @@ public class OrderMap {
 
         collection.add(order);
 
-        (order.getType().equals(BID) ? bidPositionMap : askPositionMap).put(order.getPositionId(), TRUE);
+        (order.getType().equals(BID) ? bidPositionMap : askPositionMap).add(order.getPositionId());
     }
 
     public void forEach(BiConsumer<String, Order> action){
@@ -139,11 +135,11 @@ public class OrderMap {
     }
 
     public boolean containsBid(Long positionId){
-        return bidPositionMap.containsKey(positionId);
+        return bidPositionMap.contains(positionId);
     }
 
     public boolean containsAsk(Long positionId){
-        return askPositionMap.containsKey(positionId);
+        return askPositionMap.contains(positionId);
     }
 
     private BigDecimal scale(BigDecimal value){

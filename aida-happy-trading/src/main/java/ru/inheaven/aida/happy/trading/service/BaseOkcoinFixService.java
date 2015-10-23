@@ -10,7 +10,6 @@ import rx.Observable;
 import rx.subjects.PublishSubject;
 
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
@@ -34,25 +33,26 @@ public abstract class BaseOkcoinFixService {
     private PublishSubject<Order> orderPublishSubject = PublishSubject.create();
     private PublishSubject<Depth> depthPublishSubject = PublishSubject.create();
 
-    private List<SessionID> tradeSessions = Arrays.asList(tradeSessionId, tradeSessionId2, tradeSessionId3, tradeSessionId4);
     private AtomicLong index = new AtomicLong(4);
 
     public void placeLimitOrder(Account account, Order order){
         SessionID sessionID = tradeSessionId;
 
-        switch ((int) index.incrementAndGet() % 4){
-            case 0:
-                sessionID = tradeSessionId;
-                break;
-            case 1:
-                sessionID = tradeSessionId2;
-                break;
-            case 2:
-                sessionID = tradeSessionId3;
-                break;
-            case 3:
-                sessionID = tradeSessionId4;
-                break;
+        if (tradeSessionId2 != null && tradeSessionId3 != null && tradeSessionId4 != null) {
+            switch ((int) index.incrementAndGet() % 4){
+                case 0:
+                    sessionID = tradeSessionId;
+                    break;
+                case 1:
+                    sessionID = tradeSessionId2;
+                    break;
+                case 2:
+                    sessionID = tradeSessionId3;
+                    break;
+                case 3:
+                    sessionID = tradeSessionId4;
+                    break;
+            }
         }
 
         okCoinApplicationTrade.placeOrder(order, sessionID);

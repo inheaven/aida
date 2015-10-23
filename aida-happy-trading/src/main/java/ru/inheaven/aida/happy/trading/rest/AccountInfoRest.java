@@ -24,8 +24,8 @@ import static java.math.RoundingMode.HALF_UP;
  */
 @ResourcePath("/account_info_rest")
 public class AccountInfoRest extends AbstractRestResource<JsonWebSerialDeserial>{
-    private Date startDate = new Date(Timestamp.valueOf("2015-10-14 6:00:00").getTime());
-    private Date startCnDate = new Date(Timestamp.valueOf("2015-10-14 6:00:00").getTime());
+    private Date startDate = new Date(Timestamp.valueOf("2015-10-1 6:00:00").getTime());
+    private Date startCnDate = new Date(Timestamp.valueOf("2015-10-1 6:00:00").getTime());
 
 
     private UserInfoMapper userInfoMapper = Module.getInjector().getInstance(UserInfoMapper.class);
@@ -40,7 +40,7 @@ public class AccountInfoRest extends AbstractRestResource<JsonWebSerialDeserial>
     @MethodMapping("/user_info/{accountId}/{currency}")
     public List getUserInfo(@PathParam("accountId") Long accountId, @PathParam("currency") String currency){
         return userInfoMapper.getUserInfoList(accountId, currency, startDate).stream()
-                .filter(i -> System.currentTimeMillis() - i.getCreated().getTime() < 1000*60*60*24*2 ||
+                .filter(i -> System.currentTimeMillis() - i.getCreated().getTime() < 1000*60*60*24*7 ||
                         i.getCreated().getTime()/60000 % 60 == 0)
                 .map(i -> {
                     if (i.getCurrency().contains("SPOT")){
@@ -56,7 +56,7 @@ public class AccountInfoRest extends AbstractRestResource<JsonWebSerialDeserial>
     @MethodMapping("/user_info_total/{accountId}")
     public List getUserInfoTotal(@PathParam("accountId") Long accountId){
         return userInfoTotalMapper.getUserInfoTotals(accountId, accountId == 7 ? startDate: startCnDate).stream()
-                .filter(i -> System.currentTimeMillis() - i.getCreated().getTime() < 1000*60*60*24*2 ||
+                .filter(i -> System.currentTimeMillis() - i.getCreated().getTime() < 1000*60*60*24*7 ||
                         i.getCreated().getTime()/60000 % 60 == 0)
                 .map(t -> Arrays.asList(t.getCreated().getTime(),
                         t.getFuturesTotal().add(t.getSpotTotal()).setScale(3, HALF_UP),
