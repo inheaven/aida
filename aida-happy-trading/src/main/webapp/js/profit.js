@@ -40,11 +40,11 @@ function areaChart(id, title, data0, data1, data2, data3){
             name: 'BTC',
             yAxis:0
         }, {
-            type: 'areaspline', threshold: null,
+            type: 'spline', threshold: null,
             data: data3,
-            name: 'BTC PROFIT',
+            name: 'SPOT/LTC',
             yAxis:0,
-            lineWidth:0,
+            //lineWidth:0,
             fillColor: {
                 linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
                 stops: [
@@ -58,10 +58,12 @@ function areaChart(id, title, data0, data1, data2, data3){
             buttons: [
                 {type: 'hour', count: 1, text: 'Hour'},
                 {type: 'day', count: 1, text: 'Day'},
+                {type: 'day', count: 3, text: '3 Days'},
                 {type: 'week', count: 1, text: 'Week'},
                 {type: 'all', count: 1, text: 'All'}
             ],
-            selected : 4,
+            selected : 2,
+
             inputEnabled: false
         }
     }).highcharts();
@@ -75,15 +77,18 @@ $.getJSON('/account_info_rest/user_info_total/7', function (data) {
         var i = data.length - 1440*day;
         last = data[i > 0 ? i : 0];
     }else{
-        last = data[0];
+        last = data[data.length - 1440*3];
     }
 
     chart_usd = areaChart('usd_profit', 'USD Profit',
         data.map(function(a){return [a[0], 100*(a[1] - last[1])/(last[1])]}),
         data.map(function(a){return [a[0], 100*((a[1]/a[3]) - (last[1]/last[3]))/(last[1]/last[3])]}),
         data.map(function(a){return [a[0], 100*(a[3] - last[3])/(last[3])]}),
-        data.map(function(a){return [a[0], 100*((((a[1]/a[3]) - (last[1]/last[3]))/(last[1]/last[3])) - (a[3] - last[3])/(last[3]))]})
+        data.map(function(a){return [a[0], 100*((a[1]/a[4]) - (last[1]/last[4]))/(last[1]/last[4])]})
     );
+
+        //data.map(function(a){return [a[0], 100*((a[1] - last[1])/last[1]) - ((a[3] - last[3])/last[3])]})
+    //);
 });
 
 $.getJSON('/account_info_rest/user_info_total/8', function (data) {
@@ -94,15 +99,17 @@ $.getJSON('/account_info_rest/user_info_total/8', function (data) {
         var i = data.length - 1440*day;
         last = data[i > 0 ? i : 0];
     }else{
-        last = data[0];
+        last = data[data.length - 1440*3];
     }
 
     chart_cny = areaChart('cny_profit', 'CNY Profit',
         data.map(function(a){return [a[0], 100*(a[1] - last[1])/(last[1])]}),
         data.map(function(a){return [a[0], 100*((a[1]/a[3]) - (last[1]/last[3]))/(last[1]/last[3])]}),
         data.map(function(a){return [a[0], 100*(a[3] - last[3])/(last[3])]}),
-        data.map(function(a){return [a[0], 100*((((a[1]/a[3]) - (last[1]/last[3]))/(last[1]/last[3])) - (a[3] - last[3])/(last[3]))]})
+        data.map(function(a){return [a[0], 100*((a[1]/a[4]) - (last[1]/last[4]))/(last[1]/last[4])]})
     );
+    //    data.map(function(a){return [a[0], 100*((((a[1]/a[3]) - (last[1]/last[3]))/(last[1]/last[3])) - (a[3] - last[3])/(last[3]))]})
+    //);
 });
 
 function getParameterByName(name) {
