@@ -7,6 +7,7 @@ import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
 
 import java.math.BigDecimal;
+import java.security.SecureRandom;
 import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -33,6 +34,8 @@ public class LevelStrategy extends BaseStrategy{
     private UserInfoService userInfoService;
     private TradeService tradeService;
     private OrderService orderService;
+
+    private SecureRandom random = new SecureRandom();
 
     private static AtomicLong positionId = new AtomicLong(System.nanoTime());
 
@@ -72,8 +75,8 @@ public class LevelStrategy extends BaseStrategy{
         if (!isBidRefused()){
             getOrderMap().get(price.subtract(spread), BID).forEach((k,v) -> {
                 v.forEach(o -> {
-                    if (o.getStatus().equals(WAIT) && (!inverse || !getOrderMap().containsAsk(o.getPositionId()))){
-                        pushWaitOrderAsync(o);
+                    if (o.getStatus().equals(WAIT) && (strategy.getId().equals(43L) || !inverse || !getOrderMap().containsAsk(o.getPositionId()))){
+                        pushWaitOrder(o);
                     }
                 });
             });
@@ -82,8 +85,8 @@ public class LevelStrategy extends BaseStrategy{
         if (!isAskRefused()){
             getOrderMap().get(price.add(spread), ASK).forEach((k,v) -> {
                 v.forEach(o -> {
-                    if (o.getStatus().equals(WAIT) && (inverse || !getOrderMap().containsBid(o.getPositionId()))){
-                        pushWaitOrderAsync(o);
+                    if (o.getStatus().equals(WAIT) && (strategy.getId().equals(43L) || inverse || !getOrderMap().containsBid(o.getPositionId()))){
+                        pushWaitOrder(o);
                     }
                 });
             });
@@ -105,20 +108,20 @@ public class LevelStrategy extends BaseStrategy{
         try {
             getOrderMap().get(price.add(getSideSpread(price)), BID, false).forEach((k,v) -> {
                 v.forEach(o -> {
-                    if (o.getStatus().equals(OPEN) && o.getOpen().compareTo(time) < 0){
+                    if (o.getStatus().equals(OPEN) && time.getTime() - o.getOpen().getTime() > 5000){
                         o.setStatus(CLOSED);
                         o.setClosed(new Date());
-                        log.info("{} CLOSED by market {} {} {}", o.getStrategyId(), scale(o.getPrice()), price, o.getType());
+                        log.info("{} CLOSED by market {} {} {} {}", o.getStrategyId(), scale(o.getPrice()), price, o.getType(), time.getTime() - o.getOpen().getTime());
                     }
                 });
             });
 
             getOrderMap().get(price.subtract(getSideSpread(price)), ASK, false).forEach((k,v) -> {
                 v.forEach(o -> {
-                    if (o.getStatus().equals(OPEN) && o.getOpen().compareTo(time) < 0){
+                    if (o.getStatus().equals(OPEN) && time.getTime() - o.getOpen().getTime() > 5000){
                         o.setStatus(CLOSED);
                         o.setClosed(new Date());
-                        log.info("{} CLOSED by market {} {} {}", o.getStrategyId(), scale(o.getPrice()), price, o.getType());
+                        log.info("{} CLOSED by market {} {} {} {}", o.getStrategyId(), scale(o.getPrice()), price, o.getType(), time.getTime() - o.getOpen().getTime());
                     }
                 });
             });
@@ -310,6 +313,11 @@ public class LevelStrategy extends BaseStrategy{
 
                         log.info("{} !!!!!!!!!!!!!!! PROFIT !!!!!!!!!!!!!!!", strategy.getId());
                     }
+                }
+
+                if (strategy.getId().equals(43L)){
+                    buyAmount = amount.multiply(BigDecimal.valueOf(1 + random.nextDouble()/( up ? 3 : 5))).setScale(3, HALF_EVEN);
+                    sellAmount = amount.multiply(BigDecimal.valueOf(1 + random.nextDouble()/(up ? 5 : 3))).setScale(3, HALF_EVEN);
                 }
 
                 Order buyOrder = new Order(strategy, positionId, strategy.getSymbolType() != null ? OPEN_LONG : BID,

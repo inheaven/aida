@@ -165,7 +165,7 @@ public class BaseStrategy {
 
                             switch (o.getSymbol()) {
                                 case "BTC/CNY":
-                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("10"))  > 0) {
+                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("20"))  > 0) {
                                         cancel = true;
                                     }
                                     break;
@@ -295,35 +295,32 @@ public class BaseStrategy {
         logOrder(order);
     }
 
+
     @SuppressWarnings("Duplicates")
-    protected Future<Order> pushWaitOrderAsync(Order order){
+    protected void pushWaitOrder(Order order){
         if (order.getStatus().equals(CREATED)){
 
             log.warn("CREATED already");
-            return null;
+            return;
         }
 
         order.setStatus(CREATED);
         order.setCreated(new Date());
 
-        return executorService.submit(() -> {
-            try {
-                orderService.createOrder(strategy.getAccount(), order);
+        try {
+            orderService.createOrder(strategy.getAccount(), order);
 
-                if (order.getStatus().equals(OPEN)){
-                    orderMap.update(order);
-                    orderMapper.asyncSave(order);
-                }
-
-                logOrder(order);
-            } catch (Exception e) {
-                orderMap.remove(order.getInternalId());
-
-                log.error("error create order -> {}", order, e);
+            if (order.getStatus().equals(OPEN)){
+                orderMap.update(order);
+                orderMapper.asyncSave(order);
             }
 
-            return order;
-        });
+            logOrder(order);
+        } catch (Exception e) {
+            orderMap.remove(order.getInternalId());
+
+            log.error("error create order -> {}", order, e);
+        }
     }
 
     protected void onOrder(Order o){
