@@ -191,8 +191,13 @@ public class BaseStrategy {
                             }
 
                             if (cancel) {
-                                o.setStatus(WAIT);
                                 orderService.cancelOrder(strategy.getAccount(), o);
+
+                                if (strategy.getSymbol().equals("BTC/CNY")){
+                                    o.setStatus(CANCELED);
+                                }else {
+                                    o.setStatus(WAIT);
+                                }
                             }
                         }
                     } catch (Exception e) {

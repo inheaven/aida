@@ -10,4 +10,8 @@
     <select id="selectTradeStdDev" parameterType="map" resultType="decimal">
         select stddev_pop(price) from trade where symbol = #{symbol} and created > date_sub(now(), INTERVAL #{minute} MINUTE);
     </select>
+
+    <select id="selectTradeStdDevPt" parameterType="map" resultType="decimal">
+        select stddev_pop(pt.price) from (select price from trade where symbol = #{symbol} order by id desc limit #{points}) pt;
+    </select>
 </mapper>

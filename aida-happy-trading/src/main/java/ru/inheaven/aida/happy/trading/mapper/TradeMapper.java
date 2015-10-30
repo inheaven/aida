@@ -15,4 +15,11 @@ public class TradeMapper extends BaseMapper<Trade> {
             put("minute", minute);
         }}) ;
     }
+
+    public BigDecimal getTradeStdDevPt(String symbol, int points){
+        return sqlSession().selectOne("selectTradeStdDevPt", new HashMap<String, Object>(){{
+            put("symbol", symbol);
+            put("points", points);
+        }}) ;
+    }
 }
