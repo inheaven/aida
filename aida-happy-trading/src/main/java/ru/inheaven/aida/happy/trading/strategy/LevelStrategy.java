@@ -220,7 +220,7 @@ public class LevelStrategy extends BaseStrategy{
         return true;
     }
 
-    private static final BigDecimal CNY_MIDDLE = BigDecimal.valueOf(42000);
+    private static final BigDecimal CNY_MIDDLE = BigDecimal.valueOf(31000);
     private static final BigDecimal USD_MIDDLE = BigDecimal.valueOf(3250);
 
     @SuppressWarnings("Duplicates")
@@ -320,8 +320,8 @@ public class LevelStrategy extends BaseStrategy{
                 }
 
                 if (vol){
-                    buyAmount = amount.multiply(BigDecimal.valueOf(1 + random.nextDouble()/( up ? 2 : 10))).setScale(3, HALF_EVEN);
-                    sellAmount = amount.multiply(BigDecimal.valueOf(1 + random.nextDouble()/(up ? 10 : 2))).setScale(3, HALF_EVEN);
+                    buyAmount = amount.multiply(BigDecimal.valueOf(1 + random.nextDouble()/( up ? 1 : 10))).setScale(3, HALF_EVEN);
+                    sellAmount = amount.multiply(BigDecimal.valueOf(1 + random.nextDouble()/(up ? 10 : 1))).setScale(3, HALF_EVEN);
                 }
 
                 Order buyOrder = new Order(strategy, positionId, strategy.getSymbolType() != null ? OPEN_LONG : BID,

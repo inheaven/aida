@@ -1,5 +1,7 @@
 package ru.inheaven.aida.happy.trading.strategy;
 
+import com.xeiam.xchange.dto.trade.OpenOrders;
+import com.xeiam.xchange.service.polling.trade.PollingTradeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
@@ -12,6 +14,7 @@ import ru.inheaven.aida.happy.trading.util.OrderMap;
 import rx.Observable;
 import rx.Subscription;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Objects;
@@ -156,6 +159,30 @@ public class BaseStrategy {
 
         }), 0, 1, MINUTES);
 
+        if (strategy.getSymbol().equals("BTC/CNY")){
+            Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+                try {
+                    PollingTradeService tradeService = xChangeService.getExchange(strategy.getAccount()).getPollingTradeService();
+
+                    OpenOrders openOrders = tradeService.getOpenOrders();
+                    openOrders.getOpenOrders().forEach(l -> {
+                        if (l.getCurrencyPair().baseSymbol.equals("BTC") &&
+                                lastPrice.get().subtract(l.getLimitPrice()).abs().compareTo(new BigDecimal("10")) > 0){
+                            try {
+                                tradeService.cancelOrder(l.getId());
+                                log.info("schedule cancel order {}", l);
+                            } catch (IOException e) {
+                                log.error("error schedule cancel order -> ", e);
+                            }
+                        }
+                    });
+
+                } catch (Exception e) {
+                    log.error("error schedule cancel order -> ", e);
+                }
+
+            }, 0, 1, MINUTES);
+        }
 
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
                 () -> orderMap.forEach((id, o) -> {
@@ -165,7 +192,7 @@ public class BaseStrategy {
 
                             switch (o.getSymbol()) {
                                 case "BTC/CNY":
-                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("20"))  > 0) {
+                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("10"))  > 0) {
                                         cancel = true;
                                     }
                                     break;
@@ -338,7 +365,7 @@ public class BaseStrategy {
 
             Order order = orderMap.get(o.getInternalId());
 
-            if (order != null){
+            if (order != null && !strategy.getSymbol().equals("BTC/CNY")){
                 order.setStatus(WAIT);
                 orderMapper.asyncSave(order);
                 logOrder(order);
