@@ -36,7 +36,7 @@ public abstract class BaseOkcoinFixService {
     private AtomicLong index = new AtomicLong(4);
 
     public void placeLimitOrder(Account account, Order order){
-        SessionID sessionID = tradeSessionId;
+        SessionID sessionID = getTradeSessionId();
 
         if (tradeSessionId2 != null && tradeSessionId3 != null && tradeSessionId4 != null) {
             switch ((int) index.incrementAndGet() % 4){
@@ -58,12 +58,16 @@ public abstract class BaseOkcoinFixService {
         okCoinApplicationTrade.placeOrder(order, sessionID);
     }
 
+    private SessionID getTradeSessionId(){
+        return tradeSessionId != null ? tradeSessionId : marketSessionId;
+    }
+
     public void cancelOrder(Account account, Order order){
-        okCoinApplicationTrade.cancelOrder(order, tradeSessionId);
+        okCoinApplicationTrade.cancelOrder(order, getTradeSessionId());
     }
 
     public void orderInfo(Order order){
-        okCoinApplicationTrade.requestOrderMassStatus(order.getOrderId(), 1, tradeSessionId);
+        okCoinApplicationTrade.requestOrderMassStatus(order.getOrderId(), 1, getTradeSessionId());
     }
 
     public Observable<Trade> getTradeObservable(){
@@ -111,6 +115,13 @@ public abstract class BaseOkcoinFixService {
             @Override
             protected void onDepth(Depth depth) {
                 depthPublishSubject.onNext(depth);
+            }
+
+            @Override
+            protected void onOrder(Order order) {
+                if (tradeSessionId == null){
+                    orderPublishSubject.onNext(order);
+                }
             }
         };
         init(okCoinApplicationMarket, marketConfig);

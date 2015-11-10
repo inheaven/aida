@@ -184,7 +184,7 @@ public class LevelStrategy extends BaseStrategy{
         }
     }
 
-    private static final BigDecimal CNY_MIN = BigDecimal.valueOf(32000);
+    private static final BigDecimal CNY_MIN = BigDecimal.valueOf(0);
     private static final BigDecimal USD_MIN = BigDecimal.valueOf(0);
 
     @SuppressWarnings("Duplicates")
@@ -202,7 +202,7 @@ public class LevelStrategy extends BaseStrategy{
         return true;
     }
 
-    private static final BigDecimal CNY_MAX = BigDecimal.valueOf(50000);
+    private static final BigDecimal CNY_MAX = BigDecimal.valueOf(100000);
     private static final BigDecimal USD_MAX = BigDecimal.valueOf(10000);
 
     @SuppressWarnings("Duplicates")
@@ -220,8 +220,8 @@ public class LevelStrategy extends BaseStrategy{
         return true;
     }
 
-    private static final BigDecimal CNY_MIDDLE = BigDecimal.valueOf(31000);
-    private static final BigDecimal USD_MIDDLE = BigDecimal.valueOf(3250);
+    private static final BigDecimal CNY_MIDDLE = BigDecimal.valueOf(4000);
+    private static final BigDecimal USD_MIDDLE = BigDecimal.valueOf(1000);
 
     @SuppressWarnings("Duplicates")
     private boolean isUpSpot(){
@@ -242,8 +242,8 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal spread = ZERO;
         BigDecimal sideSpread = getSideSpread(price);
 
-        if (strategy.getSymbol().equals("BTC/CNY")){
-            BigDecimal stdDev = tradeService.getStdDev("BTC/CNY");
+        if (strategy.getSymbol().equals("BTC/CNY") || strategy.getSymbol().equals("LTC/CNY")){
+            BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol());
 
             if (stdDev != null){
                 spread = stdDev.subtract(sideSpread).divide(BD_SQRT_TWO_PI, HALF_EVEN);
@@ -299,19 +299,21 @@ public class LevelStrategy extends BaseStrategy{
 
                     profit.set(profit.get().add(amount.multiply(spread).divide(buyPrice, 8, HALF_EVEN)));
 
-                    if (profit.get().compareTo(BD_0_002) > 0){
-                        if (strategy.getSymbol().equals("BTC/CNY")){
-                            BigDecimal ltcPrice = userInfoService.getPrice(ExchangeType.OKCOIN_CN, "LTC/CNY", null);
-                            Order ltcOrder = new Order(null, null, BID, ltcPrice.multiply(BD_1_1),
-                                    profit.get().multiply(realPrice).divide(ltcPrice, 8, HALF_EVEN));
-                            ltcOrder.setExchangeType(ExchangeType.OKCOIN_CN);
-                            ltcOrder.setInternalId(String.valueOf(System.nanoTime()));
-                            ltcOrder.setSymbol("LTC/CNY");
+                    if (profit.get().compareTo(BD_0_001) > 0){
+//                        if (strategy.getSymbol().equals("BTC/CNY")){
+//                            BigDecimal ltcPrice = userInfoService.getPrice(ExchangeType.OKCOIN_CN, "LTC/CNY", null);
+//                            Order ltcOrder = new Order(null, null, BID, ltcPrice.multiply(BD_1_1),
+//                                    profit.get().multiply(realPrice).divide(ltcPrice, 8, HALF_EVEN));
+//                            ltcOrder.setExchangeType(ExchangeType.OKCOIN_CN);
+//                            ltcOrder.setInternalId(String.valueOf(System.nanoTime()));
+//                            ltcOrder.setSymbol("LTC/CNY");
+//
+//                            orderService.createOrder(strategy.getAccount(), ltcOrder);
+//                        }else{
+//                            buyAmount = buyAmount.add(profit.get());
+//                        }
 
-                            orderService.createOrder(strategy.getAccount(), ltcOrder);
-                        }else{
-                            buyAmount = buyAmount.add(profit.get());
-                        }
+                        buyAmount = buyAmount.add(profit.get());
 
                         profit.set(ZERO);
 
@@ -320,8 +322,8 @@ public class LevelStrategy extends BaseStrategy{
                 }
 
                 if (vol){
-                    buyAmount = amount.multiply(BigDecimal.valueOf(1 + random.nextDouble()/( up ? 1 : 10))).setScale(3, HALF_EVEN);
-                    sellAmount = amount.multiply(BigDecimal.valueOf(1 + random.nextDouble()/(up ? 10 : 1))).setScale(3, HALF_EVEN);
+                    buyAmount = amount.multiply(BigDecimal.valueOf(1 + random.nextDouble()*(up ? 1 : 2))).setScale(3, HALF_EVEN);
+                    sellAmount = amount.multiply(BigDecimal.valueOf(1 + random.nextDouble()*(up ? 2 : 1))).setScale(3, HALF_EVEN);
                 }
 
                 Order buyOrder = new Order(strategy, positionId, strategy.getSymbolType() != null ? OPEN_LONG : BID,

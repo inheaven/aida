@@ -12,6 +12,6 @@ import java.util.Arrays;
 public class OkcoinFixService extends BaseOkcoinFixService {
     public OkcoinFixService() {
         super(ExchangeType.OKCOIN, "832a335b-e627-49ca-b95d-bceafe6c3815", "8FAF74E300D67DCFA080A6425182C8B7",
-                "client_market.cfg", "client_trade.cfg", "client_trade_2.cfg", "client_trade_3.cfg", "client_trade_4.cfg", Arrays.asList("LTC/USD", "BTC/USD"));
+                "client_market.cfg", null, null, null, null, Arrays.asList("LTC/USD", "BTC/USD"));
     }
 }

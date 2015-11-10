@@ -159,17 +159,27 @@ public class BaseStrategy {
 
         }), 0, 1, MINUTES);
 
-        if (strategy.getSymbol().equals("BTC/CNY")){
+        if (strategy.getSymbol().equals("BTC/CNY") || strategy.getSymbol().equals("LTC/CNY")){
             Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
                 try {
-                    PollingTradeService tradeService = xChangeService.getExchange(strategy.getAccount()).getPollingTradeService();
+                    PollingTradeService ts = xChangeService.getExchange(strategy.getAccount()).getPollingTradeService();
 
-                    OpenOrders openOrders = tradeService.getOpenOrders();
+                    BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol());
+                    BigDecimal range = stdDev != null ? stdDev.multiply(BigDecimal.valueOf(4)) : new BigDecimal("10");
+
+                    OpenOrders openOrders = ts.getOpenOrders();
                     openOrders.getOpenOrders().forEach(l -> {
-                        if (l.getCurrencyPair().baseSymbol.equals("BTC") &&
-                                lastPrice.get().subtract(l.getLimitPrice()).abs().compareTo(new BigDecimal("10")) > 0){
+                        if (l.getCurrencyPair().toString().equals(strategy.getSymbol()) &&
+                                lastPrice.get().subtract(l.getLimitPrice()).abs().compareTo(range) > 0){
                             try {
-                                tradeService.cancelOrder(l.getId());
+                                ts.cancelOrder(l.getId());
+
+                                Order order = orderMap.get(l.getId());
+
+                                if (order != null){
+                                    order.setStatus(CANCELED);
+                                }
+
                                 log.info("schedule cancel order {}", l);
                             } catch (IOException e) {
                                 log.error("error schedule cancel order -> ", e);
@@ -191,23 +201,23 @@ public class BaseStrategy {
                             boolean cancel = false;
 
                             switch (o.getSymbol()) {
-                                case "BTC/CNY":
-                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("10"))  > 0) {
-                                        cancel = true;
-                                    }
-                                    break;
-                                case "LTC/CNY'":
-                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("0.5")) > 0) {
-                                        cancel = true;
-                                    }
-                                    break;
+//                                case "BTC/CNY":
+//                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("10"))  > 0) {
+//                                        cancel = true;
+//                                    }
+//                                    break;
+//                                case "LTC/CNY'":
+//                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("0.5")) > 0) {
+//                                        cancel = true;
+//                                    }
+//                                    break;
                                 case "BTC/USD":
                                     if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("1"))  > 0) {
                                         cancel = true;
                                     }
                                     break;
                                 case "LTC/USD":
-                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("0.1")) > 0) {
+                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("0.3")) > 0) {
                                         cancel = true;
                                     }
                                     break;
@@ -363,15 +373,17 @@ public class BaseStrategy {
                 bidRefusedTime.set(System.currentTimeMillis());
             }
 
-            Order order = orderMap.get(o.getInternalId());
+            o.setOrderId(o.getInternalId());
 
-            if (order != null && !strategy.getSymbol().equals("BTC/CNY")){
-                order.setStatus(WAIT);
-                orderMapper.asyncSave(order);
-                logOrder(order);
-
-                return;
-            }
+//            Order order = orderMap.get(o.getInternalId());
+//
+//            if (order != null && !strategy.getSymbol().equals("BTC/CNY")){
+//                order.setStatus(WAIT);
+//                orderMapper.asyncSave(order);
+//                logOrder(order);
+//
+//                return;
+//            }
         }
 
         try {
@@ -445,17 +457,18 @@ public class BaseStrategy {
                 o.getAmount().setScale(3, HALF_EVEN), o.getType(), Objects.toString(o.getSymbolType(), ""));
     }
 
-    public static final BigDecimal STEP01 = new BigDecimal("0.01");
-    public static final BigDecimal STEP001 = new BigDecimal("0.001");
+    public static final BigDecimal STEP_0_01 = new BigDecimal("0.01");
+    public static final BigDecimal STEP_0_02 = new BigDecimal("0.02");
+    public static final BigDecimal STEP_0_001 = new BigDecimal("0.001");
 
     public BigDecimal getStep(){
         switch (strategy.getSymbol()){
             case "BTC/USD":
             case "BTC/CNY":
             case "LTC/CNY":
-                return STEP01;
+                return STEP_0_02;
             case "LTC/USD":
-                return STEP001;
+                return STEP_0_001;
         }
 
         return ZERO;

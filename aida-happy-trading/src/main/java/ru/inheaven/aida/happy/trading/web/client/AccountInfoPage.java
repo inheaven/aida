@@ -153,7 +153,7 @@ public class AccountInfoPage extends BasePage{
                     if (u.getAccountId() == 7){
                         handler.appendJavaScript("chart_7_ltc_price.series[0].addPoint([" +
                                 u.getCreated().getTime() + "," + u.getFuturesTotal().add(u.getSpotTotal())
-                                .subtract(BigDecimal.valueOf(6674)).divide(u.getBtcPrice(), 3, HALF_UP) + "]);");
+                                .subtract(BigDecimal.valueOf(5674)).divide(u.getBtcPrice(), 3, HALF_UP) + "]);");
                         handler.appendJavaScript("chart_7_ltc_price.series[1].addPoint([" +
                                 u.getCreated().getTime() + "," + u.getBtcPrice() + "]);");
 
@@ -193,7 +193,7 @@ public class AccountInfoPage extends BasePage{
                             if (profit != null) {
                                 if (u.getAccountId() == 7){
                                     BigDecimal valuationProfit = total.add(profit)
-                                            .subtract(BigDecimal.valueOf(6674))
+                                            .subtract(BigDecimal.valueOf(5674))
                                             .divide(BigDecimal.valueOf(100), 8, HALF_UP);
 
                                     handler.appendJavaScript("chart_" + u.getAccountId() + "_total.setTitle({text: '" +
