@@ -12,9 +12,7 @@ import java.util.Arrays;
 public class OkcoinCnFixService extends BaseOkcoinFixService {
     public OkcoinCnFixService() {
         super(ExchangeType.OKCOIN_CN, "8b8620cf-83ed-46d8-91e6-41e5eb65f44f", "DBB5E3FAA26238E9613BD73A3D4ECEDC",
-                "client_market_cn.cfg",
-                "client_trade_cn.cfg", "client_trade_cn_2.cfg", "client_trade_cn_3.cfg", "client_trade_cn_4.cfg",
-                Arrays.asList("LTC/CNY", "BTC/CNY"));
+                "client_market_cn.cfg", null, null, null, null, Arrays.asList("LTC/CNY", "BTC/CNY"));
     }
 }
 

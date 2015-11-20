@@ -37,7 +37,7 @@ public class TickPage extends HighstockPage {
 //                    handler.appendJavaScript("tick_chart.series["+(t.getOrderType().equals(OrderType.BID) ? 4 : 5 ) + "]" +
 //                            ".addPoint([" + t.getCreated().getTime() + "," +  t.getAmount() + "], false," + (count > 10000 ? "true" : "false") + ");");
 
-                    if (System.currentTimeMillis() - time > 500){
+                    if (System.currentTimeMillis() - time > 40){
                         String s;
                         while ((s = queue.poll()) != null){
                             handler.appendJavaScript(s);
