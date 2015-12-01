@@ -75,6 +75,11 @@ public class AccountInfoPage extends BasePage{
             protected void onBroadcast(WebSocketRequestHandler handler, String key, Object payload) {
                 UserInfo info = (UserInfo) payload;
 
+                //todo
+                if (info.getAccountId() == 7){
+                    return;
+                }
+
                 if (info.getAccountId() == 7 || info.getAccountId() == 8) {
                     if (FUTURES.contains(info.getCurrency())) {
 //                        handler.appendJavaScript("chart_" + info.getAccountId() + "_" + info.getCurrency().toLowerCase() +
@@ -113,31 +118,31 @@ public class AccountInfoPage extends BasePage{
                                 }
                         }
 
-                        if (usd_spot != null && btcSpot != null && ltcSpot != null){
-                            handler.appendJavaScript("chart_3d" +
-                                    ".series[1].addPoint(" + Json.createArrayBuilder()
-                                    .add(usd_spot.setScale(3, HALF_UP))
-                                    .add(btcSpot.multiply(new BigDecimal(240)).setScale(3, HALF_UP))
-                                    .add(ltcSpot.multiply(new BigDecimal(3)).setScale(3, HALF_UP))
-                                    .build().toString() + ", true)");
-
-                            usd_spot = null;
-                            ltcCnSpot = null;
-                            btcCnSpot = null;
-                        }
-
-                        if (cny_spot != null && ltcCnSpot != null && btcCnSpot != null) {
-                            handler.appendJavaScript("chart_3d_cn" +
-                                    ".series[1].addPoint(" + Json.createArrayBuilder()
-                                    .add(cny_spot.setScale(3, HALF_UP))
-                                    .add(btcCnSpot.multiply(new BigDecimal(1550)).setScale(3, HALF_UP))
-                                    .add(ltcCnSpot.multiply(new BigDecimal(20)).setScale(3, HALF_UP))
-                                    .build().toString() + ", true)");
-
-                            cny_spot = null;
-                            ltcCnSpot = null;
-                            btcCnSpot = null;
-                        }
+//                        if (usd_spot != null && btcSpot != null && ltcSpot != null){
+//                            handler.appendJavaScript("chart_3d" +
+//                                    ".series[1].addPoint(" + Json.createArrayBuilder()
+//                                    .add(usd_spot.setScale(3, HALF_UP))
+//                                    .add(btcSpot.multiply(new BigDecimal(240)).setScale(3, HALF_UP))
+//                                    .add(ltcSpot.multiply(new BigDecimal(3)).setScale(3, HALF_UP))
+//                                    .build().toString() + ", true)");
+//
+//                            usd_spot = null;
+//                            ltcCnSpot = null;
+//                            btcCnSpot = null;
+//                        }
+//
+//                        if (cny_spot != null && ltcCnSpot != null && btcCnSpot != null) {
+//                            handler.appendJavaScript("chart_3d_cn" +
+//                                    ".series[1].addPoint(" + Json.createArrayBuilder()
+//                                    .add(cny_spot.setScale(3, HALF_UP))
+//                                    .add(btcCnSpot.multiply(new BigDecimal(1550)).setScale(3, HALF_UP))
+//                                    .add(ltcCnSpot.multiply(new BigDecimal(20)).setScale(3, HALF_UP))
+//                                    .build().toString() + ", true)");
+//
+//                            cny_spot = null;
+//                            ltcCnSpot = null;
+//                            btcCnSpot = null;
+//                        }
                     }
                 }
             }
@@ -149,6 +154,11 @@ public class AccountInfoPage extends BasePage{
                 @Override
                 protected void onBroadcast(WebSocketRequestHandler handler, String key, Object payload) {
                     UserInfoTotal u = (UserInfoTotal) payload;
+
+                    //todo
+                    if (u.getAccountId() == 7){
+                        return;
+                    }
 
                     if (u.getAccountId() == 7){
                         handler.appendJavaScript("chart_7_ltc_price.series[0].addPoint([" +
@@ -170,7 +180,7 @@ public class AccountInfoPage extends BasePage{
                         BigDecimal total = u.getFuturesTotal().add(u.getSpotTotal());
 
                         handler.appendJavaScript("chart_" + u.getAccountId() + "_total.series[0].addPoint([" +
-                                u.getCreated().getTime() + "," + total.divide(u.getBtcPrice(),3, HALF_UP) + "])");
+                                u.getCreated().getTime() + "," + total.divide(u.getBtcPrice(),4, HALF_UP) + "])");
 
                         BigDecimal volume = u.getFuturesVolume().add(u.getSpotVolume()).setScale(3, HALF_UP);
 

@@ -42,7 +42,7 @@ public class TradeService {
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             stdDevMap.put("BTC/CNY", tradeMapper.getTradeStdDevPt("BTC/CNY", 10000));
 //            stdDevMap.put("LTC/CNY", tradeMapper.getTradeStdDevPt("LTC/CNY", 10000));
-        }, 0, 1, TimeUnit.SECONDS);
+        }, 0, 4, TimeUnit.SECONDS);
     }
 
     public ConnectableObservable<Trade> getTradeObservable() {

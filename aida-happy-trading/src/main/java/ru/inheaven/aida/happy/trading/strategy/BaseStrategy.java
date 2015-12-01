@@ -165,7 +165,7 @@ public class BaseStrategy {
                     PollingTradeService ts = xChangeService.getExchange(strategy.getAccount()).getPollingTradeService();
 
                     BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol());
-                    BigDecimal range = stdDev != null ? stdDev.multiply(BigDecimal.valueOf(4)) : new BigDecimal("10");
+                    BigDecimal range = stdDev != null ? stdDev.multiply(BigDecimal.valueOf(5)) : new BigDecimal("10");
 
                     OpenOrders openOrders = ts.getOpenOrders();
                     openOrders.getOpenOrders().forEach(l -> {

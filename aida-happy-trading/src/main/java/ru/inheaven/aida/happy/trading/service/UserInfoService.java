@@ -87,18 +87,18 @@ public class UserInfoService {
                 });
 
         //AVG
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(()->{
-            accountMapper.getAccounts(OKCOIN).forEach(a -> avgMap.put(a.getId(), userInfoTotalMapper.getAvgUserInfoTotal10(a.getId())));
-            accountMapper.getAccounts(OKCOIN_CN).forEach(a -> avgMap.put(a.getId(), userInfoTotalMapper.getAvgUserInfoTotal10(a.getId())));
-        }, 0, 1, TimeUnit.MINUTES);
+//        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(()->{
+//            accountMapper.getAccounts(OKCOIN).forEach(a -> avgMap.put(a.getId(), userInfoTotalMapper.getAvgUserInfoTotal10(a.getId())));
+//            accountMapper.getAccounts(OKCOIN_CN).forEach(a -> avgMap.put(a.getId(), userInfoTotalMapper.getAvgUserInfoTotal10(a.getId())));
+//        }, 0, 1, TimeUnit.MINUTES);
     }
 
     public UserInfoTotal getAvg(Long accountId){
         return avgMap.get(accountId);
     }
 
-    public void setVolume(String key, Long accountId, String symbol, BigDecimal volume){
-        valueMap.put("volume" + key + accountId + symbol, volume);
+    public void setVolume(String key, Long accountId, String currency, BigDecimal volume){
+        valueMap.put("volume" + key + accountId + currency, volume);
     }
 
     public BigDecimal getVolume(String key, Long accountId, String symbol){
@@ -144,7 +144,6 @@ public class UserInfoService {
 
                         saveFunds(account.getId(), "USD_SPOT", funds.getFree().get("usd"), funds.getFreezed().get("usd"));
                         setVolume("subtotal", account.getId(), "USD", funds.getFree().get("usd").add(funds.getFreezed().get("usd")));
-                        setVolume("subtotal_spot", account.getId(), null, funds.getFree().get("usd").add(funds.getFreezed().get("usd")));
                         setVolume("free_spot", account.getId(), null, funds.getFree().get("usd"));
                         break;
                     case OKCOIN_CN:
@@ -152,7 +151,6 @@ public class UserInfoService {
 
                         saveFunds(account.getId(), "CNY_SPOT", funds.getFree().get("cny"), funds.getFreezed().get("cny"));
                         setVolume("subtotal", account.getId(), "CNY", funds.getFree().get("cny").add(funds.getFreezed().get("cny")));
-                        setVolume("subtotal_spot", account.getId(), null, funds.getFree().get("cny").add(funds.getFreezed().get("cny")));
                         setVolume("free_spot", account.getId(), null, funds.getFree().get("cny"));
 
                         break;
@@ -162,6 +160,31 @@ public class UserInfoService {
             }
 
         }, 0, 1, TimeUnit.MINUTES);
+
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+            try {
+                OkCoinFunds funds = ((OkCoinAccountServiceRaw) xChangeService.getExchange(account)
+                        .getPollingAccountService()).getUserInfo().getInfo().getFunds();
+
+                setVolume("subtotal", account.getId(), "BTC", funds.getFree().get("btc").add(funds.getFreezed().get("btc")));
+                setVolume("subtotal", account.getId(), "LTC", funds.getFree().get("ltc").add(funds.getFreezed().get("ltc")));
+
+                switch (account.getExchangeType()){
+                    case OKCOIN:
+                        setVolume("subtotal", account.getId(), "USD", funds.getFree().get("usd").add(funds.getFreezed().get("usd")));
+                        setVolume("free_spot", account.getId(), null, funds.getFree().get("usd"));
+                        break;
+                    case OKCOIN_CN:
+                        setVolume("subtotal", account.getId(), "CNY", funds.getFree().get("cny").add(funds.getFreezed().get("cny")));
+                        setVolume("free_spot", account.getId(), null, funds.getFree().get("cny"));
+
+                        break;
+                }
+            } catch (Exception e) {
+                log.error("error user info -> ", e);
+            }
+
+        }, 0, 4, TimeUnit.SECONDS);
     }
 
     private void saveFunds(Long accountId, String currency, BigDecimal free, BigDecimal freezed){

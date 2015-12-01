@@ -31,6 +31,7 @@ function areaChart(id, title, data0, data1){
             series: [{
                 type: 'areaspline', threshold: null,
                 data: data0,
+                
                 fillColor: {
                     linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
                     stops: [
@@ -41,6 +42,7 @@ function areaChart(id, title, data0, data1){
             }, {
                 type: 'spline', threshold: null,
                 data: data1,
+                color: Highcharts.getOptions().colors[0],
                 yAxis:1,
                 fillColor: {
                     linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
@@ -119,20 +121,20 @@ $(function () {
             },
             yAxis: {
               min: 0,
-              max: 4000,
+              max: 5000,
                title: 'LTC'
             },
             xAxis: {
                 //type: 'datetime',
                 gridLineWidth: 1,
                 min: 0,
-                max: 4000,
+                max: 5000,
 
                 title:'USD'
             },
             zAxis: {
               min: 0,
-              max: 4000,
+              max: 5000,
                showFirstLabel: false,
                title:'BTC'
             },
@@ -213,18 +215,18 @@ $(function () {
             },
             yAxis: {
                 min: 0,
-                max: 60000,
+                max: 6000,
                 title: null
             },
             xAxis: {
                 //type: 'datetime',
                 min: 0,
-                max: 60000,
+                max: 6000,
                 gridLineWidth: 1
             },
             zAxis: {
                 min: 0,
-                max: 2000,
+                max: 3000,
                 showFirstLabel: false
             },
             legend: {
@@ -312,7 +314,7 @@ $(function () {
     $.getJSON('/account_info_rest/user_info_total/7', function (data) {
         chart_7_total = areaChart('total', 'BTC Total', data.map(function(a){return [a[0], a[1]/a[3]]}));
 
-        chart_7_ltc_price = areaChart('ltc_price', 'USD Profit', data.map(function(a){return [a[0], (a[1]-6674)/a[3]]}),
+        chart_7_ltc_price = areaChart('ltc_price', 'USD Profit', data.map(function(a){return [a[0], (a[1]-5674)/a[3]]}),
             data.map(function(a){return [a[0], a[3]]}));
     });
 
@@ -339,8 +341,8 @@ $(function () {
         legend: {enabled: false},
         xAxis: {type: 'datetime', minRange: 3600000, min: new Date().getTime() - 24*3600000 + offset, max: new Date().getTime() + 60000 + offset},
         yAxis: [
-            {labels: {enabled: true}, title:{text: null}, opposite: true, endOnTick:false, max: 100},
-            {labels: {enabled: true}, title:{text: null}, opposite: false, endOnTick:false, max: 6000}
+            {labels: {enabled: true}, title:{text: null}, opposite: true, endOnTick:false, max: 200},
+            {labels: {enabled: true}, title:{text: null}, opposite: false, endOnTick:false, max: 10000}
         ],
         series: [{
             type : 'column',
