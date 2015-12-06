@@ -170,8 +170,7 @@ public class AccountInfoPage extends BasePage{
                     }
                     if (u.getAccountId() == 8){
                         handler.appendJavaScript("chart_7_btc_price.series[0].addPoint([" +
-                                u.getCreated().getTime() + "," + u.getSpotTotal().subtract(BigDecimal.valueOf(21329))
-                                .divide(u.getBtcPrice(), 3, HALF_UP)+ "])");
+                                u.getCreated().getTime() + "," + u.getSpotTotal() + "])");
                         handler.appendJavaScript("chart_7_btc_price.series[1].addPoint([" +
                                 u.getCreated().getTime() + "," + u.getBtcPrice() + "])");
                     }

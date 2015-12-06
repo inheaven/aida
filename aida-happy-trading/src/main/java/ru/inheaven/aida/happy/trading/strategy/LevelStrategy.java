@@ -47,6 +47,7 @@ public class LevelStrategy extends BaseStrategy{
     private final static BigDecimal BD_2 = BigDecimal.valueOf(2);
     private static final BigDecimal BD_SQRT_TWO_PI = new BigDecimal("2.506628274631000502415765284811");
     private final boolean vol;
+    private final String volType;
 
     public LevelStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                          DepthService depthService, UserInfoService userInfoService,  XChangeService xChangeService) {
@@ -70,6 +71,7 @@ public class LevelStrategy extends BaseStrategy{
         }
 
         vol = strategy.getName().contains("vol");
+        volType = strategy.getName().contains("vol_1") ? "_1" : "";
     }
 
     private void pushOrders(BigDecimal price){
@@ -238,7 +240,7 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal sideSpread = getSideSpread(price);
 
         if (strategy.getSymbol().equals("BTC/CNY") || strategy.getSymbol().equals("LTC/CNY")){
-            BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol());
+            BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol() + volType);
 
             if (stdDev != null){
                 spread = stdDev.subtract(sideSpread).divide(BD_SQRT_TWO_PI, HALF_EVEN);
@@ -317,8 +319,8 @@ public class LevelStrategy extends BaseStrategy{
                 }
 
                 if (vol){
-                    buyAmount = amount.multiply(BigDecimal.valueOf(up ? random.nextGaussian()/2 + 2 : 1)).setScale(3, HALF_EVEN);
-                    sellAmount = amount.multiply(BigDecimal.valueOf(up ? 1 : random.nextGaussian()/2 + 2)).setScale(3, HALF_EVEN);
+                    buyAmount = amount.multiply(BigDecimal.valueOf(up ? random.nextGaussian()/2 + 2 : random.nextGaussian()/2 + 1)).setScale(3, HALF_EVEN);
+                    sellAmount = amount.multiply(BigDecimal.valueOf(up ? random.nextGaussian()/2 + 1 : random.nextGaussian()/2 + 2)).setScale(3, HALF_EVEN);
 
                     if (buyAmount.compareTo(BD_0_01) < 0){
                         buyAmount = BD_0_01;

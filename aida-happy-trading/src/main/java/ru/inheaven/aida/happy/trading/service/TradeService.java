@@ -41,6 +41,8 @@ public class TradeService {
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             stdDevMap.put("BTC/CNY", tradeMapper.getTradeStdDevPt("BTC/CNY", 10000));
+            stdDevMap.put("BTC/CNY_1", tradeMapper.getTradeStdDevPt("BTC/CNY", 9000));
+            stdDevMap.put("BTC/CNY_2", tradeMapper.getTradeStdDevPt("BTC/CNY", 8000));
 //            stdDevMap.put("LTC/CNY", tradeMapper.getTradeStdDevPt("LTC/CNY", 10000));
         }, 0, 4, TimeUnit.SECONDS);
     }
