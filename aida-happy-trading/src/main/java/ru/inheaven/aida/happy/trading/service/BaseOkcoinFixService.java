@@ -207,6 +207,10 @@ public abstract class BaseOkcoinFixService {
     }
 
     private void init(OKCoinApplication application, String config){
+        if(config == null){
+            return;
+        }
+
         try {
             SessionSettings settings;
             try (InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(config)) {

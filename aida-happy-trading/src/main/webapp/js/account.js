@@ -22,7 +22,7 @@ function areaChart(id, title, data0, data1){
         return $('#'+id).highcharts('StockChart', {
             title: {text: title},
             chart: {animation: false, spacingBottom: 0},
-            tooltip: {valueDecimals: 3},
+            tooltip: {valueDecimals: 4},
             credits: {enabled: false},
             navigator: {height: 0, xAxis: {labels: {enabled: false}}},
             scrollbar: {enabled: false},
@@ -30,7 +30,7 @@ function areaChart(id, title, data0, data1){
             yAxis: [{opposite: true}, {opposite: false}],
             series: [{
                 type: 'areaspline', threshold: null,
-                data: data0,
+                data: data0,                
                 
                 fillColor: {
                     linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
@@ -91,215 +91,11 @@ $(function () {
 
     //3D
 
-    $.getJSON('/account_info_rest/3d/7', function (data) {
-        chart_3d =  $('#3d').highcharts( {
-            credits: {enabled: false},
-            title: {text: 'VOLUME', style:{"fontSize": "16px"}},
-            chart: {
-                type: 'scatter',
-                margin:55,
-                options3d: {
-                    enabled: true,
-                    alpha: 5,
-                    beta: 15,
-                    depth: 500,
-                    viewDistance: 0,
-
-                    //frame: {
-                    //    bottom: { size: 1, color: 'rgba(0,0,0,0.02)' },
-                    //    back: { size: 1, color: 'rgba(0,0,0,0.04)' },
-                    //    side: { size: 1, color: 'rgba(0,0,0,0.06)' }
-                    //}
-                }
-            },
-            plotOptions: {
-                //scatter: {
-                //    width: 100,
-                //    height: 100,
-                //    depth: 100
-                //}
-            },
-            yAxis: {
-              min: 0,
-              max: 5000,
-               title: 'LTC'
-            },
-            xAxis: {
-                //type: 'datetime',
-                gridLineWidth: 1,
-                min: 0,
-                max: 5000,
-
-                title:'USD'
-            },
-            zAxis: {
-              min: 0,
-              max: 5000,
-               showFirstLabel: false,
-               title:'BTC'
-            },
-            legend: {
-                enabled: false
-            },
-            series: [{
-                name: 'VOLUME',
-                data: data.map(function (d) {
-                    return [d[1], d[3]*245, d[2]*3]
-                }),
-                marker: {radius: 1}
-            }, {
-                name: 'VOLUME',
-                data: [[0,0,0]],
-                marker: {radius: 2, fillColor:'white'}
-            }]
-        }).highcharts();
-
-        // Add mouse events for rotation
-        $(chart_3d.container).bind('mousedown.hc touchstart.hc', function (e) {
-            e = chart_3d.pointer.normalize(e);
-
-            var posX = e.pageX,
-                posY = e.pageY,
-                alpha = chart_3d.options.chart.options3d.alpha,
-                beta = chart_3d.options.chart.options3d.beta,
-                newAlpha,
-                newBeta,
-                sensitivity = 5; // lower is more sensitive
-
-            $(document).bind({
-                'mousemove.hc touchdrag.hc': function (e) {
-                    // Run beta
-                    newBeta = beta + (posX - e.pageX) / sensitivity;
-                    chart_3d.options.chart.options3d.beta = newBeta;
-
-                    // Run alpha
-                    newAlpha = alpha + (e.pageY - posY) / sensitivity;
-                    chart_3d.options.chart.options3d.alpha = newAlpha;
-
-                    chart_3d.redraw(false);
-                },
-                'mouseup touchend': function () {
-                    $(document).unbind('.hc');
-                }
-            });
-        });
-    });
-
-    $.getJSON('/account_info_rest/3d/8', function (data) {
-        chart_3d_cn =  $('#3d_cn').highcharts( {
-            credits: {enabled: false},
-            title: {text: 'VOLUME CN', style:{"fontSize": "16px"}},
-            chart: {
-                type: 'scatter',
-                margin: 55,
-                options3d: {
-                    enabled: true,
-                    alpha: 5,
-                    beta: 15,
-                    depth: 500,
-                    viewDistance: 0,
-
-                    //frame: {
-                    //    bottom: { size: 1, color: 'rgba(0,0,0,0.02)' },
-                    //    back: { size: 1, color: 'rgba(0,0,0,0.04)' },
-                    //    side: { size: 1, color: 'rgba(0,0,0,0.06)' }
-                    //}
-                }
-            },
-            plotOptions: {
-                //scatter: {
-                //    width: 100,
-                //    height: 100,
-                //    depth: 100
-                //}
-            },
-            yAxis: {
-                min: 0,
-                max: 6000,
-                title: null
-            },
-            xAxis: {
-                //type: 'datetime',
-                min: 0,
-                max: 6000,
-                gridLineWidth: 1
-            },
-            zAxis: {
-                min: 0,
-                max: 3000,
-                showFirstLabel: false
-            },
-            legend: {
-                enabled: false
-            },
-            series: [{
-                name: 'VOLUME',
-                data: data.map(function(d){return [d[1], d[3]*1560, d[2]*20]}),
-                marker:{radius:1}
-            }, {
-                name: 'VOLUME',
-                data: [[0,0,0]],
-                marker: {radius: 2, fillColor:'white'}
-            }
-            ]
-        }).highcharts();
-
-        // Add mouse events for rotation
-        $(chart_3d_cn.container).bind('mousedown.hc touchstart.hc', function (e) {
-            e = chart_3d_cn.pointer.normalize(e);
-
-            var posX = e.pageX,
-                posY = e.pageY,
-                alpha = chart_3d_cn.options.chart.options3d.alpha,
-                beta = chart_3d_cn.options.chart.options3d.beta,
-                newAlpha,
-                newBeta,
-                sensitivity = 5; // lower is more sensitive
-
-            $(document).bind({
-                'mousemove.hc touchdrag.hc': function (e) {
-                    // Run beta
-                    newBeta = beta + (posX - e.pageX) / sensitivity;
-                    chart_3d_cn.options.chart.options3d.beta = newBeta;
-
-                    // Run alpha
-                    newAlpha = alpha + (e.pageY - posY) / sensitivity;
-                    chart_3d_cn.options.chart.options3d.alpha = newAlpha;
-
-                    chart_3d_cn.redraw(false);
-                },
-                'mouseup touchend': function () {
-                    $(document).unbind('.hc');
-                }
-            });
-        });
-    });
-
-
 
 
     
-    //USD
-
-    $.getJSON('/account_info_rest/user_info/7/LTC_SPOT', function (data) {
-        chart_7_ltc_spot = areaChart('ltc_spot', 'LTC Spot', data);
 
 
-    });
-
-    $.getJSON('/account_info_rest/user_info/7/BTC_SPOT', function (data) {
-        chart_7_btc_spot = areaChart('btc_spot', 'BTC Spot', data);
-    });
-
-    $.getJSON('/account_info_rest/user_info/7/USD_SPOT', function (data) {
-        chart_7_usd_spot = areaChart('usd_spot', 'USD Spot', data);
-    });
-    
-    //CNY
-
-    $.getJSON('/account_info_rest/user_info/8/LTC_SPOT', function (data) {
-        chart_8_ltc_spot = areaChart('ltc_spot_cn', 'LTC Spot CN', data);
-    });
 
     $.getJSON('/account_info_rest/user_info/8/BTC_SPOT', function (data) {
         chart_8_btc_spot = areaChart('btc_spot_cn', 'BTC Spot CN', data);
@@ -311,16 +107,10 @@ $(function () {
 
     //TOTAL
 
-    $.getJSON('/account_info_rest/user_info_total/7', function (data) {
-        chart_7_total = areaChart('total', 'BTC Total', data.map(function(a){return [a[0], a[1]/a[3]]}));
-
-        chart_7_ltc_price = areaChart('ltc_price', 'USD Profit', data.map(function(a){return [a[0], (a[1]-5674)/a[3]]}),
-            data.map(function(a){return [a[0], a[3]]}));
-    });
 
     $.getJSON('/account_info_rest/user_info_total/8', function (data) {
         chart_8_total = areaChart('total_cn', 'BTC Total CN', data.map(function(a){return [a[0], a[1]/a[3]]}));
-        chart_7_btc_price = areaChart('btc_price', 'CNY Profit', data.map(function(a){return [a[0], (a[1]-21329)/a[3]]}),
+        chart_7_btc_price = areaChart('btc_price', 'CNY Total', data.map(function(a){return [a[0], a[1]]}),
             data.map(function(a){return [a[0], a[3]]}));
     });
 
@@ -341,18 +131,19 @@ $(function () {
         legend: {enabled: false},
         xAxis: {type: 'datetime', minRange: 3600000, min: new Date().getTime() - 24*3600000 + offset, max: new Date().getTime() + 60000 + offset},
         yAxis: [
-            {labels: {enabled: true}, title:{text: null}, opposite: true, endOnTick:false, max: 200},
-            {labels: {enabled: true}, title:{text: null}, opposite: false, endOnTick:false, max: 10000}
+            {labels: {enabled: false}, title:{text: null}, opposite: true, endOnTick:false, max: 200, tickLength:0},
+            {labels: {enabled: true}, title:{text: null}, opposite: true, endOnTick:false, max: 50000}
         ],
         series: [{
             type : 'column',
             name: 'USD Trade Volume',
+            enabled:false,
             borderWidth:0,
             //stacking: 'normal',
             color: {
-                linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
+                linearGradient: {x1: 0, y1: 1, x2: 0, y2: 0},
                 stops: [
-                    [0, Highcharts.Color(Highcharts.getOptions().colors[4]).setOpacity(0.2).get('rgba')],
+                    [0, Highcharts.Color(Highcharts.getOptions().colors[4]).setOpacity(0).get('rgba')],
                     [1, Highcharts.getOptions().colors[4]]
                 ]
             }
@@ -365,7 +156,7 @@ $(function () {
             color: {
                 linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
                 stops: [
-                    [0, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0.2).get('rgba')],
+                    [0, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')],
                     [1, Highcharts.getOptions().colors[0]]
                 ]
             }
@@ -412,12 +203,12 @@ function hourCharts(){
     //hour(chart_7_ltc_equity);
     //hour(chart_7_btc_equity);
     hour(chart_7_btc_price);
-    hour(chart_7_ltc_price);
-    hour(chart_7_ltc_spot);
-    hour(chart_7_btc_spot);
-    hour(chart_7_usd_spot);
-    hour(chart_7_total);
-    hour(chart_8_ltc_spot);
+//    hour(chart_7_ltc_price);
+//    hour(chart_7_ltc_spot);
+//    hour(chart_7_btc_spot);
+//    hour(chart_7_usd_spot);
+//    hour(chart_7_total);
+//    hour(chart_8_ltc_spot);
     hour(chart_8_btc_spot);
     hour(chart_8_cny_spot);
     hour(chart_8_total);
@@ -427,12 +218,12 @@ function dayCharts(){
     //day(chart_7_ltc_equity);
     //day(chart_7_btc_equity);
     day(chart_7_btc_price);
-    day(chart_7_ltc_price);
-    day(chart_7_ltc_spot);
-    day(chart_7_btc_spot);
-    day(chart_7_usd_spot);
-    day(chart_7_total);
-    day(chart_8_ltc_spot);
+//    day(chart_7_ltc_price);
+//    day(chart_7_ltc_spot);
+//    day(chart_7_btc_spot);
+//    day(chart_7_usd_spot);
+//    day(chart_7_total);
+//    day(chart_8_ltc_spot);
     day(chart_8_btc_spot);
     day(chart_8_cny_spot);
     day(chart_8_total);
@@ -442,12 +233,12 @@ function weekCharts(){
     //week(chart_7_ltc_equity);
     //week(chart_7_btc_equity);
     week(chart_7_btc_price);
-    week(chart_7_ltc_price);
-    week(chart_7_ltc_spot);
-    week(chart_7_btc_spot);
-    week(chart_7_usd_spot);
-    week(chart_7_total);
-    week(chart_8_ltc_spot);
+//    week(chart_7_ltc_price);
+//    week(chart_7_ltc_spot);
+//    week(chart_7_btc_spot);
+//    week(chart_7_usd_spot);
+//    week(chart_7_total);
+//    week(chart_8_ltc_spot);
     week(chart_8_btc_spot);
     week(chart_8_cny_spot);
     week(chart_8_total);
@@ -457,12 +248,12 @@ function allCharts(){
     //all(chart_7_ltc_equity);
     //all(chart_7_btc_equity);
     all(chart_7_btc_price);
-    all(chart_7_ltc_price);
-    all(chart_7_ltc_spot);
-    all(chart_7_btc_spot);
-    all(chart_7_usd_spot);
-    all(chart_7_total);
-    all(chart_8_ltc_spot);
+//    all(chart_7_ltc_price);
+//    all(chart_7_ltc_spot);
+//    all(chart_7_btc_spot);
+//    all(chart_7_usd_spot);
+//    all(chart_7_total);
+//    all(chart_8_ltc_spot);
     all(chart_8_btc_spot);
     all(chart_8_cny_spot);
     all(chart_8_total);

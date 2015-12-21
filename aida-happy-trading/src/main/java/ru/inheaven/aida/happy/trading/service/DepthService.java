@@ -46,7 +46,7 @@ public class DepthService {
                 Depth d0 = depthMap.get(key);
 
                 if (d0 == null || d0.getAsk().compareTo(d.getAsk()) != 0 || d0.getBid().compareTo(d.getBid()) != 0){
-                    depthMapper.asyncSave(d);
+                    //depthMapper.asyncSave(d); todo
                 }
 
                 depthMap.put(key, d);

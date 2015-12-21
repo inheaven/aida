@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Objects;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -165,11 +166,11 @@ public class BaseStrategy {
                     PollingTradeService ts = xChangeService.getExchange(strategy.getAccount()).getPollingTradeService();
 
                     BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol());
-                    BigDecimal range = stdDev != null ? stdDev.multiply(BigDecimal.valueOf(5)) : new BigDecimal("10");
+                    BigDecimal range = stdDev != null ? stdDev.multiply(BigDecimal.valueOf(4)) : new BigDecimal("10");
 
                     OpenOrders openOrders = ts.getOpenOrders();
                     openOrders.getOpenOrders().forEach(l -> {
-                        if (l.getCurrencyPair().toString().equals(strategy.getSymbol()) &&
+                        if (lastPrice.get() != null && l.getCurrencyPair().toString().equals(strategy.getSymbol()) &&
                                 lastPrice.get().subtract(l.getLimitPrice()).abs().compareTo(range) > 0){
                             try {
                                 ts.cancelOrder(l.getId());
@@ -191,7 +192,7 @@ public class BaseStrategy {
                     log.error("error schedule cancel order -> ", e);
                 }
 
-            }, 0, 1, MINUTES);
+            }, new Random().nextInt(60), 60, SECONDS);
         }
 
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(

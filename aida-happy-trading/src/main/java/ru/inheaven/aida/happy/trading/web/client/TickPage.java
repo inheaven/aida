@@ -32,12 +32,12 @@ public class TickPage extends HighstockPage {
                     count++;
 
                     queue.add("tick_chart.series[" + (t.getOrderType().equals(OrderType.BID) ? 0 : 1 ) + "]" +
-                            ".addPoint([" + count + "," +  t.getPrice() + "], false, " + (count > 10000 ? "true" : "false") + ");");
+                            ".addPoint([" + count + "," +  t.getPrice() + "], false, " + (count > 3000 ? "true" : "false") + ");");
 
 //                    handler.appendJavaScript("tick_chart.series["+(t.getOrderType().equals(OrderType.BID) ? 4 : 5 ) + "]" +
 //                            ".addPoint([" + t.getCreated().getTime() + "," +  t.getAmount() + "], false," + (count > 10000 ? "true" : "false") + ");");
 
-                    if (System.currentTimeMillis() - time > 40){
+                    if (System.currentTimeMillis() - time > 250){
                         String s;
                         while ((s = queue.poll()) != null){
                             handler.appendJavaScript(s);
@@ -58,7 +58,7 @@ public class TickPage extends HighstockPage {
                     count++;
 
                     queue.add("tick_chart.series[" + ( o.getType().equals(OrderType.BID) ? 2 : 3 ) + "]" +
-                            ".addPoint([" + count + "," +  o.getAvgPrice() + "], false, "+ (count > 10000 ? "true" : "false") +");");
+                            ".addPoint([" + count + "," +  o.getAvgPrice() + "], false, "+ (count > 3000 ? "true" : "false") +");");
 //                    handler.appendJavaScript("tick_chart.series["+(o.getType().equals(OrderType.BID) ? 4 : 5 ) + "]" +
 //                            ".addPoint([" + o.getClosed().getTime() + "," +  o.getAmount() + "], false, " + (count2 > 1000 ? "true" : "false") + ");");
 

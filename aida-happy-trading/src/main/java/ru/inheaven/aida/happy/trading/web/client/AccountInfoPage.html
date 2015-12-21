@@ -8,11 +8,11 @@
         }
 
         .chart{
-            height: 255px
+            height: 333px
         }
 
         .column{
-            width: 25%
+            width: 50%
         }
 
         .reconnect{
@@ -31,8 +31,22 @@
 </wicket:head>
 <wicket:extend xmlns:wicket="http://wicket.apache.org">
     <table id="charts" style="width: 100%">
+     <tr>
+     <td class="column"><div id="btc_spot_cn" class="chart"></div></td>
+                       <td class="column"><div id="btc_price" class="chart"></div></td>     
+    
 
-        <tr>
+     </tr>
+     <tr>
+                 <td class="column"><div id="cny_spot" class="chart"></div></td>   
+
+                                    <td class="column"><div id="total_cn" class="chart"></div></td>     
+
+    
+     
+     </tr>
+
+    <!--    <tr>
             <td class="column"><div id="ltc_spot" class="chart"></div></td>
             <td class="column"><div id="btc_spot" class="chart"></div></td>
             <td class="column"><div id="usd_spot" class="chart"></div></td>
@@ -42,17 +56,18 @@
             <td class="column"><div id="ltc_price" class="chart"></div></td>
             <td class="column"><div id="3d" class="chart"></div></td>
             <td class="column"><div id="3d_cn" class="chart"></div></td>
-            <td class="column"><div id="btc_price" class="chart"></div></td>
+
         </tr>
         <tr>
-            <td class="column"><div id="ltc_spot_cn" class="chart"></div></td>
-            <td class="column"><div id="btc_spot_cn" class="chart"></div></td>
-            <td class="column"><div id="cny_spot" class="chart"></div></td>
-            <td class="column"><div id="total_cn" class="chart"></div></td>
+            <td class="column"><div id="ltc_spot_cn" class="chart"></div></td>           
+    
+    
         </tr>
+        -->
+        
         <tr>
-            <td colspan="4">
-                <div id="all_order_rate" style="height: 210px"></div>
+            <td colspan="2">
+                <div id="all_order_rate" style="height: 270px"></div>
             </td>
         </tr>
     </table>

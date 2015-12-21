@@ -16,9 +16,9 @@ public class ProfitPage extends HighstockPage {
             @Override
             protected void onBroadcast(WebSocketRequestHandler handler, String key, UserInfoTotal u) {
                 if (u.getAccountId() == 7){
-                    handler.appendJavaScript("chart_usd.setTitle({text: 'USD Net Asset " +  u.getSpotTotal().add(u.getFuturesTotal()) + "'});");
+//                    handler.appendJavaScript("chart_usd.setTitle({text: 'USD Net Asset " +  u.getSpotTotal().add(u.getFuturesTotal()) + "'});");
 
-                }else if (u.getAccountId() == 8){
+                }else if (u.getAccountId() == 9){
                     handler.appendJavaScript("chart_cny.setTitle({text: 'CNY Net Asset " +  u.getSpotTotal() + "'});");
                 }
             }

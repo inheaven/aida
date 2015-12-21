@@ -71,7 +71,18 @@ public class LevelStrategy extends BaseStrategy{
         }
 
         vol = strategy.getName().contains("vol");
-        volType = strategy.getName().contains("vol_1") ? "_1" : "";
+
+        if (strategy.getName().contains("vol_0")){
+            volType = "_0";
+        }else if (strategy.getName().contains("vol_1")){
+            volType = "_1";
+        }else if (strategy.getName().contains("vol_2")){
+            volType = "_2";
+        }else if (strategy.getName().contains("vol_3")){
+            volType = "_3";
+        }else{
+            volType = "";
+        }
     }
 
     private void pushOrders(BigDecimal price){
