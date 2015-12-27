@@ -161,7 +161,7 @@ public class UserInfoService {
 
         }, 0, 1, TimeUnit.MINUTES);
 
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             try {
                 OkCoinFunds funds = ((OkCoinAccountServiceRaw) xChangeService.getExchange(account)
                         .getPollingAccountService()).getUserInfo().getInfo().getFunds();
@@ -184,7 +184,7 @@ public class UserInfoService {
                 log.error("error user info -> ", e);
             }
 
-        }, 0, 4, TimeUnit.SECONDS);
+        }, 0, 10, TimeUnit.SECONDS);
     }
 
     private void saveFunds(Long accountId, String currency, BigDecimal free, BigDecimal freezed){
