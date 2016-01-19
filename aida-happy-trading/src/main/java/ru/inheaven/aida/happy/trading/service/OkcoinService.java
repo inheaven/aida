@@ -145,14 +145,14 @@ public class OkcoinService {
 
 
             //last order trade check
-            Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
-                long now = System.currentTimeMillis();
-
-                if (now - lastOrder > 600000 || now - lastTrade > 600000) {
-                    reconnect();
-                }
-
-            }, 0, 1, TimeUnit.MINUTES);
+//            Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+//                long now = System.currentTimeMillis();
+//
+//                if (now - lastOrder > 600000 || now - lastTrade > 600000) {
+//                    reconnect();
+//                }
+//
+//            }, 0, 1, TimeUnit.MINUTES);
 
             //success
 //            marketEndpoint.getJsonObservable().filter(j -> j.getString("success", null) != null)
