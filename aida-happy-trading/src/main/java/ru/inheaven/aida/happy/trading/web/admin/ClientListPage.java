@@ -24,9 +24,9 @@ public class ClientListPage extends BasePage {
 
     public ClientListPage() {
         add(new ListView<Client>("clients",
-                new LoadableDetachableModel<List<? extends Client>>() {
+                new LoadableDetachableModel<List<Client>>() {
                     @Override
-                    protected List<? extends Client> load() {
+                    protected List<Client> load() {
                         return clientMapper.getClients();
                     }
                 }) {

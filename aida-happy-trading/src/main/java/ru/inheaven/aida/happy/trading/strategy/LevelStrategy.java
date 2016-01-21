@@ -45,7 +45,9 @@ public class LevelStrategy extends BaseStrategy{
     private final static BigDecimal BD_0_002 = new BigDecimal("0.002");
     private final static BigDecimal BD_1_1 = new BigDecimal("1.1");
     private final static BigDecimal BD_2 = BigDecimal.valueOf(2);
-    private static final BigDecimal BD_SQRT_TWO_PI = new BigDecimal("2.506628274631000502415765284811");
+    private final static BigDecimal BD_SQRT_TWO_PI = new BigDecimal("2.506628274631000502415765284811");
+    private final static BigDecimal BD_PI = new BigDecimal(Math.PI);
+
     private final boolean vol;
     private final String volType;
 
@@ -254,7 +256,7 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol() + volType);
 
             if (stdDev != null){
-                spread = stdDev.subtract(sideSpread).divide(BD_SQRT_TWO_PI, HALF_EVEN);
+                spread = stdDev.subtract(sideSpread).divide(BD_2, HALF_EVEN);
             }
         }else {
             spread = strategy.getSymbolType() == null
@@ -330,8 +332,8 @@ public class LevelStrategy extends BaseStrategy{
                 }
 
                 if (vol){
-                    buyAmount = amount.multiply(BigDecimal.valueOf((up ?  2 : 1) * (random.nextGaussian() + 1))).setScale(3, HALF_EVEN);
-                    sellAmount = amount.multiply(BigDecimal.valueOf((up ?  1 : 2) * (random.nextGaussian() + 1))).setScale(3, HALF_EVEN);
+                    buyAmount = amount.multiply(BigDecimal.valueOf((up ? 2 : 1) + random.nextGaussian()/Math.PI)).setScale(3, HALF_EVEN);
+                    sellAmount = amount.multiply(BigDecimal.valueOf((up ? 1 : 2) + random.nextGaussian()/Math.PI)).setScale(3, HALF_EVEN);
 
                     if (buyAmount.compareTo(BD_0_01) < 0){
                         buyAmount = BD_0_01;

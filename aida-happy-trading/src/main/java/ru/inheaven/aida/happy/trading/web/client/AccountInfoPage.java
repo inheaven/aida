@@ -9,7 +9,6 @@ import org.apache.wicket.protocol.ws.api.WebSocketRequestHandler;
 import org.apache.wicket.resource.JQueryResourceReference;
 import ru.inheaven.aida.happy.trading.entity.UserInfo;
 import ru.inheaven.aida.happy.trading.entity.UserInfoTotal;
-import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.mapper.UserInfoTotalMapper;
 import ru.inheaven.aida.happy.trading.service.Module;
 import ru.inheaven.aida.happy.trading.service.UserInfoService;
@@ -193,33 +192,33 @@ public class AccountInfoPage extends BasePage{
                             }
                         }
 
-                        if (lastProfit == null || System.currentTimeMillis() - lastProfit > 600000) {
-                            lastProfit = System.currentTimeMillis();
-
-                            BigDecimal profit = Module.getInjector().getInstance(OrderMapper.class)
-                                    .getMinTradeProfit(u.getAccountId(), null, null, null);
-
-                            if (profit != null) {
-                                if (u.getAccountId() == 7){
-                                    BigDecimal valuationProfit = total.add(profit)
-                                            .subtract(BigDecimal.valueOf(5674))
-                                            .divide(BigDecimal.valueOf(100), 8, HALF_UP);
-
-                                    handler.appendJavaScript("chart_" + u.getAccountId() + "_total.setTitle({text: '" +
-                                            "USD Total " +  profit.setScale(2, HALF_UP) +
-                                            " " + valuationProfit.setScale(2, HALF_UP) + "%'});");
-
-                                }else if (u.getAccountId() == 8){
-                                    BigDecimal valuationProfit = total.add(profit)
-                                            .subtract(BigDecimal.valueOf(21329))
-                                            .divide(BigDecimal.valueOf(100), 8, HALF_UP);
-
-                                    handler.appendJavaScript("chart_" + u.getAccountId() + "_total.setTitle({text: '" +
-                                            "CNY Total " +  profit.setScale(2, HALF_UP) +
-                                            " " + valuationProfit.setScale(2, HALF_UP) + "%'});");
-                                }
-                            }
-                        }
+//                        if (lastProfit == null || System.currentTimeMillis() - lastProfit > 60000) {
+//                            lastProfit = System.currentTimeMillis();
+//
+//                            BigDecimal profit = Module.getInjector().getInstance(OrderMapper.class)
+//                                    .getMinTradeProfit(u.getAccountId(), null, new Date(Timestamp.valueOf("2015-11-16 6:00:00").getTime()), null);
+//
+//                            if (profit != null) {
+//                                if (u.getAccountId() == 7){
+//                                    BigDecimal valuationProfit = total.add(profit)
+//                                            .subtract(BigDecimal.valueOf(5674))
+//                                            .divide(BigDecimal.valueOf(100), 8, HALF_UP);
+//
+//                                    handler.appendJavaScript("chart_" + u.getAccountId() + "_total.setTitle({text: '" +
+//                                            "USD Total " +  profit.setScale(2, HALF_UP) +
+//                                            " " + valuationProfit.setScale(2, HALF_UP) + "%'});");
+//
+//                                }else if (u.getAccountId() == 8){
+//                                    BigDecimal valuationProfit = total.add(profit)
+//                                            .subtract(BigDecimal.valueOf(21329))
+//                                            .divide(BigDecimal.valueOf(100), 8, HALF_UP);
+//
+//                                    handler.appendJavaScript("chart_" + u.getAccountId() + "_total.setTitle({text: '" +
+//                                            "CNY Total " +  profit.setScale(2, HALF_UP) +
+//                                            " " + valuationProfit.setScale(2, HALF_UP) + "%'});");
+//                                }
+//                            }
+//                        }
                     }
                 }
             }
