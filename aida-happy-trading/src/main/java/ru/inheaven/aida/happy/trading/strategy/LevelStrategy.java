@@ -256,7 +256,7 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol() + volType);
 
             if (stdDev != null){
-                spread = stdDev.subtract(sideSpread).divide(BD_2, HALF_EVEN);
+                spread = stdDev.subtract(sideSpread).divide(BD_SQRT_TWO_PI, HALF_EVEN);
             }
         }else {
             spread = strategy.getSymbolType() == null
@@ -332,8 +332,8 @@ public class LevelStrategy extends BaseStrategy{
                 }
 
                 if (vol){
-                    buyAmount = amount.multiply(BigDecimal.valueOf((up ? 2 : 1) + random.nextGaussian()/Math.PI)).setScale(3, HALF_EVEN);
-                    sellAmount = amount.multiply(BigDecimal.valueOf((up ? 1 : 2) + random.nextGaussian()/Math.PI)).setScale(3, HALF_EVEN);
+                    buyAmount = amount.multiply(BigDecimal.valueOf((up ? 2 : 1) + random.nextGaussian()/Math.PI/2)).setScale(3, HALF_EVEN);
+                    sellAmount = amount.multiply(BigDecimal.valueOf((up ? 1 : 2) + random.nextGaussian()/Math.PI/2)).setScale(3, HALF_EVEN);
 
                     if (buyAmount.compareTo(BD_0_01) < 0){
                         buyAmount = BD_0_01;

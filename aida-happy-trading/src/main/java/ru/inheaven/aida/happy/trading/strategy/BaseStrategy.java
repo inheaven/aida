@@ -160,13 +160,15 @@ public class BaseStrategy {
 
         }), 0, 1, MINUTES);
 
+        Random random = new Random();
+
         if (strategy.getSymbol().equals("BTC/CNY") || strategy.getSymbol().equals("LTC/CNY")){
             Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
                 try {
                     PollingTradeService ts = xChangeService.getExchange(strategy.getAccount()).getPollingTradeService();
 
                     BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol());
-                    BigDecimal range = stdDev != null ? stdDev.multiply(BigDecimal.valueOf(4)) : new BigDecimal("10");
+                    BigDecimal range = stdDev != null ? stdDev.multiply(BigDecimal.valueOf(3)) : new BigDecimal("10");
 
                     OpenOrders openOrders = ts.getOpenOrders();
                     openOrders.getOpenOrders().forEach(l -> {
@@ -187,12 +189,12 @@ public class BaseStrategy {
                             }
                         }
                     });
-
+                    Thread.sleep(random.nextInt(60000));
                 } catch (Exception e) {
                     log.error("error schedule cancel order -> ", e);
                 }
 
-            }, new Random().nextInt(60), 60, SECONDS);
+            }, random.nextInt(60), 60, SECONDS);
         }
 
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
