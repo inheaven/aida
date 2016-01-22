@@ -17,8 +17,10 @@ import rx.subjects.Subject;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.math.BigDecimal;
+import java.security.SecureRandom;
 import java.util.Date;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -45,6 +47,8 @@ public class UserInfoService {
 
     private Map<String, BigDecimal> valueMap = new ConcurrentHashMap<>();
     private Map<Long, UserInfoTotal> avgMap = new ConcurrentHashMap<>();
+
+    private Random random = new SecureRandom();
 
     @Inject
     public UserInfoService(AccountMapper accountMapper, XChangeService xChangeService, UserInfoMapper userInfoMapper,
@@ -180,11 +184,13 @@ public class UserInfoService {
 
                         break;
                 }
+
+                Thread.sleep(random.nextInt(60000));
             } catch (Exception e) {
                 log.error("error user info -> ", e);
             }
 
-        }, 0, 10, TimeUnit.SECONDS);
+        }, 0, 5, TimeUnit.SECONDS);
     }
 
     private void saveFunds(Long accountId, String currency, BigDecimal free, BigDecimal freezed){

@@ -16,6 +16,7 @@ import rx.Subscription;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.security.SecureRandom;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Random;
@@ -62,6 +63,8 @@ public class BaseStrategy {
     private AtomicReference<BigDecimal> lastPrice = new AtomicReference<>();
     private AtomicLong askRefusedTime = new AtomicLong(System.currentTimeMillis());
     private AtomicLong bidRefusedTime = new AtomicLong(System.currentTimeMillis());
+
+    private Random random = new SecureRandom();
 
 
     public BaseStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
@@ -160,8 +163,6 @@ public class BaseStrategy {
 
         }), 0, 1, MINUTES);
 
-        Random random = new Random();
-
         if (strategy.getSymbol().equals("BTC/CNY") || strategy.getSymbol().equals("LTC/CNY")){
             Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
                 try {
@@ -194,7 +195,7 @@ public class BaseStrategy {
                     log.error("error schedule cancel order -> ", e);
                 }
 
-            }, random.nextInt(60), 60, SECONDS);
+            }, random.nextInt(30), 30, SECONDS);
         }
 
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
