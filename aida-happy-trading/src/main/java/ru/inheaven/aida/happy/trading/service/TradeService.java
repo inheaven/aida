@@ -41,13 +41,13 @@ public class TradeService {
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             stdDevMap.put("BTC/CNY_20", tradeMapper.getTradeStdDevPt("BTC/CNY", 20000));
-//            stdDevMap.put("BTC/CNY_3", tradeMapper.getTradeStdDevPt("BTC/CNY", 11000));
+            stdDevMap.put("BTC/CNY_11", tradeMapper.getTradeStdDevPt("BTC/CNY", 11000));
             stdDevMap.put("BTC/CNY_2", tradeMapper.getTradeStdDevPt("BTC/CNY", 10000));
 //            stdDevMap.put("BTC/CNY_1", tradeMapper.getTradeStdDevPt("BTC/CNY", 9000));
 //            stdDevMap.put("BTC/CNY_0", tradeMapper.getTradeStdDevPt("BTC/CNY", 8000));
 
             stdDevMap.put("BTC/CNY", stdDevMap.get("BTC/CNY_2"));
-        }, 0, 4, TimeUnit.SECONDS);
+        }, 0, 8, TimeUnit.SECONDS);
     }
 
     public ConnectableObservable<Trade> getTradeObservable() {

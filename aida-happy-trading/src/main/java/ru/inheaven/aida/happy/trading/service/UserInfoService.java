@@ -184,13 +184,11 @@ public class UserInfoService {
 
                         break;
                 }
-
-                Thread.sleep(random.nextInt(60000));
             } catch (Exception e) {
                 log.error("error user info -> ", e);
             }
 
-        }, 0, 5, TimeUnit.SECONDS);
+        }, 0, 8, TimeUnit.SECONDS);
     }
 
     private void saveFunds(Long accountId, String currency, BigDecimal free, BigDecimal freezed){
