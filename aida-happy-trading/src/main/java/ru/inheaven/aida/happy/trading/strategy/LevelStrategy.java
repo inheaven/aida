@@ -276,13 +276,14 @@ public class LevelStrategy extends BaseStrategy{
         return sideSpread.compareTo(getStep()) > 0 ? sideSpread : getStep();
     }
 
-    private int[] prime = {101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193,
-            197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307, 311, 313, 317,
-            331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439, 443, 449, 457,
-            461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541, 547, 557, 563, 569, 571, 577, 587, 593, 599, 601,
-            607, 613, 617, 619, 631, 641, 643, 647, 653, 659, 661, 673, 677, 683, 691, 701, 709, 719, 727, 733, 739, 743,
-            751, 757, 761, 769, 773, 787, 797, 809, 811, 821, 823, 827, 829, 839, 853, 857, 859, 863, 877, 881, 883, 887,
-            907, 911, 919, 929, 937, 941, 947, 953, 967, 971, 977, 983, 991, 997};
+    private final static int[] prime = {101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179,
+            181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307,
+            311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439,
+            443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541, 547, 557, 563, 569, 571, 577, 587,
+            593, 599, 601, 607, 613, 617, 619, 631, 641, 643, 647, 653, 659, 661, 673, 677, 683, 691, 701, 709, 719, 727,
+            733, 739, 743, 751, 757, 761, 769, 773, 787, 797, 809, 811, 821, 823, 827, 829, 839, 853, 857, 859, 863, 877,
+            881, 883, 887, 907, 911, 919, 929, 937, 941, 947, 953, 967, 971, 977, 983, 991, 997};
+
 
     private void action(String key, BigDecimal price, BigDecimal realPrice, OrderType orderType, int priceLevel) {
         try {
@@ -340,11 +341,22 @@ public class LevelStrategy extends BaseStrategy{
                 }
 
                 if (vol){
-                    double r1 = random.nextDouble() + 0.5;
-                    double r2 = random.nextDouble() + 1;
+                    double a = amount.doubleValue();
+                    double r1 = 4*a*random.nextDouble()/3;
+                    double r2 = 2*a*(0.33 + 2*random.nextDouble()/3);
 
-                    buyAmount = amount.multiply(BigDecimal.valueOf((up ? r2 : r1))).setScale(3, HALF_EVEN);
-                    sellAmount = amount.multiply(BigDecimal.valueOf((up ? r1 : r2))).setScale(3, HALF_EVEN);
+                    buyAmount = BigDecimal.valueOf((up ? r2 : r1)).setScale(3, HALF_EVEN);
+                    sellAmount = BigDecimal.valueOf((up ? r1 : r2)).setScale(3, HALF_EVEN);
+
+//                    int i1 = random.nextInt(2*prime.length/3);
+//                    int i2 = prime.length/3 + random.nextInt(2*prime.length/3);
+//
+//                    if (i2 >= prime.length){
+//                        i2 = prime.length - 1;
+//                    }
+//
+//                    buyAmount = new BigDecimal("0." + (up ? prime[i2] : prime[i1])).setScale(3, HALF_EVEN);
+//                    sellAmount = new BigDecimal("0." + (up ? prime[i1] : prime[i2])).setScale(3, HALF_EVEN);
 
                     if (buyAmount.compareTo(BD_0_01) < 0){
                         buyAmount = BD_0_01;

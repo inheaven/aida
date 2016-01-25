@@ -28,26 +28,26 @@ public class TickPage extends HighstockPage {
         add(new BroadcastBehavior<Trade>(TradeService.class){
             @Override
             protected void onBroadcast(WebSocketRequestHandler handler, String key, Trade t) {
-                if (t.getSymbol().equals("BTC/CNY")){
-                    count++;
-
-                    queue.add("tick_chart.series[" + (t.getOrderType().equals(OrderType.BID) ? 0 : 1 ) + "]" +
-                            ".addPoint([" + count + "," +  t.getPrice() + "], false, " + (count > 3000 ? "true" : "false") + ");");
-
-//                    handler.appendJavaScript("tick_chart.series["+(t.getOrderType().equals(OrderType.BID) ? 4 : 5 ) + "]" +
-//                            ".addPoint([" + t.getCreated().getTime() + "," +  t.getAmount() + "], false," + (count > 10000 ? "true" : "false") + ");");
-
-                    if (System.currentTimeMillis() - time > 200){
-                        String s;
-                        while ((s = queue.poll()) != null){
-                            handler.appendJavaScript(s);
-                        }
-
-                        handler.appendJavaScript("tick_chart.redraw(false);");
-
-                        time = System.currentTimeMillis();
-                    }
-                }
+//                if (t.getSymbol().equals("BTC/CNY")){
+//                    count++;
+//
+////                    queue.add("tick_chart.series[" + (t.getOrderType().equals(OrderType.BID) ? 0 : 1 ) + "]" +
+////                            ".addPoint([" + count + "," +  t.getPrice() + "], false, " + (count > 3000 ? "true" : "false") + ");");
+//
+////                    handler.appendJavaScript("tick_chart.series["+(t.getOrderType().equals(OrderType.BID) ? 4 : 5 ) + "]" +
+////                            ".addPoint([" + t.getCreated().getTime() + "," +  t.getAmount() + "], false," + (count > 10000 ? "true" : "false") + ");");
+//
+//                    if (System.currentTimeMillis() - time > 0){
+//                        String s;
+//                        while ((s = queue.poll()) != null){
+//                            handler.appendJavaScript(s);
+//                        }
+//
+//                        handler.appendJavaScript("tick_chart.redraw(false);");
+//
+//                        time = System.currentTimeMillis();
+//                    }
+//                }
             }
         });
 
@@ -57,11 +57,32 @@ public class TickPage extends HighstockPage {
                 if (key.equals("close") && o.getSymbol().equals("BTC/CNY") && o.getStatus().equals(OrderStatus.CLOSED)){
                     count++;
 
-                    queue.add("tick_chart.series[" + ( o.getType().equals(OrderType.BID) ? 2 : 3 ) + "]" +
-                            ".addPoint([" + count + "," +  o.getAvgPrice() + "], false, "+ (count > 3000 ? "true" : "false") +");");
-//                    handler.appendJavaScript("tick_chart.series["+(o.getType().equals(OrderType.BID) ? 4 : 5 ) + "]" +
-//                            ".addPoint([" + o.getClosed().getTime() + "," +  o.getAmount() + "], false, " + (count2 > 1000 ? "true" : "false") + ");");
+//                    queue.add("tick_chart.series[" + ( o.getType().equals(OrderType.BID) ? 2 : 3 ) + "]" +
+//                            ".addPoint([" + count + "," +  o.getAvgPrice() + "], false, "+ (count > 5000 ? "true" : "false") +");");
+                    double c = o.getAmount().doubleValue();
 
+                    int d = c > 0.66 ? 255 : 75;
+                    int l = c > 0.33 && c < 0.66 ? 180 : 0;
+
+                    String color = o.getType().equals(OrderType.BID)
+                            ? "rgb(" + l + " , " + d + ", " + l + ")"
+                            : "rgb(" + d + " , " + l + ", " + l + ")";
+
+                    queue.add("tick_chart.series["+(o.getType().equals(OrderType.BID) ? 0 : 0 ) + "]" +
+                            ".addPoint({y:" +  o.getAvgPrice() + ", marker: {fillColor: '"+ color +"'}}, " +
+                            "false, " + (count > 5000 ? "true" : "false") + ");");
+
+                    if (System.currentTimeMillis() - time > 40){
+                        String s;
+
+                        while ((s = queue.poll()) != null){
+                            handler.appendJavaScript(s);
+                        }
+
+                        handler.appendJavaScript("tick_chart.redraw(false);");
+
+                        time = System.currentTimeMillis();
+                    }
                 }
             }
         });
