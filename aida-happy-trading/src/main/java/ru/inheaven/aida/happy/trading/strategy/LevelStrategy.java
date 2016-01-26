@@ -45,8 +45,10 @@ public class LevelStrategy extends BaseStrategy{
     private final static BigDecimal BD_0_002 = new BigDecimal("0.002");
     private final static BigDecimal BD_1_1 = new BigDecimal("1.1");
     private final static BigDecimal BD_2 = BigDecimal.valueOf(2);
+    private final static BigDecimal BD_TWO_PI = BigDecimal.valueOf(2*Math.PI);
     private final static BigDecimal BD_SQRT_TWO_PI = new BigDecimal("2.506628274631000502415765284811");
     private final static BigDecimal BD_PI = new BigDecimal(Math.PI);
+    private final static BigDecimal BD_3_PI = new BigDecimal(3*Math.PI);
 
     private final boolean vol;
     private final String volType;
@@ -342,8 +344,8 @@ public class LevelStrategy extends BaseStrategy{
 
                 if (vol){
                     double a = amount.doubleValue();
-                    double r1 = 4*a*random.nextDouble()/3;
-                    double r2 = 2*a*(0.33 + 2*random.nextDouble()/3);
+                    double r1 = a*random.nextDouble();
+                    double r2 = a*(1 + random.nextDouble());
 
                     buyAmount = BigDecimal.valueOf((up ? r2 : r1)).setScale(3, HALF_EVEN);
                     sellAmount = BigDecimal.valueOf((up ? r1 : r2)).setScale(3, HALF_EVEN);

@@ -61,8 +61,8 @@ public class TickPage extends HighstockPage {
 //                            ".addPoint([" + count + "," +  o.getAvgPrice() + "], false, "+ (count > 5000 ? "true" : "false") +");");
                     double c = o.getAmount().doubleValue();
 
-                    int d = c > 0.66 ? 255 : 75;
-                    int l = c > 0.33 && c < 0.66 ? 180 : 0;
+                    int d = 255;
+                    int l = c < 0.15 ? 150 : 0;
 
                     String color = o.getType().equals(OrderType.BID)
                             ? "rgb(" + l + " , " + d + ", " + l + ")"
@@ -70,7 +70,7 @@ public class TickPage extends HighstockPage {
 
                     queue.add("tick_chart.series["+(o.getType().equals(OrderType.BID) ? 0 : 0 ) + "]" +
                             ".addPoint({y:" +  o.getAvgPrice() + ", marker: {fillColor: '"+ color +"'}}, " +
-                            "false, " + (count > 5000 ? "true" : "false") + ");");
+                            "false, " + (count >1500 ? "true" : "false") + ");");
 
                     if (System.currentTimeMillis() - time > 40){
                         String s;
