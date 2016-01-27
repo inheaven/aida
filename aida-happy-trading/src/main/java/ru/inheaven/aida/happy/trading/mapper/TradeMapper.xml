@@ -12,6 +12,6 @@
     </select>
 
     <select id="selectTradeStdDevPt" parameterType="map" resultType="decimal">
-        select stddev_samp(pt.price) from (select price from trade where symbol = #{symbol} order by id desc limit #{points}) pt;
+        select stddev_pop(pt.price) from (select price from trade where symbol = #{symbol} order by id desc limit #{points}) pt;
     </select>
 </mapper>

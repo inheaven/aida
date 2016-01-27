@@ -11,8 +11,8 @@ import java.util.Arrays;
 @Singleton
 public class OkcoinCnFixService extends BaseOkcoinFixService {
     public OkcoinCnFixService() {
-        super(ExchangeType.OKCOIN_CN, "a8c57680-52bb-4285-bf65-70b1d42f12b0", "81E1188B3084682F497DEF3B3EF9F740",
-                "client_market_cn.cfg", null, null, null, null, Arrays.asList("LTC/CNY", "BTC/CNY"));
+        super(ExchangeType.OKCOIN_CN, "8b8620cf-83ed-46d8-91e6-41e5eb65f44f", "DBB5E3FAA26238E9613BD73A3D4ECEDC",
+                "client_market_cn.cfg", "client_trade_cn.cfg", "client_trade_cn_2.cfg", "client_trade_cn_3.cfg", "client_trade_cn_4.cfg", Arrays.asList("LTC/CNY", "BTC/CNY"));
     }
 }
 
