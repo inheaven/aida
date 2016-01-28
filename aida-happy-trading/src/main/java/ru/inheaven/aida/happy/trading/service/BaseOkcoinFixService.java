@@ -37,25 +37,30 @@ public abstract class BaseOkcoinFixService {
 
     public void placeLimitOrder(Account account, Order order){
         SessionID sessionID = getTradeSessionId();
+        OKCoinApplication application = okCoinApplicationTrade;
 
         if (tradeSessionId2 != null && tradeSessionId3 != null && tradeSessionId4 != null) {
             switch ((int) index.incrementAndGet() % 4){
                 case 0:
                     sessionID = tradeSessionId;
+                    application = okCoinApplicationTrade;
                     break;
                 case 1:
                     sessionID = tradeSessionId2;
+                    application = okCoinApplicationTrade2;
                     break;
                 case 2:
                     sessionID = tradeSessionId3;
+                    application = okCoinApplicationTrade3;
                     break;
                 case 3:
                     sessionID = tradeSessionId4;
+                    application = okCoinApplicationTrade4;
                     break;
             }
         }
 
-        okCoinApplicationTrade.placeOrder(order, sessionID);
+        application.placeOrder(order, sessionID);
     }
 
     private SessionID getTradeSessionId(){

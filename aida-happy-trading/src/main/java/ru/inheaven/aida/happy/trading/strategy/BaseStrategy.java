@@ -419,6 +419,7 @@ public class BaseStrategy {
 
                     order.setAccountId(strategy.getAccount().getId());
                     order.setOrderId(o.getOrderId());
+                    order.setText(o.getText());
                     order.close(o);
 
                     orderMap.remove(order.getInternalId());
@@ -451,14 +452,19 @@ public class BaseStrategy {
     }
 
     private void logOrder(Order o){
-        log.info("{} {} {} {} {} {} {} {}",
-                o.getStrategyId(),o.getStatus(), o.getSymbol(),
+        log.info("{} {} {} {} {} {} {} {} {}",
+                o.getStrategyId(),
+                o.getStatus(),
+                o.getSymbol(),
                 scale(o.getAvgPrice() != null ? o.getAvgPrice() : o.getPrice()),
                 o.getAvgPrice() != null
                         ? scale(o.getType().equals(OrderType.ASK)
                         ? o.getAvgPrice().subtract(o.getPrice()) : o.getPrice().subtract(o.getAvgPrice()))
                         : scale(ZERO),
-                o.getAmount().setScale(3, HALF_EVEN), o.getType(), Objects.toString(o.getSymbolType(), ""));
+                o.getAmount().setScale(3, HALF_EVEN),
+                o.getType(),
+                Objects.toString(o.getSymbolType(), ""),
+                Objects.toString(o.getText(), ""));
     }
 
     public static final BigDecimal STEP_0_01 = new BigDecimal("0.01");
@@ -512,10 +518,10 @@ public class BaseStrategy {
     }
 
     public boolean isBidRefused(){
-        return System.currentTimeMillis() - bidRefusedTime.get() < 10000;
+        return System.currentTimeMillis() - bidRefusedTime.get() < 1000;
     }
 
     public boolean isAskRefused(){
-        return System.currentTimeMillis() - askRefusedTime.get() < 10000;
+        return System.currentTimeMillis() - askRefusedTime.get() < 1000;
     }
 }

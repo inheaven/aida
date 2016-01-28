@@ -286,6 +286,8 @@ public class LevelStrategy extends BaseStrategy{
             733, 739, 743, 751, 757, 761, 769, 773, 787, 797, 809, 811, 821, 823, 827, 829, 839, 853, 857, 859, 863, 877,
             881, 883, 887, 907, 911, 919, 929, 937, 941, 947, 953, 967, 971, 977, 983, 991, 997};
 
+    private volatile long[] actionTimes = new long[40];
+    private AtomicLong actionIndex = new AtomicLong(40);
 
     private void action(String key, BigDecimal price, BigDecimal realPrice, OrderType orderType, int priceLevel) {
         try {
@@ -299,6 +301,13 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal sellPrice = up ? priceF.add(spread) : priceF;
 
             if (!getOrderMap().contains(buyPrice, sideSpread, BID, realPrice) && !getOrderMap().contains(sellPrice, sideSpread, ASK, realPrice)){
+                //rate
+                if (System.currentTimeMillis() - actionTimes[(int) ((actionIndex.get() - 30) % 40)] < 1000){
+                    return;
+                }else {
+                    actionTimes[(int) (actionIndex.getAndIncrement() % 40)] =  System.currentTimeMillis();
+                }
+
                 log.info("{} "  + key + " {} {} {} {} {} {}", strategy.getId(), price.setScale(3, HALF_EVEN), orderType,
                         sideSpread, spread, isMinSpot(), isMaxSpot());
 
@@ -375,8 +384,10 @@ public class LevelStrategy extends BaseStrategy{
                         sellPrice, sellAmount);
 
                 if (vol) {
-                    createOrderSync(buyOrder);
-                    createOrderSync(sellOrder);
+                    if (!isBidRefused() && !isAskRefused()) {
+                        createOrderSync(buyOrder);
+                        createOrderSync(sellOrder);
+                    }
                 }else {
                     if (strategy.isLevelInverse()){
                         if (priceLevel > strategy.getLevelSize().intValue()/2){

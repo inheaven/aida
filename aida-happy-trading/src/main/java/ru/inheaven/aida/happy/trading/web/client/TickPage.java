@@ -3,15 +3,15 @@ package ru.inheaven.aida.happy.trading.web.client;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.protocol.ws.api.WebSocketRequestHandler;
-import ru.inheaven.aida.happy.trading.entity.Order;
-import ru.inheaven.aida.happy.trading.entity.OrderStatus;
-import ru.inheaven.aida.happy.trading.entity.OrderType;
-import ru.inheaven.aida.happy.trading.entity.Trade;
+import ru.inheaven.aida.happy.trading.entity.*;
+import ru.inheaven.aida.happy.trading.mapper.StrategyMapper;
+import ru.inheaven.aida.happy.trading.service.Module;
 import ru.inheaven.aida.happy.trading.service.OrderService;
 import ru.inheaven.aida.happy.trading.service.TradeService;
 import ru.inheaven.aida.happy.trading.web.HighstockPage;
 import ru.inhell.aida.common.wicket.BroadcastBehavior;
 
+import java.math.BigDecimal;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -52,6 +52,12 @@ public class TickPage extends HighstockPage {
         });
 
         add(new BroadcastBehavior<Order>(OrderService.class){
+            double amount = Module.getInjector().getInstance(StrategyMapper.class).getStrategies().stream()
+                    .filter(s -> s.getId().equals(45L))
+                    .map(Strategy::getLevelLot)
+                    .findAny()
+                    .orElse(BigDecimal.ZERO).doubleValue();
+
             @Override
             protected void onBroadcast(WebSocketRequestHandler handler, String key, Order o) {
                 if (key.equals("close") && o.getSymbol().equals("BTC/CNY") && o.getStatus().equals(OrderStatus.CLOSED)){
@@ -62,14 +68,15 @@ public class TickPage extends HighstockPage {
                     double c = o.getAmount().doubleValue();
 
                     int d = 255;
-                    int l = c < 0.15 ? 150 : 0;
+                    int l = c < amount ? 180 : 0;
+
 
                     String color = o.getType().equals(OrderType.BID)
                             ? "rgb(" + l + " , " + d + ", " + l + ")"
                             : "rgb(" + d + " , " + l + ", " + l + ")";
 
                     queue.add("tick_chart.series["+(o.getType().equals(OrderType.BID) ? 0 : 0 ) + "]" +
-                            ".addPoint({y:" +  o.getAvgPrice() + ", marker: {fillColor: '"+ color +"'}}, " +
+                            ".addPoint({x:" + o.getClosed().getTime() + ", y:" +  o.getAvgPrice() + ", marker: {fillColor: '"+ color +"'}}, " +
                             "false, " + (count >1500 ? "true" : "false") + ");");
 
                     if (System.currentTimeMillis() - time > 40){

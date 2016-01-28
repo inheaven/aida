@@ -210,6 +210,10 @@ public class OKCoinApplication extends MessageCracker implements Application {
             order.setPrice(message.getPrice().getValue());
         }
 
+		if (message.isSetText()){
+            order.setText(message.getText().getValue() + " " + sessionId.getSenderCompID());
+        }
+
         order.setAmount(message.getOrderQty().getValue());
 
         order.setType(message.getSide().getValue() == Side.BUY ? OrderType.BID : OrderType.ASK);

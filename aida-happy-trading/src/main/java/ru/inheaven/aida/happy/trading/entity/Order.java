@@ -27,6 +27,7 @@ public class Order extends AbstractEntity {
     private volatile Date open;
     private volatile Date closed;
     private volatile OrderStatus status;
+    private volatile String text;
 
     private volatile Long accountId;
 
@@ -202,6 +203,14 @@ public class Order extends AbstractEntity {
 
     public void setInternalId(String internalId) {
         this.internalId = internalId;
+    }
+
+    public String getText() {
+        return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
     }
 
     @Override
