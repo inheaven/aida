@@ -49,7 +49,7 @@ public class PerformanceTest {
 //
 //        System.out.println(System.currentTimeMillis() - time);
 
-        System.out.println(orderMap.contains(new BigDecimal("1541"), new BigDecimal("0.01"), OrderType.ASK, BigDecimal.ZERO));
+        System.out.println(orderMap.contains(new BigDecimal("1541"), new BigDecimal("0.01"), OrderType.ASK));
 
 //        time = System.currentTimeMillis();
 //        for (int i = 0; i < 1000000; ++i){

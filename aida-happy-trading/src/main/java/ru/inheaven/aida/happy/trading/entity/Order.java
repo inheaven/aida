@@ -13,21 +13,24 @@ public class Order extends AbstractEntity {
     private volatile String orderId;
     private volatile String internalId;
     private volatile Long strategyId;
-    private volatile  Long positionId;
-    private volatile  ExchangeType exchangeType;
-    private volatile  OrderType type;
-    private volatile  String symbol;
-    private volatile  SymbolType symbolType;
-    private volatile  BigDecimal price;
-    private volatile  BigDecimal amount;
-    private volatile  BigDecimal filledAmount;
-    private volatile  BigDecimal avgPrice;
-    private volatile  BigDecimal fee;
+    private volatile Long positionId;
+    private volatile ExchangeType exchangeType;
+    private volatile OrderType type;
+    private volatile String symbol;
+    private volatile SymbolType symbolType;
+    private volatile BigDecimal price;
+    private volatile BigDecimal amount;
+    private volatile BigDecimal filledAmount;
+    private volatile BigDecimal avgPrice;
+    private volatile BigDecimal fee;
     private volatile Date created;
     private volatile Date open;
     private volatile Date closed;
     private volatile OrderStatus status;
     private volatile String text;
+
+    private volatile BigDecimal buyPrice;
+    private volatile BigDecimal sellPrice;
 
     private volatile Long accountId;
 
@@ -211,6 +214,22 @@ public class Order extends AbstractEntity {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public BigDecimal getBuyPrice() {
+        return buyPrice;
+    }
+
+    public void setBuyPrice(BigDecimal buyPrice) {
+        this.buyPrice = buyPrice;
+    }
+
+    public BigDecimal getSellPrice() {
+        return sellPrice;
+    }
+
+    public void setSellPrice(BigDecimal sellPrice) {
+        this.sellPrice = sellPrice;
     }
 
     @Override

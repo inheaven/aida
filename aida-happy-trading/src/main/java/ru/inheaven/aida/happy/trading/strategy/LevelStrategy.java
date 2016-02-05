@@ -41,10 +41,12 @@ public class LevelStrategy extends BaseStrategy{
 
     private AtomicReference<BigDecimal> profit = new AtomicReference<>(ZERO);
     private final static BigDecimal BD_0_01 = new BigDecimal("0.01");
+    private final static BigDecimal BD_0_05 = new BigDecimal("0.05");
     private final static BigDecimal BD_0_001 = new BigDecimal("0.001");
     private final static BigDecimal BD_0_002 = new BigDecimal("0.002");
     private final static BigDecimal BD_1_1 = new BigDecimal("1.1");
     private final static BigDecimal BD_2 = BigDecimal.valueOf(2);
+    private final static BigDecimal BD_3 = BigDecimal.valueOf(3);
     private final static BigDecimal BD_TWO_PI = BigDecimal.valueOf(2*Math.PI);
     private final static BigDecimal BD_SQRT_TWO_PI = new BigDecimal("2.506628274631000502415765284811");
     private final static BigDecimal BD_PI = new BigDecimal(Math.PI);
@@ -90,7 +92,7 @@ public class LevelStrategy extends BaseStrategy{
     }
 
     private void pushOrders(BigDecimal price){
-        BigDecimal spread = getSpread(price);
+        BigDecimal spread = ZERO;
         boolean inverse = strategy.isLevelInverse();
 
         if (!isBidRefused()){
@@ -190,14 +192,14 @@ public class LevelStrategy extends BaseStrategy{
 
         int i = (int) (index.incrementAndGet() % strategy.getLevelSize().intValue());
 
-        action(key, price, price, orderType, 0);
+        action(key, price, orderType, 0);
 
         if (!strategy.isLevelInverse()){
-            action(key, price.add(BigDecimal.valueOf(i).multiply(sideSpread)), price, orderType, i);
-            action(key, price.subtract(sideSpread), price, orderType, -1);
+            action(key, price.add(BigDecimal.valueOf(i).multiply(sideSpread)), orderType, i);
+            action(key, price.subtract(sideSpread), orderType, -1);
         }else {
-            action(key, price.add(BigDecimal.valueOf(-i).multiply(sideSpread)), price, orderType, -i);
-            action(key, price.add(sideSpread), price, orderType, 1);
+            action(key, price.add(BigDecimal.valueOf(-i).multiply(sideSpread)), orderType, -i);
+            action(key, price.add(sideSpread),  orderType, 1);
         }
     }
 
@@ -244,10 +246,14 @@ public class LevelStrategy extends BaseStrategy{
     private boolean isUpSpot(){
         String[] symbol = strategy.getSymbol().split("/");
 
-        BigDecimal base = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[0]);
-        BigDecimal counter = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[1]);
+        BigDecimal free = userInfoService.getVolume("free", strategy.getAccount().getId(), symbol[0]);
+        BigDecimal net = userInfoService.getVolume("net", strategy.getAccount().getId(), null);
 
-        return counter.divide(base.multiply(lastTrade), 8, HALF_EVEN).compareTo(BD_2) > 0;
+        if (lastTrade.equals(ZERO) || net.equals(ZERO) || free.equals(ZERO)){
+            throw new RuntimeException("up spot data loading");
+        }
+
+        return net.compareTo(free.multiply(lastTrade)) > 0;
     }
 
     private BigDecimal getSpread(BigDecimal price){
@@ -258,7 +264,7 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol() + volType);
 
             if (stdDev != null){
-                spread = stdDev.subtract(sideSpread).divide(BD_PI, HALF_EVEN);
+                spread = stdDev.subtract(sideSpread).divide(BD_SQRT_TWO_PI, HALF_EVEN);
             }
         }else {
             spread = strategy.getSymbolType() == null
@@ -286,27 +292,25 @@ public class LevelStrategy extends BaseStrategy{
             733, 739, 743, 751, 757, 761, 769, 773, 787, 797, 809, 811, 821, 823, 827, 829, 839, 853, 857, 859, 863, 877,
             881, 883, 887, 907, 911, 919, 929, 937, 941, 947, 953, 967, 971, 977, 983, 991, 997};
 
-    private volatile long[] actionTimes = new long[40];
-    private AtomicLong actionIndex = new AtomicLong(40);
+    private AtomicLong actionTime = new AtomicLong(System.currentTimeMillis());
 
-    private void action(String key, BigDecimal price, BigDecimal realPrice, OrderType orderType, int priceLevel) {
+    private void action(String key, BigDecimal price, OrderType orderType, int priceLevel) {
         try {
             boolean up = isUpSpot();
 
-            BigDecimal priceF = scale(up ? price.add(getStep()) : price.subtract(getStep()));
+            BigDecimal priceF = scale(up ? price : price);
             BigDecimal spread = scale(getSpread(priceF));
             BigDecimal sideSpread = vol ? spread : scale(getSideSpread(priceF));
 
             BigDecimal buyPrice = up ? priceF : priceF.subtract(spread);
             BigDecimal sellPrice = up ? priceF.add(spread) : priceF;
 
-            if (!getOrderMap().contains(buyPrice, sideSpread, BID, realPrice) && !getOrderMap().contains(sellPrice, sideSpread, ASK, realPrice)){
+            if (!getOrderMap().contains(buyPrice, sideSpread, BID) && !getOrderMap().contains(sellPrice, sideSpread, ASK)){
                 //rate
-                if (System.currentTimeMillis() - actionTimes[(int) ((actionIndex.get() - 30) % 40)] < 1000){
+                if (System.currentTimeMillis() - actionTime.get() < 10){
                     return;
-                }else {
-                    actionTimes[(int) (actionIndex.getAndIncrement() % 40)] =  System.currentTimeMillis();
                 }
+                actionTime.set(System.currentTimeMillis());
 
                 log.info("{} "  + key + " {} {} {} {} {} {}", strategy.getId(), price.setScale(3, HALF_EVEN), orderType,
                         sideSpread, spread, isMinSpot(), isMaxSpot());
@@ -326,48 +330,15 @@ public class LevelStrategy extends BaseStrategy{
                 if (strategy.getSymbolType() == null){
                     buyAmount = amount;
                     sellAmount = amount;
-
-//                    profit.set(profit.get().add(amount.multiply(spread).divide(buyPrice, 8, HALF_EVEN)));
-//
-//                    if (profit.get().compareTo(BD_0_002) > 0){
-////                        if (strategy.getSymbol().equals("BTC/CNY")){
-////                            BigDecimal ltcPrice = userInfoService.getPrice(ExchangeType.OKCOIN_CN, "LTC/CNY", null);
-////                            Order ltcOrder = new Order(null, null, BID, ltcPrice.multiply(BD_1_1),
-////                                    profit.get().multiply(realPrice).divide(ltcPrice, 8, HALF_EVEN));
-////                            ltcOrder.setExchangeType(ExchangeType.OKCOIN_CN);
-////                            ltcOrder.setInternalId(String.valueOf(System.nanoTime()));
-////                            ltcOrder.setSymbol("LTC/CNY");
-////
-////                            orderService.createOrder(strategy.getAccount(), ltcOrder);
-////                        }else{
-////                            buyAmount = buyAmount.add(profit.get());
-////                        }
-//
-//                        buyAmount = buyAmount.add(profit.get());
-//
-//                        profit.set(ZERO);
-//
-//                        log.info("{} !!!!!!!!!!!!!!! PROFIT !!!!!!!!!!!!!!!", strategy.getId());
-//                    }
                 }
 
                 if (vol){
                     double a = amount.doubleValue();
-                    double r1 = a*random.nextDouble();
-                    double r2 = a*(1 + random.nextDouble());
+                    double r1 = a*(1.33*random.nextDouble());
+                    double r2 = a*(0.66 + 1.33*random.nextDouble());
 
                     buyAmount = BigDecimal.valueOf((up ? r2 : r1)).setScale(3, HALF_EVEN);
                     sellAmount = BigDecimal.valueOf((up ? r1 : r2)).setScale(3, HALF_EVEN);
-
-//                    int i1 = random.nextInt(2*prime.length/3);
-//                    int i2 = prime.length/3 + random.nextInt(2*prime.length/3);
-//
-//                    if (i2 >= prime.length){
-//                        i2 = prime.length - 1;
-//                    }
-//
-//                    buyAmount = new BigDecimal("0." + (up ? prime[i2] : prime[i1])).setScale(3, HALF_EVEN);
-//                    sellAmount = new BigDecimal("0." + (up ? prime[i1] : prime[i2])).setScale(3, HALF_EVEN);
 
                     if (buyAmount.compareTo(BD_0_01) < 0){
                         buyAmount = BD_0_01;

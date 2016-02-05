@@ -170,8 +170,12 @@ public class UserInfoService {
                 OkCoinFunds funds = ((OkCoinAccountServiceRaw) xChangeService.getExchange(account)
                         .getPollingAccountService()).getUserInfo().getInfo().getFunds();
 
+                setVolume("free", account.getId(), "BTC", funds.getFree().get("btc"));
+                setVolume("free", account.getId(), "LTC", funds.getFree().get("ltc"));
                 setVolume("subtotal", account.getId(), "BTC", funds.getFree().get("btc").add(funds.getFreezed().get("btc")));
                 setVolume("subtotal", account.getId(), "LTC", funds.getFree().get("ltc").add(funds.getFreezed().get("ltc")));
+                setVolume("total", account.getId(), null, funds.getAsset().get("total"));
+                setVolume("net", account.getId(), null, funds.getAsset().get("net"));
 
                 switch (account.getExchangeType()){
                     case OKCOIN:
@@ -181,7 +185,6 @@ public class UserInfoService {
                     case OKCOIN_CN:
                         setVolume("subtotal", account.getId(), "CNY", funds.getFree().get("cny").add(funds.getFreezed().get("cny")));
                         setVolume("free_spot", account.getId(), null, funds.getFree().get("cny"));
-
                         break;
                 }
 
@@ -190,7 +193,7 @@ public class UserInfoService {
                 log.error("error user info -> ", e);
             }
 
-        }, 0, 60, TimeUnit.SECONDS);
+        }, 0, 30, TimeUnit.SECONDS);
     }
 
     private void saveFunds(Long accountId, String currency, BigDecimal free, BigDecimal freezed){

@@ -31,6 +31,7 @@ import static java.math.RoundingMode.HALF_EVEN;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.*;
+import static ru.inheaven.aida.happy.trading.entity.OrderType.BID;
 
 /**
  * @author inheaven on 002 02.07.15 16:43
@@ -66,6 +67,10 @@ public class BaseStrategy {
 
     private Random random = new SecureRandom();
 
+    private AtomicReference<BigDecimal> buyPrice = new AtomicReference<>();
+    private AtomicReference<BigDecimal> buyVolume = new AtomicReference<>();
+    private AtomicReference<BigDecimal> sellPrice = new AtomicReference<>();
+    private AtomicReference<BigDecimal> sellVolume = new AtomicReference<>();
 
     public BaseStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                         DepthService depthService,  XChangeService xChangeService) {
@@ -83,6 +88,11 @@ public class BaseStrategy {
         orderMap = new OrderMap(getScale(strategy.getSymbol()));
 
         orderMapper.getOpenOrders(strategy.getId()).forEach(o -> orderMap.put(o));
+
+        buyPrice.set(ZERO);
+        buyVolume.set(ZERO);
+        sellPrice.set(ZERO);
+        sellVolume.set(ZERO);
     }
 
     protected Observable<Order> createOrderObservable(){
@@ -169,7 +179,7 @@ public class BaseStrategy {
                     PollingTradeService ts = xChangeService.getExchange(strategy.getAccount()).getPollingTradeService();
 
                     BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol());
-                    BigDecimal range = stdDev != null ? stdDev.multiply(BigDecimal.valueOf(5)) : new BigDecimal("10");
+                    BigDecimal range = stdDev != null ? stdDev.multiply(BigDecimal.valueOf(3)) : new BigDecimal("10");
 
                     OpenOrders openOrders = ts.getOpenOrders();
                     openOrders.getOpenOrders().forEach(l -> {
@@ -369,7 +379,7 @@ public class BaseStrategy {
         }
     }
 
-    protected void onOrder(Order o){
+    private void onOrder(Order o){
         if (o.getOrderId() != null && o.getOrderId().contains("refused")){
             if (o.getType().equals(OrderType.ASK)){
                 askRefusedTime.set(System.currentTimeMillis());
@@ -378,16 +388,6 @@ public class BaseStrategy {
             }
 
             o.setOrderId(o.getInternalId());
-
-//            Order order = orderMap.get(o.getInternalId());
-//
-//            if (order != null && !strategy.getSymbol().equals("BTC/CNY")){
-//                order.setStatus(WAIT);
-//                orderMapper.asyncSave(order);
-//                logOrder(order);
-//
-//                return;
-//            }
         }
 
         try {
@@ -428,6 +428,7 @@ public class BaseStrategy {
                     orderMapper.asyncSave(order);
 
                     logOrder(order);
+                    calculateAverage(order);
                     onCloseOrder(order);
                     orderService.onCloseOrder(order);
                 }
@@ -451,20 +452,46 @@ public class BaseStrategy {
         }
     }
 
+    private void calculateAverage(Order order){
+        if (CLOSED.equals(order.getStatus())){
+            BigDecimal price = order.getAvgPrice() != null ? order.getAvgPrice() : order.getPrice();
+
+            if (BID.equals(order.getType())){
+                BigDecimal bv = buyVolume.get();
+                buyVolume.set(order.getAmount().add(bv));
+                buyPrice.set(buyPrice.get().multiply(bv).add(price.multiply(order.getAmount()))
+                        .divide(order.getAmount().add(bv), 8, HALF_EVEN));
+            } else{
+                BigDecimal sv = sellVolume.get();
+                sellVolume.set(order.getAmount().add(sv));
+                sellPrice.set(sellPrice.get().multiply(sv).add(price.multiply(order.getAmount()))
+                        .divide(order.getAmount().add(sv), 8, HALF_EVEN));
+            }
+
+            order.setBuyPrice(buyPrice.get());
+            order.setSellPrice(sellPrice.get());
+        }
+    }
+
     private void logOrder(Order o){
-        log.info("{} {} {} {} {} {} {} {} {}",
+        log.info("{} {} {} {} {} {} {} {} {} {} {} {} {}",
                 o.getStrategyId(),
                 o.getStatus(),
                 o.getSymbol(),
                 scale(o.getAvgPrice() != null ? o.getAvgPrice() : o.getPrice()),
-                o.getAvgPrice() != null
-                        ? scale(o.getType().equals(OrderType.ASK)
-                        ? o.getAvgPrice().subtract(o.getPrice()) : o.getPrice().subtract(o.getAvgPrice()))
-                        : scale(ZERO),
+//                o.getAvgPrice() != null
+//                        ? scale(o.getType().equals(OrderType.ASK)
+//                        ? o.getAvgPrice().subtract(o.getPrice()) : o.getPrice().subtract(o.getAvgPrice()))
+//                        : scale(ZERO),
                 o.getAmount().setScale(3, HALF_EVEN),
                 o.getType(),
-                Objects.toString(o.getSymbolType(), ""),
-                Objects.toString(o.getText(), ""));
+                scale(buyPrice.get()),
+                scale(sellPrice.get()),
+                sellPrice.get().subtract(buyPrice.get()).setScale(3, HALF_EVEN),
+                buyVolume.get().setScale(3, HALF_EVEN),
+                sellVolume.get().setScale(3, HALF_EVEN),
+                Objects.toString(o.getText(), ""),
+                Objects.toString(o.getSymbolType(), ""));
     }
 
     public static final BigDecimal STEP_0_01 = new BigDecimal("0.01");
@@ -523,5 +550,13 @@ public class BaseStrategy {
 
     public boolean isAskRefused(){
         return System.currentTimeMillis() - askRefusedTime.get() < 1000;
+    }
+
+    public AtomicReference<BigDecimal> getSellPrice() {
+        return sellPrice;
+    }
+
+    public AtomicReference<BigDecimal> getBuyPrice() {
+        return buyPrice;
     }
 }
