@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static java.math.BigDecimal.*;
 import static java.math.RoundingMode.HALF_EVEN;
+import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.*;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.*;
 
@@ -47,10 +48,11 @@ public class LevelStrategy extends BaseStrategy{
     private final static BigDecimal BD_1_1 = new BigDecimal("1.1");
     private final static BigDecimal BD_2 = BigDecimal.valueOf(2);
     private final static BigDecimal BD_3 = BigDecimal.valueOf(3);
+    private final static BigDecimal BD_4 = BigDecimal.valueOf(4);
+    private final static BigDecimal BD_5 = BigDecimal.valueOf(5);
     private final static BigDecimal BD_TWO_PI = BigDecimal.valueOf(2*Math.PI);
     private final static BigDecimal BD_SQRT_TWO_PI = new BigDecimal("2.506628274631000502415765284811");
     private final static BigDecimal BD_PI = new BigDecimal(Math.PI);
-    private final static BigDecimal BD_3_PI = new BigDecimal(3*Math.PI);
 
     private final boolean vol;
     private final String volType;
@@ -78,7 +80,11 @@ public class LevelStrategy extends BaseStrategy{
 
         vol = strategy.getName().contains("vol");
 
-        if (strategy.getName().contains("vol_0")){
+        if (strategy.getName().contains("vol_10")){
+            volType = "_10";
+        }else if (strategy.getName().contains("vol_15")){
+            volType = "_15";
+        }else if (strategy.getName().contains("vol_0")){
             volType = "_0";
         }else if (strategy.getName().contains("vol_1")){
             volType = "_1";
@@ -86,6 +92,8 @@ public class LevelStrategy extends BaseStrategy{
             volType = "_2";
         }else if (strategy.getName().contains("vol_3")){
             volType = "_3";
+        }else if (strategy.getName().contains("vol_5")){
+            volType = "_5";
         }else{
             volType = "";
         }
@@ -264,7 +272,7 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol() + volType);
 
             if (stdDev != null){
-                spread = stdDev.subtract(sideSpread).divide(BD_SQRT_TWO_PI, HALF_EVEN);
+                spread = stdDev.divide(BD_SQRT_TWO_PI, HALF_UP);
             }
         }else {
             spread = strategy.getSymbolType() == null
@@ -298,7 +306,7 @@ public class LevelStrategy extends BaseStrategy{
         try {
             boolean up = isUpSpot();
 
-            BigDecimal priceF = scale(up ? price : price);
+            BigDecimal priceF = scale(up ? price.add(BD_0_05) : price.subtract(BD_0_05));
             BigDecimal spread = scale(getSpread(priceF));
             BigDecimal sideSpread = vol ? spread : scale(getSideSpread(priceF));
 

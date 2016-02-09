@@ -43,8 +43,6 @@ public class TradeService {
             stdDevMap.put("BTC/CNY_5", tradeMapper.getTradeStdDev("BTC/CNY", 5));
             stdDevMap.put("BTC/CNY_10", tradeMapper.getTradeStdDev("BTC/CNY", 10));
             stdDevMap.put("BTC/CNY_15", tradeMapper.getTradeStdDev("BTC/CNY", 15));
-//            stdDevMap.put("BTC/CNY_1", tradeMapper.getTradeStdDevPt("BTC/CNY", 9000));
-//            stdDevMap.put("BTC/CNY_0", tradeMapper.getTradeStdDevPt("BTC/CNY", 8000));
 
             stdDevMap.put("BTC/CNY", stdDevMap.get("BTC/CNY_5"));
         }, 0, 1, TimeUnit.SECONDS);
