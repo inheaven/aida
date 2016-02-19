@@ -40,11 +40,12 @@ public class TradeService {
         tradeObservable.subscribe(t -> broadcastService.broadcast(getClass(), "trade", t));
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
-            stdDevMap.put("BTC/CNY_5", tradeMapper.getTradeStdDev("BTC/CNY", 5));
-            stdDevMap.put("BTC/CNY_10", tradeMapper.getTradeStdDev("BTC/CNY", 10));
-            stdDevMap.put("BTC/CNY_15", tradeMapper.getTradeStdDev("BTC/CNY", 15));
+            stdDevMap.put("BTC/CNY_0", tradeMapper.getTradeStdDevPt("BTC/CNY", 10000));
+            stdDevMap.put("BTC/CNY_1", tradeMapper.getTradeStdDevPt("BTC/CNY", 20000));
+            stdDevMap.put("BTC/CNY_2", tradeMapper.getTradeStdDevPt("BTC/CNY", 30000));
+            stdDevMap.put("BTC/CNY_3", tradeMapper.getTradeStdDevPt("BTC/CNY", 40000));
 
-            stdDevMap.put("BTC/CNY", stdDevMap.get("BTC/CNY_5"));
+            stdDevMap.put("BTC/CNY", stdDevMap.get("BTC/CNY_0"));
         }, 0, 1, TimeUnit.SECONDS);
     }
 

@@ -72,6 +72,9 @@ public class BaseStrategy {
     private AtomicReference<BigDecimal> sellPrice = new AtomicReference<>();
     private AtomicReference<BigDecimal> sellVolume = new AtomicReference<>();
 
+    private final boolean vol;
+    private final String volSuffix;
+
     public BaseStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                         DepthService depthService,  XChangeService xChangeService) {
         this.strategy = strategy;
@@ -93,6 +96,28 @@ public class BaseStrategy {
         buyVolume.set(ZERO);
         sellPrice.set(ZERO);
         sellVolume.set(ZERO);
+
+        vol = strategy.getName().contains("vol");
+
+        if (strategy.getName().contains("vol_0")){
+            volSuffix = "_0";
+        }else if (strategy.getName().contains("vol_1")){
+            volSuffix = "_1";
+        }else if (strategy.getName().contains("vol_2")){
+            volSuffix = "_2";
+        }else if (strategy.getName().contains("vol_3")){
+            volSuffix = "_3";
+        }else{
+            volSuffix = "";
+        }
+    }
+
+    public boolean isVol() {
+        return vol;
+    }
+
+    public String getVolSuffix() {
+        return volSuffix;
     }
 
     protected Observable<Order> createOrderObservable(){
@@ -178,7 +203,7 @@ public class BaseStrategy {
                 try {
                     PollingTradeService ts = xChangeService.getExchange(strategy.getAccount()).getPollingTradeService();
 
-                    BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol());
+                    BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol() + getVolSuffix());
                     BigDecimal range = stdDev != null ? stdDev.multiply(BigDecimal.valueOf(3)) : new BigDecimal("10");
 
                     OpenOrders openOrders = ts.getOpenOrders();
@@ -205,7 +230,7 @@ public class BaseStrategy {
                     log.error("error schedule cancel order -> ", e);
                 }
 
-            }, random.nextInt(30), 30, SECONDS);
+            }, random.nextInt(30), 60, SECONDS);
         }
 
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(

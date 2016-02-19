@@ -46,6 +46,7 @@ public class LevelStrategy extends BaseStrategy{
     private final static BigDecimal BD_0_001 = new BigDecimal("0.001");
     private final static BigDecimal BD_0_002 = new BigDecimal("0.002");
     private final static BigDecimal BD_1_1 = new BigDecimal("1.1");
+    private final static BigDecimal BD_1_2 = new BigDecimal("1.2");
     private final static BigDecimal BD_2 = BigDecimal.valueOf(2);
     private final static BigDecimal BD_3 = BigDecimal.valueOf(3);
     private final static BigDecimal BD_4 = BigDecimal.valueOf(4);
@@ -53,9 +54,6 @@ public class LevelStrategy extends BaseStrategy{
     private final static BigDecimal BD_TWO_PI = BigDecimal.valueOf(2*Math.PI);
     private final static BigDecimal BD_SQRT_TWO_PI = new BigDecimal("2.506628274631000502415765284811");
     private final static BigDecimal BD_PI = new BigDecimal(Math.PI);
-
-    private final boolean vol;
-    private final String volType;
 
     public LevelStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                          DepthService depthService, UserInfoService userInfoService,  XChangeService xChangeService) {
@@ -78,25 +76,7 @@ public class LevelStrategy extends BaseStrategy{
                     });
         }
 
-        vol = strategy.getName().contains("vol");
 
-        if (strategy.getName().contains("vol_10")){
-            volType = "_10";
-        }else if (strategy.getName().contains("vol_15")){
-            volType = "_15";
-        }else if (strategy.getName().contains("vol_0")){
-            volType = "_0";
-        }else if (strategy.getName().contains("vol_1")){
-            volType = "_1";
-        }else if (strategy.getName().contains("vol_2")){
-            volType = "_2";
-        }else if (strategy.getName().contains("vol_3")){
-            volType = "_3";
-        }else if (strategy.getName().contains("vol_5")){
-            volType = "_5";
-        }else{
-            volType = "";
-        }
     }
 
     private void pushOrders(BigDecimal price){
@@ -106,7 +86,7 @@ public class LevelStrategy extends BaseStrategy{
         if (!isBidRefused()){
             getOrderMap().get(price.subtract(spread), BID).forEach((k,v) -> {
                 v.forEach(o -> {
-                    if (o.getStatus().equals(WAIT) && (vol || !inverse || !getOrderMap().containsAsk(o.getPositionId()))){
+                    if (o.getStatus().equals(WAIT) && (isVol() || !inverse || !getOrderMap().containsAsk(o.getPositionId()))){
                         pushWaitOrder(o);
                     }
                 });
@@ -116,7 +96,7 @@ public class LevelStrategy extends BaseStrategy{
         if (!isAskRefused()){
             getOrderMap().get(price.add(spread), ASK).forEach((k,v) -> {
                 v.forEach(o -> {
-                    if (o.getStatus().equals(WAIT) && (vol || inverse || !getOrderMap().containsBid(o.getPositionId()))){
+                    if (o.getStatus().equals(WAIT) && (isVol() || inverse || !getOrderMap().containsBid(o.getPositionId()))){
                         pushWaitOrder(o);
                     }
                 });
@@ -182,7 +162,7 @@ public class LevelStrategy extends BaseStrategy{
 
             BigDecimal dequePrice = actionDeque.poll();
 
-            if (vol || (!strategy.isLevelInverse() && !isMinSpot()) || (strategy.isLevelInverse() && !isMaxSpot())) {
+            if (isVol() || (!strategy.isLevelInverse() && !isMinSpot()) || (strategy.isLevelInverse() && !isMaxSpot())) {
                 actionLevel(key, dequePrice, orderType);
                 pushOrders(dequePrice);
             }
@@ -254,14 +234,14 @@ public class LevelStrategy extends BaseStrategy{
     private boolean isUpSpot(){
         String[] symbol = strategy.getSymbol().split("/");
 
-        BigDecimal free = userInfoService.getVolume("free", strategy.getAccount().getId(), symbol[0]);
+        BigDecimal subtotal = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[0]);
         BigDecimal net = userInfoService.getVolume("net", strategy.getAccount().getId(), null);
 
-        if (lastTrade.equals(ZERO) || net.equals(ZERO) || free.equals(ZERO)){
+        if (lastTrade.equals(ZERO) || net.equals(ZERO) || subtotal.equals(ZERO)){
             throw new RuntimeException("up spot data loading");
         }
 
-        return net.compareTo(free.multiply(lastTrade)) > 0;
+        return net.multiply(BD_1_1).compareTo(subtotal.multiply(lastTrade)) > 0;
     }
 
     private BigDecimal getSpread(BigDecimal price){
@@ -269,7 +249,7 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal sideSpread = getSideSpread(price);
 
         if (strategy.getSymbol().equals("BTC/CNY") || strategy.getSymbol().equals("LTC/CNY")){
-            BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol() + volType);
+            BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol() + getVolSuffix());
 
             if (stdDev != null){
                 spread = stdDev.divide(BD_SQRT_TWO_PI, HALF_UP);
@@ -306,9 +286,9 @@ public class LevelStrategy extends BaseStrategy{
         try {
             boolean up = isUpSpot();
 
-            BigDecimal priceF = scale(up ? price.add(BD_0_05) : price.subtract(BD_0_05));
+            BigDecimal priceF = scale(up ? price.add(BD_0_01) : price.subtract(BD_0_01));
             BigDecimal spread = scale(getSpread(priceF));
-            BigDecimal sideSpread = vol ? spread : scale(getSideSpread(priceF));
+            BigDecimal sideSpread = isVol() ? spread : scale(getSideSpread(priceF));
 
             BigDecimal buyPrice = up ? priceF : priceF.subtract(spread);
             BigDecimal sellPrice = up ? priceF.add(spread) : priceF;
@@ -340,10 +320,10 @@ public class LevelStrategy extends BaseStrategy{
                     sellAmount = amount;
                 }
 
-                if (vol){
+                if (isVol()){
                     double a = amount.doubleValue();
-                    double r1 = a*(1.33*random.nextDouble());
-                    double r2 = a*(0.66 + 1.33*random.nextDouble());
+                    double r1 = a*(random.nextGaussian()/3 + 1);
+                    double r2 = a*(random.nextGaussian()/3 + 1 + Math.abs(priceLevel));
 
                     buyAmount = BigDecimal.valueOf((up ? r2 : r1)).setScale(3, HALF_EVEN);
                     sellAmount = BigDecimal.valueOf((up ? r1 : r2)).setScale(3, HALF_EVEN);
@@ -362,7 +342,7 @@ public class LevelStrategy extends BaseStrategy{
                 Order sellOrder = new Order(strategy, positionId, strategy.getSymbolType() != null ? CLOSE_LONG : ASK,
                         sellPrice, sellAmount);
 
-                if (vol) {
+                if (isVol()) {
                     if (!isBidRefused() && !isAskRefused()) {
                         createOrderSync(buyOrder);
                         createOrderSync(sellOrder);

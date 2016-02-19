@@ -1,3 +1,4 @@
+import org.testng.annotations.Test;
 import rx.observables.ConnectableObservable;
 import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
@@ -12,7 +13,7 @@ public class StrategyTest {
 
 
     public static void main(String... args){
-        test4();
+        testDivide();
     }
 
     private static void test1(){
@@ -89,6 +90,11 @@ public class StrategyTest {
         for (double spread = 0; spread < 0.05; spread += 0.001){
             System.out.println(spread + "," + (spread - (price + spread)*0.002));
         }
+    }
+
+
+    private static void testDivide(){
+        System.out.println(1 + 2 / 3);
     }
 
 }
