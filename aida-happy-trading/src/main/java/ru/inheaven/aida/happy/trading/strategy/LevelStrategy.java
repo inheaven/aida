@@ -47,6 +47,7 @@ public class LevelStrategy extends BaseStrategy{
     private final static BigDecimal BD_0_002 = new BigDecimal("0.002");
     private final static BigDecimal BD_1_1 = new BigDecimal("1.1");
     private final static BigDecimal BD_1_2 = new BigDecimal("1.2");
+    private final static BigDecimal BD_1_3 = new BigDecimal("1.3");
     private final static BigDecimal BD_2 = BigDecimal.valueOf(2);
     private final static BigDecimal BD_3 = BigDecimal.valueOf(3);
     private final static BigDecimal BD_4 = BigDecimal.valueOf(4);
@@ -230,7 +231,6 @@ public class LevelStrategy extends BaseStrategy{
     private static final BigDecimal CNY_MIDDLE = BigDecimal.valueOf(3000);
     private static final BigDecimal USD_MIDDLE = BigDecimal.valueOf(1000);
 
-    @SuppressWarnings("Duplicates")
     private boolean isUpSpot(){
         String[] symbol = strategy.getSymbol().split("/");
 
@@ -241,7 +241,7 @@ public class LevelStrategy extends BaseStrategy{
             throw new RuntimeException("up spot data loading");
         }
 
-        return net.multiply(BD_1_1).compareTo(subtotal.multiply(lastTrade)) > 0;
+        return net.multiply(BD_1_3).compareTo(subtotal.multiply(lastTrade)) > 0;
     }
 
     private BigDecimal getSpread(BigDecimal price){
@@ -252,7 +252,7 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol() + getVolSuffix());
 
             if (stdDev != null){
-                spread = stdDev.divide(BD_SQRT_TWO_PI, HALF_UP);
+                spread = stdDev.divide(BD_3, HALF_UP);
             }
         }else {
             spread = strategy.getSymbolType() == null
@@ -280,7 +280,7 @@ public class LevelStrategy extends BaseStrategy{
             733, 739, 743, 751, 757, 761, 769, 773, 787, 797, 809, 811, 821, 823, 827, 829, 839, 853, 857, 859, 863, 877,
             881, 883, 887, 907, 911, 919, 929, 937, 941, 947, 953, 967, 971, 977, 983, 991, 997};
 
-    private AtomicLong actionTime = new AtomicLong(System.currentTimeMillis());
+    private static AtomicLong actionTime = new AtomicLong(System.currentTimeMillis());
 
     private void action(String key, BigDecimal price, OrderType orderType, int priceLevel) {
         try {
@@ -294,7 +294,7 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal sellPrice = up ? priceF.add(spread) : priceF;
 
             if (!getOrderMap().contains(buyPrice, sideSpread, BID) && !getOrderMap().contains(sellPrice, sideSpread, ASK)){
-                //rate
+//               //rate
                 if (System.currentTimeMillis() - actionTime.get() < 10){
                     return;
                 }
@@ -303,11 +303,24 @@ public class LevelStrategy extends BaseStrategy{
                 log.info("{} "  + key + " {} {} {} {} {} {}", strategy.getId(), price.setScale(3, HALF_EVEN), orderType,
                         sideSpread, spread, isMinSpot(), isMaxSpot());
 
-                BigDecimal amount = strategy.getLevelLot();
 
                 if (risk.compareTo(ONE) > 0){
                     log.warn("RISK RATE {} {} {}", risk.setScale(3, HALF_EVEN), strategy.getSymbol(),
                             Objects.toString(strategy.getSymbolType(), ""));
+                }
+
+                BigDecimal amount = strategy.getLevelLot();
+
+                //avg amount
+                BigDecimal avgAmount = tradeService.getAvgAmount(strategy.getSymbol() + getVolSuffix());
+                if (avgAmount.compareTo(amount) > 0){
+                    BigDecimal x = amount.multiply(BD_2);
+
+                    if (avgAmount.compareTo(x) > 0){
+                        amount = x;
+                    }else{
+                        amount = avgAmount;
+                    }
                 }
 
                 Long positionId = LevelStrategy.positionId.incrementAndGet();

@@ -11,7 +11,11 @@ import rx.subjects.PublishSubject;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -35,61 +39,25 @@ public abstract class BaseOkcoinFixService {
 
     private AtomicLong index = new AtomicLong(4);
 
-    public void placeLimitOrder(Account account, Order order){
-        SessionID sessionID = getTradeSessionId();
-        OKCoinApplication application = okCoinApplicationTrade;
-
-        if (tradeSessionId2 != null && tradeSessionId3 != null && tradeSessionId4 != null) {
-            switch ((int) index.incrementAndGet() % 4){
-                case 0:
-                    sessionID = tradeSessionId;
-                    application = okCoinApplicationTrade;
-                    break;
-                case 1:
-                    sessionID = tradeSessionId2;
-                    application = okCoinApplicationTrade2;
-                    break;
-                case 2:
-                    sessionID = tradeSessionId3;
-                    application = okCoinApplicationTrade3;
-                    break;
-                case 3:
-                    sessionID = tradeSessionId4;
-                    application = okCoinApplicationTrade4;
-                    break;
-            }
-        }
-
-        application.placeOrder(order, sessionID);
-    }
-
-    private SessionID getTradeSessionId(){
-        return tradeSessionId != null ? tradeSessionId : marketSessionId;
-    }
-
-    public void cancelOrder(Account account, Order order){
-        okCoinApplicationTrade.cancelOrder(order, getTradeSessionId());
-    }
-
-    public void orderInfo(Order order){
-        okCoinApplicationTrade.requestOrderMassStatus(order.getOrderId(), 1, getTradeSessionId());
-    }
-
-    public Observable<Trade> getTradeObservable(){
-        return tradePublishSubject.asObservable();
-    }
-
-    public Observable<Order> getOrderObservable(){
-        return orderPublishSubject.asObservable();
-    }
-
-    public Observable<Depth> getDepthObservable(){
-        return depthPublishSubject.asObservable();
-    }
+    private Queue<Order> orderQueue = new ConcurrentLinkedQueue<>();
 
     public BaseOkcoinFixService(ExchangeType exchangeType, String apiKey, String secretKey, String marketConfig,
                                 String tradeConfig, String tradeConfig2, String tradeConfig3, String tradeConfig4,
                                 List<String> symbols) {
+        //push order
+        Executors.newScheduledThreadPool(4)
+                .scheduleWithFixedDelay(() -> {
+                    try {
+                        Order order = orderQueue.poll();
+
+                        if (order != null){
+                            internalPlaceLimitOrder(order);
+                        }
+                    } catch (Exception e) {
+                        log.error("error push order", e);
+                    }
+                }, 0, 100, TimeUnit.MILLISECONDS);
+
         //MARKET
         okCoinApplicationMarket = new OKCoinApplication(exchangeType, apiKey, secretKey){
             @Override
@@ -230,5 +198,61 @@ public abstract class BaseOkcoinFixService {
         } catch (Exception e) {
             log.error("error init okcoin fix");
         }
+    }
+
+    public void placeLimitOrder(Account account, Order order){
+        orderQueue.add(order);
+    }
+
+    private void internalPlaceLimitOrder(Order order){
+        SessionID sessionID = getTradeSessionId();
+        OKCoinApplication application = okCoinApplicationTrade;
+
+        if (tradeSessionId2 != null && tradeSessionId3 != null && tradeSessionId4 != null) {
+            switch ((int) index.incrementAndGet() % 4){
+                case 0:
+                    sessionID = tradeSessionId;
+                    application = okCoinApplicationTrade;
+                    break;
+                case 1:
+                    sessionID = tradeSessionId2;
+                    application = okCoinApplicationTrade2;
+                    break;
+                case 2:
+                    sessionID = tradeSessionId3;
+                    application = okCoinApplicationTrade3;
+                    break;
+                case 3:
+                    sessionID = tradeSessionId4;
+                    application = okCoinApplicationTrade4;
+                    break;
+            }
+        }
+
+        application.placeOrder(order, sessionID);
+    }
+
+    private SessionID getTradeSessionId(){
+        return tradeSessionId != null ? tradeSessionId : marketSessionId;
+    }
+
+    public void cancelOrder(Account account, Order order){
+        okCoinApplicationTrade.cancelOrder(order, getTradeSessionId());
+    }
+
+    public void orderInfo(Order order){
+        okCoinApplicationTrade.requestOrderMassStatus(order.getOrderId(), 1, getTradeSessionId());
+    }
+
+    public Observable<Trade> getTradeObservable(){
+        return tradePublishSubject.asObservable();
+    }
+
+    public Observable<Order> getOrderObservable(){
+        return orderPublishSubject.asObservable();
+    }
+
+    public Observable<Depth> getDepthObservable(){
+        return depthPublishSubject.asObservable();
     }
 }

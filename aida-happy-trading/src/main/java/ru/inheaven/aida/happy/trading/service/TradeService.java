@@ -45,6 +45,11 @@ public class TradeService {
             stdDevMap.put("BTC/CNY_2", tradeMapper.getTradeStdDevPt("BTC/CNY", 30000));
             stdDevMap.put("BTC/CNY_3", tradeMapper.getTradeStdDevPt("BTC/CNY", 40000));
 
+            stdDevMap.put("av_BTC/CNY_0", tradeMapper.getTradeAvgAmountPt("BTC/CNY", 10000));
+            stdDevMap.put("av_BTC/CNY_1", tradeMapper.getTradeAvgAmountPt("BTC/CNY", 20000));
+            stdDevMap.put("av_BTC/CNY_2", tradeMapper.getTradeAvgAmountPt("BTC/CNY", 30000));
+            stdDevMap.put("av_BTC/CNY_3", tradeMapper.getTradeAvgAmountPt("BTC/CNY", 40000));
+
             stdDevMap.put("BTC/CNY", stdDevMap.get("BTC/CNY_0"));
         }, 0, 1, TimeUnit.SECONDS);
     }
@@ -55,5 +60,9 @@ public class TradeService {
 
     public BigDecimal getStdDev(String symbol){
         return stdDevMap.get(symbol);
+    }
+
+    public BigDecimal getAvgAmount(String symbol){
+        return stdDevMap.get("av_" + symbol);
     }
 }

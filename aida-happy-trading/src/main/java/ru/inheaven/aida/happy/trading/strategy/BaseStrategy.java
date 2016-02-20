@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_EVEN;
+import static java.math.RoundingMode.HALF_UP;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.*;
@@ -499,24 +500,27 @@ public class BaseStrategy {
     }
 
     private void logOrder(Order o){
-        log.info("{} {} {} {} {} {} {} {} {} {} {} {} {}",
-                o.getStrategyId(),
-                o.getStatus(),
-                o.getSymbol(),
-                scale(o.getAvgPrice() != null ? o.getAvgPrice() : o.getPrice()),
-//                o.getAvgPrice() != null
-//                        ? scale(o.getType().equals(OrderType.ASK)
-//                        ? o.getAvgPrice().subtract(o.getPrice()) : o.getPrice().subtract(o.getAvgPrice()))
-//                        : scale(ZERO),
-                o.getAmount().setScale(3, HALF_EVEN),
-                o.getType(),
-                scale(buyPrice.get()),
-                scale(sellPrice.get()),
-                sellPrice.get().subtract(buyPrice.get()).setScale(3, HALF_EVEN),
-                buyVolume.get().setScale(3, HALF_EVEN),
-                sellVolume.get().setScale(3, HALF_EVEN),
-                Objects.toString(o.getText(), ""),
-                Objects.toString(o.getSymbolType(), ""));
+        try {
+            log.info("{} {} {} {} {} {} {} {} {} {} {} {}",
+                    o.getStrategyId(),
+                    o.getStatus(),
+                    o.getSymbol(),
+                    scale(o.getAvgPrice() != null ? o.getAvgPrice() : o.getPrice()),
+    //                o.getAvgPrice() != null
+    //                        ? scale(o.getType().equals(OrderType.ASK)
+    //                        ? o.getAvgPrice().subtract(o.getPrice()) : o.getPrice().subtract(o.getAvgPrice()))
+    //                        : scale(ZERO),
+                    o.getAmount().setScale(3, HALF_EVEN),
+                    o.getType(),
+                    scale(buyPrice.get()),
+                    sellPrice.get().subtract(buyPrice.get()).setScale(3, HALF_EVEN),
+                    buyVolume.get().add(sellVolume.get()).setScale(3, HALF_EVEN),
+                    tradeService.getAvgAmount(strategy.getSymbol() + getVolSuffix()).setScale(3, HALF_UP),
+                    Objects.toString(o.getText(), ""),
+                    Objects.toString(o.getSymbolType(), ""));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static final BigDecimal STEP_0_01 = new BigDecimal("0.01");

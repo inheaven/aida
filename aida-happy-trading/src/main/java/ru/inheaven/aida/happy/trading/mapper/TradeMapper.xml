@@ -14,4 +14,8 @@
     <select id="selectTradeStdDevPt" parameterType="map" resultType="decimal">
         select stddev_samp(pt.price) from (select price from trade where symbol = #{symbol} order by id desc limit #{points}) pt;
     </select>
+
+    <select id="selectTradeAvgAmountPt" parameterType="map" resultType="decimal">
+        select avg(pt.amount) from (select amount from trade where symbol = #{symbol} and 1 > amount order by id desc limit #{points}) pt;
+    </select>
 </mapper>
