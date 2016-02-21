@@ -108,6 +108,10 @@ public class BaseStrategy {
             volSuffix = "_2";
         }else if (strategy.getName().contains("vol_3")){
             volSuffix = "_3";
+        }else if (strategy.getName().contains("vol_4")){
+            volSuffix = "_4";
+        }else if (strategy.getName().contains("vol_5")){
+            volSuffix = "_5";
         }else{
             volSuffix = "";
         }
@@ -205,7 +209,7 @@ public class BaseStrategy {
                     PollingTradeService ts = xChangeService.getExchange(strategy.getAccount()).getPollingTradeService();
 
                     BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol() + getVolSuffix());
-                    BigDecimal range = stdDev != null ? stdDev.multiply(BigDecimal.valueOf(3)) : new BigDecimal("10");
+                    BigDecimal range = stdDev != null ? stdDev.multiply(BigDecimal.valueOf(2)) : new BigDecimal("10");
 
                     OpenOrders openOrders = ts.getOpenOrders();
                     openOrders.getOpenOrders().forEach(l -> {
@@ -496,12 +500,16 @@ public class BaseStrategy {
 
             order.setBuyPrice(buyPrice.get());
             order.setSellPrice(sellPrice.get());
+            order.setBuyVolume(buyVolume.get());
+            order.setSellVolume(sellVolume.get());
         }
     }
 
+    private final static BigDecimal BD_SQRT_TWO_PI = new BigDecimal("2.506628274631000502415765284811");
+
     private void logOrder(Order o){
         try {
-            log.info("{} {} {} {} {} {} {} {} {} {} {} {}",
+            log.info("{} {} {} {} {} {} {} {} {} {} {} {} {}",
                     o.getStrategyId(),
                     o.getStatus(),
                     o.getSymbol(),
@@ -516,6 +524,7 @@ public class BaseStrategy {
                     sellPrice.get().subtract(buyPrice.get()).setScale(3, HALF_EVEN),
                     buyVolume.get().add(sellVolume.get()).setScale(3, HALF_EVEN),
                     tradeService.getAvgAmount(strategy.getSymbol() + getVolSuffix()).setScale(3, HALF_UP),
+                    tradeService.getStdDev(strategy.getSymbol() + getVolSuffix()).divide(BD_SQRT_TWO_PI,HALF_EVEN).setScale(3, HALF_UP),
                     Objects.toString(o.getText(), ""),
                     Objects.toString(o.getSymbolType(), ""));
         } catch (Exception e) {

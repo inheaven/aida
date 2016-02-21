@@ -12,6 +12,9 @@ import ru.inheaven.aida.happy.trading.web.HighstockPage;
 import ru.inhell.aida.common.wicket.BroadcastBehavior;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -40,9 +43,15 @@ public class TickPage extends HighstockPage {
                     .orElse(BigDecimal.ZERO).doubleValue();
             long last = System.currentTimeMillis();
 
+            private Map<Long, BigDecimal> profitMap = new HashMap<>();
+
             @Override
             protected void onBroadcast(WebSocketRequestHandler handler, String key, Order o) {
                 if (key.equals("close") && o.getSymbol().equals("BTC/CNY") && o.getStatus().equals(OrderStatus.CLOSED)){
+                    profitMap.put(o.getStrategyId(), o.getSellPrice().multiply(o.getSellVolume())
+                            .subtract(o.getBuyPrice().multiply(o.getBuyVolume()))
+                            .divide(o.getBuyVolume().add(o.getSellVolume()), RoundingMode.HALF_UP));
+
                     count++;
 
                     double c = o.getAmount().doubleValue();
@@ -61,13 +70,15 @@ public class TickPage extends HighstockPage {
                     if (System.currentTimeMillis() - last > 1000){
                         last = System.currentTimeMillis();
 
-                        queue.add("tick_chart.series[0]" +
-                                ".addPoint({x:" + o.getClosed().getTime() + ", y:" +  o.getBuyPrice() + ", marker: {fillColor: '#ffff00'}}, " +
+                        BigDecimal profit = profitMap.values().stream().reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
+
+                        queue.add("tick_chart.series[1]" +
+                                ".addPoint({x:" + o.getClosed().getTime() + ", y:" +  profit + ", marker: {fillColor: '#ffff00'}}, " +
                                 "false, " + (count >1500 ? "true" : "false") + ");");
 
-                        queue.add("tick_chart.series[0]" +
-                                ".addPoint({x:" + o.getClosed().getTime() + ", y:" +  o.getSellPrice() + ", marker: {fillColor: '#ff8000'}}, " +
-                                "false, " + (count >1500 ? "true" : "false") + ");");
+//                        queue.add("tick_chart.series[0]" +
+//                                ".addPoint({x:" + o.getClosed().getTime() + ", y:" +  o.getSellPrice() + ", marker: {fillColor: '#ff8000'}}, " +
+//                                "false, " + (count >1500 ? "true" : "false") + ");");
                     }
 
                     if (System.currentTimeMillis() - time > 40){

@@ -16,6 +16,6 @@
     </select>
 
     <select id="selectTradeAvgAmountPt" parameterType="map" resultType="decimal">
-        select avg(pt.amount) from (select amount from trade where symbol = #{symbol} and 1 > amount order by id desc limit #{points}) pt;
+        select avg(pt.amount) from (select amount from trade where symbol = #{symbol} and 10 > amount order by id desc limit #{points}) pt;
     </select>
 </mapper>

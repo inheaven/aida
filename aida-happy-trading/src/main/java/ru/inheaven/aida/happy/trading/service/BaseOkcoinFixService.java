@@ -56,7 +56,7 @@ public abstract class BaseOkcoinFixService {
                     } catch (Exception e) {
                         log.error("error push order", e);
                     }
-                }, 0, 100, TimeUnit.MILLISECONDS);
+                }, 0, 150, TimeUnit.MILLISECONDS);
 
         //MARKET
         okCoinApplicationMarket = new OKCoinApplication(exchangeType, apiKey, secretKey){
