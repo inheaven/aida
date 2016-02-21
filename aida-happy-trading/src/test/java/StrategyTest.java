@@ -3,7 +3,14 @@ import rx.observables.ConnectableObservable;
 import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 
+import java.io.FileReader;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.charset.Charset;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 
 /**
  * @author inheaven on 20.06.2015 0:33.
@@ -12,7 +19,7 @@ import java.math.BigDecimal;
 public class StrategyTest {
 
 
-    public static void main(String... args){
+    public static void main(String... args) throws IOException {
         testDivide();
     }
 
@@ -94,7 +101,42 @@ public class StrategyTest {
 
 
     private static void testDivide(){
-        System.out.println(1 + 2 / 3);
+        System.out.println(2 % 3);
+    }
+
+    private static void testQuran() throws IOException {
+        Path path = FileSystems.getDefault().getPath("c:\\opt\\data", "quran-utf8.txt");
+        List<String> quranList = Files.readAllLines(path, Charset.forName("UTF-8"));
+
+        char max = Character.MIN_VALUE;
+        char min = Character.MAX_VALUE;
+
+        long count = 0;
+
+        for (String q : quranList){
+            char[] chars = q.toCharArray();
+
+            for (char c : chars){
+                if (Character.getDirectionality(c) == Character.DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC){
+//                    if(c > max){
+//                        max = c;
+//                    }
+//
+//                    if (c < min){
+//                        min = c;
+//                    }
+
+                    System.out.println(count++);
+                }
+
+
+            }
+        }
+
+        //min: 1569, max: 1610
+
+
+//        System.out.println("min: " + (int)min + ", max: " + (int)max);
     }
 
 }

@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
+import ru.inheaven.aida.happy.trading.util.QuranRandom;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
@@ -180,7 +181,7 @@ public class LevelStrategy extends BaseStrategy{
 
         action(key, price, orderType, 0);
 
-        if(isUpSpot()){
+        if(getSpotBalance().compareTo(ZERO) > 0){
             action(key, price.add(sideSpread), orderType, 1);
         }else{
             action(key, price.subtract(sideSpread), orderType, -1);
@@ -226,7 +227,7 @@ public class LevelStrategy extends BaseStrategy{
     private static final BigDecimal CNY_MIDDLE = BigDecimal.valueOf(3000);
     private static final BigDecimal USD_MIDDLE = BigDecimal.valueOf(1000);
 
-    private boolean isUpSpot(){
+    protected BigDecimal getSpotBalance(){
         String[] symbol = strategy.getSymbol().split("/");
 
         BigDecimal subtotal = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[0]);
@@ -236,7 +237,10 @@ public class LevelStrategy extends BaseStrategy{
             throw new RuntimeException("up spot data loading");
         }
 
-        return net.multiply(BD_1_5).compareTo(subtotal.multiply(lastTrade)) > 0;
+        BigDecimal x = net.multiply(BD_1_5);
+        BigDecimal y = subtotal.multiply(lastTrade);
+
+        return x.subtract(y).divide(x.add(y), HALF_EVEN);
     }
 
     private BigDecimal getSpread(BigDecimal price){
@@ -279,11 +283,10 @@ public class LevelStrategy extends BaseStrategy{
 
     private void action(String key, BigDecimal price, OrderType orderType, int priceLevel) {
         try {
-            boolean up = isUpSpot();
+            boolean up = getSpotBalance().compareTo(ZERO)> 0;
 
             BigDecimal spread = scale(getSpread(price));
-            BigDecimal spreadD3 = spread.divide(BD_PI, HALF_EVEN);
-            BigDecimal priceF = scale(up ? price.add(spreadD3) : price.subtract(spreadD3));
+            BigDecimal priceF = price.add(spread.multiply(getSpotBalance()));
             BigDecimal sideSpread = isVol() ? spread : scale(getSideSpread(priceF));
 
             BigDecimal buyPrice = up ? priceF : priceF.subtract(spread);
@@ -310,7 +313,7 @@ public class LevelStrategy extends BaseStrategy{
                 //avg amount
                 BigDecimal avgAmount = tradeService.getAvgAmount(strategy.getSymbol() + getVolSuffix());
                 if (avgAmount.compareTo(amount) > 0){
-                    BigDecimal x = amount.multiply(BD_2);
+                    BigDecimal x = amount.multiply(BD_3);
 
                     if (avgAmount.compareTo(x) > 0){
                         amount = x;
@@ -331,8 +334,8 @@ public class LevelStrategy extends BaseStrategy{
 
                 if (isVol()){
                     double a = amount.doubleValue();
-                    double r1 = a*(random.nextGaussian()/2 + 1);
-                    double r2 = a*(random.nextGaussian()/2 + 1 + Math.abs(priceLevel));
+                    double r1 = a*(QuranRandom.nextDouble());
+                    double r2 = a*(QuranRandom.nextDouble() + 1);
 
                     buyAmount = BigDecimal.valueOf((up ? r2 : r1)).setScale(3, HALF_EVEN);
                     sellAmount = BigDecimal.valueOf((up ? r1 : r2)).setScale(3, HALF_EVEN);

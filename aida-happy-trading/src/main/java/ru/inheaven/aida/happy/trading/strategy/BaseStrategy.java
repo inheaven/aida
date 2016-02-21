@@ -112,6 +112,10 @@ public class BaseStrategy {
             volSuffix = "_4";
         }else if (strategy.getName().contains("vol_5")){
             volSuffix = "_5";
+        }else if (strategy.getName().contains("vol_6")){
+            volSuffix = "_6";
+        }else if (strategy.getName().contains("vol_7")){
+            volSuffix = "_7";
         }else{
             volSuffix = "";
         }
@@ -505,11 +509,15 @@ public class BaseStrategy {
         }
     }
 
+    protected BigDecimal getSpotBalance(){
+        return ZERO;
+    }
+
     private final static BigDecimal BD_SQRT_TWO_PI = new BigDecimal("2.506628274631000502415765284811");
 
     private void logOrder(Order o){
         try {
-            log.info("{} {} {} {} {} {} {} {} {} {} {} {} {}",
+            log.info("{} {} {} {} {} {} {} {} {} {} {} {} {} {}",
                     o.getStrategyId(),
                     o.getStatus(),
                     o.getSymbol(),
@@ -523,8 +531,9 @@ public class BaseStrategy {
                     scale(buyPrice.get()),
                     sellPrice.get().subtract(buyPrice.get()).setScale(3, HALF_EVEN),
                     buyVolume.get().add(sellVolume.get()).setScale(3, HALF_EVEN),
-                    tradeService.getAvgAmount(strategy.getSymbol() + getVolSuffix()).setScale(3, HALF_UP),
                     tradeService.getStdDev(strategy.getSymbol() + getVolSuffix()).divide(BD_SQRT_TWO_PI,HALF_EVEN).setScale(3, HALF_UP),
+                    tradeService.getAvgAmount(strategy.getSymbol() + getVolSuffix()).setScale(3, HALF_UP),
+                    getSpotBalance().setScale(3, HALF_UP),
                     Objects.toString(o.getText(), ""),
                     Objects.toString(o.getSymbolType(), ""));
         } catch (Exception e) {
