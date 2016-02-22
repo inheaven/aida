@@ -213,7 +213,7 @@ public class BaseStrategy {
                     PollingTradeService ts = xChangeService.getExchange(strategy.getAccount()).getPollingTradeService();
 
                     BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol() + getVolSuffix());
-                    BigDecimal range = stdDev != null ? stdDev.multiply(BigDecimal.valueOf(2)) : new BigDecimal("10");
+                    BigDecimal range = stdDev != null ? stdDev.multiply(BigDecimal.valueOf(3)) : new BigDecimal("10");
 
                     OpenOrders openOrders = ts.getOpenOrders();
                     openOrders.getOpenOrders().forEach(l -> {
@@ -506,6 +506,7 @@ public class BaseStrategy {
             order.setSellPrice(sellPrice.get());
             order.setBuyVolume(buyVolume.get());
             order.setSellVolume(sellVolume.get());
+            order.setSpotBalance(getSpotBalance());
         }
     }
 
@@ -531,7 +532,7 @@ public class BaseStrategy {
                     scale(buyPrice.get()),
                     sellPrice.get().subtract(buyPrice.get()).setScale(3, HALF_EVEN),
                     buyVolume.get().add(sellVolume.get()).setScale(3, HALF_EVEN),
-                    tradeService.getStdDev(strategy.getSymbol() + getVolSuffix()).divide(BD_SQRT_TWO_PI,HALF_EVEN).setScale(3, HALF_UP),
+                    tradeService.getStdDev(strategy.getSymbol() + getVolSuffix()).setScale(3, HALF_UP),
                     tradeService.getAvgAmount(strategy.getSymbol() + getVolSuffix()).setScale(3, HALF_UP),
                     getSpotBalance().setScale(3, HALF_UP),
                     Objects.toString(o.getText(), ""),

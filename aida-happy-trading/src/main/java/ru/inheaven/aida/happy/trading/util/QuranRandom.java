@@ -28,7 +28,7 @@ public class QuranRandom {
 
                 for (char c : chars) {
                     if (Character.getDirectionality(c) == Character.DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC) {
-                        quranRandomList.add((double) (1611 - (int) c) / 41);
+                        quranRandomList.add((double) (1611 - (int) c) / 42);
                     }
                 }
             }

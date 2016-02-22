@@ -16,50 +16,59 @@ $(function(){
         chart:{animation: false, spacingBottom: 0, alignTicks:false},
         credits: {enabled: false},
         //scrollbar: {enabled: true},
-        navigator: {enabled: true, adaptToUpdatedData: true,  xAxis: {type:'linear', ordinal: false, labels:{format:'{value}'}}},
+        navigator: {enabled: true, adaptToUpdatedData: true,  xAxis: {type:'datetime', labels:{enabled:false}}, height:20,
+        series:{lineWidth:0}},
         rangeSelector: {enabled: true, selected : 0, inputEnabled: false,
             buttons: [{type: 'all', count: 1, text: '0'},
-                {type: 'millisecond', count: 1000, text: '1000'},
-                {type: 'millisecond', count: 2000, text: '2000'},
-                {type: 'millisecond', count: 3000, text: '3000'},
-                {type: 'millisecond', count: 5000, text: '5000'},
-                {type: 'millisecond', count: 10000, text: '10000'}
+                {type: 'minute', count: 1, text: '1'},
+                {type: 'minute', count: 3, text: '3'},
+                {type: 'minute', count: 5, text: '5'},
+                {type: 'minute', count: 15, text: '15'},
+                {type: 'minute', count: 60, text: '60'}
             ]},
         legend: {enabled: false},
-        xAxis: {type:'linear', ordinal: false, labels:{format:'{value}'}},
+        xAxis: {type:'datetime'},
         yAxis: [
-            {height: '100%', lineWidth: 0, offset: 50},
-            {top: '85%', height: '0%', lineWidth: 0, offset:50}
+            {top: '0%', height: '80%', lineWidth: 0, offset: 50, opposite: false},
+            {top: '0%', height: '80%', lineWidth: 0, offset:50},
+            {top: '80%', height: '20%', lineWidth: 0, offset:50}
         ],
         plotOptions: {scatter: {
             lineWidth: 0,
-            marker: {enabled: true, radius: 1, lineWidth: 0, symbol: 'circle'},
+            marker: {enabled: true, radius: 2, lineWidth: 0, symbol: 'square'},
             states: {hover: {lineWidthPlus: 0}},
-            turboThreshold: 3000,
-            dataGrouping: {enabled: true},
-            
-            groupPixelWidth: 1,
+            turboThreshold: 10000,
+            dataGrouping: {enabled: true,  groupPixelWidth: 1},
+
             enableMouseTracking: false
-        }},
+        },
+            line: {
+                turboThreshold: 10000,
+                dataGrouping: {enabled: true,  groupPixelWidth: 1},
+                enableMouseTracking: false,
+                lineWidth:1
+            },
+            area: {
+                turboThreshold: 10000,
+                dataGrouping: {enabled: true,  groupPixelWidth: 1},
+                enableMouseTracking: false,
+                lineWidth:1
+            }},
         series: [{
             type:'scatter',
-            name: 'BID',
+            name: 'ORDER',
             color: '#00FF00'
-,
-            dashStyle: 'Dot'
         }, {
-            type:'scatter',
-            name: 'ASK',
-            color: '#FF0000'
+            type:'line',
+            name: 'DELTA',
+            color: '#FFFFFF'
 ,
-            dashStyle: 'Dot'
+            yAxis:1
         },{
-            type:'scatter',
-            name: 'BUY',
-            color: '#00FF00',
-            marker: {enabled: true, radius: 5, lineWidth: 0, symbol: 'triangle'},
-            //dataGrouping: {enabled: true, approximation : 'average'},
-            lineWidth: 0
+            type:'area',
+            name: 'BALANCE',
+            color: '#FFFFFF',
+            yAxis:2
         },{
             type:'scatter',
             name: 'SELL',

@@ -1,4 +1,5 @@
 import org.testng.annotations.Test;
+import ru.inheaven.aida.happy.trading.util.QuranRandom;
 import rx.observables.ConnectableObservable;
 import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
@@ -20,7 +21,7 @@ public class StrategyTest {
 
 
     public static void main(String... args) throws IOException {
-        testDivide();
+        testQuran();
     }
 
     private static void test1(){
@@ -105,19 +106,19 @@ public class StrategyTest {
     }
 
     private static void testQuran() throws IOException {
-        Path path = FileSystems.getDefault().getPath("c:\\opt\\data", "quran-utf8.txt");
-        List<String> quranList = Files.readAllLines(path, Charset.forName("UTF-8"));
-
-        char max = Character.MIN_VALUE;
-        char min = Character.MAX_VALUE;
-
-        long count = 0;
-
-        for (String q : quranList){
-            char[] chars = q.toCharArray();
-
-            for (char c : chars){
-                if (Character.getDirectionality(c) == Character.DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC){
+//        Path path = FileSystems.getDefault().getPath("c:\\opt\\data", "quran-utf8.txt");
+//        List<String> quranList = Files.readAllLines(path, Charset.forName("UTF-8"));
+//
+//        int max = Integer.MIN_VALUE;
+//        int min = Integer.MAX_VALUE;
+//
+//        long count = 0;
+//
+//        for (String q : quranList){
+//            char[] chars = q.toCharArray();
+//
+//            for (char c : chars){
+//                if (Character.getDirectionality(c) == Character.DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC){
 //                    if(c > max){
 //                        max = c;
 //                    }
@@ -125,18 +126,23 @@ public class StrategyTest {
 //                    if (c < min){
 //                        min = c;
 //                    }
+//                }
+//
+//
+//            }
+//        }
+//
+//        //min: 1569, max: 1610
+//
+//
+//        System.out.println("min: " + (int)min + ", max: " + (int)max);
 
-                    System.out.println(count++);
-                }
-
-
+        for (int i = 0; i < 1000000; ++i){
+            double q = QuranRandom.nextDouble();
+            if (q >= 1){
+                System.out.println(q);
             }
         }
-
-        //min: 1569, max: 1610
-
-
-//        System.out.println("min: " + (int)min + ", max: " + (int)max);
     }
 
 }

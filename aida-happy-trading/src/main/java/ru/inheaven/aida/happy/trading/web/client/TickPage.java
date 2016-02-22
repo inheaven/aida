@@ -73,12 +73,11 @@ public class TickPage extends HighstockPage {
                         BigDecimal profit = profitMap.values().stream().reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
 
                         queue.add("tick_chart.series[1]" +
-                                ".addPoint({x:" + o.getClosed().getTime() + ", y:" +  profit + ", marker: {fillColor: '#ffff00'}}, " +
+                                ".addPoint({x:" + o.getClosed().getTime() + ", y:" +  profit + "}, " +
                                 "false, " + (count >1500 ? "true" : "false") + ");");
-
-//                        queue.add("tick_chart.series[0]" +
-//                                ".addPoint({x:" + o.getClosed().getTime() + ", y:" +  o.getSellPrice() + ", marker: {fillColor: '#ff8000'}}, " +
-//                                "false, " + (count >1500 ? "true" : "false") + ");");
+                        queue.add("tick_chart.series[2]" +
+                                ".addPoint({x:" + o.getClosed().getTime() + ", y:" +  o.getSpotBalance() + "}, " +
+                                "false, " + (count >1500 ? "true" : "false") + ");");
                     }
 
                     if (System.currentTimeMillis() - time > 40){

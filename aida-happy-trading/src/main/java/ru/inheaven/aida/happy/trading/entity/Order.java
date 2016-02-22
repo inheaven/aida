@@ -29,10 +29,11 @@ public class Order extends AbstractEntity {
     private volatile OrderStatus status;
     private volatile String text;
 
-    private volatile BigDecimal buyPrice;
-    private volatile BigDecimal sellPrice;
-    private volatile BigDecimal buyVolume;
-    private volatile BigDecimal sellVolume;
+    private BigDecimal buyPrice;
+    private BigDecimal sellPrice;
+    private BigDecimal buyVolume;
+    private BigDecimal sellVolume;
+    private BigDecimal spotBalance;
 
     private volatile Long accountId;
 
@@ -248,6 +249,14 @@ public class Order extends AbstractEntity {
 
     public void setSellVolume(BigDecimal sellVolume) {
         this.sellVolume = sellVolume;
+    }
+
+    public BigDecimal getSpotBalance() {
+        return spotBalance;
+    }
+
+    public void setSpotBalance(BigDecimal spotBalance) {
+        this.spotBalance = spotBalance;
     }
 
     @Override
