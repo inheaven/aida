@@ -131,8 +131,8 @@ public class UserInfoService {
                 saveFunds(account.getId(), "BTC_SPOT", funds.getFree().get("btc"), funds.getFreezed().get("btc"));
                 saveFunds(account.getId(), "LTC_SPOT", funds.getFree().get("ltc"), funds.getFreezed().get("ltc"));
 
-                setVolume("subtotal", account.getId(), "BTC", funds.getFree().get("btc").add(funds.getFreezed().get("btc")));
-                setVolume("subtotal", account.getId(), "LTC", funds.getFree().get("ltc").add(funds.getFreezed().get("ltc")));
+//                setVolume("subtotal", account.getId(), "BTC", funds.getFree().get("btc").add(funds.getFreezed().get("btc")));
+//                setVolume("subtotal", account.getId(), "LTC", funds.getFree().get("ltc").add(funds.getFreezed().get("ltc")));
 
                 saveFunds(account.getId(), "ASSET", funds.getAsset().get("total"), funds.getAsset().get("net"));
 
@@ -147,15 +147,15 @@ public class UserInfoService {
                                 info.getInfo().getBtcFunds().getAccountRights());
 
                         saveFunds(account.getId(), "USD_SPOT", funds.getFree().get("usd"), funds.getFreezed().get("usd"));
-                        setVolume("subtotal", account.getId(), "USD", funds.getFree().get("usd").add(funds.getFreezed().get("usd")));
-                        setVolume("free_spot", account.getId(), null, funds.getFree().get("usd"));
+//                        setVolume("subtotal", account.getId(), "USD", funds.getFree().get("usd").add(funds.getFreezed().get("usd")));
+//                        setVolume("free_spot", account.getId(), null, funds.getFree().get("usd"));
                         break;
                     case OKCOIN_CN:
                         saveTotal(account, funds.getAsset().get("net"), null, null);
 
                         saveFunds(account.getId(), "CNY_SPOT", funds.getFree().get("cny"), funds.getFreezed().get("cny"));
-                        setVolume("subtotal", account.getId(), "CNY", funds.getFree().get("cny").add(funds.getFreezed().get("cny")));
-                        setVolume("free_spot", account.getId(), null, funds.getFree().get("cny"));
+//                        setVolume("subtotal", account.getId(), "CNY", funds.getFree().get("cny").add(funds.getFreezed().get("cny")));
+//                        setVolume("free_spot", account.getId(), null, funds.getFree().get("cny"));
 
                         break;
                 }

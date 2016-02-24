@@ -11,6 +11,7 @@ import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -21,7 +22,8 @@ public class StrategyTest {
 
 
     public static void main(String... args) throws IOException {
-        testQuran();
+        System.out.println(new Date());
+        System.out.println();
     }
 
     private static void test1(){

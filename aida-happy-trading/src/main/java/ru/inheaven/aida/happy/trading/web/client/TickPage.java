@@ -36,11 +36,6 @@ public class TickPage extends HighstockPage {
         });
 
         add(new BroadcastBehavior<Order>(OrderService.class){
-            double amount = Module.getInjector().getInstance(StrategyMapper.class).getStrategies().stream()
-                    .filter(s -> s.getId().equals(45L))
-                    .map(Strategy::getLevelLot)
-                    .findAny()
-                    .orElse(BigDecimal.ZERO).doubleValue();
             long last = System.currentTimeMillis();
 
             private Map<Long, BigDecimal> profitMap = new HashMap<>();
@@ -48,26 +43,18 @@ public class TickPage extends HighstockPage {
             @Override
             protected void onBroadcast(WebSocketRequestHandler handler, String key, Order o) {
                 if (key.equals("close") && o.getSymbol().equals("BTC/CNY") && o.getStatus().equals(OrderStatus.CLOSED)){
-                    profitMap.put(o.getStrategyId(), o.getSellPrice().multiply(o.getSellVolume())
-                            .subtract(o.getBuyPrice().multiply(o.getBuyVolume()))
-                            .divide(o.getBuyVolume().add(o.getSellVolume()), RoundingMode.HALF_UP));
+                    profitMap.put(o.getStrategyId(), o.getSellPrice().subtract(o.getBuyPrice())
+                            .multiply(o.getBuyVolume().min(o.getSellVolume())));
 
                     count++;
 
-                    double c = o.getAmount().doubleValue();
-
-                    int d = 255;
-                    int l = c < amount ? 10 : 0;
-
-                    String color = o.getType().equals(OrderType.BID)
-                            ? "rgb(" + l + " , " + d + ", " + l + ")"
-                            : "rgb(" + d + " , " + l + ", " + l + ")";
+                    String color = o.getType().equals(OrderType.BID) ? "#90ee7e" : "#f45b5b";
 
                     queue.add("tick_chart.series[0]" +
                             ".addPoint({x:" + o.getClosed().getTime() + ", y:" +  o.getAvgPrice() + ", marker: {fillColor: '"+ color +"'}}, " +
                             "false, " + (count >1500 ? "true" : "false") + ");");
 
-                    if (System.currentTimeMillis() - last > 1000){
+//                    if (System.currentTimeMillis() - last > 500){
                         last = System.currentTimeMillis();
 
                         BigDecimal profit = profitMap.values().stream().reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
@@ -78,9 +65,9 @@ public class TickPage extends HighstockPage {
                         queue.add("tick_chart.series[2]" +
                                 ".addPoint({x:" + o.getClosed().getTime() + ", y:" +  o.getSpotBalance() + "}, " +
                                 "false, " + (count >1500 ? "true" : "false") + ");");
-                    }
+//                    }
 
-                    if (System.currentTimeMillis() - time > 40){
+                    if (System.currentTimeMillis() - time > 500){
                         String s;
 
                         while ((s = queue.poll()) != null){
