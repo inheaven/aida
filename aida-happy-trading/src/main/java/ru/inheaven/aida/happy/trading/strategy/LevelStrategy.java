@@ -52,12 +52,14 @@ public class LevelStrategy extends BaseStrategy{
     private final static BigDecimal BD_1_1 = new BigDecimal("1.1");
     private final static BigDecimal BD_1_2 = new BigDecimal("1.2");
     private final static BigDecimal BD_1_3 = new BigDecimal("1.3");
-    private final static BigDecimal BD_1_5 = new BigDecimal("1.5");
-    private final static BigDecimal BD_2 = BigDecimal.valueOf(2);
-    private final static BigDecimal BD_3 = BigDecimal.valueOf(3);
-    private final static BigDecimal BD_4 = BigDecimal.valueOf(4);
-    private final static BigDecimal BD_5 = BigDecimal.valueOf(5);
-    private final static BigDecimal BD_10 = BigDecimal.valueOf(10);
+
+    private final static BigDecimal BD_1_5 = new BigDecimal(1.5);
+    private final static BigDecimal BD_2 = new BigDecimal(2);
+    private final static BigDecimal BD_2_5 = new BigDecimal(2.5);
+    private final static BigDecimal BD_3 = new BigDecimal(3);
+    private final static BigDecimal BD_3_5 = new BigDecimal(3.5);
+    private final static BigDecimal BD_4 = new BigDecimal(4);
+
     private final static BigDecimal BD_TWO_PI = BigDecimal.valueOf(2*Math.PI);
     private final static BigDecimal BD_SQRT_TWO_PI = new BigDecimal("2.506628274631000502415765284811");
     private final static BigDecimal BD_PI = new BigDecimal(Math.PI);
@@ -167,11 +169,9 @@ public class LevelStrategy extends BaseStrategy{
         try {
             semaphore.acquire();
 
-            BigDecimal dequePrice;
-
-            while ((dequePrice = actionDeque.pop()) != null) {
+            while (!actionDeque.isEmpty()) {
                 if (isVol() || (!strategy.isLevelInverse() && !isMinSpot()) || (strategy.isLevelInverse() && !isMaxSpot())) {
-                    actionLevel(key, dequePrice, orderType);
+                    actionLevel(key, actionDeque.pop(), orderType);
 //                    pushOrders(dequePrice);
                 }
             }
@@ -256,10 +256,36 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal sideSpread = getSideSpread(price);
 
         if (strategy.getSymbol().equals("BTC/CNY") || strategy.getSymbol().equals("LTC/CNY")){
-            BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol() + getVolSuffix());
+            BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol(), "_1");
 
             if (stdDev != null){
-                spread = stdDev.divide(BD_3, HALF_UP);
+                BigDecimal d = ONE;
+
+                switch (getVolSuffix()){
+                    case "_1":
+                        d = ONE;
+                        break;
+                    case "_2":
+                        d = BD_1_5;
+                        break;
+                    case "_3":
+                        d = BD_2;
+                        break;
+                    case "_4":
+                        d = BD_2_5;
+                        break;
+                    case "_5":
+                        d = BD_3;
+                        break;
+                    case "_6":
+                        d = BD_3_5;
+                        break;
+                    case "_7":
+                        d = BD_4;
+                        break;
+                }
+
+                spread = stdDev.divide(d, HALF_EVEN);
             }
         }else {
             spread = strategy.getSymbolType() == null

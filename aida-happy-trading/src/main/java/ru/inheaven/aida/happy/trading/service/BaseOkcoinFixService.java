@@ -50,10 +50,8 @@ public abstract class BaseOkcoinFixService {
         Executors.newScheduledThreadPool(4)
                 .scheduleWithFixedDelay(() -> {
                     try {
-                        Order order = orderQueue.pop();
-
-                        if (order != null){
-                            internalPlaceLimitOrder(order);
+                        if (!orderQueue.isEmpty()){
+                            internalPlaceLimitOrder(orderQueue.pop());
                         }
                     } catch (Exception e) {
                         log.error("error push order", e);

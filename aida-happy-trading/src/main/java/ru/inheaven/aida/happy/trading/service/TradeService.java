@@ -40,17 +40,17 @@ public class TradeService {
         tradeObservable.subscribe(t -> broadcastService.broadcast(getClass(), "trade", t));
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
-            stdDevMap.put("BTC/CNY_1", tradeMapper.getTradeStdDevPt("BTC/CNY", 9500)); //44
-            stdDevMap.put("BTC/CNY_2", tradeMapper.getTradeStdDevPt("BTC/CNY", 10000)); //45
-            stdDevMap.put("BTC/CNY_3", tradeMapper.getTradeStdDevPt("BTC/CNY", 10500)); //46
+            stdDevMap.put("BTC/CNY_1", tradeMapper.getTradeStdDevPt("BTC/CNY", 10000)); //44
+//            stdDevMap.put("BTC/CNY_2", tradeMapper.getTradeStdDevPt("BTC/CNY", 10000)); //45
+//            stdDevMap.put("BTC/CNY_3", tradeMapper.getTradeStdDevPt("BTC/CNY", 10500)); //46
 //            stdDevMap.put("BTC/CNY_4", tradeMapper.getTradeStdDevPt("BTC/CNY", 23000)); //47
 //            stdDevMap.put("BTC/CNY_5", tradeMapper.getTradeStdDevPt("BTC/CNY", 29000)); //48
 //            stdDevMap.put("BTC/CNY_6", tradeMapper.getTradeStdDevPt("BTC/CNY", 31000)); //49
 //            stdDevMap.put("BTC/CNY_7", tradeMapper.getTradeStdDevPt("BTC/CNY", 37000)); //50
 
-            stdDevMap.put("av_BTC/CNY_1", tradeMapper.getTradeAvgAmountPt("BTC/CNY", 9500));
-            stdDevMap.put("av_BTC/CNY_2", tradeMapper.getTradeAvgAmountPt("BTC/CNY", 10000));
-            stdDevMap.put("av_BTC/CNY_3", tradeMapper.getTradeAvgAmountPt("BTC/CNY", 10500));
+            stdDevMap.put("av_BTC/CNY_1", tradeMapper.getTradeAvgAmountPt("BTC/CNY", 10000));
+//            stdDevMap.put("av_BTC/CNY_2", tradeMapper.getTradeAvgAmountPt("BTC/CNY", 10000));
+//            stdDevMap.put("av_BTC/CNY_3", tradeMapper.getTradeAvgAmountPt("BTC/CNY", 10500));
 //            stdDevMap.put("av_BTC/CNY_4", tradeMapper.getTradeAvgAmountPt("BTC/CNY", 23000));
 //            stdDevMap.put("av_BTC/CNY_5", tradeMapper.getTradeAvgAmountPt("BTC/CNY", 29000));
 //            stdDevMap.put("av_BTC/CNY_6", tradeMapper.getTradeAvgAmountPt("BTC/CNY", 31000));
@@ -65,11 +65,15 @@ public class TradeService {
         return tradeObservable;
     }
 
-    public BigDecimal getStdDev(String symbol){
-        return stdDevMap.get(symbol);
+    public BigDecimal getStdDev(String symbol, String suffix){
+        BigDecimal value = stdDevMap.get(symbol + suffix);
+
+        return value != null ? value : stdDevMap.get(symbol);
     }
 
-    public BigDecimal getAvgAmount(String symbol){
-        return stdDevMap.get("av_" + symbol);
+    public BigDecimal getAvgAmount(String symbol, String suffix){
+        BigDecimal value = stdDevMap.get("av_" + symbol + suffix);
+
+        return value != null ? value : stdDevMap.get("av_" + symbol);
     }
 }

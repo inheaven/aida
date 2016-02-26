@@ -147,6 +147,9 @@ public class BaseStrategy {
         return depthService.createDepthObservable(strategy);
     }
 
+    private static AtomicReference<OpenOrders> openOrdersCache = new AtomicReference<>();
+    private static AtomicReference<Long> openOrdersTime = new AtomicReference<>(System.currentTimeMillis());
+
     public void start(){
         if (flying){
             return;
@@ -212,11 +215,15 @@ public class BaseStrategy {
                 try {
                     PollingTradeService ts = xChangeService.getExchange(strategy.getAccount()).getPollingTradeService();
 
-                    BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol() + getVolSuffix());
+                    if (System.currentTimeMillis() - openOrdersTime.get() > 10000){
+                        openOrdersTime.set(System.currentTimeMillis());
+                        openOrdersCache.set(ts.getOpenOrders());
+                    }
+
+                    BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol(), getVolSuffix());
                     BigDecimal range = stdDev != null ? stdDev.multiply(BigDecimal.valueOf(3)) : new BigDecimal("10");
 
-                    OpenOrders openOrders = ts.getOpenOrders();
-                    openOrders.getOpenOrders().forEach(l -> {
+                    openOrdersCache.get().getOpenOrders().forEach(l -> {
                         if (lastPrice.get() != null && l.getCurrencyPair().toString().equals(strategy.getSymbol()) &&
                                 lastPrice.get().subtract(l.getLimitPrice()).abs().compareTo(range) > 0){
                             try {
@@ -234,12 +241,11 @@ public class BaseStrategy {
                             }
                         }
                     });
-                    //Thread.sleep(random.nextInt(60000));
                 } catch (Exception e) {
                     log.error("error schedule cancel order -> ", e);
                 }
 
-            }, 0, 10, SECONDS);
+            }, random.nextInt(10), 10, SECONDS);
         }
 
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
@@ -532,8 +538,8 @@ public class BaseStrategy {
                     scale(buyPrice.get()),
                     sellPrice.get().subtract(buyPrice.get()).setScale(3, HALF_EVEN),
                     buyVolume.get().add(sellVolume.get()).setScale(3, HALF_EVEN),
-                    tradeService.getStdDev(strategy.getSymbol() + getVolSuffix()).setScale(3, HALF_UP),
-                    tradeService.getAvgAmount(strategy.getSymbol() + getVolSuffix()).setScale(3, HALF_UP),
+                    tradeService.getStdDev(strategy.getSymbol(), getVolSuffix()).setScale(3, HALF_UP),
+                    tradeService.getAvgAmount(strategy.getSymbol(), getVolSuffix()).setScale(3, HALF_UP),
                     getSpotBalance().setScale(3, HALF_UP),
                     Objects.toString(o.getText(), ""),
                     Objects.toString(o.getSymbolType(), ""));
