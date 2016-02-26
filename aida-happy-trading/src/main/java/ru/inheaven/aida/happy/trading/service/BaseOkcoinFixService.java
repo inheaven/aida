@@ -10,9 +10,11 @@ import rx.Observable;
 import rx.subjects.PublishSubject;
 
 import java.io.InputStream;
+import java.util.Deque;
 import java.util.List;
 import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -39,24 +41,24 @@ public abstract class BaseOkcoinFixService {
 
     private AtomicLong index = new AtomicLong(4);
 
-    private Queue<Order> orderQueue = new ConcurrentLinkedQueue<>();
+    private Deque<Order> orderQueue = new ConcurrentLinkedDeque<>();
 
     public BaseOkcoinFixService(ExchangeType exchangeType, String apiKey, String secretKey, String marketConfig,
                                 String tradeConfig, String tradeConfig2, String tradeConfig3, String tradeConfig4,
                                 List<String> symbols) {
         //push order
-//        Executors.newScheduledThreadPool(4)
-//                .scheduleWithFixedDelay(() -> {
-//                    try {
-//                        Order order = orderQueue.poll();
-//
-//                        if (order != null){
-//                            internalPlaceLimitOrder(order);
-//                        }
-//                    } catch (Exception e) {
-//                        log.error("error push order", e);
-//                    }
-//                }, 0, 150, TimeUnit.MILLISECONDS);
+        Executors.newScheduledThreadPool(4)
+                .scheduleWithFixedDelay(() -> {
+                    try {
+                        Order order = orderQueue.pop();
+
+                        if (order != null){
+                            internalPlaceLimitOrder(order);
+                        }
+                    } catch (Exception e) {
+                        log.error("error push order", e);
+                    }
+                }, 0, 150, TimeUnit.MILLISECONDS);
 
         //MARKET
         okCoinApplicationMarket = new OKCoinApplication(exchangeType, apiKey, secretKey){
@@ -201,8 +203,8 @@ public abstract class BaseOkcoinFixService {
     }
 
     public void placeLimitOrder(Account account, Order order){
-        //orderQueue.add(order);
-        internalPlaceLimitOrder(order);
+        orderQueue.push(order);
+//        internalPlaceLimitOrder(order);
     }
 
     private void internalPlaceLimitOrder(Order order){

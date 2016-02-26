@@ -8,6 +8,7 @@ import ru.inheaven.aida.happy.trading.mapper.StrategyMapper;
 import ru.inheaven.aida.happy.trading.service.Module;
 import ru.inheaven.aida.happy.trading.service.OrderService;
 import ru.inheaven.aida.happy.trading.service.TradeService;
+import ru.inheaven.aida.happy.trading.service.UserInfoService;
 import ru.inheaven.aida.happy.trading.web.HighstockPage;
 import ru.inhell.aida.common.wicket.BroadcastBehavior;
 
@@ -54,18 +55,22 @@ public class TickPage extends HighstockPage {
                             ".addPoint({x:" + o.getClosed().getTime() + ", y:" +  o.getAvgPrice() + ", marker: {fillColor: '"+ color +"'}}, " +
                             "false, " + (count >1500 ? "true" : "false") + ");");
 
-//                    if (System.currentTimeMillis() - last > 500){
-                        last = System.currentTimeMillis();
+                    last = System.currentTimeMillis();
 
-                        BigDecimal profit = profitMap.values().stream().reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
+                    BigDecimal profit = profitMap.values().stream().reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
 
-                        queue.add("tick_chart.series[1]" +
-                                ".addPoint({x:" + o.getClosed().getTime() + ", y:" +  profit + "}, " +
-                                "false, " + (count >1500 ? "true" : "false") + ");");
-                        queue.add("tick_chart.series[2]" +
-                                ".addPoint({x:" + o.getClosed().getTime() + ", y:" +  o.getSpotBalance() + "}, " +
-                                "false, " + (count >1500 ? "true" : "false") + ");");
-//                    }
+                    queue.add("tick_chart.series[1]" +
+                            ".addPoint({x:" + o.getClosed().getTime() + ", y:" +  profit + "}, " +
+                            "false, " + (count >1500 ? "true" : "false") + ");");
+                    queue.add("tick_chart.series[2]" +
+                            ".addPoint({x:" + o.getClosed().getTime() + ", y:" +  o.getSpotBalance() + "}, " +
+                            "false, " + (count >1500 ? "true" : "false") + ");");
+
+                    UserInfoService userInfoService = Module.getInjector().getInstance(UserInfoService.class);
+
+                    queue.add("tick_chart.series[3]" +
+                            ".addPoint({x:" + o.getClosed().getTime() + ", y:" +  userInfoService.getVolume("net", o.getAccountId(), null) + "}, " +
+                            "false, " + (count >1500 ? "true" : "false") + ");");
 
                     if (System.currentTimeMillis() - time > 500){
                         String s;

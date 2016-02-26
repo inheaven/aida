@@ -10,6 +10,7 @@ import ru.inheaven.aida.happy.trading.util.QuranRandom;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.Date;
+import java.util.Deque;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
@@ -43,6 +44,7 @@ public class LevelStrategy extends BaseStrategy{
 
     private final static BigDecimal BD_0_1 = new BigDecimal("0.1");
     private final static BigDecimal BD_0_25 = new BigDecimal("0.25");
+    private final static BigDecimal BD_0_33 = new BigDecimal("0.33");
     private final static BigDecimal BD_0_01 = new BigDecimal("0.01");
     private final static BigDecimal BD_0_05 = new BigDecimal("0.05");
     private final static BigDecimal BD_0_001 = new BigDecimal("0.001");
@@ -148,12 +150,12 @@ public class LevelStrategy extends BaseStrategy{
 
     private Executor executor2 = Executors.newCachedThreadPool();
     private AtomicReference<BigDecimal> lastAction = new AtomicReference<>(ZERO);
-    private ConcurrentLinkedDeque<BigDecimal> actionDeque = new ConcurrentLinkedDeque<>();
+    private Deque<BigDecimal> actionDeque = new ConcurrentLinkedDeque<>();
 
     private void actionAsync(String key, BigDecimal price, OrderType orderType){
         if (lastAction.get().compareTo(price) != 0) {
             lastAction.set(price);
-            actionDeque.add(price);
+            actionDeque.push(price);
 
             executor2.execute(() -> action(key, price, orderType));
         }
@@ -167,7 +169,7 @@ public class LevelStrategy extends BaseStrategy{
 
             BigDecimal dequePrice;
 
-            while ((dequePrice = actionDeque.poll()) != null) {
+            while ((dequePrice = actionDeque.pop()) != null) {
                 if (isVol() || (!strategy.isLevelInverse() && !isMinSpot()) || (strategy.isLevelInverse() && !isMaxSpot())) {
                     actionLevel(key, dequePrice, orderType);
 //                    pushOrders(dequePrice);
@@ -181,15 +183,18 @@ public class LevelStrategy extends BaseStrategy{
     }
 
     private void actionLevel(String key, BigDecimal price, OrderType orderType){
+        if (isBidRefused() || isAskRefused()) {
+            return;
+        }
+
         BigDecimal sideSpread = getSideSpread(price);
 
-        action(key, price, orderType, 0);
-
-        if(getSpotBalance().compareTo(ZERO) > 0){
-            action(key, price.add(sideSpread), orderType, 1);
-        }else{
-            action(key, price.subtract(sideSpread), orderType, -1);
+        for (int i = strategy.getLevelSize().intValue(); i > 0 ; i--) {
+            action(key, price.add(sideSpread), orderType, i);
+            action(key, price.subtract(sideSpread), orderType, -i);
         }
+
+        action(key, price, orderType, 0);
     }
 
     private static final BigDecimal CNY_MIN = BigDecimal.valueOf(0);
@@ -235,17 +240,15 @@ public class LevelStrategy extends BaseStrategy{
         String[] symbol = strategy.getSymbol().split("/");
 
         BigDecimal subtotal = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[0]);
+        BigDecimal spot = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[1]);
         BigDecimal total = userInfoService.getVolume("total", strategy.getAccount().getId(), null);
+        BigDecimal net = userInfoService.getVolume("net", strategy.getAccount().getId(), null);
 
-        if (lastAction.get().equals(ZERO) || subtotal.equals(ZERO) || total.equals(ZERO)){
+        if (lastAction.get().equals(ZERO) || subtotal.equals(ZERO) || total.equals(ZERO) || net.equals(ZERO) || spot.equals(ZERO)){
             return ZERO;
         }
 
-        BigDecimal x = subtotal.multiply(lastAction.get());
-        BigDecimal y = total.subtract(x).divide(BD_2, HALF_UP);
-
-
-        return y.subtract(x).divide(y, HALF_UP);
+        return spot.divide(subtotal.multiply(lastAction.get()), HALF_EVEN).subtract(BD_SQRT_TWO_PI);
     }
 
     private BigDecimal getSpread(BigDecimal price){
@@ -256,7 +259,7 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol() + getVolSuffix());
 
             if (stdDev != null){
-                spread = stdDev.divide(BD_SQRT_TWO_PI, HALF_UP);
+                spread = stdDev.divide(BD_3, HALF_UP);
             }
         }else {
             spread = strategy.getSymbolType() == null
@@ -331,7 +334,6 @@ public class LevelStrategy extends BaseStrategy{
 
                 BigDecimal buyAmount = amount;
                 BigDecimal sellAmount = amount;
-                BigDecimal capAmount = amount;
 
                 if (strategy.getSymbolType() == null){
                     buyAmount = amount;
@@ -340,13 +342,11 @@ public class LevelStrategy extends BaseStrategy{
 
                 if (isVol()){
                     double a = amount.doubleValue();
-                    double r1 = a*(QuranRandom.nextDouble());
-                    double r2 = a*(QuranRandom.nextDouble());
-                    double r3 = a*(QuranRandom.nextDouble());
+                    double r1 = a*(QuranRandom.nextDouble() + (up ? QuranRandom.nextDouble() : 0));
+                    double r2 = a*(QuranRandom.nextDouble() + (up ? 0 : QuranRandom.nextDouble()));
 
                     buyAmount = BigDecimal.valueOf(r1).setScale(3, HALF_EVEN);
                     sellAmount = BigDecimal.valueOf(r2).setScale(3, HALF_EVEN);
-                    capAmount = BigDecimal.valueOf(r3).setScale(3, HALF_EVEN);
 
                     if (buyAmount.compareTo(BD_0_01) < 0){
                         buyAmount = BD_0_01;
@@ -354,24 +354,14 @@ public class LevelStrategy extends BaseStrategy{
                     if (sellAmount.compareTo(BD_0_01) < 0){
                         sellAmount = BD_0_01;
                     }
-                    if (capAmount.compareTo(BD_0_01) < 0){
-                        capAmount = BD_0_01;
-                    }
                 }
 
                 Order buyOrder = new Order(strategy, positionId, BID, buyPrice, buyAmount);
                 Order sellOrder = new Order(strategy, positionId, ASK, sellPrice, sellAmount);
 
-                BigDecimal capSpread = spread;
-                Order capOrder = new Order(strategy, positionIdGen.incrementAndGet(), up ? BID : ASK,
-                        up ? buyPrice.subtract(capSpread) : sellPrice.add(capSpread), capAmount);
-
                 if (isVol()) {
-                    if (!isBidRefused() && !isAskRefused()) {
-                        createOrderSync(buyOrder);
-                        createOrderSync(sellOrder);
-                        createOrderSync(capOrder);
-                    }
+                    createOrderSync(buyOrder);
+                    createOrderSync(sellOrder);
                 }else {
                     if (strategy.isLevelInverse()){
                         if (priceLevel > strategy.getLevelSize().intValue()/2){
