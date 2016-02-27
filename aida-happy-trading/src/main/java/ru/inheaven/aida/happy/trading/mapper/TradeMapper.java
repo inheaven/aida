@@ -24,4 +24,8 @@ public class TradeMapper extends BaseMapper<Trade> {
     public BigDecimal getTradeAvgAmountPt(String symbol, int points){
         return sqlSession().selectOne("selectTradeAvgAmountPt", of("symbol", symbol, "points", points));
     }
+
+    public BigDecimal getTradeAvgPricePt(String symbol, int points){
+        return sqlSession().selectOne("selectTradeAvgPricePt", of("symbol", symbol, "points", points));
+    }
 }

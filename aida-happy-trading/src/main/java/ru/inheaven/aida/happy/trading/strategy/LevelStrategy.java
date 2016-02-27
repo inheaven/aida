@@ -54,7 +54,9 @@ public class LevelStrategy extends BaseStrategy{
     private final static BigDecimal BD_1_3 = new BigDecimal("1.3");
 
     private final static BigDecimal BD_1_5 = new BigDecimal(1.5);
+    private final static BigDecimal BD_1_7 = new BigDecimal(1.7);
     private final static BigDecimal BD_2 = new BigDecimal(2);
+    private final static BigDecimal BD_2_3 = new BigDecimal(2.3);
     private final static BigDecimal BD_2_5 = new BigDecimal(2.5);
     private final static BigDecimal BD_3 = new BigDecimal(3);
     private final static BigDecimal BD_3_5 = new BigDecimal(3.5);
@@ -248,7 +250,7 @@ public class LevelStrategy extends BaseStrategy{
             return ZERO;
         }
 
-        return spot.divide(subtotal.multiply(lastAction.get()), HALF_EVEN).subtract(BD_SQRT_TWO_PI);
+        return spot.divide(subtotal.multiply(lastAction.get()), HALF_EVEN).subtract(BD_3);
     }
 
     private BigDecimal getSpread(BigDecimal price){
@@ -263,19 +265,19 @@ public class LevelStrategy extends BaseStrategy{
 
                 switch (getVolSuffix()){
                     case "_1":
-                        d = ONE;
+                        d = BD_1_5;
                         break;
                     case "_2":
-                        d = BD_1_5;
+                        d = BD_1_7;
                         break;
                     case "_3":
                         d = BD_2;
                         break;
                     case "_4":
-                        d = BD_2_5;
+                        d = BD_2_3;
                         break;
                     case "_5":
-                        d = BD_3;
+                        d = BD_2_5;
                         break;
                     case "_6":
                         d = BD_3_5;
@@ -320,7 +322,7 @@ public class LevelStrategy extends BaseStrategy{
             boolean up = getSpotBalance().compareTo(ZERO)> 0;
 
             BigDecimal spread = scale(getSpread(price));
-            BigDecimal priceF = price.add(spread.multiply(getSpotBalance()));
+            BigDecimal priceF = price;
             BigDecimal sideSpread = isVol() ? spread : scale(getSideSpread(priceF));
 
             BigDecimal buyPrice = up ? priceF : priceF.subtract(spread);
@@ -368,8 +370,21 @@ public class LevelStrategy extends BaseStrategy{
 
                 if (isVol()){
                     double a = amount.doubleValue();
-                    double r1 = a*(QuranRandom.nextDouble() + (up ? QuranRandom.nextDouble() : 0));
-                    double r2 = a*(QuranRandom.nextDouble() + (up ? 0 : QuranRandom.nextDouble()));
+
+                    if (getSellPrice().get().subtract(getBuyPrice().get()).compareTo(ZERO) > 0){
+                        a = a*3;
+                    }
+
+                    BigDecimal avgPrice = tradeService.getAvgPrice(strategy.getSymbol(), getVolSuffix());
+
+                    boolean b = avgPrice.subtract(buyPrice).compareTo(ZERO) > 0 &&
+                            avgPrice.subtract(buyPrice).compareTo(spread)  < 0;
+                    boolean s = sellPrice.subtract(avgPrice).compareTo(ZERO) > 0 &&
+                            sellPrice.subtract(avgPrice).compareTo(spread) < 0;
+
+                    double r = QuranRandom.nextDouble();
+                    double r1 = a * r * (b ? 2 : (s ? 1 : (up ? 2 : 1)));
+                    double r2 = a * r * (b ? 1 : (s ? 2 : (up ? 1 : 2)));
 
                     buyAmount = BigDecimal.valueOf(r1).setScale(3, HALF_EVEN);
                     sellAmount = BigDecimal.valueOf(r2).setScale(3, HALF_EVEN);
