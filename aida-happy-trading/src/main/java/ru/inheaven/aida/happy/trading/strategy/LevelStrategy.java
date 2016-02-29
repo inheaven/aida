@@ -250,7 +250,7 @@ public class LevelStrategy extends BaseStrategy{
             return ZERO;
         }
 
-        return spot.divide(subtotal.multiply(lastAction.get()), HALF_EVEN).subtract(BD_3);
+        return spot.divide(subtotal.multiply(lastAction.get()), HALF_EVEN).subtract(BD_2_5);
     }
 
     private BigDecimal getSpread(BigDecimal price){
@@ -265,19 +265,19 @@ public class LevelStrategy extends BaseStrategy{
 
                 switch (getVolSuffix()){
                     case "_1":
-                        d = BD_1_5;
+                        d = BD_1_1;
                         break;
                     case "_2":
-                        d = BD_1_7;
+                        d = BD_1_5;
                         break;
                     case "_3":
                         d = BD_2;
                         break;
                     case "_4":
-                        d = BD_2_3;
+                        d = BD_2_5;
                         break;
                     case "_5":
-                        d = BD_2_5;
+                        d = BD_3;
                         break;
                     case "_6":
                         d = BD_3_5;
@@ -322,7 +322,7 @@ public class LevelStrategy extends BaseStrategy{
             boolean up = getSpotBalance().compareTo(ZERO)> 0;
 
             BigDecimal spread = scale(getSpread(price));
-            BigDecimal priceF = price;
+            BigDecimal priceF = price.add(spread.multiply(getSpotBalance()));
             BigDecimal sideSpread = isVol() ? spread : scale(getSideSpread(priceF));
 
             BigDecimal buyPrice = up ? priceF : priceF.subtract(spread);
@@ -370,21 +370,24 @@ public class LevelStrategy extends BaseStrategy{
 
                 if (isVol()){
                     double a = amount.doubleValue();
+//
+//                    if (getSellPrice().get().subtract(getBuyPrice().get()).compareTo(ZERO) > 0){
+//                        a = a*2;
+//                    }
 
-                    if (getSellPrice().get().subtract(getBuyPrice().get()).compareTo(ZERO) > 0){
-                        a = a*3;
-                    }
+                    BigDecimal max = getSellPrice().get();
+                    BigDecimal min = getBuyPrice().get();
+                    BigDecimal avg = tradeService.getAvgPrice(strategy.getSymbol(), getVolSuffix());
 
-                    BigDecimal avgPrice = tradeService.getAvgPrice(strategy.getSymbol(), getVolSuffix());
+                    boolean s = sellPrice.subtract(avg).compareTo(ZERO) > 0 && sellPrice.subtract(avg).compareTo(spread) < 0;
+                    boolean b = avg.subtract(buyPrice).compareTo(ZERO) > 0 && avg.subtract(buyPrice).compareTo(spread)  < 0;
 
-                    boolean b = avgPrice.subtract(buyPrice).compareTo(ZERO) > 0 &&
-                            avgPrice.subtract(buyPrice).compareTo(spread)  < 0;
-                    boolean s = sellPrice.subtract(avgPrice).compareTo(ZERO) > 0 &&
-                            sellPrice.subtract(avgPrice).compareTo(spread) < 0;
+                    double ra = random.nextGaussian()/2 + 1;
+                    double rb = random.nextGaussian()/2 + 2;
+                    double rc = b && s ? QuranRandom.nextDouble() + 1 : 1;
 
-                    double r = QuranRandom.nextDouble();
-                    double r1 = a * r * (b ? 2 : (s ? 1 : (up ? 2 : 1)));
-                    double r2 = a * r * (b ? 1 : (s ? 2 : (up ? 1 : 2)));
+                    double r1 = a * (b && s ? rc : ((up ? rb : ra)));
+                    double r2 = a * (b && s ? rc : ((up ? ra : rb)));
 
                     buyAmount = BigDecimal.valueOf(r1).setScale(3, HALF_EVEN);
                     sellAmount = BigDecimal.valueOf(r2).setScale(3, HALF_EVEN);
