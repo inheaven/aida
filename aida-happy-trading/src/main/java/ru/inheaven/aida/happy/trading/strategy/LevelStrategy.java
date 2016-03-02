@@ -274,7 +274,7 @@ public class LevelStrategy extends BaseStrategy{
                         d = BD_2;
                         break;
                     case "_4":
-                        d = BD_2_5;
+                        d = BD_SQRT_TWO_PI;
                         break;
                     case "_5":
                         d = BD_3;
@@ -322,7 +322,7 @@ public class LevelStrategy extends BaseStrategy{
             boolean up = getSpotBalance().compareTo(ZERO)> 0;
 
             BigDecimal spread = scale(getSpread(price));
-            BigDecimal priceF = price.add(spread.multiply(getSpotBalance()));
+            BigDecimal priceF = up ? price.add(getStep()) : price.subtract(getStep());
             BigDecimal sideSpread = isVol() ? spread : scale(getSideSpread(priceF));
 
             BigDecimal buyPrice = up ? priceF : priceF.subtract(spread);
@@ -368,29 +368,18 @@ public class LevelStrategy extends BaseStrategy{
                     sellAmount = amount;
                 }
 
+                double ra = QuranRandom.nextDouble();
+                double rb = QuranRandom.nextDouble();
+                double rMax = ra > rb ? ra : rb;
+                double rMin = ra > rb ? rb : ra;
+
+                double a = amount.doubleValue();
+                double rBuy = a * (up ? rMax : rMin);
+                double rSell = a * (up ? rMin : rMax);
+
                 if (isVol()){
-                    double a = amount.doubleValue();
-//
-//                    if (getSellPrice().get().subtract(getBuyPrice().get()).compareTo(ZERO) > 0){
-//                        a = a*2;
-//                    }
-
-                    BigDecimal max = getSellPrice().get();
-                    BigDecimal min = getBuyPrice().get();
-                    BigDecimal avg = tradeService.getAvgPrice(strategy.getSymbol(), getVolSuffix());
-
-                    boolean s = sellPrice.subtract(avg).compareTo(ZERO) > 0 && sellPrice.subtract(avg).compareTo(spread) < 0;
-                    boolean b = avg.subtract(buyPrice).compareTo(ZERO) > 0 && avg.subtract(buyPrice).compareTo(spread)  < 0;
-
-                    double ra = random.nextGaussian()/2 + 1;
-                    double rb = random.nextGaussian()/2 + 2;
-                    double rc = b && s ? QuranRandom.nextDouble() + 1 : 1;
-
-                    double r1 = a * (b && s ? rc : ((up ? rb : ra)));
-                    double r2 = a * (b && s ? rc : ((up ? ra : rb)));
-
-                    buyAmount = BigDecimal.valueOf(r1).setScale(3, HALF_EVEN);
-                    sellAmount = BigDecimal.valueOf(r2).setScale(3, HALF_EVEN);
+                    buyAmount = BigDecimal.valueOf(rBuy).setScale(3, HALF_EVEN);
+                    sellAmount = BigDecimal.valueOf(rSell).setScale(3, HALF_EVEN);
 
                     if (buyAmount.compareTo(BD_0_01) < 0){
                         buyAmount = BD_0_01;
@@ -404,8 +393,13 @@ public class LevelStrategy extends BaseStrategy{
                 Order sellOrder = new Order(strategy, positionId, ASK, sellPrice, sellAmount);
 
                 if (isVol()) {
-                    createOrderSync(buyOrder);
-                    createOrderSync(sellOrder);
+                    if ((ra > rb && rBuy > rSell) || (ra < rb && rBuy < rSell)){
+                        createOrderSync(buyOrder);
+                        createOrderSync(sellOrder);
+                    }else {
+                        createOrderSync(sellOrder);
+                        createOrderSync(buyOrder);
+                    }
                 }else {
                     if (strategy.isLevelInverse()){
                         if (priceLevel > strategy.getLevelSize().intValue()/2){
