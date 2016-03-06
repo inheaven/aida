@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
+import ru.inheaven.aida.happy.trading.util.BibleRandom;
 import ru.inheaven.aida.happy.trading.util.QuranRandom;
 
 import java.math.BigDecimal;
@@ -250,7 +251,7 @@ public class LevelStrategy extends BaseStrategy{
             return ZERO;
         }
 
-        return spot.divide(subtotal.multiply(lastAction.get()), HALF_EVEN).subtract(BD_2_5);
+        return spot.divide(subtotal.multiply(lastAction.get()), HALF_EVEN).subtract(BD_2);
     }
 
     private BigDecimal getSpread(BigDecimal price){
@@ -368,8 +369,8 @@ public class LevelStrategy extends BaseStrategy{
                     sellAmount = amount;
                 }
 
-                double ra = QuranRandom.nextDouble();
-                double rb = QuranRandom.nextDouble();
+                double ra = strategy.getId().equals(47L) ? BibleRandom.nextDouble() : QuranRandom.nextDouble();
+                double rb = strategy.getId().equals(47L) ? BibleRandom.nextDouble() : QuranRandom.nextDouble();
                 double rMax = ra > rb ? ra : rb;
                 double rMin = ra > rb ? rb : ra;
 

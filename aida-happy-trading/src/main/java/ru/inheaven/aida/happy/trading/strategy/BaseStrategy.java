@@ -524,6 +524,12 @@ public class BaseStrategy {
 
     private void logOrder(Order o){
         try {
+            BigDecimal profit = sellVolume.get().min(buyVolume.get()).multiply(sellPrice.get().subtract(buyPrice.get()))
+                    .add(buyVolume.get().subtract(sellVolume.get().abs())
+                            .multiply(buyVolume.get().compareTo(sellVolume.get()) > 0
+                                    ? lastPrice.get().subtract(buyPrice.get())
+                                    : sellPrice.get().subtract(lastPrice.get())));
+
             log.info("{} {} {} {} {} {} {} {} {} {} {} {} {} {}",
                     o.getStrategyId(),
                     o.getStatus(),
@@ -536,7 +542,7 @@ public class BaseStrategy {
                     o.getAmount().setScale(3, HALF_EVEN),
                     o.getType(),
                     scale(buyPrice.get()),
-                    sellPrice.get().subtract(buyPrice.get()).setScale(3, HALF_EVEN),
+                    profit.setScale(3, HALF_EVEN),
                     buyVolume.get().add(sellVolume.get()).setScale(3, HALF_EVEN),
                     tradeService.getStdDev(strategy.getSymbol(), getVolSuffix()).setScale(3, HALF_UP),
                     tradeService.getAvgAmount(strategy.getSymbol(), getVolSuffix()).setScale(3, HALF_UP),
