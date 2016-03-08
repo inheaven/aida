@@ -522,6 +522,8 @@ public class BaseStrategy {
 
     private final static BigDecimal BD_SQRT_TWO_PI = new BigDecimal("2.506628274631000502415765284811");
 
+    private AtomicLong index = new AtomicLong(0);
+
     private void logOrder(Order o){
         try {
             BigDecimal profit = sellVolume.get().min(buyVolume.get()).multiply(sellPrice.get().subtract(buyPrice.get()))
@@ -530,7 +532,12 @@ public class BaseStrategy {
                                     ? lastPrice.get().subtract(buyPrice.get())
                                     : sellPrice.get().subtract(lastPrice.get())));
 
-            log.info("{} {} {} {} {} {} {} {} {} {} {} {} {} {}",
+            if (o.getStatus().equals(OPEN)){
+                index.incrementAndGet();
+            }
+
+            log.info("{} {} {} {} {} {} {} {} {} {} {} {} {} {} {}",
+                    index.get(),
                     o.getStrategyId(),
                     o.getStatus(),
                     o.getSymbol(),

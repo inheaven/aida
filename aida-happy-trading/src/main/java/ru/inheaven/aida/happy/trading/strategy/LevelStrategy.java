@@ -251,7 +251,7 @@ public class LevelStrategy extends BaseStrategy{
             return ZERO;
         }
 
-        return spot.divide(subtotal.multiply(lastAction.get()), HALF_EVEN).subtract(BD_2);
+        return total.divide(subtotal.multiply(lastAction.get()), HALF_EVEN).subtract(BD_3);
     }
 
     private BigDecimal getSpread(BigDecimal price){
@@ -369,8 +369,8 @@ public class LevelStrategy extends BaseStrategy{
                     sellAmount = amount;
                 }
 
-                double ra = strategy.getId().equals(47L) ? BibleRandom.nextDouble() : QuranRandom.nextDouble();
-                double rb = strategy.getId().equals(47L) ? BibleRandom.nextDouble() : QuranRandom.nextDouble();
+                double ra = nextDouble();
+                double rb = nextDouble();
                 double rMax = ra > rb ? ra : rb;
                 double rMin = ra > rb ? rb : ra;
 
@@ -421,6 +421,17 @@ public class LevelStrategy extends BaseStrategy{
             }
         } catch (Exception e) {
             log.error("action error -> ", e);
+        }
+    }
+
+    private double nextDouble(){
+        switch (strategy.getId().intValue()){
+            case 47:
+                return BibleRandom.nextDouble();
+            case 49:
+                return QuranRandom.nextDouble();
+            default:
+                return random.nextDouble();
         }
     }
 

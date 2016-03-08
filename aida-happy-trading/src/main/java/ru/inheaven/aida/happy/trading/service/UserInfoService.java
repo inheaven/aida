@@ -64,7 +64,11 @@ public class UserInfoService {
 
         tradeService.getTradeObservable()
                 .subscribe(t -> {
-                    setPrice(t.getExchangeType(), t.getSymbol(), t.getSymbolType(), t.getPrice());
+                    try {
+                        setPrice(t.getExchangeType(), t.getSymbol(), t.getSymbolType(), t.getPrice());
+                    } catch (Exception e) {
+                        log.error("error user info service update price", e);
+                    }
                 });
 
         orderService.getClosedOrderObservable()
