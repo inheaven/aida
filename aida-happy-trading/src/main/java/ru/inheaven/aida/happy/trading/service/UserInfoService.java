@@ -191,13 +191,11 @@ public class UserInfoService {
                         setVolume("free_spot", account.getId(), null, funds.getFree().get("cny"));
                         break;
                 }
-
-                //Thread.sleep(random.nextInt(30000));
             } catch (Exception e) {
                 log.error("error user info -> ", e);
             }
 
-        }, 0, 1, TimeUnit.SECONDS);
+        }, 0, 60, TimeUnit.SECONDS);
     }
 
     private void saveFunds(Long accountId, String currency, BigDecimal free, BigDecimal freezed){

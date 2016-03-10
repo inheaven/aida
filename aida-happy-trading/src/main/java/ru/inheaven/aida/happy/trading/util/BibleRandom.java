@@ -14,7 +14,7 @@ public class BibleRandom {
     private static BibleRandom INSTANCE = new BibleRandom();
 
     private List<Double> bibleRandomList = new ArrayList<>();
-    private AtomicLong index = new AtomicLong(0);
+    private AtomicLong index = new AtomicLong(33658);
 
     private BibleRandom() {
         try {
@@ -39,6 +39,10 @@ public class BibleRandom {
 
     public static double nextDouble(){
         return INSTANCE.bibleRandomList.get((int) (INSTANCE.index.incrementAndGet() % INSTANCE.bibleRandomList.size()));
+    }
+
+    public static Long getIndex(){
+        return INSTANCE.index.get();
     }
 
     public static void main(String[] args){

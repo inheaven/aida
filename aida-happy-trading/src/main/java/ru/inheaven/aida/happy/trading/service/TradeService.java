@@ -26,9 +26,7 @@ public class TradeService {
     public TradeService(OkcoinService okcoinService, OkcoinFixService okcoinFixService,
                         OkcoinCnFixService okcoinCnFixService,
                         TradeMapper tradeMapper, BroadcastService broadcastService) {
-        tradeObservable = okcoinService.createFutureTradeObservable()
-                .mergeWith(okcoinService.createSpotTradeObservable())
-                .mergeWith(okcoinFixService.getTradeObservable())
+        tradeObservable = okcoinFixService.getTradeObservable()
                 .mergeWith(okcoinCnFixService.getTradeObservable())
                 .onBackpressureBuffer()
                 .observeOn(Schedulers.io())

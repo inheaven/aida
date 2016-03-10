@@ -27,6 +27,8 @@ public class JsonObservableEndpoint extends Endpoint{
     public JsonObservableEndpoint() {
         subject = PublishSubject.create();
 
+        subject.doOnError(e -> log.error("error JsonObservableEndpoint", e));
+
         messageHandler = new MessageHandler.Whole<String>() {
             @Override
             public void onMessage(String message) {
@@ -44,7 +46,7 @@ public class JsonObservableEndpoint extends Endpoint{
                                 : Collections.singletonList(j);
                     } catch (Exception e) {
                         log.error("error parse -> {}", s);
-                        return null;
+                        return Collections.emptyList();
                     }
                 })
                 .filter(j -> j != null && j.getValueType().equals(JsonValue.ValueType.OBJECT))

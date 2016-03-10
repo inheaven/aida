@@ -532,13 +532,13 @@ public class BaseStrategy {
                                     ? lastPrice.get().subtract(buyPrice.get())
                                     : sellPrice.get().subtract(lastPrice.get())));
 
-            if (o.getStatus().equals(OPEN)){
+            if (o.getStatus().equals(CLOSED)){
                 index.incrementAndGet();
             }
 
             log.info("{} {} {} {} {} {} {} {} {} {} {} {} {} {} {}",
-                    index.get(),
                     o.getStrategyId(),
+                    index.get(),
                     o.getStatus(),
                     o.getSymbol(),
                     scale(o.getAvgPrice() != null ? o.getAvgPrice() : o.getPrice()),
