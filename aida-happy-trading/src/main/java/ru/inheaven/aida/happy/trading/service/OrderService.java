@@ -1,7 +1,5 @@
 package ru.inheaven.aida.happy.trading.service;
 
-import com.xeiam.xchange.dto.trade.OpenOrders;
-import com.xeiam.xchange.service.polling.trade.PollingTradeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.Account;
@@ -17,14 +15,7 @@ import rx.subjects.PublishSubject;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static ru.inheaven.aida.happy.trading.entity.ExchangeType.OKCOIN;
-import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CANCELED;
 
 /**
  * @author inheaven on 29.06.2015 23:49.
@@ -79,7 +70,7 @@ public class OrderService {
     }
 
     public void createOrder(Account account, Order order) throws CreateOrderException {
-        switch (order.getExchangeType()){
+        switch (account.getExchangeType()){
             case OKCOIN:
                 if (order.getSymbolType() == null){
                     okcoinFixUsService.placeLimitOrder(account, order);
@@ -100,7 +91,7 @@ public class OrderService {
     }
 
     public void orderInfo(Account account, Order order){
-        switch (order.getExchangeType()){
+        switch (account.getExchangeType()){
             case OKCOIN:
                 if (order.getSymbolType() == null){
                     okcoinFixUsService.orderInfo(order);
@@ -121,7 +112,7 @@ public class OrderService {
     }
 
     public void checkOrder(Account account, Order order) throws OrderInfoException {
-        switch (order.getExchangeType()){
+        switch (account.getExchangeType()){
             case OKCOIN:
             case OKCOIN_CN:
                 xChangeService.checkOrder(account, order);

@@ -5,11 +5,9 @@ import com.xeiam.xchange.service.polling.trade.PollingTradeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
+import ru.inheaven.aida.happy.trading.mapper.AccountMapper;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
-import ru.inheaven.aida.happy.trading.service.DepthService;
-import ru.inheaven.aida.happy.trading.service.OrderService;
-import ru.inheaven.aida.happy.trading.service.TradeService;
-import ru.inheaven.aida.happy.trading.service.XChangeService;
+import ru.inheaven.aida.happy.trading.service.*;
 import ru.inheaven.aida.happy.trading.util.OrderMap;
 import rx.Observable;
 import rx.Subscription;
@@ -40,6 +38,7 @@ import static ru.inheaven.aida.happy.trading.entity.OrderType.BID;
 public class BaseStrategy {
     private Logger log = LoggerFactory.getLogger(getClass());
 
+    private AccountMapper accountMapper;
     private OrderService orderService;
     private OrderMapper orderMapper;
     private TradeService tradeService;
@@ -59,6 +58,7 @@ public class BaseStrategy {
     private OrderMap orderMap;
 
     private Strategy strategy;
+    private Account account;
 
     private boolean flying = false;
 
@@ -68,83 +68,51 @@ public class BaseStrategy {
 
     private Random random = new SecureRandom();
 
-    private AtomicReference<BigDecimal> buyPrice = new AtomicReference<>();
-    private AtomicReference<BigDecimal> buyVolume = new AtomicReference<>();
-    private AtomicReference<BigDecimal> sellPrice = new AtomicReference<>();
-    private AtomicReference<BigDecimal> sellVolume = new AtomicReference<>();
+    private AtomicReference<BigDecimal> buyPrice = new AtomicReference<>(ZERO);
+    private AtomicReference<BigDecimal> buyVolume = new AtomicReference<>(ZERO);
+    private AtomicReference<BigDecimal> sellPrice = new AtomicReference<>(ZERO);
+    private AtomicReference<BigDecimal> sellVolume = new AtomicReference<>(ZERO);
 
-    private final boolean vol;
-    private final String volSuffix;
-
-    public BaseStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
-                        DepthService depthService,  XChangeService xChangeService) {
+    public BaseStrategy(Strategy strategy) {
         this.strategy = strategy;
-        this.orderService = orderService;
-        this.orderMapper = orderMapper;
-        this.tradeService = tradeService;
-        this.depthService = depthService;
-        this.xChangeService = xChangeService;
+
+        accountMapper = Module.getInjector().getInstance(AccountMapper.class);
+        orderMapper = Module.getInjector().getInstance(OrderMapper.class);
+        orderService = Module.getInjector().getInstance(OrderService.class);
+        tradeService = Module.getInjector().getInstance(TradeService.class);
+        depthService = Module.getInjector().getInstance(DepthService.class);
+        xChangeService = Module.getInjector().getInstance(XChangeService.class);
 
         orderObservable = createOrderObservable();
         tradeObservable = createTradeObservable();
         depthObservable = createDepthObservable();
 
+        account = accountMapper.getAccount(strategy.getAccountId());
+
         orderMap = new OrderMap(getScale(strategy.getSymbol()));
 
         orderMapper.getOpenOrders(strategy.getId()).forEach(o -> orderMap.put(o));
-
-        buyPrice.set(ZERO);
-        buyVolume.set(ZERO);
-        sellPrice.set(ZERO);
-        sellVolume.set(ZERO);
-
-        vol = strategy.getName().contains("vol");
-
-        if (strategy.getName().contains("vol_0")){
-            volSuffix = "_0";
-        }else if (strategy.getName().contains("vol_1")){
-            volSuffix = "_1";
-        }else if (strategy.getName().contains("vol_2")){
-            volSuffix = "_2";
-        }else if (strategy.getName().contains("vol_3")){
-            volSuffix = "_3";
-        }else if (strategy.getName().contains("vol_4")){
-            volSuffix = "_4";
-        }else if (strategy.getName().contains("vol_5")){
-            volSuffix = "_5";
-        }else if (strategy.getName().contains("vol_6")){
-            volSuffix = "_6";
-        }else if (strategy.getName().contains("vol_7")){
-            volSuffix = "_7";
-        }else{
-            volSuffix = "";
-        }
     }
 
-    public boolean isVol() {
-        return vol;
-    }
-
-    public String getVolSuffix() {
-        return volSuffix;
-    }
-
-    protected Observable<Order> createOrderObservable(){
+    private Observable<Order> createOrderObservable(){
         return orderService.getOrderObservable()
-                .filter(o -> Objects.equals(strategy.getAccount().getExchangeType(), o.getExchangeType()))
+                .filter(o -> Objects.equals(strategy.getAccountId(), o.getAccountId()))
                 .filter(o -> Objects.equals(strategy.getSymbol(), o.getSymbol()))
                 .filter(o -> Objects.equals(strategy.getSymbolType(), o.getSymbolType()));
     }
 
-    protected Observable<Trade> createTradeObservable(){
+    private Observable<Trade> createTradeObservable(){
         return tradeService.getTradeObservable()
-                .filter(t -> Objects.equals(strategy.getAccount().getExchangeType(), t.getExchangeType()))
+                .filter(t -> Objects.equals(account.getExchangeType(), t.getExchangeType()))
                 .filter(t -> Objects.equals(strategy.getSymbol(), t.getSymbol()))
                 .filter(t -> Objects.equals(strategy.getSymbolType(), t.getSymbolType()));
     }
 
-    protected Observable<Depth> createDepthObservable(){
-        return depthService.createDepthObservable(strategy);
+    private Observable<Depth> createDepthObservable(){
+        return depthService.getDepthObservable()
+                .filter(d -> Objects.equals(account.getExchangeType(), d.getExchangeType()))
+                .filter(d -> Objects.equals(strategy.getSymbol(), d.getSymbol()))
+                .filter(d -> Objects.equals(strategy.getSymbolType(), d.getSymbolType()));
     }
 
     private static AtomicReference<OpenOrders> openOrdersCache = new AtomicReference<>();
@@ -193,7 +161,7 @@ public class BaseStrategy {
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> orderMap.forEach((id, o) -> {
             try {
                 if (o.getStatus().equals(OPEN)) {
-                    orderService.checkOrder(strategy.getAccount(), o);
+                    orderService.checkOrder(account, o);
                 }else if ((o.getStatus().equals(CANCELED) || o.getStatus().equals(CLOSED)) && (o.getClosed() == null ||
                         System.currentTimeMillis() - o.getClosed().getTime() > 60000)) {
                     onOrder(o);
@@ -213,14 +181,14 @@ public class BaseStrategy {
         if (strategy.getSymbol().equals("BTC/CNY") || strategy.getSymbol().equals("LTC/CNY")){
             Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
                 try {
-                    PollingTradeService ts = xChangeService.getExchange(strategy.getAccount()).getPollingTradeService();
+                    PollingTradeService ts = xChangeService.getExchange(account).getPollingTradeService();
 
                     if (System.currentTimeMillis() - openOrdersTime.get() > 10000){
                         openOrdersTime.set(System.currentTimeMillis());
                         openOrdersCache.set(ts.getOpenOrders());
                     }
 
-                    BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol(), getVolSuffix());
+                    BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol(), "_1");
                     BigDecimal range = stdDev != null ? stdDev.multiply(BigDecimal.valueOf(3)) : new BigDecimal("10");
 
                     openOrdersCache.get().getOpenOrders().forEach(l -> {
@@ -282,7 +250,7 @@ public class BaseStrategy {
                             }
 
                             if (cancel) {
-                                orderService.cancelOrder(strategy.getAccount(), o);
+                                orderService.cancelOrder(account, o);
 
                                 if (strategy.getSymbol().equals("BTC/CNY")){
                                     o.setStatus(CANCELED);
@@ -336,7 +304,7 @@ public class BaseStrategy {
 
         return executorService.submit(() -> {
             try {
-                orderService.createOrder(strategy.getAccount(), order);
+                orderService.createOrder(account, order);
 
                 if (order.getStatus().equals(OPEN)){
                     orderMap.update(order);
@@ -364,7 +332,7 @@ public class BaseStrategy {
         orderMap.put(order);
 
         try {
-            orderService.createOrder(strategy.getAccount(), order);
+            orderService.createOrder(account, order);
 
             if (order.getStatus().equals(OPEN)){
                 orderMap.update(order);
@@ -404,7 +372,7 @@ public class BaseStrategy {
         order.setCreated(new Date());
 
         try {
-            orderService.createOrder(strategy.getAccount(), order);
+            orderService.createOrder(account, order);
 
             if (order.getStatus().equals(OPEN)){
                 orderMap.update(order);
@@ -457,7 +425,7 @@ public class BaseStrategy {
                         return;
                     }
 
-                    order.setAccountId(strategy.getAccount().getId());
+                    order.setAccountId(strategy.getAccountId());
                     order.setOrderId(o.getOrderId());
                     order.setText(o.getText());
                     order.close(o);
@@ -512,15 +480,13 @@ public class BaseStrategy {
             order.setSellPrice(sellPrice.get());
             order.setBuyVolume(buyVolume.get());
             order.setSellVolume(sellVolume.get());
-            order.setSpotBalance(getSpotBalance());
+            order.setSpotBalance(getBalance());
         }
     }
 
-    protected BigDecimal getSpotBalance(){
+    protected BigDecimal getBalance(){
         return ZERO;
     }
-
-    private final static BigDecimal BD_SQRT_TWO_PI = new BigDecimal("2.506628274631000502415765284811");
 
     private AtomicLong index = new AtomicLong(0);
 
@@ -542,18 +508,14 @@ public class BaseStrategy {
                     o.getStatus(),
                     o.getSymbol(),
                     scale(o.getAvgPrice() != null ? o.getAvgPrice() : o.getPrice()),
-    //                o.getAvgPrice() != null
-    //                        ? scale(o.getType().equals(OrderType.ASK)
-    //                        ? o.getAvgPrice().subtract(o.getPrice()) : o.getPrice().subtract(o.getAvgPrice()))
-    //                        : scale(ZERO),
                     o.getAmount().setScale(3, HALF_EVEN),
                     o.getType(),
                     scale(buyPrice.get()),
                     profit.setScale(3, HALF_EVEN),
                     buyVolume.get().add(sellVolume.get()).setScale(3, HALF_EVEN),
-                    tradeService.getStdDev(strategy.getSymbol(), getVolSuffix()).setScale(3, HALF_UP),
-                    tradeService.getAvgAmount(strategy.getSymbol(), getVolSuffix()).setScale(3, HALF_UP),
-                    getSpotBalance().setScale(3, HALF_UP),
+                    tradeService.getStdDev(strategy.getSymbol(), "_1").setScale(3, HALF_UP),
+                    tradeService.getAvgAmount(strategy.getSymbol(), "_1").setScale(3, HALF_UP),
+                    getBalance().setScale(3, HALF_UP),
                     Objects.toString(o.getText(), ""),
                     Objects.toString(o.getSymbolType(), ""));
         } catch (Exception e) {
@@ -561,9 +523,8 @@ public class BaseStrategy {
         }
     }
 
-    public static final BigDecimal STEP_0_01 = new BigDecimal("0.01");
-    public static final BigDecimal STEP_0_02 = new BigDecimal("0.02");
-    public static final BigDecimal STEP_0_001 = new BigDecimal("0.001");
+    private static final BigDecimal STEP_0_02 = new BigDecimal("0.02");
+    private static final BigDecimal STEP_0_001 = new BigDecimal("0.001");
 
     public BigDecimal getStep(){
         switch (strategy.getSymbol()){
@@ -578,7 +539,7 @@ public class BaseStrategy {
         return ZERO;
     }
 
-    public static int getScale(String symbol){
+    private int getScale(String symbol){
         switch (symbol){
             case "BTC/USD":
             case "BTC/CNY":
@@ -599,12 +560,16 @@ public class BaseStrategy {
         return value.setScale(getScale(strategy.getSymbol()), HALF_EVEN);
     }
 
-    public int compare(BigDecimal v1, BigDecimal v2){
-        return scale(v1).compareTo(scale(v2));
+    public TradeService getTradeService() {
+        return tradeService;
     }
 
     public OrderMap getOrderMap() {
         return orderMap;
+    }
+
+    public Account getAccount() {
+        return account;
     }
 
     public Strategy getStrategy() {

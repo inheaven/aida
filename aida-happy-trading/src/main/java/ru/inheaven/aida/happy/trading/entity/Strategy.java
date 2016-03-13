@@ -2,6 +2,9 @@ package ru.inheaven.aida.happy.trading.entity;
 
 import ru.inhell.aida.common.entity.AbstractEntity;
 
+import javax.json.Json;
+import javax.json.JsonObject;
+import java.io.StringReader;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -9,29 +12,35 @@ import java.util.Date;
  * @author inheaven on 02.05.2015 23:48.
  */
 public class Strategy extends AbstractEntity {
-    private String name;
+    private Long accountId;
     private StrategyType type;
-
+    private String name;
     private String symbol;
     private SymbolType symbolType;
-
-    private BigDecimal levelLot;
-    private BigDecimal levelSpread;
-    private BigDecimal levelSideSpread;
-    private BigDecimal levelSize;
-    private boolean levelInverse;
+    private String parameters;
     private boolean active;
-
-    private Account account;
-
     private Date sessionStart;
 
-    public String getName() {
-        return name;
+    private JsonObject parameterJsonObject;
+
+    public String getStringParameter(Enum name){
+        return parameterJsonObject.getString(name.name().toLowerCase());
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public BigDecimal getBigDecimalParameter(Enum name){
+        return parameterJsonObject.getJsonNumber(name.toString().toLowerCase()).bigDecimalValue();
+    }
+
+    public Integer getIntegerParameter(Enum name){
+        return parameterJsonObject.getJsonNumber(name.name().toLowerCase()).intValue();
+    }
+
+    public Long getAccountId() {
+        return accountId;
+    }
+
+    public void setAccountId(Long accountId) {
+        this.accountId = accountId;
     }
 
     public StrategyType getType() {
@@ -40,6 +49,14 @@ public class Strategy extends AbstractEntity {
 
     public void setType(StrategyType type) {
         this.type = type;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getSymbol() {
@@ -58,44 +75,14 @@ public class Strategy extends AbstractEntity {
         this.symbolType = symbolType;
     }
 
-    public BigDecimal getLevelLot() {
-        return levelLot;
+    public String getParameters() {
+        return parameters;
     }
 
-    public void setLevelLot(BigDecimal levelLot) {
-        this.levelLot = levelLot;
-    }
+    public void setParameters(String parameters) {
+        this.parameters = parameters;
 
-    public BigDecimal getLevelSpread() {
-        return levelSpread;
-    }
-
-    public void setLevelSpread(BigDecimal levelSpread) {
-        this.levelSpread = levelSpread;
-    }
-
-    public BigDecimal getLevelSideSpread() {
-        return levelSideSpread;
-    }
-
-    public void setLevelSideSpread(BigDecimal levelSideSpread) {
-        this.levelSideSpread = levelSideSpread;
-    }
-
-    public BigDecimal getLevelSize() {
-        return levelSize;
-    }
-
-    public void setLevelSize(BigDecimal levelSize) {
-        this.levelSize = levelSize;
-    }
-
-    public boolean isLevelInverse() {
-        return levelInverse;
-    }
-
-    public void setLevelInverse(boolean levelInverse) {
-        this.levelInverse = levelInverse;
+        parameterJsonObject = Json.createReader(new StringReader(parameters)).readObject();
     }
 
     public boolean isActive() {
@@ -104,14 +91,6 @@ public class Strategy extends AbstractEntity {
 
     public void setActive(boolean active) {
         this.active = active;
-    }
-
-    public Account getAccount() {
-        return account;
-    }
-
-    public void setAccount(Account account) {
-        this.account = account;
     }
 
     public Date getSessionStart() {

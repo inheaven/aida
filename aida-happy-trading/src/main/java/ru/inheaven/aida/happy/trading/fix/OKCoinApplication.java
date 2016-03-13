@@ -9,6 +9,7 @@ import quickfix.fix44.ExecutionReport;
 import quickfix.fix44.MarketDataSnapshotFullRefresh;
 import quickfix.fix44.MessageCracker;
 import ru.inheaven.aida.happy.trading.entity.*;
+import ru.inheaven.aida.happy.trading.entity.Account;
 import ru.inheaven.aida.happy.trading.fix.fix44.AccountInfoResponse;
 
 import java.math.BigDecimal;
@@ -23,16 +24,11 @@ public class OKCoinApplication extends MessageCracker implements Application {
 	private final MarketDataRequestCreator marketDataRequestCreator;
 	private final TradeRequestCreator tradeRequestCreator;
 
-    private ExchangeType exchangeType;
-	private final String apiKey;
-	private final String secretKey;
+    private Account account;
 
-	public OKCoinApplication(ExchangeType exchangeType, String apiKey, String secretKey) {
-        this.exchangeType = exchangeType;
-		this.apiKey = apiKey;
-		this.secretKey = secretKey;
+	public OKCoinApplication(Account account) {
 		this.marketDataRequestCreator = new MarketDataRequestCreator();
-		this.tradeRequestCreator = new TradeRequestCreator(apiKey, secretKey);
+		this.tradeRequestCreator = new TradeRequestCreator(account.getApiKey(), account.getSecretKey());
 
 		try {
 			dataDictionary = new DataDictionary("FIX44.xml");
@@ -67,8 +63,8 @@ public class OKCoinApplication extends MessageCracker implements Application {
 		}
 
 		if (MsgType.LOGON.equals(msgType) || MsgType.HEARTBEAT.equals(msgType)) {
-			message.setField(new Username(apiKey));
-			message.setField(new Password(secretKey));
+			message.setField(new Username(account.getApiKey()));
+			message.setField(new Password(account.getSecretKey()));
 		}
 
 		if (log.isTraceEnabled()) {
@@ -143,7 +139,7 @@ public class OKCoinApplication extends MessageCracker implements Application {
                 case MDEntryType.TRADE:
                     Trade trade = new Trade();
                     trade.setTradeId(String.valueOf(System.nanoTime()));
-                    trade.setExchangeType(exchangeType);
+                    trade.setExchangeType(account.getExchangeType());
                     trade.setSymbol(symbol);
                     trade.setOrderType(group.getField(new Side()).getValue() == Side.SELL ? OrderType.BID : OrderType.ASK);
                     trade.setPrice(price);
@@ -175,7 +171,7 @@ public class OKCoinApplication extends MessageCracker implements Application {
         if (asks != null && bids != null){
             Depth depth = new Depth();
 
-            depth.setExchangeType(exchangeType);
+            depth.setExchangeType(account.getExchangeType());
             depth.setSymbol(symbol);
 
             depth.setAsk(asks.get(asks.size()-1).getPrice());
@@ -196,7 +192,7 @@ public class OKCoinApplication extends MessageCracker implements Application {
             IncorrectTagValue {
         Order order = new Order();
 
-        order.setExchangeType(exchangeType);
+        order.setAccountId(account.getId());
         order.setSymbol(message.getSymbol().getValue());
         order.setOrderId(message.getOrderID().getValue());
 

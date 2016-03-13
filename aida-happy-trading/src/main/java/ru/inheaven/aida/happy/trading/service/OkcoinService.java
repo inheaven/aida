@@ -47,6 +47,8 @@ public class OkcoinService {
 
     private boolean destroy = false;
 
+    private Account account;
+
     private class JsonData<T extends JsonValue>{
         private String channel;
         private T value;
@@ -387,7 +389,7 @@ public class OkcoinService {
                     Order order = new Order();
 
                     try {
-                        order.setExchangeType(ExchangeType.OKCOIN);
+                        order.setAccountId(account.getId());
                         order.setAmount(j.getJsonNumber("amount").bigDecimalValue());
                         order.setCreated(new Date(j.getJsonNumber("create_date").longValue()));
                         order.setFilledAmount(j.getJsonNumber("deal_amount").bigDecimalValue());
@@ -449,7 +451,7 @@ public class OkcoinService {
                     Order order = new Order();
 
                     try {
-                        order.setExchangeType(ExchangeType.OKCOIN);
+                        order.setAccountId(account.getId());
                         order.setAmount(j.getJsonNumber("amount").bigDecimalValue());
                         order.setCreated(new Date(j.getJsonNumber("create_date").longValue()));
                         order.setFilledAmount(j.getJsonNumber("deal_amount").bigDecimalValue());
@@ -508,7 +510,7 @@ public class OkcoinService {
                     Order order = new Order();
 
                     try {
-                        order.setExchangeType(ExchangeType.OKCOIN);
+                        order.setAccountId(account.getId());
                         order.setAmount(new BigDecimal(j.getString("amount")));
                         order.setOrderId(j.getJsonNumber("orderid").toString());
                         order.setPrice(new BigDecimal(j.getString("price")));
@@ -581,7 +583,7 @@ public class OkcoinService {
                     Order order = new Order();
 
                     try {
-                        order.setExchangeType(ExchangeType.OKCOIN);
+                        order.setAccountId(account.getId());
                         order.setAmount(new BigDecimal(j.getString("tradeAmount")));
                         order.setOrderId(j.getJsonNumber("orderId").toString());
                         order.setPrice(new BigDecimal(j.getString("tradePrice")));

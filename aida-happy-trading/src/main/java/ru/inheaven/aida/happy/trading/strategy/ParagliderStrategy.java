@@ -1,6 +1,7 @@
 package ru.inheaven.aida.happy.trading.strategy;
 
 import ru.inheaven.aida.happy.trading.entity.*;
+import ru.inheaven.aida.happy.trading.mapper.AccountMapper;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.DepthService;
 import ru.inheaven.aida.happy.trading.service.OrderService;
@@ -31,18 +32,12 @@ public class ParagliderStrategy extends BaseStrategy{
 
     private BigDecimal middlePrice;
 
-    public ParagliderStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper,
+    public ParagliderStrategy(Strategy strategy, AccountMapper accountMapper, OrderService orderService, OrderMapper orderMapper,
                               TradeService tradeService, DepthService depthService) {
-        super(strategy, orderService, orderMapper, tradeService, depthService, null);
+        super(strategy, accountMapper, orderMapper, orderService,  tradeService, depthService, null);
 
         this.strategy = strategy;
         this.orderMapper = orderMapper;
-
-        depthService.createDepthObservable(strategy).subscribe(d -> {
-
-
-                }
-        );
     }
 
     @Override
@@ -56,7 +51,7 @@ public class ParagliderStrategy extends BaseStrategy{
             }
         }
 
-        BigDecimal spread = strategy.getLevelSpread();
+        BigDecimal spread = strategy.getBigDecimalParameter(LevelParameter.SPREAD);
         BigDecimal spreadX2 = spread.multiply(BigDecimal.valueOf(2)).setScale(8, HALF_UP);
 
         BigDecimal step = BigDecimal.valueOf(0.001);

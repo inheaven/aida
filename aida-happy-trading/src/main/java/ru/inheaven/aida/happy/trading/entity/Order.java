@@ -14,7 +14,6 @@ public class Order extends AbstractEntity {
     private volatile String internalId;
     private volatile Long strategyId;
     private volatile Long positionId;
-    private volatile ExchangeType exchangeType;
     private volatile OrderType type;
     private volatile String symbol;
     private volatile SymbolType symbolType;
@@ -43,7 +42,6 @@ public class Order extends AbstractEntity {
     public Order(Strategy strategy, OrderType type, BigDecimal price, BigDecimal amount) {
         if (strategy != null) {
             this.strategyId = strategy.getId();
-            this.exchangeType = strategy.getAccount().getExchangeType();
             this.symbol = strategy.getSymbol();
             this.symbolType = strategy.getSymbolType();
         }
@@ -89,14 +87,6 @@ public class Order extends AbstractEntity {
 
     public void setPositionId(Long positionId) {
         this.positionId = positionId;
-    }
-
-    public ExchangeType getExchangeType() {
-        return exchangeType;
-    }
-
-    public void setExchangeType(ExchangeType exchangeType) {
-        this.exchangeType = exchangeType;
     }
 
     public OrderType getType() {
@@ -263,9 +253,9 @@ public class Order extends AbstractEntity {
     public String toString() {
         return "Order{" +
                 "orderId='" + orderId + '\'' +
+                ", internalId='" + internalId + '\'' +
                 ", strategyId=" + strategyId +
                 ", positionId=" + positionId +
-                ", exchangeType=" + exchangeType +
                 ", type=" + type +
                 ", symbol='" + symbol + '\'' +
                 ", symbolType=" + symbolType +
@@ -278,8 +268,13 @@ public class Order extends AbstractEntity {
                 ", open=" + open +
                 ", closed=" + closed +
                 ", status=" + status +
+                ", text='" + text + '\'' +
+                ", buyPrice=" + buyPrice +
+                ", sellPrice=" + sellPrice +
+                ", buyVolume=" + buyVolume +
+                ", sellVolume=" + sellVolume +
+                ", spotBalance=" + spotBalance +
                 ", accountId=" + accountId +
-                ", internalId='" + internalId + '\'' +
                 '}';
     }
 }

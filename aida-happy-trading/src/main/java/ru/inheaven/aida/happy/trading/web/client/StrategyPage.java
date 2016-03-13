@@ -3,6 +3,7 @@ package ru.inheaven.aida.happy.trading.web.client;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import ru.inheaven.aida.happy.trading.entity.LevelParameter;
 import ru.inheaven.aida.happy.trading.entity.Strategy;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.mapper.StrategyMapper;
@@ -25,8 +26,8 @@ public class StrategyPage extends BasePage{
 
                 item.add(new Label("id", strategy.getId()));
                 item.add(new Label("name", strategy.getName()));
-                item.add(new Label("spread", strategy.getLevelSpread()));
-                item.add(new Label("lot", strategy.getLevelLot()));
+                item.add(new Label("spread", strategy.getBigDecimalParameter(LevelParameter.SPREAD)));
+                item.add(new Label("lot", strategy.getBigDecimalParameter(LevelParameter.LOT)));
                 item.add(new Label("active", strategy.isActive()));
                 item.add(new Label("min_trade_profit", orderMapper.getMinTradeProfit(null, strategy.getId(), null, null)));
                 item.add(new Label("min_trade_volume", orderMapper.getMinTradeVolume(null, strategy.getId(), null, null)));

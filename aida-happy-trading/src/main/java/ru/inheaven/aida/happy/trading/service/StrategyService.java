@@ -3,11 +3,9 @@ package ru.inheaven.aida.happy.trading.service;
 import ru.inheaven.aida.happy.trading.entity.ExchangeType;
 import ru.inheaven.aida.happy.trading.entity.Strategy;
 import ru.inheaven.aida.happy.trading.entity.SymbolType;
-import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.mapper.StrategyMapper;
 import ru.inheaven.aida.happy.trading.strategy.BaseStrategy;
 import ru.inheaven.aida.happy.trading.strategy.LevelStrategy;
-import ru.inheaven.aida.happy.trading.strategy.ParagliderStrategy;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -24,9 +22,7 @@ public class StrategyService {
     private List<BaseStrategy> baseStrategies = new ArrayList<>();
 
     @Inject
-    public StrategyService(StrategyMapper strategyMapper, OrderService orderService, OrderMapper orderMapper,
-                           TradeService tradeService, DepthService depthService, UserInfoService userInfoService,
-                           XChangeService xChangeService) {
+    public StrategyService(StrategyMapper strategyMapper) {
         List<Strategy> strategies = strategyMapper.getActiveStrategies();
 
         strategies.stream()
@@ -37,12 +33,7 @@ public class StrategyService {
             switch (s.getType()) {
                 case LEVEL_SPOT:
                 case LEVEL_FUTURES:
-                    baseStrategy = new LevelStrategy(s, orderService, orderMapper, tradeService, depthService,
-                            userInfoService, xChangeService);
-                    baseStrategy.start();
-                    break;
-                case PARAGLIDER:
-                    baseStrategy = new ParagliderStrategy(s, orderService, orderMapper, tradeService, depthService);
+                    baseStrategy = new LevelStrategy(s);
                     baseStrategy.start();
                     break;
                 default:
@@ -59,7 +50,7 @@ public class StrategyService {
 
     public List<BaseStrategy> getStrategies(ExchangeType exchangeType, String symbol, SymbolType symbolType){
         return baseStrategies.stream()
-                .filter(bs -> bs.getStrategy().getAccount().getExchangeType().equals(exchangeType))
+                .filter(bs -> bs.getAccount().getExchangeType().equals(exchangeType))
                 .filter(bs -> bs.getStrategy().getSymbol().equals(symbol))
                 .filter(bs -> Objects.equals(bs.getStrategy().getSymbolType(), symbolType))
                 .collect(Collectors.toList());
