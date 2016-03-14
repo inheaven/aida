@@ -35,9 +35,7 @@ public abstract class BaseOkcoinFixService {
     private SessionID tradeSessionId2;
     private SessionID tradeSessionId3;
     private SessionID tradeSessionId4;
-    private PublishSubject<Trade> tradePublishSubject = PublishSubject.create();
-    private PublishSubject<Order> orderPublishSubject = PublishSubject.create();
-    private PublishSubject<Depth> depthPublishSubject = PublishSubject.create();
+
 
     private AtomicLong index = new AtomicLong(4);
 
@@ -82,12 +80,12 @@ public abstract class BaseOkcoinFixService {
 
             @Override
             protected void onTrade(Trade trade) {
-                tradePublishSubject.onNext(trade);
+
             }
 
             @Override
             protected void onDepth(Depth depth) {
-                depthPublishSubject.onNext(depth);
+
             }
 
             @Override
@@ -179,26 +177,7 @@ public abstract class BaseOkcoinFixService {
         }
     }
 
-    private void init(OKCoinApplication application, String config){
-        if(config == null){
-            return;
-        }
 
-        try {
-            SessionSettings settings;
-            try (InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(config)) {
-                settings = new SessionSettings(inputStream);
-            }
-
-            MessageStoreFactory storeFactory = new MemoryStoreFactory();
-            LogFactory logFactory = !config.contains("market") ? new FileLogFactory(settings) : null;
-            MessageFactory messageFactory = new OKCoinMessageFactory();
-            ThreadedSocketInitiator initiator = new ThreadedSocketInitiator(application, storeFactory, settings, logFactory, messageFactory);
-            initiator.start();
-        } catch (Exception e) {
-            log.error("error init okcoin fix");
-        }
-    }
 
     public void placeLimitOrder(Account account, Order order){
 //        orderQueue.add(order);

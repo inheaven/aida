@@ -14,7 +14,7 @@ public class AidaHappyTradingApplicationFactory implements IWebApplicationFactor
     public WebApplication createApplication(WicketFilter filter) {
         Module.getInjector().getInstance(StrategyService.class);
         Module.getInjector().getInstance(UserInfoService.class);
-        Module.getInjector().getInstance(OkcoinFixService.class);
+        Module.getInjector().getInstance(FixService.class);
         Module.getInjector().getInstance(OkcoinCnFixService.class);
         Module.getInjector().getInstance(FuturesPositionService.class);
 

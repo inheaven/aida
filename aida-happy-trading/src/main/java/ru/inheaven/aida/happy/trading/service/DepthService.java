@@ -26,10 +26,10 @@ public class DepthService {
 
     @Inject
     public DepthService(OkcoinService okcoinService, DepthMapper depthMapper,
-                        OkcoinFixService okcoinFixService, OkcoinCnFixService okcoinCnFixService,
+                        FixService fixService, OkcoinCnFixService okcoinCnFixService,
                         BroadcastService broadcastService) {
         depthObservable = okcoinService.createFutureDepthObservable()
-                .mergeWith(okcoinFixService.getDepthObservable())
+                .mergeWith(fixService.getDepthObservable())
                 .mergeWith(okcoinCnFixService.getDepthObservable())
                 .onBackpressureBuffer()
                 .observeOn(Schedulers.io())

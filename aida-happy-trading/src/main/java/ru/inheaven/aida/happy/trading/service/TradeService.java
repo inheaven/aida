@@ -23,10 +23,10 @@ public class TradeService {
     private Map<String, BigDecimal> stdDevMap = new ConcurrentHashMap<>();
 
     @Inject
-    public TradeService(OkcoinService okcoinService, OkcoinFixService okcoinFixService,
+    public TradeService(OkcoinService okcoinService, FixService fixService,
                         OkcoinCnFixService okcoinCnFixService,
                         TradeMapper tradeMapper, BroadcastService broadcastService) {
-        tradeObservable = okcoinFixService.getTradeObservable()
+        tradeObservable = fixService.getTradeObservable()
                 .mergeWith(okcoinCnFixService.getTradeObservable())
                 .onBackpressureBuffer()
                 .observeOn(Schedulers.io())

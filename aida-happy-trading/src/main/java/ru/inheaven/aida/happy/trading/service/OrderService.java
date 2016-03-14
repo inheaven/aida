@@ -35,11 +35,11 @@ public class OrderService {
     private ConnectableObservable<Order> localClosedOrderObservable;
 
     @Inject
-    public OrderService(OkcoinService okcoinService, OkcoinFixService okcoinFixService,
+    public OrderService(OkcoinService okcoinService, FixService fixService,
                         OkcoinCnFixService okcoinCnFixService, XChangeService xChangeService,
                         AccountMapper accountMapper, BroadcastService broadcastService) {
         this.okcoinService = okcoinService;
-        this.okcoinFixUsService = okcoinFixService;
+        this.okcoinFixUsService = fixService;
         this.okcoinFixCnService = okcoinCnFixService;
         this.xChangeService = xChangeService;
         this.broadcastService = broadcastService;
@@ -49,7 +49,7 @@ public class OrderService {
                 .mergeWith(okcoinService.createSpotOrderObservable())
                 .mergeWith(okcoinService.createFutureRealTrades())
                 .mergeWith(okcoinService.createSpotRealTrades())
-                .mergeWith(okcoinFixService.getOrderObservable())
+                .mergeWith(fixService.getOrderObservable())
                 .mergeWith(okcoinCnFixService.getOrderObservable())
                 .onBackpressureBuffer()
                 .observeOn(Schedulers.io())
