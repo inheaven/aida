@@ -22,9 +22,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static java.math.BigDecimal.*;
 import static java.math.RoundingMode.HALF_EVEN;
-import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.*;
-import static ru.inheaven.aida.happy.trading.entity.OrderType.*;
+import static ru.inheaven.aida.happy.trading.entity.OrderType.ASK;
+import static ru.inheaven.aida.happy.trading.entity.OrderType.BID;
 
 /**
  * @author inheaven on 08.07.2015 19:39.
@@ -348,16 +348,10 @@ public class LevelStrategy extends BaseStrategy{
                 BigDecimal amount = strategy.getLevelLot();
 
                 //avg amount
-//                BigDecimal avgAmount = tradeService.getAvgAmount(strategy.getSymbol() + getVolSuffix());
-//                if (avgAmount.compareTo(amount) > 0){
-//                    BigDecimal x = amount.multiply(BD_3);
-//
-//                    if (avgAmount.compareTo(x) > 0){
-//                        amount = x;
-//                    }else{
-//                        amount = avgAmount;
-//                    }
-//                }
+                BigDecimal avgAmount = tradeService.getAvgAmount(strategy.getSymbol(), getVolSuffix());
+                if (avgAmount.compareTo(amount) < 0) {
+                    amount = avgAmount;
+                }
 
                 Long positionId = positionIdGen.incrementAndGet();
 
