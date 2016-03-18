@@ -14,7 +14,7 @@ public class BibleRandom {
     private static BibleRandom INSTANCE = new BibleRandom();
 
     private List<Double> bibleRandomList = new ArrayList<>();
-    private AtomicLong index = new AtomicLong(166993);
+    private AtomicLong index = new AtomicLong(184280);
 
     private BibleRandom() {
         try {
