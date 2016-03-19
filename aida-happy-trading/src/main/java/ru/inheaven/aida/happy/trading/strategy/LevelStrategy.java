@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
-import ru.inheaven.aida.happy.trading.util.BibleRandom;
 import ru.inheaven.aida.happy.trading.util.QuranRandom;
 
 import java.math.BigDecimal;
@@ -421,7 +420,8 @@ public class LevelStrategy extends BaseStrategy{
     private double nextDouble(){
         switch (strategy.getId().intValue()){
             case 47:
-                return BibleRandom.nextDouble();
+                double r = random.nextGaussian()/6 + 0.5;
+                return r < 0 ? 0 : r > 1 ? 1 : r;
             case 49:
                 return QuranRandom.nextDouble();
             default:
