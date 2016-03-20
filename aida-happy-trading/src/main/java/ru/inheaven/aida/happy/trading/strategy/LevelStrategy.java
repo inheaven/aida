@@ -114,7 +114,7 @@ public class LevelStrategy extends BaseStrategy{
         }
 
         BigDecimal sideSpread = getSideSpread(price);
-        Integer levelSize = getStrategy().getIntegerParameter(SIZE);
+        Integer levelSize = getStrategy().getInteger(SIZE);
 
         for (int i = levelSize; i > 0 ; i--) {
             action(key, price.add(sideSpread), orderType, i);
@@ -125,18 +125,17 @@ public class LevelStrategy extends BaseStrategy{
     }
 
     protected BigDecimal getBalance(){
-        if ("total".equals(getStrategy().getStringParameter(BALANCE_TYPE))){
+        if ("net".equals(getStrategy().getString(BALANCE_TYPE))){
             String[] symbol = getStrategy().getSymbol().split("/");
 
-            BigDecimal numerator = userInfoService.getVolume("subtotal", getStrategy().getAccountId(), symbol[0]);
-            BigDecimal total = userInfoService.getVolume("total", getStrategy().getAccountId(), null);
-            BigDecimal balance = getStrategy().getBigDecimalParameter(BALANCE);
+            BigDecimal net = userInfoService.getVolume("net", getStrategy().getAccountId(), null);
+            BigDecimal subtotal = userInfoService.getVolume("subtotal", getStrategy().getAccountId(), symbol[0]);
 
-            if (lastAction.get().equals(ZERO) || numerator.equals(ZERO) || total.equals(ZERO)){
+            if (lastAction.get().equals(ZERO) || subtotal.equals(ZERO) || net.equals(ZERO)){
                 return ZERO;
             }
 
-            return total.divide(numerator.multiply(lastAction.get()), HALF_EVEN).subtract(balance);
+            return net.divide(subtotal.multiply(lastAction.get()), HALF_EVEN).subtract(getStrategy().getBigDecimal(BALANCE));
         }
 
         return ZERO;
@@ -146,15 +145,16 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal spread = ZERO;
         BigDecimal sideSpread = getSideSpread(price);
 
-        switch (getStrategy().getStringParameter(SPREAD_TYPE)){
+        switch (getStrategy().getString(SPREAD_TYPE)){
             case "fixed":
-                spread = getStrategy().getBigDecimalParameter(SPREAD);
+                spread = getStrategy().getBigDecimal(SPREAD);
                 break;
             case "percent":
-                spread = getStrategy().getBigDecimalParameter(SPREAD).multiply(price);
+                spread = getStrategy().getBigDecimal(SPREAD).multiply(price);
                 break;
             case "volatility":
-                spread = getTradeService().getStdDev(getStrategy().getSymbol(), "_1").divide(BD_SQRT_TWO_PI, HALF_EVEN);
+                spread = getTradeService().getStdDev(getAccount().getExchangeType(), getStrategy().getSymbol(),
+                        getStrategy().getInteger(VOLATILITY_SIZE)).divide(getStrategy().getBigDecimal(VOLATILITY), HALF_EVEN);
 
                 break;
         }
@@ -166,12 +166,12 @@ public class LevelStrategy extends BaseStrategy{
     private BigDecimal getSideSpread(BigDecimal price){
         BigDecimal sideSpread = ZERO;
 
-        switch (getStrategy().getStringParameter(SIDE_SPREAD_TYPE)){
+        switch (getStrategy().getString(SIDE_SPREAD_TYPE)){
             case "fixed":
-                sideSpread = getStrategy().getBigDecimalParameter(SIDE_SPREAD);
+                sideSpread = getStrategy().getBigDecimal(SIDE_SPREAD);
                 break;
             case "percent":
-                sideSpread = getStrategy().getBigDecimalParameter(SIDE_SPREAD).multiply(price);
+                sideSpread = getStrategy().getBigDecimal(SIDE_SPREAD).multiply(price);
                 break;
         }
 
@@ -186,7 +186,7 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal spread = scale(getSpread(price));
             BigDecimal priceF = up ? price.add(getStep()) : price.subtract(getStep());
 
-            BigDecimal sideSpread = "volatility".equals(getStrategy().getStringParameter(SPREAD_TYPE))
+            BigDecimal sideSpread = "volatility".equals(getStrategy().getString(SPREAD_TYPE))
                     ? spread
                     : scale(getSideSpread(priceF));
 
@@ -202,7 +202,7 @@ public class LevelStrategy extends BaseStrategy{
                 double rMax = ra > rb ? ra : rb;
                 double rMin = ra > rb ? rb : ra;
 
-                double a = getStrategy().getBigDecimalParameter(LOT).doubleValue();
+                double a = getStrategy().getBigDecimal(LOT).doubleValue();
                 double rBuy = a * (up ? rMax : rMin);
                 double rSell = a * (up ? rMin : rMax);
 
@@ -235,7 +235,7 @@ public class LevelStrategy extends BaseStrategy{
     }
 
     private double nextDouble(){
-        switch (getStrategy().getStringParameter(LOT_TYPE)){
+        switch (getStrategy().getString(LOT_TYPE)){
             case "random_uniform":
                 return random.nextDouble();
             case "random_gauss":

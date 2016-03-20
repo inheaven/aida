@@ -51,7 +51,7 @@ public class ParagliderStrategy extends BaseStrategy{
             }
         }
 
-        BigDecimal spread = strategy.getBigDecimalParameter(LevelParameter.SPREAD);
+        BigDecimal spread = strategy.getBigDecimal(LevelParameter.SPREAD);
         BigDecimal spreadX2 = spread.multiply(BigDecimal.valueOf(2)).setScale(8, HALF_UP);
 
         BigDecimal step = BigDecimal.valueOf(0.001);

@@ -26,8 +26,8 @@ public class StrategyPage extends BasePage{
 
                 item.add(new Label("id", strategy.getId()));
                 item.add(new Label("name", strategy.getName()));
-                item.add(new Label("spread", strategy.getBigDecimalParameter(LevelParameter.SPREAD)));
-                item.add(new Label("lot", strategy.getBigDecimalParameter(LevelParameter.LOT)));
+                item.add(new Label("spread", strategy.getBigDecimal(LevelParameter.SPREAD)));
+                item.add(new Label("lot", strategy.getBigDecimal(LevelParameter.LOT)));
                 item.add(new Label("active", strategy.isActive()));
                 item.add(new Label("min_trade_profit", orderMapper.getMinTradeProfit(null, strategy.getId(), null, null)));
                 item.add(new Label("min_trade_volume", orderMapper.getMinTradeVolume(null, strategy.getId(), null, null)));

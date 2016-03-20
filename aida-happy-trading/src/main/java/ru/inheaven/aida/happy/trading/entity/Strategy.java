@@ -2,8 +2,7 @@ package ru.inheaven.aida.happy.trading.entity;
 
 import ru.inhell.aida.common.entity.AbstractEntity;
 
-import javax.json.Json;
-import javax.json.JsonObject;
+import javax.json.*;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -23,15 +22,15 @@ public class Strategy extends AbstractEntity {
 
     private JsonObject parameterJsonObject;
 
-    public String getStringParameter(Enum name){
+    public String getString(Enum name){
         return parameterJsonObject.getString(name.name().toLowerCase());
     }
 
-    public BigDecimal getBigDecimalParameter(Enum name){
-        return parameterJsonObject.getJsonNumber(name.toString().toLowerCase()).bigDecimalValue();
+    public BigDecimal getBigDecimal(Enum name){
+        return parameterJsonObject.getJsonNumber(name.name().toLowerCase()).bigDecimalValue();
     }
 
-    public Integer getIntegerParameter(Enum name){
+    public Integer getInteger(Enum name){
         return parameterJsonObject.getJsonNumber(name.name().toLowerCase()).intValue();
     }
 

@@ -29,6 +29,7 @@ import static java.math.RoundingMode.HALF_EVEN;
 import static java.math.RoundingMode.HALF_UP;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static ru.inheaven.aida.happy.trading.entity.LevelParameter.VOLATILITY_SIZE;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.*;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.BID;
 
@@ -178,7 +179,7 @@ public class BaseStrategy {
 
         }), 0, 1, MINUTES);
 
-        if (strategy.getSymbol().equals("BTC/CNY") || strategy.getSymbol().equals("LTC/CNY")){
+        if (strategy.getSymbol().equals("BTC/CNY") || strategy.getSymbol().equals("LTC/CNY")){ //todo move cache to order service
             Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
                 try {
                     PollingTradeService ts = xChangeService.getExchange(account).getPollingTradeService();
@@ -188,7 +189,7 @@ public class BaseStrategy {
                         openOrdersCache.set(ts.getOpenOrders());
                     }
 
-                    BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol(), "_1");
+                    BigDecimal stdDev = tradeService.getStdDev(getExchangeType(), strategy.getSymbol(), strategy.getInteger(VOLATILITY_SIZE));
                     BigDecimal range = stdDev != null ? stdDev.multiply(BigDecimal.valueOf(3)) : new BigDecimal("10");
 
                     openOrdersCache.get().getOpenOrders().forEach(l -> {
@@ -215,55 +216,6 @@ public class BaseStrategy {
 
             }, random.nextInt(10), 10, SECONDS);
         }
-
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
-                () -> orderMap.forEach((id, o) -> {
-                    try {
-                        if (lastPrice != null && lastPrice.get() != null && o.getStatus().equals(OPEN)) {
-                            boolean cancel = false;
-
-                            switch (o.getSymbol()) {
-//                                case "BTC/CNY":
-//                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("10"))  > 0) {
-//                                        cancel = true;
-//                                    }
-//                                    break;
-//                                case "LTC/CNY'":
-//                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("0.5")) > 0) {
-//                                        cancel = true;
-//                                    }
-//                                    break;
-                                case "BTC/USD":
-                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("1"))  > 0) {
-                                        cancel = true;
-                                    }
-                                    break;
-                                case "LTC/USD":
-                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("0.3")) > 0) {
-                                        cancel = true;
-                                    }
-                                    break;
-
-                                default:
-                                    cancel = lastPrice.get().subtract(o.getPrice()).abs().divide(o.getPrice(), 8, HALF_EVEN)
-                                            .compareTo(new BigDecimal("0.1")) > 0;
-                            }
-
-                            if (cancel) {
-                                orderService.cancelOrder(account, o);
-
-                                if (strategy.getSymbol().equals("BTC/CNY")){
-                                    o.setStatus(CANCELED);
-                                }else {
-                                    o.setStatus(WAIT);
-                                }
-                            }
-                        }
-                    } catch (Exception e) {
-                        log.error("error cancel order -> {}", o, e);
-                    }
-
-                }), 0, 10, SECONDS);
 
         flying = true;
     }
@@ -513,8 +465,8 @@ public class BaseStrategy {
                     scale(buyPrice.get()),
                     profit.setScale(3, HALF_EVEN),
                     buyVolume.get().add(sellVolume.get()).setScale(3, HALF_EVEN),
-                    tradeService.getStdDev(strategy.getSymbol(), "_1").setScale(3, HALF_UP),
-                    tradeService.getAvgAmount(strategy.getSymbol(), "_1").setScale(3, HALF_UP),
+                    tradeService.getStdDev(getExchangeType(), getSymbol(), strategy.getInteger(VOLATILITY_SIZE)).setScale(3, HALF_UP),
+                    tradeService.getAvgAmount(getExchangeType(), getSymbol(), strategy.getInteger(VOLATILITY_SIZE)).setScale(3, HALF_UP),
                     getBalance().setScale(3, HALF_UP),
                     Objects.toString(o.getText(), ""),
                     Objects.toString(o.getSymbolType(), ""));
@@ -574,6 +526,14 @@ public class BaseStrategy {
 
     public Strategy getStrategy() {
         return strategy;
+    }
+
+    public ExchangeType getExchangeType(){
+        return account.getExchangeType();
+    }
+
+    public String getSymbol(){
+        return strategy.getSymbol();
     }
 
     public boolean isBidRefused(){
