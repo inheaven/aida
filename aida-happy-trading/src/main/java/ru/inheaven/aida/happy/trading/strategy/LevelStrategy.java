@@ -250,7 +250,7 @@ public class LevelStrategy extends BaseStrategy{
             return ZERO;
         }
 
-        return total.divide(subtotal.multiply(lastAction.get()), HALF_EVEN).subtract(BD_3);
+        return net.divide(subtotal.multiply(lastAction.get()), HALF_EVEN).subtract(ONE);
     }
 
     private BigDecimal getSpread(BigDecimal price){
@@ -347,7 +347,7 @@ public class LevelStrategy extends BaseStrategy{
                 BigDecimal amount = strategy.getLevelLot();
 
                 //avg amount
-                BigDecimal avgAmount = tradeService.getAvgAmount(strategy.getSymbol(), getVolSuffix());
+                BigDecimal avgAmount = tradeService.getAvgAmount(strategy.getSymbol(), getVolSuffix()).multiply(BD_2);
                 if (avgAmount.compareTo(amount) < 0) {
                     amount = avgAmount;
                 }

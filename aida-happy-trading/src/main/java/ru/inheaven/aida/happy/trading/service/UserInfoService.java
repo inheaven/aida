@@ -195,7 +195,7 @@ public class UserInfoService {
                 log.error("error user info -> ", e);
             }
 
-        }, 0, 60, TimeUnit.SECONDS);
+        }, 0, 30, TimeUnit.SECONDS);
     }
 
     private void saveFunds(Long accountId, String currency, BigDecimal free, BigDecimal freezed){
