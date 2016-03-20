@@ -34,7 +34,7 @@ public class ParagliderStrategy extends BaseStrategy{
 
     public ParagliderStrategy(Strategy strategy, AccountMapper accountMapper, OrderService orderService, OrderMapper orderMapper,
                               TradeService tradeService, DepthService depthService) {
-        super(strategy, accountMapper, orderMapper, orderService,  tradeService, depthService, null);
+        super(strategy);
 
         this.strategy = strategy;
         this.orderMapper = orderMapper;

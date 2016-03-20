@@ -15,8 +15,6 @@ import rx.subjects.PublishSubject;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import static ru.inheaven.aida.happy.trading.entity.ExchangeType.OKCOIN;
-
 /**
  * @author inheaven on 29.06.2015 23:49.
  */
@@ -26,8 +24,7 @@ public class OrderService {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private OkcoinService okcoinService;
-    private BaseOkcoinFixService okcoinFixUsService;
-    private BaseOkcoinFixService okcoinFixCnService;
+    private FixService fixService;
     private XChangeService xChangeService;
     private BroadcastService broadcastService;
 
@@ -36,21 +33,17 @@ public class OrderService {
 
     @Inject
     public OrderService(OkcoinService okcoinService, FixService fixService,
-                        OkcoinCnFixService okcoinCnFixService, XChangeService xChangeService,
-                        AccountMapper accountMapper, BroadcastService broadcastService) {
+                        XChangeService xChangeService, AccountMapper accountMapper, BroadcastService broadcastService) {
         this.okcoinService = okcoinService;
-        this.okcoinFixUsService = fixService;
-        this.okcoinFixCnService = okcoinCnFixService;
+        this.fixService = fixService;
         this.xChangeService = xChangeService;
         this.broadcastService = broadcastService;
-
 
         orderObservable = okcoinService.createFutureOrderObservable()
                 .mergeWith(okcoinService.createSpotOrderObservable())
                 .mergeWith(okcoinService.createFutureRealTrades())
                 .mergeWith(okcoinService.createSpotRealTrades())
                 .mergeWith(fixService.getOrderObservable())
-                .mergeWith(okcoinCnFixService.getOrderObservable())
                 .onBackpressureBuffer()
                 .observeOn(Schedulers.io())
                 .publish();
@@ -61,8 +54,6 @@ public class OrderService {
                 .observeOn(Schedulers.io())
                 .publish();
         localClosedOrderObservable.connect();
-
-        accountMapper.getAccounts(OKCOIN).forEach(a -> okcoinService.realFutureTrades(a.getApiKey(), a.getSecretKey()));
     }
 
     public ConnectableObservable<Order> getOrderObservable() {
@@ -72,16 +63,9 @@ public class OrderService {
     public void createOrder(Account account, Order order) throws CreateOrderException {
         switch (account.getExchangeType()){
             case OKCOIN:
-                if (order.getSymbolType() == null){
-                    okcoinFixUsService.placeLimitOrder(account, order);
-                }else{
-                    xChangeService.placeLimitOrder(account, order);
-                }
-
-                break;
             case OKCOIN_CN:
                 if (order.getSymbolType() == null){
-                    okcoinFixCnService.placeLimitOrder(account, order);
+                    fixService.placeOrder(account.getId(), order);
                 }else{
                     xChangeService.placeLimitOrder(account, order);
                 }
@@ -93,16 +77,9 @@ public class OrderService {
     public void orderInfo(Account account, Order order){
         switch (account.getExchangeType()){
             case OKCOIN:
-                if (order.getSymbolType() == null){
-                    okcoinFixUsService.orderInfo(order);
-                }else{
-                    okcoinService.orderFutureInfo(account.getApiKey(), account.getSecretKey(), order);
-                }
-
-                break;
             case OKCOIN_CN:
                 if (order.getSymbolType() == null){
-                    okcoinFixCnService.orderInfo(order);
+                    fixService.orderInfo(account.getId(), order);
                 }else{
                     okcoinService.orderFutureInfo(account.getApiKey(), account.getSecretKey(), order);
                 }
@@ -123,20 +100,9 @@ public class OrderService {
     public void cancelOrder(Account account, Order order) throws OrderInfoException {
         switch (account.getExchangeType()){
             case OKCOIN:
-                if (order.getSymbolType() == null){
-                    okcoinFixUsService.cancelOrder(account, order);
-                }else{
-                    xChangeService.cancelOrder(account, order);
-                }
-
-                break;
             case OKCOIN_CN:
                 if (order.getSymbolType() == null){
-                    try {
-                        okcoinFixCnService.cancelOrder(account, order);
-                    } catch (Exception e) {
-                        log.error("cancel order error{}", order, e);
-                    }
+                    fixService.cancelOrder(account.getId(), order);
                 }else{
                     xChangeService.cancelOrder(account, order);
                 }

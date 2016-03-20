@@ -37,6 +37,10 @@ public class OkcoinTradeApplication extends BaseApplication{
         tradeRequestCreator = new TradeRequestCreator(apiKey, secretKey);
     }
 
+    public Long getAccountId() {
+        return accountId;
+    }
+
     @Override
     public void onCreate(SessionID sessionId) {
         super.onCreate(sessionId);
@@ -71,7 +75,7 @@ public class OkcoinTradeApplication extends BaseApplication{
                 OrdType.LIMIT, order.getAmount(), order.getPrice(), order.getSymbol()));
     }
 
-    public void cancelOrder(Order order, SessionID sessionId) {
+    public void cancelOrder(Order order) {
         cancelOrder(order.getInternalId(), order.getOrderId(), getSide(order.getType()), order.getSymbol());
     }
 

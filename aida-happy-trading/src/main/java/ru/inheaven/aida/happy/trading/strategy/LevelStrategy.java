@@ -239,7 +239,8 @@ public class LevelStrategy extends BaseStrategy{
             case "random_uniform":
                 return random.nextDouble();
             case "random_gauss":
-                return random.nextGaussian()/2 + 1;
+                double g = random.nextGaussian()/6 + 0.5;
+                return g < 0 ? 0 : g > 1 ? 1 : g;
             case "random_bible":
                 return BibleRandom.nextDouble();
             case "random_quran":

@@ -25,12 +25,8 @@ public class DepthService {
     private Map<String, Depth> depthMap = new ConcurrentHashMap<>();
 
     @Inject
-    public DepthService(OkcoinService okcoinService, DepthMapper depthMapper,
-                        FixService fixService, OkcoinCnFixService okcoinCnFixService,
-                        BroadcastService broadcastService) {
-        depthObservable = okcoinService.createFutureDepthObservable()
-                .mergeWith(fixService.getDepthObservable())
-                .mergeWith(okcoinCnFixService.getDepthObservable())
+    public DepthService(DepthMapper depthMapper, FixService fixService, BroadcastService broadcastService) {
+        depthObservable = fixService.getDepthObservable()
                 .onBackpressureBuffer()
                 .observeOn(Schedulers.io())
                 .publish();
