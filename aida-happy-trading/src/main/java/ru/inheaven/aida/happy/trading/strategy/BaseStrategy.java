@@ -221,7 +221,7 @@ public class BaseStrategy {
                     }
 
                     BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol(), getVolSuffix());
-                    BigDecimal range = stdDev != null ? stdDev.multiply(BigDecimal.valueOf(3)) : new BigDecimal("10");
+                    BigDecimal range = stdDev != null ? stdDev.multiply(BigDecimal.valueOf(5)) : new BigDecimal("10");
 
                     openOrdersCache.get().getOpenOrders().forEach(l -> {
                         if (lastPrice.get() != null && l.getCurrencyPair().toString().equals(strategy.getSymbol()) &&
