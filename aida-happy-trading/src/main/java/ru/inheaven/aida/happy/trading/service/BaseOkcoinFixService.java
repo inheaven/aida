@@ -14,8 +14,6 @@ import java.util.Deque;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -45,16 +43,16 @@ public abstract class BaseOkcoinFixService {
                                 String tradeConfig, String tradeConfig2, String tradeConfig3, String tradeConfig4,
                                 List<String> symbols) {
         //push order
-        Executors.newScheduledThreadPool(4)
-                .scheduleWithFixedDelay(() -> {
-                    try {
-                        if (!orderQueue.isEmpty()){
-                            internalPlaceLimitOrder(orderQueue.poll());
-                        }
-                    } catch (Exception e) {
-                        log.error("error push order", e);
-                    }
-                }, 0, 150, TimeUnit.MILLISECONDS);
+//        Executors.newScheduledThreadPool(4)
+//                .scheduleWithFixedDelay(() -> {
+//                    try {
+//                        if (!orderQueue.isEmpty()){
+//                            internalPlaceLimitOrder(orderQueue.poll());
+//                        }
+//                    } catch (Exception e) {
+//                        log.error("error push order", e);
+//                    }
+//                }, 0, 150, TimeUnit.MILLISECONDS);
 
         //MARKET
         okCoinApplicationMarket = new OKCoinApplication(exchangeType, apiKey, secretKey){
@@ -199,8 +197,8 @@ public abstract class BaseOkcoinFixService {
     }
 
     public void placeLimitOrder(Account account, Order order){
-        orderQueue.add(order);
-//        internalPlaceLimitOrder(order);
+//        orderQueue.add(order);
+        internalPlaceLimitOrder(order);
     }
 
     private void internalPlaceLimitOrder(Order order){

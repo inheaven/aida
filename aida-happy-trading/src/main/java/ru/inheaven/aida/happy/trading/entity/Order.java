@@ -35,6 +35,8 @@ public class Order extends AbstractEntity {
     private BigDecimal sellVolume;
     private BigDecimal spotBalance;
 
+    private BigDecimal profit;
+
     private volatile Long accountId;
 
     public Order() {
@@ -257,6 +259,14 @@ public class Order extends AbstractEntity {
 
     public void setSpotBalance(BigDecimal spotBalance) {
         this.spotBalance = spotBalance;
+    }
+
+    public BigDecimal getProfit() {
+        return profit;
+    }
+
+    public void setProfit(BigDecimal profit) {
+        this.profit = profit;
     }
 
     @Override

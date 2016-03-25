@@ -3,8 +3,10 @@ package ru.inheaven.aida.happy.trading.web.client;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.protocol.ws.api.WebSocketRequestHandler;
-import ru.inheaven.aida.happy.trading.entity.*;
-import ru.inheaven.aida.happy.trading.mapper.StrategyMapper;
+import ru.inheaven.aida.happy.trading.entity.Order;
+import ru.inheaven.aida.happy.trading.entity.OrderStatus;
+import ru.inheaven.aida.happy.trading.entity.OrderType;
+import ru.inheaven.aida.happy.trading.entity.Trade;
 import ru.inheaven.aida.happy.trading.service.Module;
 import ru.inheaven.aida.happy.trading.service.OrderService;
 import ru.inheaven.aida.happy.trading.service.TradeService;
@@ -12,10 +14,6 @@ import ru.inheaven.aida.happy.trading.service.UserInfoService;
 import ru.inheaven.aida.happy.trading.web.HighstockPage;
 import ru.inhell.aida.common.wicket.BroadcastBehavior;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -39,14 +37,9 @@ public class TickPage extends HighstockPage {
         add(new BroadcastBehavior<Order>(OrderService.class){
             long last = System.currentTimeMillis();
 
-            private Map<Long, BigDecimal> profitMap = new HashMap<>();
-
             @Override
             protected void onBroadcast(WebSocketRequestHandler handler, String key, Order o) {
                 if (key.equals("close") && o.getSymbol().equals("BTC/CNY") && o.getStatus().equals(OrderStatus.CLOSED)){
-                    profitMap.put(o.getStrategyId(), o.getSellPrice().subtract(o.getBuyPrice())
-                            .multiply(o.getBuyVolume().min(o.getSellVolume())));
-
                     count++;
 
                     String color = o.getType().equals(OrderType.BID) ? "#90ee7e" : "#f45b5b";
@@ -57,10 +50,8 @@ public class TickPage extends HighstockPage {
 
                     last = System.currentTimeMillis();
 
-                    BigDecimal profit = profitMap.values().stream().reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
-
                     queue.add("tick_chart.series[1]" +
-                            ".addPoint({x:" + o.getClosed().getTime() + ", y:" +  profit + "}, " +
+                            ".addPoint({x:" + o.getClosed().getTime() + ", y:" +  o.getProfit() + "}, " +
                             "false, " + (count >1500 ? "true" : "false") + ");");
                     queue.add("tick_chart.series[2]" +
                             ".addPoint({x:" + o.getClosed().getTime() + ", y:" +  o.getSpotBalance() + "}, " +

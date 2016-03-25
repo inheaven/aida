@@ -346,7 +346,7 @@ public class LevelStrategy extends BaseStrategy{
                 BigDecimal amount = strategy.getLevelLot();
 
                 //avg amount
-                BigDecimal avgAmount = tradeService.getAvgAmount(strategy.getSymbol(), getVolSuffix()).multiply(BD_2);
+                BigDecimal avgAmount = tradeService.getAvgAmount(strategy.getSymbol(), getVolSuffix());
                 if (avgAmount.compareTo(amount) < 0) {
                     amount = avgAmount;
                 }

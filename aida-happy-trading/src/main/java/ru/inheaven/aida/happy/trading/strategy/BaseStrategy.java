@@ -221,7 +221,7 @@ public class BaseStrategy {
                     }
 
                     BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol(), getVolSuffix());
-                    BigDecimal range = stdDev != null ? stdDev.multiply(BigDecimal.valueOf(5)) : new BigDecimal("10");
+                    BigDecimal range = stdDev != null ? stdDev.multiply(BigDecimal.valueOf(10)) : new BigDecimal("10");
 
                     openOrdersCache.get().getOpenOrders().forEach(l -> {
                         if (lastPrice.get() != null && l.getCurrencyPair().toString().equals(strategy.getSymbol()) &&
@@ -467,8 +467,8 @@ public class BaseStrategy {
 
                     orderMapper.asyncSave(order);
 
-                    logOrder(order);
                     calculateAverage(order);
+                    logOrder(order);
                     onCloseOrder(order);
                     orderService.onCloseOrder(order);
                 }
@@ -513,6 +513,13 @@ public class BaseStrategy {
             order.setBuyVolume(buyVolume.get());
             order.setSellVolume(sellVolume.get());
             order.setSpotBalance(getSpotBalance());
+
+            BigDecimal profit = sellVolume.get().min(buyVolume.get()).multiply(sellPrice.get().subtract(buyPrice.get()))
+                    .add(buyVolume.get().subtract(sellVolume.get().abs())
+                            .multiply(buyVolume.get().compareTo(sellVolume.get()) > 0
+                                    ? lastPrice.get().subtract(buyPrice.get())
+                                    : sellPrice.get().subtract(lastPrice.get())));
+            order.setProfit(profit);
         }
     }
 
@@ -526,11 +533,7 @@ public class BaseStrategy {
 
     private void logOrder(Order o){
         try {
-            BigDecimal profit = sellVolume.get().min(buyVolume.get()).multiply(sellPrice.get().subtract(buyPrice.get()))
-                    .add(buyVolume.get().subtract(sellVolume.get().abs())
-                            .multiply(buyVolume.get().compareTo(sellVolume.get()) > 0
-                                    ? lastPrice.get().subtract(buyPrice.get())
-                                    : sellPrice.get().subtract(lastPrice.get())));
+
 
             if (o.getStatus().equals(CLOSED)){
                 index.incrementAndGet();
@@ -549,7 +552,7 @@ public class BaseStrategy {
                     o.getAmount().setScale(3, HALF_EVEN),
                     o.getType(),
                     scale(buyPrice.get()),
-                    profit.setScale(3, HALF_EVEN),
+                    o.getProfit().setScale(3, HALF_EVEN),
                     buyVolume.get().add(sellVolume.get()).setScale(3, HALF_EVEN),
                     tradeService.getStdDev(strategy.getSymbol(), getVolSuffix()).setScale(3, HALF_UP),
                     tradeService.getAvgAmount(strategy.getSymbol(), getVolSuffix()).setScale(3, HALF_UP),
