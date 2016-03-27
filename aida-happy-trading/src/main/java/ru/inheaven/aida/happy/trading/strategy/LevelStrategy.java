@@ -188,14 +188,13 @@ public class LevelStrategy extends BaseStrategy{
             return;
         }
 
-        BigDecimal sideSpread = getSideSpread(price);
+        int size = strategy.getLevelSize().intValue();
 
-        for (int i = strategy.getLevelSize().intValue(); i > 0 ; i--) {
-            action(key, price.add(sideSpread), orderType, i);
-            action(key, price.subtract(sideSpread), orderType, -i);
+        for (int r = 0; r < 10; r++) {
+            for (int i = -size; i <= size ; i++) {
+                action(key, price.add(getSpread(price).multiply(BigDecimal.valueOf(i))), orderType, i);
+            }
         }
-
-        action(key, price, orderType, 0);
     }
 
     private static final BigDecimal CNY_MIN = BigDecimal.valueOf(0);
@@ -252,7 +251,7 @@ public class LevelStrategy extends BaseStrategy{
         return net.divide(subtotal.multiply(lastAction.get()), HALF_EVEN).subtract(ONE);
     }
 
-    private BigDecimal getSpread(BigDecimal price){
+    protected BigDecimal getSpread(BigDecimal price){
         BigDecimal spread = ZERO;
         BigDecimal sideSpread = getSideSpread(price);
 
@@ -444,15 +443,15 @@ public class LevelStrategy extends BaseStrategy{
         if (ask != null && bid != null && lastTrade.compareTo(ZERO) != 0 &&
                 lastTrade.subtract(ask).abs().divide(lastTrade, 8, HALF_EVEN).compareTo(BD_0_01) < 0 &&
                 lastTrade.subtract(bid).abs().divide(lastTrade, 8, HALF_EVEN).compareTo(BD_0_01) < 0) {
-            actionAsync("DEPTH", ask, ASK);
-            actionAsync("DEPTH", bid, BID);
+//            actionAsync("DEPTH", ask, ASK);
+//            actionAsync("DEPTH", bid, BID);
         }
     }
 
     @Override
     protected void onRealTrade(Order order) {
         if (order.getStatus().equals(CLOSED) && order.getAvgPrice().compareTo(ZERO) > 0){
-            actionAsync("REAL", order.getAvgPrice(), order.getType());
+//            actionAsync("REAL", order.getAvgPrice(), order.getType());
         }
     }
 }

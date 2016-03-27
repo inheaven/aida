@@ -220,8 +220,7 @@ public class BaseStrategy {
                         openOrdersCache.set(ts.getOpenOrders());
                     }
 
-                    BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol(), getVolSuffix());
-                    BigDecimal range = stdDev != null ? stdDev.multiply(BigDecimal.valueOf(10)) : new BigDecimal("10");
+                    BigDecimal range = getSpread(lastPrice.get()).multiply(BigDecimal.valueOf(25));
 
                     openOrdersCache.get().getOpenOrders().forEach(l -> {
                         if (lastPrice.get() != null && l.getCurrencyPair().toString().equals(strategy.getSymbol()) &&
@@ -307,6 +306,10 @@ public class BaseStrategy {
         realTradeSubscription.unsubscribe();
 
         flying = false;
+    }
+
+    protected BigDecimal getSpread(BigDecimal price){
+        return null;
     }
 
     protected void onCloseOrder(Order order){
@@ -539,20 +542,17 @@ public class BaseStrategy {
                 index.incrementAndGet();
             }
 
-            log.info("{} {} {} {} {} {} {} {} {} {} {} {} {} {} {}",
+            log.info("{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}",
                     o.getStrategyId(),
                     index.get(),
                     o.getStatus(),
                     o.getSymbol(),
                     scale(o.getAvgPrice() != null ? o.getAvgPrice() : o.getPrice()),
-    //                o.getAvgPrice() != null
-    //                        ? scale(o.getType().equals(OrderType.ASK)
-    //                        ? o.getAvgPrice().subtract(o.getPrice()) : o.getPrice().subtract(o.getAvgPrice()))
-    //                        : scale(ZERO),
                     o.getAmount().setScale(3, HALF_EVEN),
+                    scale(getSpread(o.getPrice())),
                     o.getType(),
                     scale(buyPrice.get()),
-                    o.getProfit().setScale(3, HALF_EVEN),
+                    o.getProfit() != null ? o.getProfit().setScale(3, HALF_EVEN) : "",
                     buyVolume.get().add(sellVolume.get()).setScale(3, HALF_EVEN),
                     tradeService.getStdDev(strategy.getSymbol(), getVolSuffix()).setScale(3, HALF_UP),
                     tradeService.getAvgAmount(strategy.getSymbol(), getVolSuffix()).setScale(3, HALF_UP),
