@@ -5,16 +5,16 @@ import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
+import ru.inheaven.aida.happy.trading.util.BibleRandom;
+import ru.inheaven.aida.happy.trading.util.QuranRandom;
+import rx.subjects.PublishSubject;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.Date;
-import java.util.Deque;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -65,6 +65,8 @@ public class LevelStrategy extends BaseStrategy{
     private final static BigDecimal BD_SQRT_TWO_PI = new BigDecimal("2.506628274631000502415765284811");
     private final static BigDecimal BD_PI = new BigDecimal(Math.PI);
 
+    private PublishSubject<BigDecimal> action = PublishSubject.create();
+
     public LevelStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                          DepthService depthService, UserInfoService userInfoService,  XChangeService xChangeService) {
         super(strategy, orderService, orderMapper, tradeService, depthService, xChangeService);
@@ -86,7 +88,7 @@ public class LevelStrategy extends BaseStrategy{
                     });
         }
 
-
+        action.distinctUntilChanged().onBackpressureLatest().subscribe(this::actionLevel);
     }
 
     private void pushOrders(BigDecimal price){
@@ -151,36 +153,13 @@ public class LevelStrategy extends BaseStrategy{
         }
     }
 
-    private Executor executor2 = Executors.newCachedThreadPool();
+
+
+
     private AtomicReference<BigDecimal> lastAction = new AtomicReference<>(ZERO);
-    private Deque<BigDecimal> actionDeque = new ConcurrentLinkedDeque<>();
 
-    private void actionAsync(String key, BigDecimal price, OrderType orderType){
-        if (lastAction.get().compareTo(price) != 0) {
-            lastAction.set(price);
-            actionDeque.push(price);
-
-            executor2.execute(() -> action(key, price, orderType));
-        }
-    }
-
-    private Semaphore semaphore = new Semaphore(1);
-
-    private void action(String key, BigDecimal price, OrderType orderType){
-        try {
-            semaphore.acquire();
-
-            while (!actionDeque.isEmpty()) {
-                if (isVol() || (!strategy.isLevelInverse() && !isMinSpot()) || (strategy.isLevelInverse() && !isMaxSpot())) {
-                    actionLevel(key, actionDeque.pop(), orderType);
-//                    pushOrders(dequePrice);
-                }
-            }
-        } catch (Exception e) {
-            log.error("error action level", e);
-        } finally {
-            semaphore.release();
-        }
+    private void actionLevel(BigDecimal price){
+        actionLevel("subject", price, null);
     }
 
     private void actionLevel(String key, BigDecimal price, OrderType orderType){
@@ -190,11 +169,11 @@ public class LevelStrategy extends BaseStrategy{
 
         int size = strategy.getLevelSize().intValue();
 
-        for (int r = 0; r < 10; r++) {
-            for (int i = -size; i <= size ; i++) {
-                action(key, price.add(getSpread(price).multiply(BigDecimal.valueOf(i))), orderType, i);
-            }
+        for (int i = -size; i <= size ; i++) {
+            action(key, price.add(getSpread(price).multiply(BigDecimal.valueOf(i))), orderType, i);
         }
+
+        lastAction.set(price);
     }
 
     private static final BigDecimal CNY_MIN = BigDecimal.valueOf(0);
@@ -360,8 +339,8 @@ public class LevelStrategy extends BaseStrategy{
                     sellAmount = amount;
                 }
 
-                double ra = nextDouble();
-                double rb = nextDouble();
+                double ra = QuranRandom.nextDouble();
+                double rb = BibleRandom.nextDouble();
                 double rMax = ra > rb ? ra : rb;
                 double rMin = ra > rb ? rb : ra;
 
@@ -420,13 +399,14 @@ public class LevelStrategy extends BaseStrategy{
         return r < 0 ? 0 : r > 1 ? 1 : r;
     }
 
-    private BigDecimal lastTrade = ZERO;
+    private volatile BigDecimal lastTrade = ZERO;
 
     @Override
     protected void onTrade(Trade trade) {
-        if (lastTrade.compareTo(ZERO) != 0 &&
-                lastTrade.subtract(trade.getPrice()).abs().divide(lastTrade, 8, HALF_EVEN).compareTo(BD_0_01) < 0){
-            actionAsync("TRADE", trade.getPrice(), trade.getOrderType());
+        if (lastTrade.compareTo(ZERO) != 0 && lastTrade.subtract(trade.getPrice()).abs().divide(lastTrade, 8, HALF_EVEN).compareTo(BD_0_01) < 0){
+
+            action.onNext(trade.getPrice());
+
             closeByMarketAsync(trade.getPrice(), trade.getOrigTime());
         }else{
             log.warn("trade price diff 1% {} {} {}", trade.getPrice(), trade.getSymbol(), Objects.toString(trade.getSymbolType(), ""));

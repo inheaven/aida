@@ -220,7 +220,7 @@ public class BaseStrategy {
                         openOrdersCache.set(ts.getOpenOrders());
                     }
 
-                    BigDecimal range = getSpread(lastPrice.get()).multiply(BigDecimal.valueOf(25));
+                    BigDecimal range = getSpread(lastPrice.get()).multiply(BigDecimal.valueOf(10));
 
                     openOrdersCache.get().getOpenOrders().forEach(l -> {
                         if (lastPrice.get() != null && l.getCurrencyPair().toString().equals(strategy.getSymbol()) &&
