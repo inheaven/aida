@@ -15,8 +15,6 @@ import rx.subjects.PublishSubject;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import static ru.inheaven.aida.happy.trading.entity.ExchangeType.OKCOIN;
-
 /**
  * @author inheaven on 29.06.2015 23:49.
  */
@@ -35,22 +33,14 @@ public class OrderService {
     private ConnectableObservable<Order> localClosedOrderObservable;
 
     @Inject
-    public OrderService(OkcoinService okcoinService, OkcoinFixService okcoinFixService,
-                        OkcoinCnFixService okcoinCnFixService, XChangeService xChangeService,
+    public OrderService(OkcoinCnFixService okcoinCnFixService, XChangeService xChangeService,
                         AccountMapper accountMapper, BroadcastService broadcastService) {
-        this.okcoinService = okcoinService;
-        this.okcoinFixUsService = okcoinFixService;
         this.okcoinFixCnService = okcoinCnFixService;
         this.xChangeService = xChangeService;
         this.broadcastService = broadcastService;
 
 
-        orderObservable = okcoinService.createFutureOrderObservable()
-                .mergeWith(okcoinService.createSpotOrderObservable())
-                .mergeWith(okcoinService.createFutureRealTrades())
-                .mergeWith(okcoinService.createSpotRealTrades())
-                .mergeWith(okcoinFixService.getOrderObservable())
-                .mergeWith(okcoinCnFixService.getOrderObservable())
+        orderObservable = okcoinCnFixService.getOrderObservable()
                 .onBackpressureBuffer()
                 .observeOn(Schedulers.io())
                 .publish();
@@ -62,7 +52,7 @@ public class OrderService {
                 .publish();
         localClosedOrderObservable.connect();
 
-        accountMapper.getAccounts(OKCOIN).forEach(a -> okcoinService.realFutureTrades(a.getApiKey(), a.getSecretKey()));
+        //accountMapper.getAccounts(OKCOIN).forEach(a -> okcoinService.realFutureTrades(a.getApiKey(), a.getSecretKey()));
     }
 
     public ConnectableObservable<Order> getOrderObservable() {
