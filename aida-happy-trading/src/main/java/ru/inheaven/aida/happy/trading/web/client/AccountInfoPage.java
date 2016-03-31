@@ -51,7 +51,7 @@ public class AccountInfoPage extends BasePage{
                         volumes.build().toString() + ");"));
 
                 Module.getInjector().getInstance(UserInfoTotalMapper.class)
-                        .getUserInfoTotals(8L, new Date(System.currentTimeMillis() - 24*60*60*1000))
+                        .getUserInfoTotals(1L, new Date(System.currentTimeMillis() - 24*60*60*1000))
                         .forEach(i -> {
                             BigDecimal volume = i.getFuturesVolume().add(i.getSpotVolume()).setScale(3, HALF_UP);
                             if (volume.compareTo(ZERO) > 0) {
