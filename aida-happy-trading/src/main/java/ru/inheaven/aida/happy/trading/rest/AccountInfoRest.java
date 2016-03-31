@@ -55,7 +55,7 @@ public class AccountInfoRest extends AbstractRestResource<JsonWebSerialDeserial>
 
     @MethodMapping("/user_info_total/{accountId}")
     public List getUserInfoTotal(@PathParam("accountId") Long accountId){
-        return userInfoTotalMapper.getUserInfoTotals(accountId, accountId == 7 ? startDate: startCnDate).stream()
+        return userInfoTotalMapper.getUserInfoTotals(accountId, accountId == 1 ? startDate: startCnDate).stream()
                 .filter(i -> System.currentTimeMillis() - i.getCreated().getTime() < 1000*60*60*24*7 ||
                         i.getCreated().getTime()/60000 % 60 == 0)
                 .map(t -> Arrays.asList(t.getCreated().getTime(),

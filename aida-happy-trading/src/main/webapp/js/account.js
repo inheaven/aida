@@ -30,7 +30,8 @@ function areaChart(id, title, data0, data1){
             yAxis: [{opposite: true}, {opposite: false}],
             series: [{
                 type: 'areaspline', threshold: null,
-                data: data0,                
+                data: data0,
+                
                 
                 fillColor: {
                     linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
@@ -97,18 +98,18 @@ $(function () {
 
 
 
-    $.getJSON('/account_info_rest/user_info/8/BTC_SPOT', function (data) {
+    $.getJSON('/account_info_rest/user_info/1/BTC_SPOT', function (data) {
         chart_8_btc_spot = areaChart('btc_spot_cn', 'BTC Spot CN', data);
     });
 
-    $.getJSON('/account_info_rest/user_info/8/CNY_SPOT', function (data) {
+    $.getJSON('/account_info_rest/user_info/1/CNY_SPOT', function (data) {
         chart_8_cny_spot = areaChart('cny_spot', 'CNY Spot', data);
     });       
 
     //TOTAL
 
 
-    $.getJSON('/account_info_rest/user_info_total/8', function (data) {
+    $.getJSON('/account_info_rest/user_info_total/1', function (data) {
         chart_8_total = areaChart('total_cn', 'BTC Total CN', data.map(function(a){return [a[0], a[1]/a[3]]}));
         chart_7_btc_price = areaChart('btc_price', 'CNY Total', data.map(function(a){return [a[0], a[1]]}),
             data.map(function(a){return [a[0], a[3]]}));

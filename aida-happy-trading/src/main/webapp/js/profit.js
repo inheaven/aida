@@ -70,7 +70,7 @@ function areaChart(id, title, data0, data1, data2, data3){
 }
 
 
-$.getJSON('/account_info_rest/user_info_total/8', function (data) {
+$.getJSON('/account_info_rest/user_info_total/1', function (data) {
     var last;
     var day = getParameterByName('d');
 
