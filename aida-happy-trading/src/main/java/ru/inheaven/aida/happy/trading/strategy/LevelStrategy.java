@@ -219,14 +219,11 @@ public class LevelStrategy extends BaseStrategy{
         String[] symbol = strategy.getSymbol().split("/");
 
         BigDecimal subtotal = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[0]);
-        BigDecimal spot = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[1]);
+//        BigDecimal spot = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[1]);
         BigDecimal total = userInfoService.getVolume("total", strategy.getAccount().getId(), null);
-        BigDecimal net = userInfoService.getVolume("net", strategy.getAccount().getId(), null);
+//        BigDecimal net = userInfoService.getVolume("net", strategy.getAccount().getId(), null);
 
-        BigDecimal spotLtc = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), "LTC/CNY")
-                .multiply(userInfoService.getPrice(strategy.getAccount().getExchangeType(), "LTC/CNY", null));
-
-        return spot.add(spotLtc).divide(subtotal.multiply(lastAction.get()), HALF_EVEN).subtract(BD_2);
+        return total.divide(subtotal.multiply(lastAction.get()), HALF_EVEN).subtract(BD_3);
     }
 
     protected BigDecimal getSpread(BigDecimal price){
