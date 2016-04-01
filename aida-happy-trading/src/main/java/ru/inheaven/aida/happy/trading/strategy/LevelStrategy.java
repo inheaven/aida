@@ -223,11 +223,10 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal total = userInfoService.getVolume("total", strategy.getAccount().getId(), null);
         BigDecimal net = userInfoService.getVolume("net", strategy.getAccount().getId(), null);
 
-        if (lastAction.get().equals(ZERO) || subtotal.equals(ZERO) || total.equals(ZERO) || net.equals(ZERO) || spot.equals(ZERO)){
-            return ZERO;
-        }
+        BigDecimal spotLtc = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), "LTC/CNY")
+                .multiply(userInfoService.getPrice(strategy.getAccount().getExchangeType(), "LTC/CNY", null));
 
-        return net.divide(subtotal.multiply(lastAction.get()), HALF_EVEN).subtract(ONE);
+        return spot.add(spotLtc).divide(subtotal.multiply(lastAction.get()), HALF_EVEN).subtract(BD_2);
     }
 
     protected BigDecimal getSpread(BigDecimal price){
