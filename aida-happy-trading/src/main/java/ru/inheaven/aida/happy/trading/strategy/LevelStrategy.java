@@ -335,8 +335,8 @@ public class LevelStrategy extends BaseStrategy{
                     sellAmount = amount;
                 }
 
-                double ra = random.nextBoolean() ? QuranRandom.nextDouble() : nextDouble();
-                double rb = (random.nextBoolean() ? BibleRandom.nextDouble() : nextDouble())*2;
+                double ra = QuranRandom.nextDouble();
+                double rb = BibleRandom.nextDouble()*2;
                 double rMax = ra > rb ? ra : rb;
                 double rMin = ra > rb ? rb : ra;
 
