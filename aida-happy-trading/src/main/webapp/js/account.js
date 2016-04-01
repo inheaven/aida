@@ -133,7 +133,7 @@ $(function () {
         xAxis: {type: 'datetime', minRange: 3600000, min: new Date().getTime() - 24*3600000 + offset, max: new Date().getTime() + 60000 + offset},
         yAxis: [
             {labels: {enabled: false}, title:{text: null}, opposite: true, endOnTick:false, max: 200, tickLength:0},
-            {labels: {enabled: true}, title:{text: null}, opposite: true, endOnTick:false, max: 50000}
+            {labels: {enabled: true}, title:{text: null}, opposite: true, endOnTick:false, max: 10000}
         ],
         series: [{
             type : 'column',
