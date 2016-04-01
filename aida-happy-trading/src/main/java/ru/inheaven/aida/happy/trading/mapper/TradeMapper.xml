@@ -12,15 +12,15 @@
     </select>
 
     <select id="selectTradeStdDevPt" parameterType="map" resultType="decimal">
-        select stddev_samp(pt.price) from (select price from trade where symbol = #{symbol} and amount > 0.1 order by id desc limit #{points}) pt;
+        select stddev_samp(pt.price) from (select price from trade where symbol = #{symbol} and amount > 0.05 order by id desc limit #{points}) pt;
     </select>
 
     <select id="selectTradeAvgAmountPt" parameterType="map" resultType="decimal">
-        select avg(pt.amount) from (select amount from trade where symbol = #{symbol} and amount > 0.1 and 10 > amount order by id desc limit #{points}) pt;
+        select avg(pt.amount) from (select amount from trade where symbol = #{symbol} and amount > 0.05 and 10 > amount order by id desc limit #{points}) pt;
     </select>
 
     <select id="selectTradeAvgPricePt" parameterType="map" resultType="decimal">
-        select avg(pt.price) from (select price from trade where symbol = #{symbol} and amount > 0.1 order by id desc limit #{points}) pt;
+        select avg(pt.price) from (select price from trade where symbol = #{symbol} and amount > 0.05 order by id desc limit #{points}) pt;
     </select>
 
 </mapper>
