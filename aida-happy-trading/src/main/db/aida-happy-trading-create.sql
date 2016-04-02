@@ -14,6 +14,7 @@ CREATE TABLE account
   exchange_type VARCHAR(255) NOT NULL,
   secret_key VARCHAR(255) NOT NULL,
   client_id BIGINT,
+  active BOOLEAN NOT NULL,
   KEY `key_client_id` (client_id),
   FOREIGN KEY (client_id) REFERENCES client (id)
 );
@@ -54,7 +55,6 @@ CREATE TABLE `order`
   closed TIMESTAMP NULL,
   status VARCHAR(32) NOT NULL,
 
-  KEY `key_closed` (closed),
   KEY `key_type` (type),
   KEY `key_closed` (closed),
   KEY `key_status` (status),

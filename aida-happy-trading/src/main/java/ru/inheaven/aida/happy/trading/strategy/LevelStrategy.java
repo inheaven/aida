@@ -1,31 +1,31 @@
 package ru.inheaven.aida.happy.trading.strategy;
 
+import com.xeiam.xchange.service.polling.trade.PollingTradeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
-import ru.inheaven.aida.happy.trading.service.Module;
-import ru.inheaven.aida.happy.trading.service.UserInfoService;
+import ru.inheaven.aida.happy.trading.service.*;
 import ru.inheaven.aida.happy.trading.util.BibleRandom;
 import ru.inheaven.aida.happy.trading.util.QuranRandom;
+import rx.subjects.PublishSubject;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Deque;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_EVEN;
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static ru.inheaven.aida.happy.trading.entity.LevelParameter.*;
-import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CLOSED;
-import static ru.inheaven.aida.happy.trading.entity.OrderStatus.OPEN;
+import static ru.inheaven.aida.happy.trading.entity.OrderStatus.*;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.ASK;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.BID;
 
@@ -42,12 +42,69 @@ public class LevelStrategy extends BaseStrategy{
     private static AtomicLong positionIdGen = new AtomicLong(System.nanoTime());
 
     private final static BigDecimal BD_0_01 = new BigDecimal("0.01");
-    private final static BigDecimal BD_SQRT_TWO_PI = new BigDecimal("2.506628274631000502415765284811");
+
+    private PublishSubject<ActionPrice> actionPricePublishSubject = PublishSubject.create();
 
     public LevelStrategy(Strategy strategy) {
         super(strategy);
 
         userInfoService = Module.getInjector().getInstance(UserInfoService.class);
+        OrderService orderService = Module.getInjector().getInstance(OrderService.class);
+        XChangeService xChangeService = Module.getInjector().getInstance(XChangeService.class);
+        TradeService tradeService = Module.getInjector().getInstance(TradeService.class);
+
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> getOrderMap().forEach((id, o) -> {
+            try {
+                if (o.getStatus().equals(OPEN)) {
+                    orderService.checkOrder(getAccount(), o);
+                }else if ((o.getStatus().equals(CANCELED) || o.getStatus().equals(CLOSED)) && (o.getClosed() == null ||
+                        System.currentTimeMillis() - o.getClosed().getTime() > 60000)) {
+                    onOrder(o);
+                    log.info("{} CLOSED by schedule {}", o.getStrategyId(), scale(o.getPrice()));
+                }else if (o.getStatus().equals(CREATED) &&
+                        System.currentTimeMillis() - o.getCreated().getTime() > 10000){
+                    o.setStatus(CLOSED);
+                    o.setClosed(new Date());
+                    log.info("{} CLOSED by created {}", o.getStrategyId(), scale(o.getPrice()));
+                }
+            } catch (Exception e) {
+                log.error("error check order -> ", e);
+            }
+
+        }), 0, 1, MINUTES);
+
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
+            try {
+                PollingTradeService ts = xChangeService.getExchange(getAccount()).getPollingTradeService();
+
+                BigDecimal stdDev = tradeService.getStdDev(getExchangeType(), strategy.getSymbol(), strategy.getInteger(VOLATILITY_SIZE));
+                BigDecimal range = stdDev.multiply(strategy.getBigDecimal(CANCEL));
+
+                orderService.getOpenOrders(getAccount().getId()).forEach(l -> {
+                    if (lastAction.get() != null && l.getCurrencyPair().toString().equals(strategy.getSymbol()) &&
+                            lastAction.get().subtract(l.getLimitPrice()).abs().compareTo(range) > 0){
+                        try {
+                            ts.cancelOrder(l.getId());
+
+                            Order order = getOrderMap().get(l.getId());
+
+                            if (order != null){
+                                order.setStatus(CANCELED);
+                            }
+
+                            log.info("schedule cancel order {}", l);
+                        } catch (IOException e) {
+                            log.error("error schedule cancel order -> ", e);
+                        }
+                    }
+                });
+            } catch (Exception e) {
+                log.error("error schedule cancel order -> ", e);
+            }
+
+        }, 0, 10, SECONDS);
+
+        actionPricePublishSubject.distinctUntilChanged().onBackpressureLatest().subscribe(this::actionLevel);
     }
 
     private Executor executor = Executors.newCachedThreadPool();
@@ -79,63 +136,48 @@ public class LevelStrategy extends BaseStrategy{
         });
     }
 
-    private Executor executor2 = Executors.newCachedThreadPool();
     private AtomicReference<BigDecimal> lastAction = new AtomicReference<>(ZERO);
-    private Deque<BigDecimal> actionDeque = new ConcurrentLinkedDeque<>();
 
-    private void actionAsync(String key, BigDecimal price, OrderType orderType){
-        if (lastAction.get().compareTo(price) != 0) {
-            lastAction.set(price);
-            actionDeque.push(price);
-
-            executor2.execute(() -> actionSync(key, orderType));
-        }
+    private void actionAsync(BigDecimal price, BigDecimal amount, OrderType orderType, String key){
+        actionPricePublishSubject.onNext(new ActionPrice(price, amount, orderType, key));
     }
 
-    private Semaphore semaphore = new Semaphore(1);
-
-    private void actionSync(String key, OrderType orderType){
+    private void actionLevel(ActionPrice actionPrice){
         try {
-            semaphore.acquire();
+            lastAction.set(actionPrice.getPrice());
 
-            while (!actionDeque.isEmpty()) {
-                actionLevel(key, actionDeque.pop(), orderType);
+            if (isBidRefused() || isAskRefused()) {
+                return;
+            }
+
+            BigDecimal sideSpread = getSideSpread(actionPrice.getPrice());
+            Integer levelSize = getStrategy().getInteger(SIZE);
+
+            action(actionPrice.getKey(), actionPrice.getPrice(), actionPrice.getOrderType(), 0);
+
+            for (int i = levelSize; i > 0 ; i--) {
+                BigDecimal index = BigDecimal.valueOf(i);
+
+                action(actionPrice.getKey(), actionPrice.getPrice().add(sideSpread.multiply(index)), actionPrice.getOrderType(), i);
+                action(actionPrice.getKey(), actionPrice.getPrice().subtract(sideSpread.multiply(index)), actionPrice.getOrderType(), -i);
             }
         } catch (Exception e) {
-            log.error("error action level", e);
-        } finally {
-            semaphore.release();
+            log.error("error actionLevel", e);
         }
-    }
-
-    private void actionLevel(String key, BigDecimal price, OrderType orderType){
-        if (isBidRefused() || isAskRefused()) {
-            return;
-        }
-
-        BigDecimal sideSpread = getSideSpread(price);
-        Integer levelSize = getStrategy().getInteger(SIZE);
-
-        for (int i = levelSize; i > 0 ; i--) {
-            action(key, price.add(sideSpread), orderType, i);
-            action(key, price.subtract(sideSpread), orderType, -i);
-        }
-
-        action(key, price, orderType, 0);
     }
 
     protected BigDecimal getBalance(){
-        if ("net".equals(getStrategy().getString(BALANCE_TYPE))){
+        if ("total".equals(getStrategy().getString(BALANCE_TYPE))){
             String[] symbol = getStrategy().getSymbol().split("/");
 
-            BigDecimal net = userInfoService.getVolume("net", getStrategy().getAccountId(), null);
-            BigDecimal subtotal = userInfoService.getVolume("subtotal", getStrategy().getAccountId(), symbol[0]);
+            BigDecimal total = userInfoService.getVolume("total", getAccount().getId(), null);
+            BigDecimal subtotal = userInfoService.getVolume("subtotal", getAccount().getId(), symbol[0]);
 
-            if (lastAction.get().equals(ZERO) || subtotal.equals(ZERO) || net.equals(ZERO)){
+            if (lastAction.get().equals(ZERO) || subtotal.equals(ZERO) || total.equals(ZERO)){
                 return ZERO;
             }
 
-            return net.divide(subtotal.multiply(lastAction.get()), HALF_EVEN).subtract(getStrategy().getBigDecimal(BALANCE));
+            return total.divide(subtotal.multiply(lastAction.get()), HALF_EVEN).subtract(getStrategy().getBigDecimal(BALANCE));
         }
 
         return ZERO;
@@ -178,6 +220,63 @@ public class LevelStrategy extends BaseStrategy{
         return sideSpread.compareTo(getStep()) > 0 ? sideSpread : getStep();
     }
 
+    private AtomicReference<BigDecimal> lastTrade = new AtomicReference<>(ZERO);
+
+    @Override
+    protected void onTrade(Trade trade) {
+        BigDecimal lt = lastTrade.get();
+
+        if (lt.compareTo(ZERO) != 0 && lt.subtract(trade.getPrice()).abs().divide(lt, 8, HALF_EVEN).compareTo(BD_0_01) < 0){
+            actionAsync(trade.getPrice(), trade.getAmount(), trade.getOrderType(), "trade");
+            closeByMarketAsync(trade.getPrice(), trade.getOrigTime());
+        }else{
+            log.warn("trade price diff 1% {} {} {}", trade.getPrice(), trade.getSymbol(), Objects.toString(trade.getSymbolType(), ""));
+        }
+
+        lastTrade.set(trade.getPrice());
+    }
+
+    @Override
+    protected void onDepth(Depth depth) {
+        BigDecimal ask = depth.getAsk();
+        BigDecimal bid = depth.getBid();
+        BigDecimal lt = lastTrade.get();
+
+        if (ask != null && bid != null && lt.compareTo(ZERO) != 0 &&
+                lt.subtract(ask).abs().divide(lt, 8, HALF_EVEN).compareTo(BD_0_01) < 0 &&
+                lt.subtract(bid).abs().divide(lt, 8, HALF_EVEN).compareTo(BD_0_01) < 0) {
+            actionAsync(ask, null, ASK, "depth");
+            actionAsync(bid, null, BID, "depth");
+        }
+    }
+
+    @Override
+    protected void onRealTrade(Order order) {
+        if (order.getStatus().equals(CLOSED) && order.getAvgPrice().compareTo(ZERO) > 0){
+            actionAsync(order.getBestPrice(), order.getAmount(), order.getType(), "real");
+        }
+    }
+
+    private double nextDouble(){
+        switch (getStrategy().getString(LOT_TYPE)){
+            case "random_uniform":
+                return random.nextDouble();
+            case "random_gauss":
+                double g = random.nextGaussian()/6 + 0.5;
+                return g < 0 ? 0 : g > 1 ? 1 : g;
+            case "random_bible":
+                return BibleRandom.nextDouble();
+            case "random_quran":
+                return QuranRandom.nextDouble();
+            default:
+                return 1;
+        }
+    }
+
+    private BigDecimal getMinAmount(){
+        return BD_0_01;
+    }
+
     private void action(String key, BigDecimal price, OrderType orderType, int priceLevel) {
         try {
             BigDecimal balance = getBalance();
@@ -186,19 +285,17 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal spread = scale(getSpread(price));
             BigDecimal priceF = up ? price.add(getStep()) : price.subtract(getStep());
 
-            BigDecimal sideSpread = "volatility".equals(getStrategy().getString(SPREAD_TYPE))
-                    ? spread
-                    : scale(getSideSpread(priceF));
+            BigDecimal sideSpread = scale(getSideSpread(priceF));
 
             BigDecimal buyPrice = up ? priceF : priceF.subtract(spread);
             BigDecimal sellPrice = up ? priceF.add(spread) : priceF;
 
             if (!getOrderMap().contains(buyPrice, sideSpread, BID) && !getOrderMap().contains(sellPrice, sideSpread, ASK)){
-                log.info("{} "  + key + " {} {} {} {} {} {}", getStrategy().getId(), price.setScale(3, HALF_EVEN), orderType,
-                        sideSpread, spread, balance, priceLevel);
+                log.info("{} {} {} {} {} {} {} {}", getStrategy().getId(), key, price.setScale(3, HALF_EVEN),
+                        orderType, sideSpread, spread, balance, priceLevel);
 
                 double ra = nextDouble();
-                double rb = nextDouble();
+                double rb = nextDouble()*2;
                 double rMax = ra > rb ? ra : rb;
                 double rMin = ra > rb ? rb : ra;
 
@@ -231,61 +328,6 @@ public class LevelStrategy extends BaseStrategy{
             }
         } catch (Exception e) {
             log.error("action error -> ", e);
-        }
-    }
-
-    private double nextDouble(){
-        switch (getStrategy().getString(LOT_TYPE)){
-            case "random_uniform":
-                return random.nextDouble();
-            case "random_gauss":
-                double g = random.nextGaussian()/6 + 0.5;
-                return g < 0 ? 0 : g > 1 ? 1 : g;
-            case "random_bible":
-                return BibleRandom.nextDouble();
-            case "random_quran":
-                return QuranRandom.nextDouble();
-            default:
-                return 1;
-        }
-    }
-
-    private BigDecimal getMinAmount(){
-        return BD_0_01;
-    }
-
-    private volatile BigDecimal lastTrade = ZERO;
-
-    @Override
-    protected void onTrade(Trade trade) {
-        if (lastTrade.compareTo(ZERO) != 0 &&
-                lastTrade.subtract(trade.getPrice()).abs().divide(lastTrade, 8, HALF_EVEN).compareTo(BD_0_01) < 0){
-            actionAsync("TRADE", trade.getPrice(), trade.getOrderType());
-            closeByMarketAsync(trade.getPrice(), trade.getOrigTime());
-        }else{
-            log.warn("trade price diff 1% {} {} {}", trade.getPrice(), trade.getSymbol(), Objects.toString(trade.getSymbolType(), ""));
-        }
-
-        lastTrade = trade.getPrice();
-    }
-
-    @Override
-    protected void onDepth(Depth depth) {
-        BigDecimal ask = depth.getAsk();
-        BigDecimal bid = depth.getBid();
-
-        if (ask != null && bid != null && lastTrade.compareTo(ZERO) != 0 &&
-                lastTrade.subtract(ask).abs().divide(lastTrade, 8, HALF_EVEN).compareTo(BD_0_01) < 0 &&
-                lastTrade.subtract(bid).abs().divide(lastTrade, 8, HALF_EVEN).compareTo(BD_0_01) < 0) {
-            actionAsync("DEPTH", ask, ASK);
-            actionAsync("DEPTH", bid, BID);
-        }
-    }
-
-    @Override
-    protected void onRealTrade(Order order) {
-        if (order.getStatus().equals(CLOSED) && order.getAvgPrice().compareTo(ZERO) > 0){
-            actionAsync("REAL", order.getAvgPrice(), order.getType());
         }
     }
 }

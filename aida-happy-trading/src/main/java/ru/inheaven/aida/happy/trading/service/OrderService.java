@@ -1,5 +1,8 @@
 package ru.inheaven.aida.happy.trading.service;
 
+import com.xeiam.xchange.dto.trade.LimitOrder;
+import com.xeiam.xchange.dto.trade.OpenOrders;
+import com.xeiam.xchange.service.polling.trade.PollingTradeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.Account;
@@ -14,6 +17,11 @@ import rx.subjects.PublishSubject;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author inheaven on 29.06.2015 23:49.
@@ -30,6 +38,8 @@ public class OrderService {
 
     private PublishSubject<Order> localClosedOrderPublishSubject = PublishSubject.create();
     private ConnectableObservable<Order> localClosedOrderObservable;
+
+    private Map<Long, OpenOrders> openOrdersMap = new ConcurrentHashMap<>();
 
     @Inject
     public OrderService(OkcoinService okcoinService, FixService fixService,
@@ -54,6 +64,25 @@ public class OrderService {
                 .observeOn(Schedulers.io())
                 .publish();
         localClosedOrderObservable.connect();
+
+        //schedule open orders
+        accountMapper.getActiveAccounts().forEach(this::scheduleOpenOrders);
+    }
+
+    private void scheduleOpenOrders(Account account){
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
+            try {
+                PollingTradeService ts = xChangeService.getExchange(account).getPollingTradeService();
+
+                openOrdersMap.put(account.getId(), ts.getOpenOrders());
+            } catch (Exception e) {
+                log.error("error scheduleOpenOrders", e);
+            }
+        }, 0, 1, TimeUnit.MINUTES);
+    }
+
+    public List<LimitOrder> getOpenOrders(Long accountId){
+        return openOrdersMap.get(accountId).getOpenOrders();
     }
 
     public ConnectableObservable<Order> getOrderObservable() {

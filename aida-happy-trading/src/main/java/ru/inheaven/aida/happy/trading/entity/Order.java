@@ -65,6 +65,10 @@ public class Order extends AbstractEntity {
         status = order.status;
     }
 
+    public BigDecimal getBestPrice(){
+        return  avgPrice != null ? avgPrice : price;
+    }
+
     public String getOrderId() {
         return orderId;
     }

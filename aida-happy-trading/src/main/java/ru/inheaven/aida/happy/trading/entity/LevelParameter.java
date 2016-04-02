@@ -4,6 +4,8 @@ package ru.inheaven.aida.happy.trading.entity;
  * inheaven on 13.03.2016.
  */
 public enum LevelParameter {
+    CANCEL,
+    CANCEL_RATE,
     LOT,
     LOT_TYPE, //fixed, uniform, gauss
     SPREAD,

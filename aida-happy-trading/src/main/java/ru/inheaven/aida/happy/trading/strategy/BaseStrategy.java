@@ -1,7 +1,5 @@
 package ru.inheaven.aida.happy.trading.strategy;
 
-import com.xeiam.xchange.dto.trade.OpenOrders;
-import com.xeiam.xchange.service.polling.trade.PollingTradeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
@@ -12,7 +10,6 @@ import ru.inheaven.aida.happy.trading.util.OrderMap;
 import rx.Observable;
 import rx.Subscription;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.Date;
@@ -27,8 +24,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_EVEN;
 import static java.math.RoundingMode.HALF_UP;
-import static java.util.concurrent.TimeUnit.MINUTES;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static ru.inheaven.aida.happy.trading.entity.LevelParameter.VOLATILITY_SIZE;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.*;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.BID;
@@ -39,7 +34,6 @@ import static ru.inheaven.aida.happy.trading.entity.OrderType.BID;
 public class BaseStrategy {
     private Logger log = LoggerFactory.getLogger(getClass());
 
-    private AccountMapper accountMapper;
     private OrderService orderService;
     private OrderMapper orderMapper;
     private TradeService tradeService;
@@ -54,14 +48,12 @@ public class BaseStrategy {
     private Subscription depthSubscription;
     private Subscription realTradeSubscription;
 
-    private XChangeService xChangeService;
-
     private OrderMap orderMap;
 
     private Strategy strategy;
     private Account account;
 
-    private boolean flying = false;
+    private boolean run = false;
 
     private AtomicReference<BigDecimal> lastPrice = new AtomicReference<>();
     private AtomicLong askRefusedTime = new AtomicLong(System.currentTimeMillis());
@@ -77,18 +69,17 @@ public class BaseStrategy {
     public BaseStrategy(Strategy strategy) {
         this.strategy = strategy;
 
-        accountMapper = Module.getInjector().getInstance(AccountMapper.class);
         orderMapper = Module.getInjector().getInstance(OrderMapper.class);
         orderService = Module.getInjector().getInstance(OrderService.class);
         tradeService = Module.getInjector().getInstance(TradeService.class);
         depthService = Module.getInjector().getInstance(DepthService.class);
-        xChangeService = Module.getInjector().getInstance(XChangeService.class);
+
 
         orderObservable = createOrderObservable();
         tradeObservable = createTradeObservable();
         depthObservable = createDepthObservable();
 
-        account = accountMapper.getAccount(strategy.getAccountId());
+        account = Module.getInjector().getInstance(AccountMapper.class).getAccount(strategy.getAccountId());
 
         orderMap = new OrderMap(getScale(strategy.getSymbol()));
 
@@ -116,11 +107,8 @@ public class BaseStrategy {
                 .filter(d -> Objects.equals(strategy.getSymbolType(), d.getSymbolType()));
     }
 
-    private static AtomicReference<OpenOrders> openOrdersCache = new AtomicReference<>();
-    private static AtomicReference<Long> openOrdersTime = new AtomicReference<>(System.currentTimeMillis());
-
     public void start(){
-        if (flying){
+        if (run){
             return;
         }
 
@@ -159,65 +147,7 @@ public class BaseStrategy {
             }
         });
 
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> orderMap.forEach((id, o) -> {
-            try {
-                if (o.getStatus().equals(OPEN)) {
-                    orderService.checkOrder(account, o);
-                }else if ((o.getStatus().equals(CANCELED) || o.getStatus().equals(CLOSED)) && (o.getClosed() == null ||
-                        System.currentTimeMillis() - o.getClosed().getTime() > 60000)) {
-                    onOrder(o);
-                    log.info("{} CLOSED by schedule {}", o.getStrategyId(), scale(o.getPrice()));
-                }else if (o.getStatus().equals(CREATED) &&
-                        System.currentTimeMillis() - o.getCreated().getTime() > 10000){
-                    o.setStatus(CLOSED);
-                    o.setClosed(new Date());
-                    log.info("{} CLOSED by created {}", o.getStrategyId(), scale(o.getPrice()));
-                }
-            } catch (Exception e) {
-                log.error("error check order -> ", e);
-            }
-
-        }), 0, 1, MINUTES);
-
-        if (strategy.getSymbol().equals("BTC/CNY") || strategy.getSymbol().equals("LTC/CNY")){ //todo move cache to order service
-            Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
-                try {
-                    PollingTradeService ts = xChangeService.getExchange(account).getPollingTradeService();
-
-                    if (System.currentTimeMillis() - openOrdersTime.get() > 10000){
-                        openOrdersTime.set(System.currentTimeMillis());
-                        openOrdersCache.set(ts.getOpenOrders());
-                    }
-
-                    BigDecimal stdDev = tradeService.getStdDev(getExchangeType(), strategy.getSymbol(), strategy.getInteger(VOLATILITY_SIZE));
-                    BigDecimal range = stdDev != null ? stdDev.multiply(BigDecimal.valueOf(3)) : new BigDecimal("10");
-
-                    openOrdersCache.get().getOpenOrders().forEach(l -> {
-                        if (lastPrice.get() != null && l.getCurrencyPair().toString().equals(strategy.getSymbol()) &&
-                                lastPrice.get().subtract(l.getLimitPrice()).abs().compareTo(range) > 0){
-                            try {
-                                ts.cancelOrder(l.getId());
-
-                                Order order = orderMap.get(l.getId());
-
-                                if (order != null){
-                                    order.setStatus(CANCELED);
-                                }
-
-                                log.info("schedule cancel order {}", l);
-                            } catch (IOException e) {
-                                log.error("error schedule cancel order -> ", e);
-                            }
-                        }
-                    });
-                } catch (Exception e) {
-                    log.error("error schedule cancel order -> ", e);
-                }
-
-            }, random.nextInt(10), 10, SECONDS);
-        }
-
-        flying = true;
+        run = true;
     }
 
     public void stop(){
@@ -226,7 +156,7 @@ public class BaseStrategy {
         depthSubscription.unsubscribe();
         realTradeSubscription.unsubscribe();
 
-        flying = false;
+        run = false;
     }
 
     protected void onCloseOrder(Order order){
@@ -339,7 +269,7 @@ public class BaseStrategy {
         }
     }
 
-    private void onOrder(Order o){
+    protected void onOrder(Order o){
         if (o.getOrderId() != null && o.getOrderId().contains("refused")){
             if (o.getType().equals(OrderType.ASK)){
                 askRefusedTime.set(System.currentTimeMillis());

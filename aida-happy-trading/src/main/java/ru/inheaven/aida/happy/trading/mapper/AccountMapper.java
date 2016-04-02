@@ -16,4 +16,8 @@ public class AccountMapper extends BaseMapper<Account> {
     public List<Account> getAccounts(ExchangeType exchangeType){
         return sqlSession().selectList("selectAccountsByExchange", exchangeType);
     }
+    
+    public List<Account> getActiveAccounts(){
+        return sqlSession().selectList("selectActiveAccount");                
+    }
 }
