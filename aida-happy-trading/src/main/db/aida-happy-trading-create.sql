@@ -58,7 +58,6 @@ CREATE TABLE `order`
   closed TIMESTAMP NULL,
   status VARCHAR(32) NOT NULL,
 
-  KEY `key_closed` (closed),
   KEY `key_type` (type),
   KEY `key_closed` (closed),
   KEY `key_status` (status),
