@@ -320,10 +320,10 @@ public class LevelStrategy extends BaseStrategy{
                 BigDecimal amount = strategy.getLevelLot();
 
                 //avg amount
-                BigDecimal avgAmount = tradeService.getAvgAmount(strategy.getSymbol(), getVolSuffix());
-                if (avgAmount.compareTo(amount) < 0) {
-                    amount = avgAmount;
-                }
+//                BigDecimal avgAmount = tradeService.getAvgAmount(strategy.getSymbol(), getVolSuffix());
+//                if (avgAmount.compareTo(amount) < 0) {
+//                    amount = avgAmount;
+//                }
 
                 Long positionId = positionIdGen.incrementAndGet();
 
@@ -336,7 +336,7 @@ public class LevelStrategy extends BaseStrategy{
                 }
 
                 double ra = QuranRandom.nextDouble();
-                double rb = BibleRandom.nextDouble()*2;
+                double rb = BibleRandom.nextDouble()*Math.PI;
                 double rMax = ra > rb ? ra : rb;
                 double rMin = ra > rb ? rb : ra;
 
