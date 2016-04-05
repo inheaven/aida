@@ -104,9 +104,9 @@ public class AccountInfoPage extends BasePage{
 
                     if (u.getAccountId() == 1){
                         handler.appendJavaScript("chart_7_btc_price.series[0].addPoint([" +
-                                u.getCreated().getTime() + "," + u.getSpotTotal() + "])");
+                                u.getCreated().getTime() + "," + u.getSpotTotal().setScale(4, HALF_UP) + "])");
                         handler.appendJavaScript("chart_7_btc_price.series[1].addPoint([" +
-                                u.getCreated().getTime() + "," + u.getBtcPrice() + "])");
+                                u.getCreated().getTime() + "," + u.getBtcPrice().setScale(4, HALF_UP) + "])");
                     }
 
                     BigDecimal total = u.getFuturesTotal().add(u.getSpotTotal());
