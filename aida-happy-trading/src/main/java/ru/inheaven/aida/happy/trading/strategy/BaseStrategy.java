@@ -573,7 +573,7 @@ public class BaseStrategy {
             case "BTC/USD":
             case "BTC/CNY":
             case "LTC/CNY":
-                return STEP_0_02;
+                return STEP_0_01;
             case "LTC/USD":
                 return STEP_0_001;
         }

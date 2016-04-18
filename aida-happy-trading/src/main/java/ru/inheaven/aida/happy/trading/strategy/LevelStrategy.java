@@ -170,7 +170,7 @@ public class LevelStrategy extends BaseStrategy{
         int size = strategy.getLevelSize().intValue();
 
         for (int i = -size; i <= size ; i++) {
-            action(key, price.add(getSpread(price).multiply(BigDecimal.valueOf(i))), orderType, i);
+            action(key, price.add(getSideSpread(price).multiply(BigDecimal.valueOf(i))), orderType, i);
         }
 
         lastAction.set(price);
@@ -336,9 +336,13 @@ public class LevelStrategy extends BaseStrategy{
                 }
 
                 double ra = QuranRandom.nextDouble();
-                double rb = BibleRandom.nextDouble()*Math.PI;
-                double rMax = ra > rb ? ra : rb;
-                double rMin = ra > rb ? rb : ra;
+                double rb = BibleRandom.nextDouble();
+//
+//                double rMax = ra > rb ? ra : rb;
+//                double rMin = ra > rb ? rb : ra;
+
+                double rMax = random.nextGaussian()/2 + 2;
+                double rMin = random.nextGaussian()/2 + 1;
 
                 double a = amount.doubleValue();
                 double rBuy = a * (up ? rMax : rMin);
