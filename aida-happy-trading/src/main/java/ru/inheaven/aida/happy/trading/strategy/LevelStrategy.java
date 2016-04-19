@@ -295,11 +295,15 @@ public class LevelStrategy extends BaseStrategy{
             boolean up = getSpotBalance().compareTo(ZERO)> 0;
 
             BigDecimal spread = scale(getSpread(price));
+            BigDecimal halfSpread = spread.divide(BD_2, HALF_EVEN);
             BigDecimal priceF = up ? price.add(getStep()) : price.subtract(getStep());
             BigDecimal sideSpread = isVol() ? spread : scale(getSideSpread(priceF));
 
             BigDecimal buyPrice = up ? priceF : priceF.subtract(spread);
             BigDecimal sellPrice = up ? priceF.add(spread) : priceF;
+
+//            BigDecimal buyPrice = priceF.subtract(halfSpread);
+//            BigDecimal sellPrice = priceF.add(halfSpread);
 
             if (!getOrderMap().contains(buyPrice, sideSpread, BID) && !getOrderMap().contains(sellPrice, sideSpread, ASK)){
 //               //rate
