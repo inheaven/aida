@@ -12,6 +12,7 @@ import java.util.function.BiConsumer;
 
 import static java.math.RoundingMode.HALF_EVEN;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.*;
+import static ru.inheaven.aida.happy.trading.entity.OrderType.ASK;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.BID;
 
 /**
@@ -107,16 +108,18 @@ public class OrderMap {
         return get(price, type, true);
     }
 
-    public boolean contains(BigDecimal price, BigDecimal spread, OrderType type){
+    public boolean contains(BigDecimal price, BigDecimal spread, OrderType type, BigDecimal realPrice){
         ConcurrentNavigableMap<BigDecimal, Collection<Order>> map =  type.equals(BID)
-                ? bidMap.subMap(scale(price).subtract(scale(spread)), false, scale(price).add(scale(spread)), false)
-                : askMap.subMap(scale(price).subtract(scale(spread)), false, scale(price).add(scale(spread)), false);
+                ? bidMap.subMap(scale(price).subtract(scale(spread)), true, scale(price).add(scale(spread)), true)
+                : askMap.subMap(scale(price).subtract(scale(spread)), true, scale(price).add(scale(spread)), true);
 
         boolean contains = false;
 
         for (Map.Entry<BigDecimal, Collection<Order>> entry : map.entrySet()) {
             for (Order o : entry.getValue()){
-                if ((OPEN.equals(o.getStatus()) || CREATED.equals(o.getStatus()) || WAIT.equals(o.getStatus()))){
+                if ((OPEN.equals(o.getStatus()) || CREATED.equals(o.getStatus()) || WAIT.equals(o.getStatus())) &&
+                        ((o.getType().equals(ASK) && o.getPrice().compareTo(realPrice) >= 0) ||
+                                (o.getType().equals(BID) && o.getPrice().compareTo(realPrice) <= 0))){
                     contains = true;
 
                     break;

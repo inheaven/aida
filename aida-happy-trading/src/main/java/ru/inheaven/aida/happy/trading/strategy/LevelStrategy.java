@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
-import ru.inheaven.aida.happy.trading.util.BibleRandom;
 import ru.inheaven.aida.happy.trading.util.QuranRandom;
 import rx.subjects.PublishSubject;
 
@@ -15,6 +14,7 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -167,11 +167,9 @@ public class LevelStrategy extends BaseStrategy{
             return;
         }
 
-        int size = strategy.getLevelSize().intValue();
-
-        for (int i = -size; i <= size ; i++) {
-            action(key, price.add(getSideSpread(price).multiply(BigDecimal.valueOf(i))), orderType, i);
-        }
+        action(key, price, orderType, 0);
+        action(key, price.add(getSideSpread(price)), orderType, 1);
+        action(key, price.subtract(getSideSpread(price)), orderType, -1);
 
         lastAction.set(price);
     }
@@ -215,16 +213,35 @@ public class LevelStrategy extends BaseStrategy{
     private static final BigDecimal CNY_MIDDLE = BigDecimal.valueOf(3000);
     private static final BigDecimal USD_MIDDLE = BigDecimal.valueOf(1000);
 
+    private AtomicBoolean up = new AtomicBoolean(true);
+
     protected BigDecimal getSpotBalance(){
         String[] symbol = strategy.getSymbol().split("/");
 
         BigDecimal subtotal = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[0]);
-//        BigDecimal spot = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[1]);
+        BigDecimal spot = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[1]);
         BigDecimal total = userInfoService.getVolume("total", strategy.getAccount().getId(), null);
-//        BigDecimal net = userInfoService.getVolume("net", strategy.getAccount().getId(), null);
+        BigDecimal net = userInfoService.getVolume("net", strategy.getAccount().getId(), null);
 
-        return total.divide(subtotal.multiply(lastAction.get()), HALF_EVEN).subtract(BD_3);
+        BigDecimal subtotalSpot = subtotal.multiply(lastAction.get());
+
+        if (subtotalSpot.multiply(TEN).compareTo(total) < 0){
+            up.set(true);
+        }
+
+        if (spot.multiply(TEN).compareTo(total) < 0){
+            up.set(false);
+        }
+
+        BigDecimal balance = total.divide(subtotalSpot, HALF_EVEN).subtract(BD_3).abs();
+
+        if (!up.get()){
+            balance = balance.negate();
+        }
+
+        return balance;
     }
+
 
     protected BigDecimal getSpread(BigDecimal price){
         BigDecimal spread = ZERO;
@@ -295,17 +312,17 @@ public class LevelStrategy extends BaseStrategy{
             boolean up = getSpotBalance().compareTo(ZERO)> 0;
 
             BigDecimal spread = scale(getSpread(price));
-            BigDecimal halfSpread = spread.divide(BD_2, HALF_EVEN);
+//            BigDecimal halfSpread = spread.divide(BD_2, HALF_EVEN);
+            BigDecimal sideSpread = isVol() ? spread : scale(getSideSpread(price));
+
             BigDecimal priceF = up ? price.add(getStep()) : price.subtract(getStep());
-            BigDecimal sideSpread = isVol() ? spread : scale(getSideSpread(priceF));
+            BigDecimal buyPrice = up ? priceF : price.subtract(spread);
+            BigDecimal sellPrice = up ? price.add(spread) : priceF;
 
-            BigDecimal buyPrice = up ? priceF : priceF.subtract(spread);
-            BigDecimal sellPrice = up ? priceF.add(spread) : priceF;
+//            BigDecimal buyPrice = price.subtract(halfSpread);
+//            BigDecimal sellPrice = price.add(halfSpread);
 
-//            BigDecimal buyPrice = priceF.subtract(halfSpread);
-//            BigDecimal sellPrice = priceF.add(halfSpread);
-
-            if (!getOrderMap().contains(buyPrice, sideSpread, BID) && !getOrderMap().contains(sellPrice, sideSpread, ASK)){
+            if (!getOrderMap().contains(buyPrice, sideSpread, BID, price) && !getOrderMap().contains(sellPrice, sideSpread, ASK, price)){
 //               //rate
 //                if (System.currentTimeMillis() - actionTime.get() < 10){
 //                    return;
@@ -340,8 +357,8 @@ public class LevelStrategy extends BaseStrategy{
                 }
 
                 double ra = QuranRandom.nextDouble();
-                double rb = BibleRandom.nextDouble();
-//
+                double rb = QuranRandom.nextDouble();
+////
 //                double rMax = ra > rb ? ra : rb;
 //                double rMin = ra > rb ? rb : ra;
 
