@@ -215,69 +215,38 @@ public class LevelStrategy extends BaseStrategy{
 
     private AtomicBoolean up = new AtomicBoolean(true);
 
-    protected BigDecimal getSpotBalance(){
+    protected Boolean getSpotBalance(){
         String[] symbol = strategy.getSymbol().split("/");
 
         BigDecimal subtotal = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[0]);
         BigDecimal spot = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[1]);
+
+        BigDecimal freeSubtotal = userInfoService.getVolume("free", strategy.getAccount().getId(), symbol[0]);
+        BigDecimal freeSpot = userInfoService.getVolume("free", strategy.getAccount().getId(), symbol[1]);
+
         BigDecimal total = userInfoService.getVolume("total", strategy.getAccount().getId(), null);
         BigDecimal net = userInfoService.getVolume("net", strategy.getAccount().getId(), null);
 
-        BigDecimal subtotalSpot = subtotal.multiply(lastAction.get());
-
-        if (subtotalSpot.multiply(TEN).compareTo(total) < 0){
+        if (freeSubtotal.multiply(lastAction.get()).multiply(TEN).compareTo(total) < 0){
             up.set(true);
         }
 
-        if (spot.multiply(TEN).compareTo(total) < 0){
+        if (freeSpot.multiply(TEN).compareTo(total) < 0){
             up.set(false);
         }
 
-        BigDecimal balance = total.divide(subtotalSpot, HALF_EVEN).subtract(BD_3).abs();
-
-        if (!up.get()){
-            balance = balance.negate();
-        }
-
-        return balance;
+        return up.get();
     }
-
 
     protected BigDecimal getSpread(BigDecimal price){
         BigDecimal spread = ZERO;
         BigDecimal sideSpread = getSideSpread(price);
 
         if (strategy.getSymbol().equals("BTC/CNY") || strategy.getSymbol().equals("LTC/CNY")){
-            BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol(), "_1");
+            BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol(), getVolSuffix());
 
             if (stdDev != null){
-                BigDecimal d = ONE;
-
-                switch (getVolSuffix()){
-                    case "_1":
-                        d = BD_1_1;
-                        break;
-                    case "_2":
-                        d = BD_1_5;
-                        break;
-                    case "_3":
-                        d = BD_2;
-                        break;
-                    case "_4":
-                        d = BD_SQRT_TWO_PI;
-                        break;
-                    case "_5":
-                        d = BD_3;
-                        break;
-                    case "_6":
-                        d = BD_3_5;
-                        break;
-                    case "_7":
-                        d = BD_4;
-                        break;
-                }
-
-                spread = stdDev.divide(d, HALF_EVEN);
+                spread = stdDev.divide(BD_SQRT_TWO_PI, HALF_EVEN);
             }
         }else {
             spread = strategy.getSymbolType() == null
@@ -309,7 +278,7 @@ public class LevelStrategy extends BaseStrategy{
 
     private void action(String key, BigDecimal price, OrderType orderType, int priceLevel) {
         try {
-            boolean up = getSpotBalance().compareTo(ZERO)> 0;
+            boolean up = getSpotBalance();
 
             BigDecimal spread = scale(getSpread(price));
 //            BigDecimal halfSpread = spread.divide(BD_2, HALF_EVEN);
@@ -322,7 +291,7 @@ public class LevelStrategy extends BaseStrategy{
 //            BigDecimal buyPrice = price.subtract(halfSpread);
 //            BigDecimal sellPrice = price.add(halfSpread);
 
-            if (!getOrderMap().contains(buyPrice, sideSpread, BID, price) && !getOrderMap().contains(sellPrice, sideSpread, ASK, price)){
+            if (!getOrderMap().contains(buyPrice, sideSpread.add(getStep()), BID, price) && !getOrderMap().contains(sellPrice, sideSpread.add(getStep()), ASK, price)){
 //               //rate
 //                if (System.currentTimeMillis() - actionTime.get() < 10){
 //                    return;
@@ -358,7 +327,7 @@ public class LevelStrategy extends BaseStrategy{
 
                 double ra = QuranRandom.nextDouble();
                 double rb = QuranRandom.nextDouble();
-////
+
 //                double rMax = ra > rb ? ra : rb;
 //                double rMin = ra > rb ? rb : ra;
 

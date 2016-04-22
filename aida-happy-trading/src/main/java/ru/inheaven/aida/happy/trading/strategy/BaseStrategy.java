@@ -1,5 +1,6 @@
 package ru.inheaven.aida.happy.trading.strategy;
 
+import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.OpenOrders;
 import com.xeiam.xchange.service.polling.trade.PollingTradeService;
 import org.slf4j.Logger;
@@ -18,6 +19,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
@@ -220,7 +222,31 @@ public class BaseStrategy {
                         openOrdersCache.set(ts.getOpenOrders());
                     }
 
-                    BigDecimal range = getSpread(lastPrice.get()).multiply(BigDecimal.valueOf(10));
+                    List<LimitOrder> list = openOrdersCache.get().getOpenOrders();
+
+                    if (openOrdersCache.get().getOpenOrders().size() > 45){
+                        list.sort((o1, o2) -> o1.getTimestamp().compareTo(o2.getTimestamp()));
+
+                        for (int i=0; i<5; ++i){
+                            try {
+                                LimitOrder l = list.get(i);
+
+                                Order order = orderMap.get(l.getId());
+
+                                if (order != null){
+                                    ts.cancelOrder(l.getId());
+
+                                    order.setStatus(CANCELED);
+
+                                    log.info("schedule 50 cancel order {}", l);
+                                }
+                            } catch (IOException e) {
+                                log.error("error schedule 50 cancel order -> ", e);
+                            }
+                        }
+                    }
+
+                    BigDecimal range = getSpread(lastPrice.get()).multiply(BigDecimal.valueOf(20));
 
                     openOrdersCache.get().getOpenOrders().forEach(l -> {
                         if (lastPrice.get() != null && l.getCurrencyPair().toString().equals(strategy.getSymbol()) &&
@@ -515,7 +541,7 @@ public class BaseStrategy {
             order.setSellPrice(sellPrice.get());
             order.setBuyVolume(buyVolume.get());
             order.setSellVolume(sellVolume.get());
-            order.setSpotBalance(getSpotBalance());
+            //order.setSpotBalance(getSpotBalance());
 
             BigDecimal profit = sellVolume.get().min(buyVolume.get()).multiply(sellPrice.get().subtract(buyPrice.get()))
                     .add(buyVolume.get().subtract(sellVolume.get().abs())
@@ -526,8 +552,8 @@ public class BaseStrategy {
         }
     }
 
-    protected BigDecimal getSpotBalance(){
-        return ZERO;
+    protected Boolean getSpotBalance(){
+        return false;
     }
 
     private final static BigDecimal BD_SQRT_TWO_PI = new BigDecimal("2.506628274631000502415765284811");
@@ -556,7 +582,7 @@ public class BaseStrategy {
                     buyVolume.get().add(sellVolume.get()).setScale(3, HALF_EVEN),
                     tradeService.getStdDev(strategy.getSymbol(), getVolSuffix()).setScale(3, HALF_UP),
                     tradeService.getAvgAmount(strategy.getSymbol(), getVolSuffix()).setScale(3, HALF_UP),
-                    getSpotBalance().setScale(3, HALF_UP),
+                    getSpotBalance()? "1" : "-1",
                     Objects.toString(o.getText(), ""),
                     Objects.toString(o.getSymbolType(), ""));
         } catch (Exception e) {

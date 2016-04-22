@@ -184,11 +184,11 @@ public class UserInfoService {
                 switch (account.getExchangeType()){
                     case OKCOIN:
                         setVolume("subtotal", account.getId(), "USD", funds.getFree().get("usd").add(funds.getFreezed().get("usd")));
-                        setVolume("free_spot", account.getId(), null, funds.getFree().get("usd"));
+                        setVolume("free", account.getId(), "CNY", funds.getFree().get("usd"));
                         break;
                     case OKCOIN_CN:
                         setVolume("subtotal", account.getId(), "CNY", funds.getFree().get("cny").add(funds.getFreezed().get("cny")));
-                        setVolume("free_spot", account.getId(), null, funds.getFree().get("cny"));
+                        setVolume("free", account.getId(), "CNY", funds.getFree().get("cny"));
                         break;
                 }
             } catch (Exception e) {
