@@ -14,7 +14,6 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -213,7 +212,6 @@ public class LevelStrategy extends BaseStrategy{
     private static final BigDecimal CNY_MIDDLE = BigDecimal.valueOf(3000);
     private static final BigDecimal USD_MIDDLE = BigDecimal.valueOf(1000);
 
-    private AtomicBoolean up = new AtomicBoolean(true);
 
     protected Boolean getSpotBalance(){
         String[] symbol = strategy.getSymbol().split("/");
@@ -221,38 +219,24 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal subtotal = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[0]);
         BigDecimal spot = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[1]);
 
-        BigDecimal freeSubtotal = userInfoService.getVolume("free", strategy.getAccount().getId(), symbol[0]);
-        BigDecimal freeSpot = userInfoService.getVolume("free", strategy.getAccount().getId(), symbol[1]);
-
-        BigDecimal total = userInfoService.getVolume("total", strategy.getAccount().getId(), null);
-        BigDecimal net = userInfoService.getVolume("net", strategy.getAccount().getId(), null);
-
-        if (freeSubtotal.multiply(lastAction.get()).multiply(TEN).compareTo(total) < 0){
-            up.set(true);
-        }
-
-        if (freeSpot.multiply(TEN).compareTo(total) < 0){
-            up.set(false);
-        }
-
-        return up.get();
+        return spot.divide(subtotal.multiply(lastAction.get()), HALF_EVEN).compareTo(BD_2) > 0;
     }
 
     protected BigDecimal getSpread(BigDecimal price){
-        BigDecimal spread = ZERO;
+        BigDecimal spread = depthSpread.get();
         BigDecimal sideSpread = getSideSpread(price);
 
-        if (strategy.getSymbol().equals("BTC/CNY") || strategy.getSymbol().equals("LTC/CNY")){
-            BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol(), getVolSuffix());
-
-            if (stdDev != null){
-                spread = stdDev.divide(BD_SQRT_TWO_PI, HALF_EVEN);
-            }
-        }else {
-            spread = strategy.getSymbolType() == null
-                    ? strategy.getLevelSpread().multiply(price)
-                    : strategy.getLevelSpread();
-        }
+//        if (strategy.getSymbol().equals("BTC/CNY") || strategy.getSymbol().equals("LTC/CNY")){
+//            BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol(), getVolSuffix());
+//
+//            if (stdDev != null){
+//                spread = stdDev.divide(BD_SQRT_TWO_PI, HALF_EVEN);
+//            }
+//        }else {
+//            spread = strategy.getSymbolType() == null
+//                    ? strategy.getLevelSpread().multiply(price)
+//                    : strategy.getLevelSpread();
+//        }
 
         return spread.compareTo(sideSpread) > 0 ? spread : sideSpread;
     }
@@ -279,19 +263,28 @@ public class LevelStrategy extends BaseStrategy{
     private void action(String key, BigDecimal price, OrderType orderType, int priceLevel) {
         try {
             boolean up = getSpotBalance();
+//            boolean middle = price.compareTo(getBuyPrice().get().add(getSellPrice().get()).divide(BD_2, HALF_UP)) > 0;
+            boolean depth = price.subtract(depthAsk.get()).abs().compareTo(price.subtract(depthBid.get()).abs()) > 0;
 
             BigDecimal spread = scale(getSpread(price));
 //            BigDecimal halfSpread = spread.divide(BD_2, HALF_EVEN);
             BigDecimal sideSpread = isVol() ? spread : scale(getSideSpread(price));
 
-            BigDecimal priceF = up ? price.add(getStep()) : price.subtract(getStep());
-            BigDecimal buyPrice = up ? priceF : price.subtract(spread);
-            BigDecimal sellPrice = up ? price.add(spread) : priceF;
+
+            BigDecimal priceF = depth ? price.add(getStep()) : price.subtract(getStep());
+            BigDecimal buyPrice = depth ? priceF : priceF.subtract(spread);
+            BigDecimal sellPrice = depth ? priceF.add(spread) : priceF;
 
 //            BigDecimal buyPrice = price.subtract(halfSpread);
 //            BigDecimal sellPrice = price.add(halfSpread);
 
             if (!getOrderMap().contains(buyPrice, sideSpread.add(getStep()), BID, price) && !getOrderMap().contains(sellPrice, sideSpread.add(getStep()), ASK, price)){
+                BigDecimal free = userInfoService.getVolume("free", strategy.getAccount().getId(), "BTC");
+
+                if (free.compareTo(ONE) < 0){
+                    createOrderAsync(new Order(strategy, System.nanoTime(), BID, lastAction.get().multiply(BD_1_1), strategy.getLevelLot()));
+                }
+
 //               //rate
 //                if (System.currentTimeMillis() - actionTime.get() < 10){
 //                    return;
@@ -405,6 +398,10 @@ public class LevelStrategy extends BaseStrategy{
         lastTrade = trade.getPrice();
     }
 
+    private AtomicReference<BigDecimal> depthSpread = new AtomicReference<>(BD_0_25);
+    private AtomicReference<BigDecimal> depthBid = new AtomicReference<>(ZERO);
+    private AtomicReference<BigDecimal> depthAsk = new AtomicReference<>(ZERO);
+
     @Override
     protected void onDepth(Depth depth) {
         BigDecimal ask = depth.getAsk();
@@ -413,6 +410,12 @@ public class LevelStrategy extends BaseStrategy{
         if (ask != null && bid != null && lastTrade.compareTo(ZERO) != 0 &&
                 lastTrade.subtract(ask).abs().divide(lastTrade, 8, HALF_EVEN).compareTo(BD_0_01) < 0 &&
                 lastTrade.subtract(bid).abs().divide(lastTrade, 8, HALF_EVEN).compareTo(BD_0_01) < 0) {
+            action.onNext(ask);
+            action.onNext(bid);
+
+            depthSpread.set(ask.subtract(bid).abs());
+            depthBid.set(bid);
+            depthAsk.set(ask);
 //            actionAsync("DEPTH", ask, ASK);
 //            actionAsync("DEPTH", bid, BID);
         }
@@ -421,6 +424,7 @@ public class LevelStrategy extends BaseStrategy{
     @Override
     protected void onRealTrade(Order order) {
         if (order.getStatus().equals(CLOSED) && order.getAvgPrice().compareTo(ZERO) > 0){
+            action.onNext(order.getAvgPrice());
 //            actionAsync("REAL", order.getAvgPrice(), order.getType());
         }
     }

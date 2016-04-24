@@ -10,10 +10,10 @@ import rx.Observable;
 import rx.subjects.PublishSubject;
 
 import java.io.InputStream;
-import java.util.Deque;
 import java.util.List;
+import java.util.Queue;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -39,7 +39,7 @@ public abstract class BaseOkcoinFixService {
 
     private AtomicLong index = new AtomicLong(4);
 
-    private Deque<Order> orderQueue = new ConcurrentLinkedDeque<>();
+    private Queue<Order> orderQueue = new ConcurrentLinkedQueue<>();
 
     public BaseOkcoinFixService(ExchangeType exchangeType, String apiKey, String secretKey, String marketConfig,
                                 String tradeConfig, String tradeConfig2, String tradeConfig3, String tradeConfig4,
@@ -54,7 +54,7 @@ public abstract class BaseOkcoinFixService {
                     } catch (Exception e) {
                         log.error("error push order", e);
                     }
-                }, 0, 150, TimeUnit.MILLISECONDS);
+                }, 0, 30, TimeUnit.MILLISECONDS);
 
         //MARKET
         okCoinApplicationMarket = new OKCoinApplication(exchangeType, apiKey, secretKey){
@@ -117,7 +117,7 @@ public abstract class BaseOkcoinFixService {
         init(okCoinApplicationTrade, tradeConfig);
 
         if (tradeConfig2 != null){
-            okCoinApplicationTrade2 = new OKCoinApplication(exchangeType, apiKey, secretKey){
+            okCoinApplicationTrade2 = new OKCoinApplication(exchangeType, "8784b792-f956-4cc5-afb5-706d313b2bf3", "216D259AECB4DBE7E758FFF4E7E054DC"){
                 @Override
                 public void onLogon(SessionID sessionId) {
                     BaseOkcoinFixService.this.tradeSessionId2 = sessionId;
@@ -137,7 +137,7 @@ public abstract class BaseOkcoinFixService {
         }
 
         if (tradeConfig3 != null){
-            okCoinApplicationTrade3 = new OKCoinApplication(exchangeType, apiKey, secretKey){
+            okCoinApplicationTrade3 = new OKCoinApplication(exchangeType, "eecd6e5e-25a9-4b20-839b-dc97f02abe31", "EB906E792188A6CC8FF789F97DEB48B1"){
                 @Override
                 public void onLogon(SessionID sessionId) {
                     BaseOkcoinFixService.this.tradeSessionId3 = sessionId;
@@ -157,7 +157,7 @@ public abstract class BaseOkcoinFixService {
         }
 
         if (tradeConfig4 != null){
-            okCoinApplicationTrade4 = new OKCoinApplication(exchangeType, apiKey, secretKey){
+            okCoinApplicationTrade4 = new OKCoinApplication(exchangeType, "48a255bd-60a1-4d41-b1f8-38dd8b18f8cf", "52B653FAE3852414FB3912DE71D83B59"){
                 @Override
                 public void onLogon(SessionID sessionId) {
                     BaseOkcoinFixService.this.tradeSessionId4 = sessionId;

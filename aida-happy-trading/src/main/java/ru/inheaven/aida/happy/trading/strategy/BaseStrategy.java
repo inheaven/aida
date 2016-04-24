@@ -217,14 +217,14 @@ public class BaseStrategy {
                 try {
                     PollingTradeService ts = xChangeService.getExchange(strategy.getAccount()).getPollingTradeService();
 
-                    if (System.currentTimeMillis() - openOrdersTime.get() > 10000){
+                    if (System.currentTimeMillis() - openOrdersTime.get() > 2000){
                         openOrdersTime.set(System.currentTimeMillis());
                         openOrdersCache.set(ts.getOpenOrders());
                     }
 
                     List<LimitOrder> list = openOrdersCache.get().getOpenOrders();
 
-                    if (openOrdersCache.get().getOpenOrders().size() > 45){
+                    if (openOrdersCache.get().getOpenOrders().size() > 30){
                         list.sort((o1, o2) -> o1.getTimestamp().compareTo(o2.getTimestamp()));
 
                         for (int i=0; i<5; ++i){
@@ -270,7 +270,7 @@ public class BaseStrategy {
                     log.error("error schedule cancel order -> ", e);
                 }
 
-            }, random.nextInt(10), 10, SECONDS);
+            }, 0, 2, SECONDS);
         }
 
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
