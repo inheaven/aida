@@ -28,6 +28,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static java.math.BigDecimal.TEN;
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_EVEN;
 import static java.math.RoundingMode.HALF_UP;
@@ -224,10 +225,10 @@ public class BaseStrategy {
 
                     List<LimitOrder> list = openOrdersCache.get().getOpenOrders();
 
-                    if (openOrdersCache.get().getOpenOrders().size() > 30){
+                    if (openOrdersCache.get().getOpenOrders().size() > 45){
                         list.sort((o1, o2) -> o1.getTimestamp().compareTo(o2.getTimestamp()));
 
-                        for (int i=0; i<5; ++i){
+                        for (int i=0; i<=5; ++i){
                             try {
                                 LimitOrder l = list.get(i);
 
@@ -246,7 +247,7 @@ public class BaseStrategy {
                         }
                     }
 
-                    BigDecimal range = getSpread(lastPrice.get()).multiply(BigDecimal.valueOf(20));
+                    BigDecimal range = getSpread(lastPrice.get()).multiply(TEN);
 
                     openOrdersCache.get().getOpenOrders().forEach(l -> {
                         if (lastPrice.get() != null && l.getCurrencyPair().toString().equals(strategy.getSymbol()) &&
@@ -568,7 +569,7 @@ public class BaseStrategy {
                 index.incrementAndGet();
             }
 
-            log.info("{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}",
+            log.info("{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}",
                     o.getStrategyId(),
                     index.get(),
                     o.getStatus(),
@@ -580,7 +581,8 @@ public class BaseStrategy {
                     scale(buyPrice.get()),
                     o.getProfit() != null ? o.getProfit().setScale(3, HALF_EVEN) : "",
                     buyVolume.get().add(sellVolume.get()).setScale(3, HALF_EVEN),
-                    tradeService.getStdDev(strategy.getSymbol(), getVolSuffix()).setScale(3, HALF_UP),
+                    tradeService.getValue("bid").setScale(3, HALF_UP),
+                    tradeService.getValue("ask").setScale(3, HALF_UP),
                     tradeService.getAvgAmount(strategy.getSymbol(), getVolSuffix()).setScale(3, HALF_UP),
                     getSpotBalance()? "1" : "-1",
                     Objects.toString(o.getText(), ""),

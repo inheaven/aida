@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
-import ru.inheaven.aida.happy.trading.util.BibleRandom;
 import rx.subjects.PublishSubject;
 
 import java.math.BigDecimal;
@@ -19,6 +18,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static java.math.BigDecimal.*;
 import static java.math.RoundingMode.HALF_EVEN;
+import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.*;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.ASK;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.BID;
@@ -263,20 +263,24 @@ public class LevelStrategy extends BaseStrategy{
     private void action(String key, BigDecimal price, OrderType orderType, int priceLevel) {
         try {
             boolean up = getSpotBalance();
-//            boolean middle = price.compareTo(getBuyPrice().get().add(getSellPrice().get()).divide(BD_2, HALF_UP)) > 0;
-            boolean depth = price.subtract(depthAsk.get()).abs().compareTo(price.subtract(depthBid.get()).abs()) > 0;
+
+            //boolean depth = price.subtract(depthAsk.get()).abs().compareTo(price.subtract(depthBid.get()).abs()) > 0;
+//           boolean std = tradeService.getValue("ask").compareTo(tradeService.getValue("bid")) > 0;
 
             BigDecimal spread = scale(getSpread(price));
-//            BigDecimal halfSpread = spread.divide(BD_2, HALF_EVEN);
+            BigDecimal halfSpread = spread.divide(BD_2, HALF_EVEN);
             BigDecimal sideSpread = isVol() ? spread : scale(getSideSpread(price));
 
+//            BigDecimal priceF = up ? price.add(getStep()) : price.subtract(getStep());
+//            BigDecimal buyPrice = up ? priceF : priceF.subtract(spread);
+//            BigDecimal sellPrice = up ? priceF.add(spread) : priceF;
 
-            BigDecimal priceF = depth ? price.add(getStep()) : price.subtract(getStep());
-            BigDecimal buyPrice = depth ? priceF : priceF.subtract(spread);
-            BigDecimal sellPrice = depth ? priceF.add(spread) : priceF;
+            BigDecimal buyPrice = price.subtract(tradeService.getValue("bid").divide(BD_2, HALF_UP));
+            BigDecimal sellPrice = price.add(tradeService.getValue("ask").divide(BD_2, HALF_UP));
 
-//            BigDecimal buyPrice = price.subtract(halfSpread);
-//            BigDecimal sellPrice = price.add(halfSpread);
+            if (buyPrice.subtract(sellPrice).abs().compareTo(BD_0_05) < 0){
+                return;
+            }
 
             if (!getOrderMap().contains(buyPrice, sideSpread.add(getStep()), BID, price) && !getOrderMap().contains(sellPrice, sideSpread.add(getStep()), ASK, price)){
                 BigDecimal free = userInfoService.getVolume("free", strategy.getAccount().getId(), "BTC");
@@ -318,14 +322,14 @@ public class LevelStrategy extends BaseStrategy{
                     sellAmount = amount;
                 }
 
-                double ra = BibleRandom.nextDouble();
-                double rb = BibleRandom.nextDouble();
-
-                double rMax = ra > rb ? ra : rb;
-                double rMin = ra > rb ? rb : ra;
+//                double ra = BibleRandom.nextDouble();
+//                double rb = BibleRandom.nextDouble();
 //
-//                double rMax = random.nextGaussian()/2 + 2;
-//                double rMin = random.nextGaussian()/2 + 1;
+//                double rMax = ra > rb ? ra : rb;
+//                double rMin = ra > rb ? rb : ra;
+//
+                double rMax = random.nextGaussian()/2 + 2;
+                double rMin = random.nextGaussian()/2 + 1;
 
                 double a = amount.doubleValue();
                 double rBuy = a * (up ? rMax : rMin);
@@ -350,13 +354,8 @@ public class LevelStrategy extends BaseStrategy{
                 sellOrder.setSpread(spread);
 
                 if (isVol()) {
-                    if (depth){
-                        createOrderSync(buyOrder);
-                        createOrderSync(sellOrder);
-                    }else {
-                        createOrderSync(sellOrder);
-                        createOrderSync(buyOrder);
-                    }
+                    createOrderSync(buyOrder);
+                    createOrderSync(sellOrder);
                 }else {
                     if (strategy.isLevelInverse()){
                         if (priceLevel > strategy.getLevelSize().intValue()/2){
@@ -413,8 +412,7 @@ public class LevelStrategy extends BaseStrategy{
         if (ask != null && bid != null && lastTrade.compareTo(ZERO) != 0 &&
                 lastTrade.subtract(ask).abs().divide(lastTrade, 8, HALF_EVEN).compareTo(BD_0_01) < 0 &&
                 lastTrade.subtract(bid).abs().divide(lastTrade, 8, HALF_EVEN).compareTo(BD_0_01) < 0) {
-//            action.onNext(ask);
-//            action.onNext(bid);
+            action.onNext(bid.add(ask).divide(BD_2, HALF_UP));
 
             depthSpread.set(ask.subtract(bid).abs());
             depthBid.set(bid);
