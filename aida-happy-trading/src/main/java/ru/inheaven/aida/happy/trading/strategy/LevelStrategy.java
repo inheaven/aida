@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
-import ru.inheaven.aida.happy.trading.util.QuranRandom;
+import ru.inheaven.aida.happy.trading.util.BibleRandom;
 import rx.subjects.PublishSubject;
 
 import java.math.BigDecimal;
@@ -223,20 +223,20 @@ public class LevelStrategy extends BaseStrategy{
     }
 
     protected BigDecimal getSpread(BigDecimal price){
-        BigDecimal spread = depthSpread.get();
+        BigDecimal spread = ZERO;
         BigDecimal sideSpread = getSideSpread(price);
 
-//        if (strategy.getSymbol().equals("BTC/CNY") || strategy.getSymbol().equals("LTC/CNY")){
-//            BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol(), getVolSuffix());
-//
-//            if (stdDev != null){
-//                spread = stdDev.divide(BD_SQRT_TWO_PI, HALF_EVEN);
-//            }
-//        }else {
-//            spread = strategy.getSymbolType() == null
-//                    ? strategy.getLevelSpread().multiply(price)
-//                    : strategy.getLevelSpread();
-//        }
+        if (strategy.getSymbol().equals("BTC/CNY") || strategy.getSymbol().equals("LTC/CNY")){
+            BigDecimal stdDev = tradeService.getStdDev(strategy.getSymbol(), getVolSuffix());
+
+            if (stdDev != null){
+                spread = stdDev;
+            }
+        }else {
+            spread = strategy.getSymbolType() == null
+                    ? strategy.getLevelSpread().multiply(price)
+                    : strategy.getLevelSpread();
+        }
 
         return spread.compareTo(sideSpread) > 0 ? spread : sideSpread;
     }
@@ -318,14 +318,14 @@ public class LevelStrategy extends BaseStrategy{
                     sellAmount = amount;
                 }
 
-                double ra = QuranRandom.nextDouble();
-                double rb = QuranRandom.nextDouble();
+                double ra = BibleRandom.nextDouble();
+                double rb = BibleRandom.nextDouble();
 
-//                double rMax = ra > rb ? ra : rb;
-//                double rMin = ra > rb ? rb : ra;
-
-                double rMax = random.nextGaussian()/2 + 2;
-                double rMin = random.nextGaussian()/2 + 1;
+                double rMax = ra > rb ? ra : rb;
+                double rMin = ra > rb ? rb : ra;
+//
+//                double rMax = random.nextGaussian()/2 + 2;
+//                double rMin = random.nextGaussian()/2 + 1;
 
                 double a = amount.doubleValue();
                 double rBuy = a * (up ? rMax : rMin);
@@ -346,8 +346,11 @@ public class LevelStrategy extends BaseStrategy{
                 Order buyOrder = new Order(strategy, positionId, BID, buyPrice, buyAmount);
                 Order sellOrder = new Order(strategy, positionId, ASK, sellPrice, sellAmount);
 
+                buyOrder.setSpread(spread);
+                sellOrder.setSpread(spread);
+
                 if (isVol()) {
-                    if ((ra > rb && rBuy > rSell) || (ra < rb && rBuy < rSell)){
+                    if (depth){
                         createOrderSync(buyOrder);
                         createOrderSync(sellOrder);
                     }else {
@@ -410,8 +413,8 @@ public class LevelStrategy extends BaseStrategy{
         if (ask != null && bid != null && lastTrade.compareTo(ZERO) != 0 &&
                 lastTrade.subtract(ask).abs().divide(lastTrade, 8, HALF_EVEN).compareTo(BD_0_01) < 0 &&
                 lastTrade.subtract(bid).abs().divide(lastTrade, 8, HALF_EVEN).compareTo(BD_0_01) < 0) {
-            action.onNext(ask);
-            action.onNext(bid);
+//            action.onNext(ask);
+//            action.onNext(bid);
 
             depthSpread.set(ask.subtract(bid).abs());
             depthBid.set(bid);

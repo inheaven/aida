@@ -34,6 +34,7 @@ public class Order extends AbstractEntity {
     private BigDecimal buyVolume;
     private BigDecimal sellVolume;
     private BigDecimal spotBalance;
+    private BigDecimal spread;
 
     private BigDecimal profit;
 
@@ -267,6 +268,14 @@ public class Order extends AbstractEntity {
 
     public void setProfit(BigDecimal profit) {
         this.profit = profit;
+    }
+
+    public BigDecimal getSpread() {
+        return spread;
+    }
+
+    public void setSpread(BigDecimal spread) {
+        this.spread = spread;
     }
 
     @Override

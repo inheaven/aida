@@ -575,7 +575,7 @@ public class BaseStrategy {
                     o.getSymbol(),
                     scale(o.getAvgPrice() != null ? o.getAvgPrice() : o.getPrice()),
                     o.getAmount().setScale(3, HALF_EVEN),
-                    scale(getSpread(o.getPrice())),
+                    scale(o.getSpread()),
                     o.getType(),
                     scale(buyPrice.get()),
                     o.getProfit() != null ? o.getProfit().setScale(3, HALF_EVEN) : "",
