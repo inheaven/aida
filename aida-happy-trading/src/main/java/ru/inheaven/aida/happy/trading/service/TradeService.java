@@ -40,10 +40,10 @@ public class TradeService {
         tradeObservable.subscribe(t -> broadcastService.broadcast(getClass(), "trade", t));
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
-            BigDecimal bid = tradeMapper.getTradeStdDevPtType("BTC/CNY", 128, OrderType.BID);
+            BigDecimal bid = tradeMapper.getTradeStdDevPtType("BTC/CNY", 5000, OrderType.BID);
             stdDevMap.put("bid", bid);
 
-            BigDecimal ask = tradeMapper.getTradeStdDevPtType("BTC/CNY", 128, OrderType.ASK);
+            BigDecimal ask = tradeMapper.getTradeStdDevPtType("BTC/CNY", 5000, OrderType.ASK);
             stdDevMap.put("ask", ask);
 
             stdDevMap.put("BTC/CNY_1", bid.add(ask).divide(TWO, RoundingMode.HALF_EVEN)); //44

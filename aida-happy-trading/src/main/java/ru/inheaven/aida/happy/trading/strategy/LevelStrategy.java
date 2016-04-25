@@ -5,8 +5,6 @@ import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
-import ru.inheaven.aida.happy.trading.util.BibleRandom;
-import ru.inheaven.aida.happy.trading.util.QuranRandom;
 import rx.subjects.PublishSubject;
 
 import java.math.BigDecimal;
@@ -239,7 +237,7 @@ public class LevelStrategy extends BaseStrategy{
                     : tradeService.getValue("bid");
 
             if (stdDev != null){
-                spread = stdDev;
+                spread = stdDev.divide(BD_SQRT_TWO_PI, HALF_UP);
             }
         }else {
             spread = strategy.getSymbolType() == null
@@ -284,15 +282,15 @@ public class LevelStrategy extends BaseStrategy{
 //            BigDecimal buyPrice = up ? priceF : priceF.subtract(spread);
 //            BigDecimal sellPrice = up ? priceF.add(spread) : priceF;
 
-            BigDecimal bidSpread = tradeService.getValue("bid").divide(BD_2, HALF_UP);
-            BigDecimal askSpread = tradeService.getValue("ask").divide(BD_2, HALF_UP);
+//            BigDecimal bidSpread = tradeService.getValue("bid").divide(BD_2, HALF_UP);
+//            BigDecimal askSpread = tradeService.getValue("ask").divide(BD_2, HALF_UP);
 //
 //            if (bidSpread.add(askSpread).compareTo(BD_0_1) < 0){
 //                bidSpread = BD_0_05;
 //                askSpread = BD_0_05;
 //            }
 
-            BigDecimal priceF = !strategy.isLevelInverse() ? price.add(bidSpread) : price.subtract(askSpread);
+            BigDecimal priceF = !strategy.isLevelInverse() ? price.add(BD_0_05) : price.subtract(BD_0_05);
             BigDecimal buyPrice = !strategy.isLevelInverse() ? priceF : priceF.subtract(spread);
             BigDecimal sellPrice = !strategy.isLevelInverse() ? priceF.add(spread) : priceF;
 
@@ -331,22 +329,23 @@ public class LevelStrategy extends BaseStrategy{
                     sellAmount = amount;
                 }
 
-                double ra = strategy.isLevelInverse() ? BibleRandom.nextDouble() : QuranRandom.nextDouble();
-                double rb = strategy.isLevelInverse() ? BibleRandom.nextDouble() : QuranRandom.nextDouble();
-
-                double rMax = ra > rb ? ra : rb;
-                double rMin = ra > rb ? rb : ra;
+//                double ra = strategy.isLevelInverse() ? BibleRandom.nextDouble() : QuranRandom.nextDouble();
+//                double rb = strategy.isLevelInverse() ? BibleRandom.nextDouble() : QuranRandom.nextDouble();
 //
-//                double rMax = random.nextGaussian()/2 + 2;
-//                double rMin = random.nextGaussian()/2 + 1;
+//                double rMax = ra > rb ? ra : rb;
+//                double rMin = ra > rb ? rb : ra;
+//
+                double rMax = random.nextGaussian()/2 + 2;
+                double rMin = random.nextGaussian()/2 + 1;
+
 
                 double a = amount.doubleValue();
                 double rBuy = a * (up ? rMax : rMin);
                 double rSell = a * (up ? rMin : rMax);
 
                 if (isVol()){
-                    buyAmount = BigDecimal.valueOf(rBuy).setScale(3, HALF_EVEN);
-                    sellAmount = BigDecimal.valueOf(rSell).setScale(3, HALF_EVEN);
+                    buyAmount = new BigDecimal(rBuy).setScale(3, HALF_EVEN);
+                    sellAmount = new BigDecimal(rSell).setScale(3, HALF_EVEN);
 
                     if (buyAmount.compareTo(BD_0_01) < 0){
                         buyAmount = BD_0_01;
