@@ -241,14 +241,11 @@ public class LevelStrategy extends BaseStrategy{
     private boolean isRange(){
         String[] symbol = strategy.getSymbol().split("/");
 
-        BigDecimal subtotal = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[0]);
         BigDecimal spot = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[1]);
 
-        BigDecimal sum = subtotal.multiply(lastAction.get()).add(spot);
+        BigDecimal middle = userInfoService.getVolume("total", strategy.getAccount().getId(), null).divide(BD_3, HALF_UP);
 
-        BigDecimal middle = sum.multiply(BD_0_66);
-
-        return middle.subtract(spot).abs().compareTo(middle.multiply(BD_0_33)) < 0;
+        return middle.subtract(spot).abs().compareTo(middle.multiply(BD_0_66)) < 0;
     }
 
     protected BigDecimal getSpread(BigDecimal price){
@@ -320,23 +317,18 @@ public class LevelStrategy extends BaseStrategy{
 
             if (!getOrderMap().contains(buyPrice, sideSpread, BID, lastTrade.get()) &&
                     !getOrderMap().contains(sellPrice, sideSpread, ASK, lastTrade.get())){
-                BigDecimal free = userInfoService.getVolume("free", strategy.getAccount().getId(), "BTC");
-
-                if (free.compareTo(ONE) < 0){
+                //free
+                if (userInfoService.getVolume("free", strategy.getAccount().getId(), "BTC").compareTo(ONE) < 0){
                     createOrderAsync(new Order(strategy, System.nanoTime(), BID, lastAction.get().multiply(BD_1_1), strategy.getLevelLot()));
+                }else if (userInfoService.getVolume("free", strategy.getAccount().getId(), "CNY").compareTo(price) < 0){
+                    createOrderAsync(new Order(strategy, System.nanoTime(), ASK, lastAction.get().multiply(BD_1_1), strategy.getLevelLot()));
                 }
 
                 log.info("{} "  + key + " {} {} {} {} {} {}", strategy.getId(), price.setScale(3, HALF_EVEN), orderType,
                         sideSpread, spread, isMinSpot(), isMaxSpot());
 
-
-                if (risk.compareTo(ONE) > 0){
-                    log.warn("RISK RATE {} {} {}", risk.setScale(3, HALF_EVEN), strategy.getSymbol(),
-                            Objects.toString(strategy.getSymbolType(), ""));
-                }
-
+                //amount
                 BigDecimal amount = strategy.getLevelLot();
-
                 Long positionId = positionIdGen.incrementAndGet();
 
                 BigDecimal buyAmount = amount;
@@ -355,7 +347,7 @@ public class LevelStrategy extends BaseStrategy{
 
                 //mean
                 if (buyPrice.add(xSpread).compareTo(getBuyPrice().get()) < 0 &&
-                        getBuyVolume().get().compareTo(getSellVolume().get()) < 0){
+                        getSellVolume().get().compareTo(getBuyVolume().get()) > 0){
                     rBuy = a * random.nextGaussian()/2 + 2;
                     rSell = 0.01;
                 }else if (sellPrice.subtract(xSpread).compareTo(getSellPrice().get()) > 0 &&

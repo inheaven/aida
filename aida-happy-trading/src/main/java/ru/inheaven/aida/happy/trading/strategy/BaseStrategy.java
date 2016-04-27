@@ -29,7 +29,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static java.math.BigDecimal.TEN;
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_EVEN;
 import static java.math.RoundingMode.HALF_UP;
@@ -250,7 +249,7 @@ public class BaseStrategy {
                         }
                     }
 
-                    BigDecimal range = getSpread(lastPrice.get()).multiply(TEN);
+                    BigDecimal range = getSpread(lastPrice.get()).multiply(BigDecimal.valueOf(20));
 
                     openOrdersCache.get().getOpenOrders().forEach(l -> {
                         if (lastPrice.get() != null && l.getCurrencyPair().toString().equals(strategy.getSymbol()) &&
