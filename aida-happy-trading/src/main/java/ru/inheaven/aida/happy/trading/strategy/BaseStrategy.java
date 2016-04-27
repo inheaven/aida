@@ -25,6 +25,7 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -71,10 +72,12 @@ public class BaseStrategy {
 
     private Random random = new SecureRandom();
 
-    private AtomicReference<BigDecimal> buyPrice = new AtomicReference<>();
-    private AtomicReference<BigDecimal> buyVolume = new AtomicReference<>();
-    private AtomicReference<BigDecimal> sellPrice = new AtomicReference<>();
-    private AtomicReference<BigDecimal> sellVolume = new AtomicReference<>();
+    private AtomicReference<BigDecimal> sessionProfit = new AtomicReference<>(ZERO);
+
+    private AtomicReference<BigDecimal> buyPrice = new AtomicReference<>(ZERO);
+    private AtomicReference<BigDecimal> buyVolume = new AtomicReference<>(ZERO);
+    private AtomicReference<BigDecimal> sellPrice = new AtomicReference<>(ZERO);
+    private AtomicReference<BigDecimal> sellVolume = new AtomicReference<>(ZERO);
 
     private final boolean vol;
     private final String volSuffix;
@@ -200,12 +203,12 @@ public class BaseStrategy {
                 }else if ((o.getStatus().equals(CANCELED) || o.getStatus().equals(CLOSED)) && (o.getClosed() == null ||
                         System.currentTimeMillis() - o.getClosed().getTime() > 60000)) {
                     onOrder(o);
-                    log.info("{} CLOSED by schedule {}", o.getStrategyId(), scale(o.getPrice()));
+                    log.info("{} CLOSE by schedule {}", o.getStrategyId(), scale(o.getPrice()));
                 }else if (o.getStatus().equals(CREATED) &&
                         System.currentTimeMillis() - o.getCreated().getTime() > 10000){
                     o.setStatus(CLOSED);
                     o.setClosed(new Date());
-                    log.info("{} CLOSED by created {}", o.getStrategyId(), scale(o.getPrice()));
+                    log.info("{} CLOSE by created {}", o.getStrategyId(), scale(o.getPrice()));
                 }
             } catch (Exception e) {
                 log.error("error check order -> ", e);
@@ -522,6 +525,8 @@ public class BaseStrategy {
         }
     }
 
+    private AtomicInteger window = new AtomicInteger(0);
+
     private void calculateAverage(Order order){
         if (CLOSED.equals(order.getStatus())){
             BigDecimal price = order.getAvgPrice() != null ? order.getAvgPrice() : order.getPrice();
@@ -549,11 +554,24 @@ public class BaseStrategy {
                             .multiply(buyVolume.get().compareTo(sellVolume.get()) > 0
                                     ? lastPrice.get().subtract(buyPrice.get())
                                     : sellPrice.get().subtract(lastPrice.get())));
+            profit = profit.add(sessionProfit.get());
+
             order.setProfit(profit);
+
+//            if (window.incrementAndGet() > 100){
+//                window.set(0);
+//
+//                buyPrice.set(ZERO);
+//                sellPrice.set(ZERO);
+//                buyVolume.set(ZERO);
+//                sellVolume.set(ZERO);
+//
+//                sessionProfit.set(profit);
+//            }
         }
     }
 
-    protected Boolean getSpotBalance(){
+    protected boolean getSpotBalance(){
         return false;
     }
 
@@ -569,22 +587,20 @@ public class BaseStrategy {
                 index.incrementAndGet();
             }
 
-            log.info("{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}",
-                    o.getStrategyId(),
+            log.info("{}  {}  {}  {} {} {}  {} {} {}  {} {} {}  {} {} {}",
                     index.get(),
+                    o.getStrategyId(),
                     o.getStatus(),
-                    o.getSymbol(),
                     scale(o.getAvgPrice() != null ? o.getAvgPrice() : o.getPrice()),
                     o.getAmount().setScale(3, HALF_EVEN),
-                    scale(o.getSpread()),
                     o.getType(),
-                    scale(buyPrice.get()),
-                    o.getProfit() != null ? o.getProfit().setScale(3, HALF_EVEN) : "",
+                    scale(sellPrice.get()),
+                    scale(o.getSpread()),
+                    scale(sellPrice.get().subtract(buyPrice.get())),
                     buyVolume.get().add(sellVolume.get()).setScale(3, HALF_EVEN),
                     tradeService.getValue("bid").setScale(3, HALF_UP),
                     tradeService.getValue("ask").setScale(3, HALF_UP),
-                    tradeService.getAvgAmount(strategy.getSymbol(), getVolSuffix()).setScale(3, HALF_UP),
-                    getSpotBalance()? "1" : "-1",
+                    o.getProfit() != null ? o.getProfit().setScale(3, HALF_EVEN) : "",
                     Objects.toString(o.getText(), ""),
                     Objects.toString(o.getSymbolType(), ""));
         } catch (Exception e) {
@@ -656,5 +672,13 @@ public class BaseStrategy {
 
     public AtomicReference<BigDecimal> getBuyPrice() {
         return buyPrice;
+    }
+
+    public AtomicReference<BigDecimal> getSellVolume() {
+        return sellVolume;
+    }
+
+    public AtomicReference<BigDecimal> getBuyVolume() {
+        return buyVolume;
     }
 }

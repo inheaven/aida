@@ -12,7 +12,6 @@ import java.util.function.BiConsumer;
 
 import static java.math.RoundingMode.HALF_EVEN;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.*;
-import static ru.inheaven.aida.happy.trading.entity.OrderType.ASK;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.BID;
 
 /**
@@ -117,9 +116,7 @@ public class OrderMap {
 
         for (Map.Entry<BigDecimal, Collection<Order>> entry : map.entrySet()) {
             for (Order o : entry.getValue()){
-                if ((OPEN.equals(o.getStatus()) || CREATED.equals(o.getStatus()) || WAIT.equals(o.getStatus())) &&
-                        ((o.getType().equals(ASK) && o.getPrice().compareTo(realPrice) >= 0) ||
-                                (o.getType().equals(BID) && o.getPrice().compareTo(realPrice) <= 0))){
+                if ((OPEN.equals(o.getStatus()) || CREATED.equals(o.getStatus()) || WAIT.equals(o.getStatus()))){
                     contains = true;
 
                     break;
