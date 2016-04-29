@@ -121,10 +121,10 @@ public class OrderMap {
 
                     break;
                 }
+            }
 
-                if (contains){
-                    break;
-                }
+            if (contains){
+                break;
             }
         }
 

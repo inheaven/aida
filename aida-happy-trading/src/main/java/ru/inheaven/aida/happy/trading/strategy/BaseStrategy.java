@@ -14,11 +14,9 @@ import rx.Subscription;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.security.SecureRandom;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -65,11 +63,6 @@ public class BaseStrategy {
     private AtomicReference<BigDecimal> lastPrice = new AtomicReference<>();
     private AtomicLong askRefusedTime = new AtomicLong(System.currentTimeMillis());
     private AtomicLong bidRefusedTime = new AtomicLong(System.currentTimeMillis());
-
-    private Random random = new SecureRandom();
-
-    private AtomicReference<BigDecimal> sessionProfit = new AtomicReference<>(ZERO);
-
 
     private AtomicReference<BigDecimal> buyPrice = new AtomicReference<>(ZERO);
     private AtomicReference<BigDecimal> buyVolume = new AtomicReference<>(ZERO);
@@ -546,12 +539,7 @@ public class BaseStrategy {
             order.setSellVolume(sellVolume.get());
             //order.setSpotBalance(getSpotBalance());
 
-            BigDecimal profit = sellVolume.get().min(buyVolume.get()).multiply(sellPrice.get().subtract(buyPrice.get()))
-                    .add(buyVolume.get().subtract(sellVolume.get().abs())
-                            .multiply(buyVolume.get().compareTo(sellVolume.get()) > 0
-                                    ? lastPrice.get().subtract(buyPrice.get())
-                                    : sellPrice.get().subtract(lastPrice.get())));
-            profit = profit.add(sessionProfit.get());
+            BigDecimal profit = getProfit();
 
             order.setProfit(profit);
 
@@ -566,6 +554,14 @@ public class BaseStrategy {
 //                sessionProfit.set(profit);
 //            }
         }
+    }
+
+    protected BigDecimal getProfit(){
+        return sellVolume.get().min(buyVolume.get()).multiply(sellPrice.get().subtract(buyPrice.get()))
+                .add(buyVolume.get().subtract(sellVolume.get().abs())
+                        .multiply(buyVolume.get().compareTo(sellVolume.get()) > 0
+                                ? lastPrice.get().subtract(buyPrice.get())
+                                : sellPrice.get().subtract(lastPrice.get())));
     }
 
     protected boolean getSpotBalance(){
