@@ -7,10 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
-import ru.inheaven.aida.happy.trading.service.DepthService;
-import ru.inheaven.aida.happy.trading.service.OrderService;
-import ru.inheaven.aida.happy.trading.service.TradeService;
-import ru.inheaven.aida.happy.trading.service.XChangeService;
+import ru.inheaven.aida.happy.trading.service.*;
 import ru.inheaven.aida.happy.trading.util.OrderMap;
 import rx.Observable;
 import rx.Subscription;
@@ -73,13 +70,17 @@ public class BaseStrategy {
 
     private AtomicReference<BigDecimal> sessionProfit = new AtomicReference<>(ZERO);
 
+
     private AtomicReference<BigDecimal> buyPrice = new AtomicReference<>(ZERO);
     private AtomicReference<BigDecimal> buyVolume = new AtomicReference<>(ZERO);
+
     private AtomicReference<BigDecimal> sellPrice = new AtomicReference<>(ZERO);
     private AtomicReference<BigDecimal> sellVolume = new AtomicReference<>(ZERO);
 
     private final boolean vol;
     private final String volSuffix;
+
+    private UserInfoService userInfoService;
 
     public BaseStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                         DepthService depthService,  XChangeService xChangeService) {
@@ -90,6 +91,8 @@ public class BaseStrategy {
         this.depthService = depthService;
         this.xChangeService = xChangeService;
 
+        userInfoService = Module.getInjector().getInstance(UserInfoService.class);
+
         orderObservable = createOrderObservable();
         tradeObservable = createTradeObservable();
         depthObservable = createDepthObservable();
@@ -97,11 +100,6 @@ public class BaseStrategy {
         orderMap = new OrderMap(getScale(strategy.getSymbol()));
 
         orderMapper.getOpenOrders(strategy.getId()).forEach(o -> orderMap.put(o));
-
-        buyPrice.set(ZERO);
-        buyVolume.set(ZERO);
-        sellPrice.set(ZERO);
-        sellVolume.set(ZERO);
 
         vol = strategy.getName().contains("vol");
 
@@ -249,7 +247,7 @@ public class BaseStrategy {
                         }
                     }
 
-                    BigDecimal range = getSpread(lastPrice.get()).multiply(BigDecimal.valueOf(20));
+                    BigDecimal range = getSpread(lastPrice.get()).multiply(BigDecimal.valueOf(10));
 
                     openOrdersCache.get().getOpenOrders().forEach(l -> {
                         if (lastPrice.get() != null && l.getCurrencyPair().toString().equals(strategy.getSymbol()) &&
@@ -586,19 +584,27 @@ public class BaseStrategy {
                 index.incrementAndGet();
             }
 
-            log.info("{}  {}  {}  {} {} {}  {} {} {}  {} {} {}  {} {} {}",
+            log.info("{} {} {}  {} {} {}  {} {} {} {} {}  {} {} {}  {} {} {}  {} {} {}",
                     index.get(),
                     o.getStrategyId(),
                     o.getStatus(),
                     scale(o.getAvgPrice() != null ? o.getAvgPrice() : o.getPrice()),
                     o.getAmount().setScale(3, HALF_EVEN),
                     o.getType(),
-                    scale(sellPrice.get()),
-                    scale(o.getSpread()),
+
+                    scale(buyPrice.get()),
                     scale(sellPrice.get().subtract(buyPrice.get())),
-                    buyVolume.get().add(sellVolume.get()).setScale(3, HALF_EVEN),
+                    scale(buyVolume.get()),
+                    scale(sellVolume.get().subtract(buyVolume.get())),
+                    scale(sellVolume.get().multiply(sellPrice.get()).subtract(buyVolume.get().multiply(buyPrice.get()))),
+
                     tradeService.getValue("bid").setScale(3, HALF_UP),
                     tradeService.getValue("ask").setScale(3, HALF_UP),
+                    scale(o.getSpread()),
+
+                    scale(userInfoService.getVolume("subtotal", strategy.getAccount().getId(), "BTC")),
+                    scale(userInfoService.getVolume("subtotal", strategy.getAccount().getId(), "CNY")),
+                    userInfoService.getVolume("total", strategy.getAccount().getId(), null),
                     o.getProfit() != null ? o.getProfit().setScale(3, HALF_EVEN) : "",
                     Objects.toString(o.getText(), ""),
                     Objects.toString(o.getSymbolType(), ""));
