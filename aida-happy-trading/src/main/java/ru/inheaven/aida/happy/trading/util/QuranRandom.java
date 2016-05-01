@@ -1,14 +1,12 @@
 package ru.inheaven.aida.happy.trading.util;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * inheaven on 22.02.2016.
@@ -36,14 +34,14 @@ public class QuranRandom {
                 }
             }
 
-            list.sort(Comparator.reverseOrder());
+            int size = list.size();
 
             for (String q : quranList) {
                 char[] chars = q.toCharArray();
 
                 for (char c : chars) {
                     if (Character.isLetter(c)) {
-                        quranRandomList.add((double) (39 - list.indexOf(c)) / 39);
+                        quranRandomList.add((double) (size - list.indexOf(c)) / size);
                     }
                 }
             }

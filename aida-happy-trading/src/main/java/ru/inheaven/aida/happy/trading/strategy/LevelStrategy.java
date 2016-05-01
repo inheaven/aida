@@ -174,15 +174,16 @@ public class LevelStrategy extends BaseStrategy{
     private AtomicReference<BigDecimal> lastAction = new AtomicReference<>(ZERO);
 
     private void actionLevel(String key, BigDecimal price, OrderType orderType){
-        if (isBidRefused() || isAskRefused()) {
-            return;
-        }
+        try {
+            if (isBidRefused() || isAskRefused()) {
+                return;
+            }
 
-        if (lastAction.get().equals(price)){
-            return;
-        }
+            if (lastAction.get().equals(price)){
+                return;
+            }
 
-        action(key, price, orderType, 0);
+            action(key, price, orderType, 0);
 
 //        BigDecimal spread = getSpread(price);
 //        if (strategy.isLevelInverse()){
@@ -191,7 +192,10 @@ public class LevelStrategy extends BaseStrategy{
 //            action(key, price.add(spread), orderType, 1);
 //        }
 
-        lastAction.set(price);
+            lastAction.set(price);
+        } catch (Exception e) {
+            log.error("error actionLevel", e);
+        }
     }
 
     protected boolean getSpotBalance(){
@@ -213,17 +217,19 @@ public class LevelStrategy extends BaseStrategy{
         return middle.subtract(spot).abs().compareTo(middle.multiply(BD_0_66)) < 0;
     }
 
+    private BigDecimal getStdDev(){
+        return strategy.isLevelInverse() ? tradeService.getValue("ask") : tradeService.getValue("bid");
+    }
+
     protected BigDecimal getSpread(BigDecimal price){
         BigDecimal spread = ZERO;
         BigDecimal sideSpread = getSideSpread(price);
 
         if (strategy.getSymbol().equals("BTC/CNY") || strategy.getSymbol().equals("LTC/CNY")){
-            BigDecimal stdDev = strategy.isLevelInverse()
-                    ? tradeService.getValue("ask")
-                    : tradeService.getValue("bid");
+            BigDecimal stdDev = getStdDev();
 
             if (stdDev != null){
-                spread = stdDev.divide(BD_SQRT_TWO_PI, HALF_UP);
+                spread = stdDev.divide(BD_3, HALF_UP);
             }
         }else {
             spread = strategy.getSymbolType() == null
@@ -251,129 +257,47 @@ public class LevelStrategy extends BaseStrategy{
             733, 739, 743, 751, 757, 761, 769, 773, 787, 797, 809, 811, 821, 823, 827, 829, 839, 853, 857, 859, 863, 877,
             881, 883, 887, 907, 911, 919, 929, 937, 941, 947, 953, 967, 971, 977, 983, 991, 997};
 
-    private AtomicLong meanTime = new AtomicLong(System.currentTimeMillis());
-
     private void action(String key, BigDecimal price, OrderType orderType, int priceLevel) {
         try {
             boolean up = getSpotBalance();
 
-            //boolean depth = price.subtract(depthAsk.get()).abs().compareTo(price.subtract(depthBid.get()).abs()) > 0;
-//           boolean std = tradeService.getValue("ask").compareTo(tradeService.getValue("bid")) > 0;
-
             BigDecimal spread = scale(getSpread(price));
-//            BigDecimal halfSpread = spread.divide(BD_2, HALF_EVEN);
-            BigDecimal sideSpread = isVol() ? spread : scale(getSideSpread(price));
-
-            //BigDecimal priceF = up ? price.add(getStep()) : price.subtract(getStep());
-//            BigDecimal buyPrice = up ? priceF : priceF.subtract(spread);
-//            BigDecimal sellPrice = up ? priceF.add(spread) : priceF;
-
-//            BigDecimal bidSpread = tradeService.getValue("bid").divide(BD_2, HALF_UP);
-//            BigDecimal askSpread = tradeService.getValue("ask").divide(BD_2, HALF_UP);
-//
-//            if (bidSpread.add(askSpread).compareTo(BD_0_1) < 0){
-//                bidSpread = BD_0_05;
-//                askSpread = BD_0_05;
-//            }
 
             BigDecimal priceF = !strategy.isLevelInverse() ? price.add(BD_0_01) : price.subtract(BD_0_01);
             BigDecimal buyPrice = !strategy.isLevelInverse() ? priceF : priceF.subtract(spread);
             BigDecimal sellPrice = !strategy.isLevelInverse() ? priceF.add(spread) : priceF;
 
-            if (!getOrderMap().contains(buyPrice, sideSpread, BID, lastTrade.get()) &&
-                    !getOrderMap().contains(sellPrice, sideSpread, ASK, lastTrade.get())){
-                //free
-//                if (userInfoService.getVolume("free", strategy.getAccount().getId(), "BTC").compareTo(ONE) < 0){
-//                    createOrderAsync(new Order(strategy, System.nanoTime(), BID, lastAction.get().add(spread), strategy.getLevelLot()));
-//                }else if (userInfoService.getVolume("free", strategy.getAccount().getId(), "CNY").compareTo(price) < 0){
-//                    createOrderAsync(new Order(strategy, System.nanoTime(), ASK, lastAction.get().subtract(spread), strategy.getLevelLot()));
-//                }
+            if (!getOrderMap().contains(buyPrice, spread, BID, lastTrade.get()) &&
+                    !getOrderMap().contains(sellPrice, spread, ASK, lastTrade.get())){
+                log.info("{} "  + key + " {} {} {}", strategy.getId(), price.setScale(3, HALF_EVEN), orderType, spread);
 
-                log.info("{} "  + key + " {} {} {} {}", strategy.getId(), price.setScale(3, HALF_EVEN), orderType, sideSpread, spread);
+                BigDecimal total = userInfoService.getVolume("total", strategy.getAccount().getId(), null);
+                BigDecimal amount = total.divide(price, 8, HALF_UP).divide(BD_2, 8, HALF_UP)
+                        .divide(getStdDev().multiply(BD_5).divide(getSpread(price), 8, HALF_UP), 3, HALF_UP);
 
-                //amount
-                BigDecimal amount = strategy.getLevelLot();
+                BigDecimal buyAmount = up ? amount.multiply(BigDecimal.valueOf(QuranRandom.nextDouble())) : BD_0_01;
+                BigDecimal sellAmount = up ? BD_0_01 : amount.multiply(BigDecimal.valueOf(QuranRandom.nextDouble()));
+
+                if (buyAmount.compareTo(BD_0_01) < 0){
+                    buyAmount = BD_0_01;
+                }
+                if (sellAmount.compareTo(BD_0_01) < 0){
+                    sellAmount = BD_0_01;
+                }
+
                 Long positionId = positionIdGen.incrementAndGet();
-
-                BigDecimal buyAmount = amount;
-                BigDecimal sellAmount = amount;
-
-                if (strategy.getSymbolType() == null){
-                    buyAmount = amount;
-                    sellAmount = amount;
-                }
-
-                double rBuy;
-                double rSell;
-
-                boolean mean = System.currentTimeMillis() - meanTime.get() > 60000;
-
-                //mean
-                if (mean && buyPrice.compareTo(getBuyPrice().get()) < 0 &&
-                        getSellVolume().get().multiply(getSellPrice().get()).subtract(getBuyVolume().get().multiply(getBuyPrice().get()))
-                                .compareTo(BD_0_01.multiply(price)) > 0){
-                    rBuy = getSellVolume().get().multiply(getSellPrice().get()).subtract(getBuyVolume().get().multiply(getBuyPrice().get()))
-                            .divide(price, HALF_EVEN).doubleValue();
-                    rSell = 0.01;
-
-                    meanTime.set(System.currentTimeMillis());
-                }else if (mean && sellPrice.compareTo(getSellPrice().get()) > 0 &&
-                        getBuyVolume().get().multiply(getBuyPrice().get()).subtract(getSellVolume().get().multiply(getSellPrice().get()))
-                                .compareTo(BD_0_01.multiply(price)) > 0){
-                    rBuy = 0.01;
-                    rSell = getBuyVolume().get().multiply(getBuyPrice().get()).subtract(getSellVolume().get().multiply(getSellPrice().get()))
-                            .divide(price, HALF_EVEN).doubleValue();
-
-                    meanTime.set(System.currentTimeMillis());
-                }else {
-                    double a = amount.doubleValue() * QuranRandom.nextDouble();
-
-                    rBuy = up ? a : 0.01;
-                    rSell = up ? 0.01 : a;
-                }
-
-                if (isVol()){
-                    buyAmount = new BigDecimal(rBuy).setScale(3, HALF_EVEN);
-                    sellAmount = new BigDecimal(rSell).setScale(3, HALF_EVEN);
-
-                    if (buyAmount.compareTo(BD_0_01) < 0){
-                        buyAmount = BD_0_01;
-                    }
-                    if (sellAmount.compareTo(BD_0_01) < 0){
-                        sellAmount = BD_0_01;
-                    }
-                }
-
                 Order buyOrder = new Order(strategy, positionId, BID, buyPrice, buyAmount);
                 Order sellOrder = new Order(strategy, positionId, ASK, sellPrice, sellAmount);
 
                 buyOrder.setSpread(spread);
                 sellOrder.setSpread(spread);
 
-                if (isVol()) {
-                    if (!strategy.isLevelInverse()) {
-                        createOrderSync(sellOrder);
-                        createOrderSync(buyOrder);
-                    }else {
-                        createOrderSync(buyOrder);
-                        createOrderSync(sellOrder);
-                    }
+                if (!strategy.isLevelInverse()) {
+                    createOrderSync(sellOrder);
+                    createOrderSync(buyOrder);
                 }else {
-                    if (strategy.isLevelInverse()){
-                        if (priceLevel > strategy.getLevelSize().intValue()/2){
-                            sellOrder.setAmount(sellOrder.getAmount().multiply(BD_2));
-                        }
-
-                        createOrderSync(sellOrder);
-                        createWaitOrder(buyOrder);
-                    }else {
-                        if (priceLevel > strategy.getLevelSize().intValue()/2){
-                            buyOrder.setAmount(buyOrder.getAmount().multiply(BD_2));
-                        }
-
-                        createOrderSync(buyOrder);
-                        createWaitOrder(sellOrder);
-                    }
+                    createOrderSync(buyOrder);
+                    createOrderSync(sellOrder);
                 }
             }
         } catch (Exception e) {
