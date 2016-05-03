@@ -142,4 +142,12 @@ public class OrderMap {
     private BigDecimal scale(BigDecimal value){
         return value.setScale(scale, HALF_EVEN);
     }
+
+    public ConcurrentSkipListMap<BigDecimal, Collection<Order>> getBidMap() {
+        return bidMap;
+    }
+
+    public ConcurrentSkipListMap<BigDecimal, Collection<Order>> getAskMap() {
+        return askMap;
+    }
 }

@@ -18,11 +18,9 @@ import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -125,7 +123,7 @@ public class OkcoinService {
                     });
                 }
             };
-            client.connectToServer(marketEndpoint, URI.create(OKCOIN_WSS));
+//            client.connectToServer(marketEndpoint, URI.create(OKCOIN_WSS));
 
             tradingEndpoint = new JsonObservableEndpoint(){
                 @Override
@@ -141,7 +139,7 @@ public class OkcoinService {
                     });
                 }
             };
-            client2.connectToServer(tradingEndpoint, URI.create(OKCOIN_WSS));
+//            client2.connectToServer(tradingEndpoint, URI.create(OKCOIN_WSS));
 
 
             //last order trade check
@@ -161,25 +159,25 @@ public class OkcoinService {
 //                    .subscribe(j -> log.info(j.toString()));
 
             //heartbeat
-            Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
-                try {
-                    if (marketEndpoint.getSession().isOpen()) {
-                        marketEndpoint.getSession().getBasicRemote().sendText("{'event':'ping'}");
-                    }
-                } catch (Exception e) {
-                    log.error("marketEndpoint heartbeat error ->", e);
-                }
-            }, 0, 1, TimeUnit.SECONDS);
-
-            Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
-                try {
-                    if (tradingEndpoint.getSession().isOpen()) {
-                        tradingEndpoint.getSession().getBasicRemote().sendText("{'event':'ping'}");
-                    }
-                } catch (Exception e) {
-                    log.error("tradingEndpoint heartbeat error ->", e);
-                }
-            }, 0, 1, TimeUnit.SECONDS);
+//            Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
+//                try {
+//                    if (marketEndpoint.getSession().isOpen()) {
+//                        marketEndpoint.getSession().getBasicRemote().sendText("{'event':'ping'}");
+//                    }
+//                } catch (Exception e) {
+//                    log.error("marketEndpoint heartbeat error ->", e);
+//                }
+//            }, 0, 1, TimeUnit.SECONDS);
+//
+//            Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
+//                try {
+//                    if (tradingEndpoint.getSession().isOpen()) {
+//                        tradingEndpoint.getSession().getBasicRemote().sendText("{'event':'ping'}");
+//                    }
+//                } catch (Exception e) {
+//                    log.error("tradingEndpoint heartbeat error ->", e);
+//                }
+//            }, 0, 1, TimeUnit.SECONDS);
 
             marketDataHeartbeatObservable = marketEndpoint.getJsonObservable()
                     .filter(j -> j.getString("event", "").equals("pong"))

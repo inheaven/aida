@@ -6,14 +6,15 @@ import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
 import ru.inheaven.aida.happy.trading.util.QuranRandom;
+import rx.subjects.PublishSubject;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -72,11 +73,13 @@ public class LevelStrategy extends BaseStrategy{
 
     private final static BigDecimal BD_PI = new BigDecimal(Math.PI);
 
-    //private PublishSubject<BigDecimal> action = PublishSubject.create();
+    private PublishSubject<BigDecimal> action = PublishSubject.create();
 
     private AtomicReference<BigDecimal> lastPrice = new AtomicReference<>(ZERO);
 
-    public LevelStrategy(Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
+    private StrategyService strategyService;
+
+    public LevelStrategy(StrategyService strategyService, Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                          DepthService depthService, UserInfoService userInfoService,  XChangeService xChangeService) {
         super(strategy, orderService, orderMapper, tradeService, depthService, xChangeService);
 
@@ -84,6 +87,8 @@ public class LevelStrategy extends BaseStrategy{
         this.userInfoService = userInfoService;
         this.tradeService = tradeService;
         this.orderService = orderService;
+
+        this.strategyService = strategyService;
 
         if (strategy.getSymbolType() != null) {
             userInfoService.createUserInfoObservable(strategy.getAccount().getId(), strategy.getSymbol().substring(0, 3))
@@ -97,9 +102,9 @@ public class LevelStrategy extends BaseStrategy{
                     });
         }
 
-        //action.distinctUntilChanged().onBackpressureBuffer().subscribe(this::actionLevel);
+        action.distinctUntilChanged().onBackpressureBuffer().subscribe(this::actionLevel);
 
-        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(()-> actionLevel("schedule", lastPrice.get(), null), 5000, 10, TimeUnit.MILLISECONDS);
+//        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(()-> actionLevel("schedule", lastPrice.get(), null), 5000, 10, TimeUnit.MILLISECONDS);
     }
 
     private void pushOrders(BigDecimal price){
@@ -164,9 +169,6 @@ public class LevelStrategy extends BaseStrategy{
         }
     }
 
-
-
-
     private void actionLevel(BigDecimal price){
         actionLevel("subject", price, null);
     }
@@ -185,12 +187,14 @@ public class LevelStrategy extends BaseStrategy{
 
             action(key, price, orderType, 0);
 
-//        BigDecimal spread = getSpread(price);
-//        if (strategy.isLevelInverse()){
-//            action(key, price.subtract(spread), orderType, -1);
-//        }else {
-//            action(key, price.add(spread), orderType, 1);
-//        }
+            BigDecimal spread = getSpread(price);
+            for (int i = 1; i < 11; ++i){
+                if (strategy.isLevelInverse()){
+                    action(key, price.add(spread.multiply(BigDecimal.valueOf(i))), orderType, i);
+                }else {
+                    action(key, price.subtract(spread.multiply(BigDecimal.valueOf(i))), orderType, -i);
+                }
+            }
 
             lastAction.set(price);
         } catch (Exception e) {
@@ -201,10 +205,60 @@ public class LevelStrategy extends BaseStrategy{
     protected boolean getSpotBalance(){
         String[] symbol = strategy.getSymbol().split("/");
 
-        BigDecimal subtotal = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[0]);
-        BigDecimal total = userInfoService.getVolume("total", strategy.getAccount().getId(), null);
+        BigDecimal freeBtc = userInfoService.getVolume("free", strategy.getAccount().getId(), symbol[0]);
+        BigDecimal freeCny = userInfoService.getVolume("free", strategy.getAccount().getId(), symbol[1]);
 
-        return total.divide(subtotal.multiply(lastAction.get()), HALF_EVEN).compareTo(BD_2) > 0;
+        BigDecimal ask = ZERO;
+        BigDecimal bid = ZERO;
+
+        for (BaseStrategy strategy : strategyService.getBaseStrategies()) {
+            for (Collection<Order> orders : strategy.getOrderMap().getAskMap().values()){
+                for (Order o : orders){
+                    if (OPEN.equals(o.getStatus())){
+                        ask = ask.add(o.getAmount().multiply(o.getPrice()));
+                    }
+                }
+            }
+
+            for (Collection<Order> orders : strategy.getOrderMap().getBidMap().values()){
+                for (Order o : orders){
+                    if (OPEN.equals(o.getStatus())){
+                        bid = bid.add(o.getAmount().multiply(o.getPrice()));
+                    }
+                }
+            }
+        }
+
+        return freeCny.add(bid).compareTo(ask.add(freeBtc.multiply(lastAction.get()))) > 0;
+    }
+
+    private AtomicReference<BigDecimal> lastCloseOrderPrice = new AtomicReference<>(ZERO);
+
+    @Override
+    protected void onCloseOrder(Order order) {
+        BigDecimal freeBtc = userInfoService.getVolume("free", strategy.getAccount().getId(), "BTC");
+        BigDecimal freeCny = userInfoService.getVolume("free", strategy.getAccount().getId(), "CNY");
+
+        BigDecimal price = order.getAvgPrice() != null ? order.getAvgPrice() : order.getPrice();
+
+        if (BID.equals(order.getType())){
+            if (CLOSED.equals(order.getStatus())){
+                freeBtc = freeBtc.add(order.getAmount());
+            }else if (CANCELED.equals(order.getStatus())){
+                freeCny = freeCny.add(order.getAmount().multiply(price));
+            }
+        }else if (ASK.equals(order.getType())){
+            if (CLOSED.equals(order.getStatus())){
+                freeCny = freeCny.add(order.getAmount().multiply(price));
+            }else if (CANCELED.equals(order.getStatus())){
+                freeBtc = freeBtc.add(order.getAmount());
+            }
+        }
+
+        userInfoService.setVolume("free", strategy.getAccount().getId(), "BTC", freeBtc);
+        userInfoService.setVolume("free", strategy.getAccount().getId(), "CNY", freeCny);
+
+        lastCloseOrderPrice.set(price);
     }
 
     private boolean isRange(){
@@ -229,7 +283,7 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal stdDev = getStdDev();
 
             if (stdDev != null){
-                spread = stdDev.divide(BD_3, HALF_UP);
+                spread = stdDev.divide(BD_5, HALF_UP);
             }
         }else {
             spread = strategy.getSymbolType() == null
@@ -263,20 +317,26 @@ public class LevelStrategy extends BaseStrategy{
 
             BigDecimal spread = scale(getSpread(price));
 
-            BigDecimal priceF = !strategy.isLevelInverse() ? price.add(BD_0_01) : price.subtract(BD_0_01);
-            BigDecimal buyPrice = !strategy.isLevelInverse() ? priceF : priceF.subtract(spread);
-            BigDecimal sellPrice = !strategy.isLevelInverse() ? priceF.add(spread) : priceF;
+            boolean close = price.compareTo(lastCloseOrderPrice.get()) > 0;
+
+            BigDecimal buyPrice = close ? price : price.subtract(spread);
+            BigDecimal sellPrice = close ? price.add(spread) : price;
 
             if (!getOrderMap().contains(buyPrice, spread, BID, lastTrade.get()) &&
                     !getOrderMap().contains(sellPrice, spread, ASK, lastTrade.get())){
                 log.info("{} "  + key + " {} {} {}", strategy.getId(), price.setScale(3, HALF_EVEN), orderType, spread);
 
-                BigDecimal total = userInfoService.getVolume("total", strategy.getAccount().getId(), null);
-                BigDecimal amount = total.divide(price, 8, HALF_UP).divide(BD_2, 8, HALF_UP)
-                        .divide(getStdDev().multiply(BD_5).divide(getSpread(price), 8, HALF_UP), 3, HALF_UP);
+                BigDecimal total = userInfoService.getVolume("total", strategy.getAccount().getId(), null).setScale(8, HALF_UP);
+                BigDecimal amount = total.divide(price, 8, HALF_UP)
+                        .divide(getStdDev().multiply(TEN).divide(getSpread(price), 8, HALF_UP), 8, HALF_UP);
 
-                BigDecimal buyAmount = up ? amount.multiply(BigDecimal.valueOf(QuranRandom.nextDouble())) : BD_0_01;
-                BigDecimal sellAmount = up ? BD_0_01 : amount.multiply(BigDecimal.valueOf(QuranRandom.nextDouble()));
+                BigDecimal buyAmount = up
+                        ? amount.multiply(BigDecimal.valueOf(QuranRandom.nextDouble()))
+                        : BD_0_01;
+
+                BigDecimal sellAmount = up
+                        ? BD_0_01
+                        : amount.multiply(BigDecimal.valueOf(QuranRandom.nextDouble()));
 
                 if (buyAmount.compareTo(BD_0_01) < 0){
                     buyAmount = BD_0_01;
@@ -286,8 +346,8 @@ public class LevelStrategy extends BaseStrategy{
                 }
 
                 Long positionId = positionIdGen.incrementAndGet();
-                Order buyOrder = new Order(strategy, positionId, BID, buyPrice, buyAmount);
-                Order sellOrder = new Order(strategy, positionId, ASK, sellPrice, sellAmount);
+                Order buyOrder = new Order(strategy, positionId, BID, buyPrice, buyAmount.setScale(3, HALF_UP));
+                Order sellOrder = new Order(strategy, positionId, ASK, sellPrice, sellAmount.setScale(3, HALF_UP));
 
                 buyOrder.setSpread(spread);
                 sellOrder.setSpread(spread);
@@ -319,7 +379,7 @@ public class LevelStrategy extends BaseStrategy{
 
             if ((!strategy.isLevelInverse() && trade.getOrderType().equals(BID)) || (strategy.isLevelInverse() && trade.getOrderType().equals(ASK))) {
                 lastPrice.set(trade.getPrice());
-//                action.onNext(trade.getPrice());
+                action.onNext(trade.getPrice());
             }
 
             //closeByMarketAsync(trade.getPrice(), trade.getOrigTime());
@@ -344,11 +404,11 @@ public class LevelStrategy extends BaseStrategy{
                 lastTrade.get().subtract(bid).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(BD_0_01) < 0) {
 
             if (strategy.isLevelInverse()) {
-                lastPrice.set(ask);
-//                action.onNext(ask);
+//                lastPrice.set(ask);
+                action.onNext(ask);
             }else {
-                lastPrice.set(bid);
-//                action.onNext(bid);
+//                lastPrice.set(bid);
+                action.onNext(bid);
             }
 
             depthSpread.set(ask.subtract(bid).abs());
@@ -362,7 +422,7 @@ public class LevelStrategy extends BaseStrategy{
         if (order.getStatus().equals(CLOSED) && order.getAvgPrice().compareTo(ZERO) > 0){
             if ((!strategy.isLevelInverse() && order.getType().equals(BID)) || (strategy.isLevelInverse() && order.getType().equals(ASK))) {
                 lastPrice.set(order.getAvgPrice());
-                //action.onNext(order.getAvgPrice());
+                action.onNext(order.getAvgPrice());
             }
         }
     }

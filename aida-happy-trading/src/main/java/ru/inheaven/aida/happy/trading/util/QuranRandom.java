@@ -28,20 +28,20 @@ public class QuranRandom {
                 char[] chars = q.toCharArray();
 
                 for (char c : chars) {
-                    if (Character.isAlphabetic(c) && !list.contains(c)) {
+                    if (Character.isLetter(c) && !list.contains(c)) {
                         list.add(c);
                     }
                 }
             }
 
-            int size = list.size();
+            double size = list.size();
 
             for (String q : quranList) {
                 char[] chars = q.toCharArray();
 
                 for (char c : chars) {
                     if (Character.isLetter(c)) {
-                        quranRandomList.add((double) (size - list.indexOf(c)) / size);
+                        quranRandomList.add((size - list.indexOf(c)) / size);
                     }
                 }
             }

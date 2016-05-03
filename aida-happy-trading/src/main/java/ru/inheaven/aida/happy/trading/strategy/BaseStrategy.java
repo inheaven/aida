@@ -584,7 +584,7 @@ public class BaseStrategy {
                     index.get(),
                     o.getStrategyId(),
                     o.getStatus(),
-                    scale(o.getAvgPrice() != null ? o.getAvgPrice() : o.getPrice()),
+                    scale(o.getPrice()),
                     o.getAmount().setScale(3, HALF_EVEN),
                     o.getType(),
 

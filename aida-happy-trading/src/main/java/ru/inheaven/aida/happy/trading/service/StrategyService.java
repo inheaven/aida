@@ -37,7 +37,7 @@ public class StrategyService {
             switch (s.getType()) {
                 case LEVEL_SPOT:
                 case LEVEL_FUTURES:
-                    baseStrategy = new LevelStrategy(s, orderService, orderMapper, tradeService, depthService,
+                    baseStrategy = new LevelStrategy(this, s, orderService, orderMapper, tradeService, depthService,
                             userInfoService, xChangeService);
                     baseStrategy.start();
                     break;
