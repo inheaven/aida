@@ -94,14 +94,10 @@
         </dependency>
 
         <dependency>
-            <groupId>jfree</groupId>
+            <groupId>org.jfree</groupId>
             <artifactId>jfreechart</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>jfree</groupId>
-            <artifactId>jcommon</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>net.sf.opencsv</groupId>

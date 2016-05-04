@@ -4,6 +4,8 @@ import ru.inheaven.aida.happy.trading.entity.OrderType;
 import ru.inheaven.aida.happy.trading.entity.Trade;
 
 import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
 
 import static com.google.common.collect.ImmutableMap.of;
 
@@ -13,7 +15,6 @@ import static com.google.common.collect.ImmutableMap.of;
 public class TradeMapper extends BaseMapper<Trade> {
     public BigDecimal getTradeStdDev(String symbol, int minute){
         return sqlSession().selectOne("selectTradeStdDev", of("symbol", symbol, "minute", minute));
-
     }
 
     public BigDecimal getTradeStdDevPt(String symbol, int points){
@@ -30,5 +31,9 @@ public class TradeMapper extends BaseMapper<Trade> {
 
     public BigDecimal getTradeAvgPricePt(String symbol, int points){
         return sqlSession().selectOne("selectTradeAvgPricePt", of("symbol", symbol, "points", points));
+    }
+
+    public List<Trade> getLightTrades(String symbol, Date startDate, int first, int count){
+        return sqlSession().selectList("selectLightTrades", of("symbol", symbol, "startDate", startDate, "first", first, "count", count));
     }
 }

@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Set;
 import java.util.concurrent.*;
 import java.util.function.BiConsumer;
 
@@ -109,13 +110,16 @@ public class OrderMap {
 
     public boolean contains(BigDecimal price, BigDecimal spread, OrderType type, BigDecimal realPrice){
         ConcurrentNavigableMap<BigDecimal, Collection<Order>> map =  type.equals(BID)
-                ? bidMap.subMap(scale(price).subtract(scale(spread)), true, scale(price).add(scale(spread)), true)
-                : askMap.subMap(scale(price).subtract(scale(spread)), true, scale(price).add(scale(spread)), true);
+                ? bidMap.subMap(scale(price.subtract(spread)), true, scale(price.add(spread).add(spread)), true)
+                : askMap.subMap(scale(price.subtract(spread).subtract(spread)), true, scale(price.add(spread)), true);
 
         boolean contains = false;
 
-        for (Map.Entry<BigDecimal, Collection<Order>> entry : map.entrySet()) {
-            for (Order o : entry.getValue()){
+        Set<Map.Entry<BigDecimal, Collection<Order>>> set = map.entrySet();
+        for (Map.Entry<BigDecimal, Collection<Order>> entry : set) {
+            Collection<Order> collection = entry.getValue();
+
+            for (Order o : collection){
                 if ((OPEN.equals(o.getStatus()) || CREATED.equals(o.getStatus()) || WAIT.equals(o.getStatus()))){
                     contains = true;
 

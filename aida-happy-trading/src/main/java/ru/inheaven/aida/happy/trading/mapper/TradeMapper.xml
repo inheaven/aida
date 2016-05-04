@@ -2,6 +2,14 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="ru.inheaven.aida.happy.trading.mapper.TradeMapper">
+    <resultMap id="tradeLight" type="ru.inheaven.aida.happy.trading.entity.Trade">
+        <id column="id" property="id"/>
+        <result column="order_type" property="orderType"/>
+        <result column="price" property="price"/>
+        <result column="amount" property="amount"/>
+        <result column="created" property="created"/>
+    </resultMap>
+
     <insert id="insertTrade" parameterType="ru.inheaven.aida.happy.trading.entity.Trade">
         insert ignore into trade (trade_id, exchange_type, symbol, symbol_type, order_type, price, amount, `time`, created)
                 value (#{tradeId}, #{exchangeType}, #{symbol}, #{symbolType}, #{orderType}, #{price}, #{amount}, #{time}, #{created})
@@ -25,6 +33,12 @@
 
     <select id="selectTradeAvgPricePt" parameterType="map" resultType="decimal">
         select avg(pt.price) from (select price from trade where symbol = #{symbol} order by id desc limit #{points}) pt;
+    </select>
+
+    <select id="selectLightTrades" parameterType="map" resultMap="tradeLight">
+        select id, order_type, price, amount, created
+        from trade where symbol = #{symbol} and created > #{startDate}
+        limit #{first},#{count}
     </select>
 
 </mapper>
