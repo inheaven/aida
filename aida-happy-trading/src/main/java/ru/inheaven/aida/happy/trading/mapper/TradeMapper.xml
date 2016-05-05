@@ -24,7 +24,7 @@
     </select>
 
     <select id="selectTradeStdDevPtType" parameterType="map" resultType="decimal">
-        select stddev_samp(pt.price) from (select price from trade where symbol = #{symbol} and order_type = #{orderType} and amount > 0.1 order by id desc limit #{points}) pt;
+        select stddev_samp(pt.price) from (select price from trade where symbol = #{symbol} and order_type = #{orderType} order by id desc limit #{points}) pt;
     </select>
 
     <select id="selectTradeAvgAmountPt" parameterType="map" resultType="decimal">
@@ -37,8 +37,8 @@
 
     <select id="selectLightTrades" parameterType="map" resultMap="tradeLight">
         select id, order_type, price, amount, created
-        from trade where symbol = #{symbol} and created > #{startDate}
-        limit #{first},#{count}
+        from trade where symbol = #{symbol} and created between #{startDate} and #{endDate}
+        limit #{count} offset #{first}
     </select>
 
 </mapper>

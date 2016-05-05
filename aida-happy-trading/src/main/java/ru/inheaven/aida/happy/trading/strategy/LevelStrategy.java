@@ -214,7 +214,7 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal freeBtc = userInfoService.getVolume("free", strategy.getAccount().getId(), symbol[0]);
         BigDecimal freeCny = userInfoService.getVolume("free", strategy.getAccount().getId(), symbol[1]);
 
-        if (System.currentTimeMillis() - lastBalanceTime.get() > 55555 ||
+        if (System.currentTimeMillis() - lastBalanceTime.get() > 60000 ||
                 freeBtc.compareTo(BD_0_5) < 0 ||
                 freeCny.compareTo(BD_0_5.multiply(lastAction.get())) < 0){
             balance.set(subtotalCny.compareTo(subtotalBtc.multiply(lastAction.get())) > 0);
@@ -252,7 +252,7 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal stdDev = getStdDev();
 
             if (stdDev != null){
-                spread = stdDev.divide(BD_5, 8, HALF_UP);
+                spread = stdDev.divide(BD_SQRT_TWO_PI, 8, HALF_UP);
             }
         }else {
             spread = strategy.getSymbolType() == null
@@ -307,11 +307,11 @@ public class LevelStrategy extends BaseStrategy{
                         : amount.multiply(BigDecimal.valueOf(QuranRandom.nextDouble()));
 
                 //slip
-                if (lastClosedBid.get().compareTo(ZERO) > 0){
-                    buyAmount = buyAmount.multiply(lastClosedBid.get().subtract(buyPrice).abs().divide(spread, 8, HALF_UP));
+                if (lastClosedBid.get().compareTo(ZERO) > 0 && buyPrice.compareTo(lastClosedBid.get()) < 0){
+                    buyAmount = buyAmount.multiply(lastClosedBid.get().subtract(buyPrice).divide(spread, 8, HALF_UP));
                 }
-                if (lastClosedAsk.get().compareTo(ZERO) > 0){
-                    sellAmount = sellAmount.multiply(lastClosedAsk.get().subtract(sellPrice).abs().divide(spread, 8, HALF_UP));
+                if (lastClosedAsk.get().compareTo(ZERO) > 0 && sellPrice.compareTo(lastClosedAsk.get()) > 0){
+                    sellAmount = sellAmount.multiply(sellPrice.subtract(lastClosedAsk.get()).divide(spread, 8, HALF_UP));
                 }
 
                 //less

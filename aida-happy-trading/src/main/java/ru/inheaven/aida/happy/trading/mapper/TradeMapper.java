@@ -33,7 +33,7 @@ public class TradeMapper extends BaseMapper<Trade> {
         return sqlSession().selectOne("selectTradeAvgPricePt", of("symbol", symbol, "points", points));
     }
 
-    public List<Trade> getLightTrades(String symbol, Date startDate, int first, int count){
-        return sqlSession().selectList("selectLightTrades", of("symbol", symbol, "startDate", startDate, "first", first, "count", count));
+    public List<Trade> getLightTrades(String symbol, Date startDate, Date endDate, int first, int count){
+        return sqlSession().selectList("selectLightTrades", of("symbol", symbol, "startDate", startDate, "endDate", endDate, "first", first, "count", count));
     }
 }
