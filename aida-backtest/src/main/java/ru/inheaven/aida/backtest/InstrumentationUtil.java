@@ -12,7 +12,5 @@ public class InstrumentationUtil {
         instrumentation = inst;
     }
 
-    public static Instrumentation getInstrumentation() {
-        return instrumentation;
-    }
+
 }
