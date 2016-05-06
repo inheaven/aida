@@ -273,8 +273,7 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal buyPrice = scale(strategy.isLevelInverse() ? p : p.subtract(spread));
             BigDecimal sellPrice = scale(strategy.isLevelInverse() ? p.add(spread) : p);
 
-            if (!getOrderMap().contains(buyPrice, spread, BID, lastTrade.get()) &&
-                    !getOrderMap().contains(sellPrice, spread, ASK, lastTrade.get())){
+            if (!getOrderMap().contains(buyPrice, spread, BID) && !getOrderMap().contains(sellPrice, spread, ASK)){
                 log.info("{} "  + key + " {} {} {}", strategy.getId(), price.setScale(3, HALF_EVEN), orderType, spread);
 
                 BigDecimal total = userInfoService.getVolume("total", strategy.getAccount().getId(), null).setScale(8, HALF_UP);

@@ -4,10 +4,7 @@ import ru.inheaven.aida.happy.trading.entity.Order;
 import ru.inheaven.aida.happy.trading.entity.OrderType;
 
 import java.math.BigDecimal;
-import java.util.Collection;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.BiConsumer;
 
@@ -48,7 +45,9 @@ public class OrderMap {
 
         collection.add(order);
 
-        (order.getType().equals(BID) ? bidPositionMap : askPositionMap).add(order.getPositionId());
+        if (order.getPositionId() != null) {
+            (order.getType().equals(BID) ? bidPositionMap : askPositionMap).add(order.getPositionId());
+        }
     }
 
     public void forEach(BiConsumer<String, Order> action){
@@ -79,16 +78,20 @@ public class OrderMap {
         Order order = idMap.remove(orderId);
 
         if (order != null){
-            idMap.remove(order.getInternalId());
+            if (order.getInternalId() != null) {
+                idMap.remove(order.getInternalId());
+            }
 
             Collection<Order> collection = (order.getType().equals(BID) ? bidMap : askMap).get(scale(order.getPrice()));
 
             if (collection != null){
                 collection.removeIf(o -> order.getOrderId().equals(o.getOrderId()) ||
-                        order.getInternalId().equals(o.getInternalId()));
+                        Objects.equals(order.getInternalId(), o.getInternalId()));
             }
 
-            (order.getType().equals(BID) ? bidPositionMap : askPositionMap).remove(order.getPositionId());
+            if (order.getPositionId() != null) {
+                (order.getType().equals(BID) ? bidPositionMap : askPositionMap).remove(order.getPositionId());
+            }
         }
     }
 
@@ -108,7 +111,7 @@ public class OrderMap {
         return get(price, type, true);
     }
 
-    public boolean contains(BigDecimal price, BigDecimal spread, OrderType type, BigDecimal realPrice){
+    public boolean contains(BigDecimal price, BigDecimal spread, OrderType type){
         ConcurrentNavigableMap<BigDecimal, Collection<Order>> map =  type.equals(BID)
                 ? bidMap.subMap(scale(price.subtract(spread)), true, scale(price.add(spread).add(spread)), true)
                 : askMap.subMap(scale(price.subtract(spread).subtract(spread)), true, scale(price.add(spread)), true);
