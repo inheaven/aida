@@ -1,2 +1,2 @@
 Manifest-Version: 1.0
-Premain-Class: ru.inheaven.aida.backtest.LevelBacktest
+Premain-Class: ru.inheaven.aida.backtest.InstrumentationUtil
