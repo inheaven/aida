@@ -19,7 +19,7 @@ public class QuranRandom {
 
     private QuranRandom() {
         try {
-            Path path = FileSystems.getDefault().getPath("/opt/data", "quran-utf8.txt");
+            Path path = FileSystems.getDefault().getPath("c:\\opt\\data", "quran-utf8.txt");
             List<String> quranList = Files.readAllLines(path, Charset.forName("UTF-8"));
 
             List<Character> list = new ArrayList<>();

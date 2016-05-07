@@ -558,7 +558,7 @@ public class BaseStrategy {
 
     protected BigDecimal getProfit(){
         return sellVolume.get().min(buyVolume.get()).multiply(sellPrice.get().subtract(buyPrice.get()))
-                .add(buyVolume.get().subtract(sellVolume.get().abs())
+                .add(buyVolume.get().subtract(sellVolume.get()).abs()
                         .multiply(buyVolume.get().compareTo(sellVolume.get()) > 0
                                 ? lastPrice.get().subtract(buyPrice.get())
                                 : sellPrice.get().subtract(lastPrice.get())));
