@@ -264,7 +264,7 @@ public class BaseStrategy {
                     log.error("error schedule cancel order -> ", e);
                 }
 
-            }, 0, 2, SECONDS);
+            }, 0, 60, SECONDS);
         }
 
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(

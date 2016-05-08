@@ -4,12 +4,17 @@ import ru.inheaven.aida.happy.trading.entity.Order;
 import ru.inheaven.aida.happy.trading.entity.OrderType;
 
 import java.math.BigDecimal;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentNavigableMap;
+import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.BiConsumer;
 
 import static java.math.RoundingMode.HALF_EVEN;
-import static ru.inheaven.aida.happy.trading.entity.OrderStatus.*;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.BID;
 
 /**
@@ -18,8 +23,8 @@ import static ru.inheaven.aida.happy.trading.entity.OrderType.BID;
 public class OrderMap {
     private ConcurrentHashMap<String, Order> idMap = new ConcurrentHashMap<>();
 
-    private ConcurrentSkipListMap<BigDecimal, Collection<Order>> bidMap = new ConcurrentSkipListMap<>();
-    private ConcurrentSkipListMap<BigDecimal, Collection<Order>> askMap = new ConcurrentSkipListMap<>();
+    private ConcurrentSkipListMap<BigDecimal, Map<String, Order>> bidMap = new ConcurrentSkipListMap<>();
+    private ConcurrentSkipListMap<BigDecimal, Map<String, Order>> askMap = new ConcurrentSkipListMap<>();
 
     private ConcurrentSkipListSet<Long> bidPositionMap = new ConcurrentSkipListSet<>();
     private ConcurrentSkipListSet<Long> askPositionMap = new ConcurrentSkipListSet<>();
@@ -33,17 +38,17 @@ public class OrderMap {
     public void put(Order order){
         idMap.put(order.getOrderId(), order);
 
-        Map<BigDecimal, Collection<Order>> map = order.getType().equals(BID) ? bidMap : askMap;
+        Map<BigDecimal, Map<String, Order>> map = order.getType().equals(BID) ? bidMap : askMap;
         BigDecimal price = scale(order.getPrice());
 
-        Collection<Order> collection = map.get(price);
+        Map<String, Order> subMap = map.get(price);
 
-        if (collection == null){
-            collection = new CopyOnWriteArrayList<>();
-            map.put(price, collection);
+        if (subMap == null){
+            subMap = new ConcurrentHashMap<>();
+            map.put(price, subMap);
         }
 
-        collection.add(order);
+        subMap.put(order.getOrderId(), order);
 
         if (order.getPositionId() != null) {
             (order.getType().equals(BID) ? bidPositionMap : askPositionMap).add(order.getPositionId());
@@ -82,10 +87,10 @@ public class OrderMap {
                 idMap.remove(order.getInternalId());
             }
 
-            Collection<Order> collection = (order.getType().equals(BID) ? bidMap : askMap).get(scale(order.getPrice()));
+            Map<String, Order> subMap = (order.getType().equals(BID) ? bidMap : askMap).get(scale(order.getPrice()));
 
-            if (collection != null){
-                collection.removeIf(o -> order.getOrderId().equals(o.getOrderId()) ||
+            if (subMap != null){
+                subMap.values().removeIf(o -> order.getOrderId().equals(o.getOrderId()) ||
                         Objects.equals(order.getInternalId(), o.getInternalId()));
             }
 
@@ -103,39 +108,28 @@ public class OrderMap {
         return idMap.containsKey(orderId);
     }
 
-    public NavigableMap<BigDecimal, Collection<Order>> get(BigDecimal price, OrderType type, boolean inclusive){
+    public NavigableMap<BigDecimal, Map<String, Order>> get(BigDecimal price, OrderType type, boolean inclusive){
         return type.equals(BID) ? bidMap.tailMap(scale(price), inclusive) : askMap.headMap(scale(price), inclusive);
     }
 
-    public NavigableMap<BigDecimal, Collection<Order>> get(BigDecimal price, OrderType type){
+    public NavigableMap<BigDecimal, Map<String, Order>> get(BigDecimal price, OrderType type){
         return get(price, type, true);
     }
 
     public boolean contains(BigDecimal price, BigDecimal spread, OrderType type){
-        ConcurrentNavigableMap<BigDecimal, Collection<Order>> map =  type.equals(BID)
+        ConcurrentNavigableMap<BigDecimal, Map<String, Order>> map =  type.equals(BID)
                 ? bidMap.subMap(scale(price.subtract(spread)), true, scale(price.add(spread).add(spread)), true)
                 : askMap.subMap(scale(price.subtract(spread).subtract(spread)), true, scale(price.add(spread)), true);
 
         boolean contains = false;
 
-        Set<Map.Entry<BigDecimal, Collection<Order>>> set = map.entrySet();
-        for (Map.Entry<BigDecimal, Collection<Order>> entry : set) {
-            Collection<Order> collection = entry.getValue();
-
-            for (Order o : collection){
-                if ((OPEN.equals(o.getStatus()) || CREATED.equals(o.getStatus()) || WAIT.equals(o.getStatus()))){
-                    contains = true;
-
-                    break;
-                }
-            }
-
-            if (contains){
-                break;
+        for (Map.Entry<BigDecimal, Map<String, Order>> entry : map.entrySet()) {
+            if (!entry.getValue().isEmpty()){
+                return true;
             }
         }
 
-        return contains;
+        return false;
     }
 
     public boolean containsBid(Long positionId){
@@ -150,11 +144,11 @@ public class OrderMap {
         return value.setScale(scale, HALF_EVEN);
     }
 
-    public ConcurrentSkipListMap<BigDecimal, Collection<Order>> getBidMap() {
+    public ConcurrentSkipListMap<BigDecimal, Map<String, Order>> getBidMap() {
         return bidMap;
     }
 
-    public ConcurrentSkipListMap<BigDecimal, Collection<Order>> getAskMap() {
+    public ConcurrentSkipListMap<BigDecimal, Map<String, Order>> getAskMap() {
         return askMap;
     }
 }

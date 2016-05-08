@@ -40,10 +40,10 @@ public class TradeService {
         tradeObservable.subscribe(t -> broadcastService.broadcast(getClass(), "trade", t));
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
-            BigDecimal bid = tradeMapper.getTradeStdDevPtType("BTC/CNY", 5000, OrderType.BID);
+            BigDecimal bid = tradeMapper.getTradeStdDevPtType("BTC/CNY", 45000, OrderType.BID);
             stdDevMap.put("bid", bid);
 
-            BigDecimal ask = tradeMapper.getTradeStdDevPtType("BTC/CNY", 5000, OrderType.ASK);
+            BigDecimal ask = tradeMapper.getTradeStdDevPtType("BTC/CNY", 45000, OrderType.ASK);
             stdDevMap.put("ask", ask);
 
             stdDevMap.put("BTC/CNY_1", bid.add(ask).divide(TWO, RoundingMode.HALF_EVEN)); //44
@@ -67,7 +67,7 @@ public class TradeService {
             stdDevMap.put("BTC/CNY", stdDevMap.get("BTC/CNY_1"));
             stdDevMap.put("av_BTC/CNY", stdDevMap.get("av_BTC/CNY_1"));
             stdDevMap.put("ap_BTC/CNY", stdDevMap.get("ap_BTC/CNY_1"));
-        }, 0, 1, TimeUnit.SECONDS);
+        }, 0, 10, TimeUnit.SECONDS);
     }
 
     public ConnectableObservable<Trade> getTradeObservable() {

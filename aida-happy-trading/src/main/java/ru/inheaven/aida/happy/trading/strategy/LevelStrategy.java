@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
-import ru.inheaven.aida.happy.trading.util.QuranRandom;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
@@ -58,16 +57,15 @@ public class LevelStrategy extends BaseStrategy{
     private final static BigDecimal BD_1_2 = new BigDecimal("1.2");
     private final static BigDecimal BD_1_3 = new BigDecimal("1.3");
 
-    private final static BigDecimal BD_1_5 = new BigDecimal(1.5);
-    private final static BigDecimal BD_1_7 = new BigDecimal(1.7);
     private final static BigDecimal BD_2 = new BigDecimal(2);
-    private final static BigDecimal BD_2_3 = new BigDecimal(2.3);
-    private final static BigDecimal BD_2_5 = new BigDecimal(2.5);
+    private final static BigDecimal BD_2_5 = new BigDecimal("2.5");
     private final static BigDecimal BD_3 = new BigDecimal(3);
-    private final static BigDecimal BD_3_5 = new BigDecimal(3.5);
+    private final static BigDecimal BD_3_5 = new BigDecimal("3.5");
     private final static BigDecimal BD_4 = new BigDecimal(4);
     private final static BigDecimal BD_5 = new BigDecimal(5);
     private final static BigDecimal BD_6 = new BigDecimal(6);
+    private final static BigDecimal BD_8_45 = new BigDecimal("8.45");
+    private final static BigDecimal BD_12 = new BigDecimal(12);
 
     private final static BigDecimal BD_TWO_PI = BigDecimal.valueOf(2*Math.PI);
     private final static BigDecimal BD_SQRT_TWO_PI = new BigDecimal("2.506628274631000502415765284811");
@@ -113,7 +111,7 @@ public class LevelStrategy extends BaseStrategy{
 
         if (!isBidRefused()){
             getOrderMap().get(price.subtract(spread), BID).forEach((k,v) -> {
-                v.forEach(o -> {
+                v.values().forEach(o -> {
                     if (o.getStatus().equals(WAIT) && (isVol() || !inverse || !getOrderMap().containsAsk(o.getPositionId()))){
                         pushWaitOrder(o);
                     }
@@ -123,7 +121,7 @@ public class LevelStrategy extends BaseStrategy{
 
         if (!isAskRefused()){
             getOrderMap().get(price.add(spread), ASK).forEach((k,v) -> {
-                v.forEach(o -> {
+                v.values().forEach(o -> {
                     if (o.getStatus().equals(WAIT) && (isVol() || inverse || !getOrderMap().containsBid(o.getPositionId()))){
                         pushWaitOrder(o);
                     }
@@ -146,7 +144,7 @@ public class LevelStrategy extends BaseStrategy{
     private void closeByMarket(BigDecimal price, Date time){
         try {
             getOrderMap().get(price.add(getSideSpread(price)), BID, false).forEach((k,v) -> {
-                v.forEach(o -> {
+                v.values().forEach(o -> {
                     if (o.getStatus().equals(OPEN) && time.getTime() - o.getOpen().getTime() > 0){
                         o.setStatus(CLOSED);
                         o.setClosed(new Date());
@@ -156,7 +154,7 @@ public class LevelStrategy extends BaseStrategy{
             });
 
             getOrderMap().get(price.subtract(getSideSpread(price)), ASK, false).forEach((k,v) -> {
-                v.forEach(o -> {
+                v.values().forEach(o -> {
                     if (o.getStatus().equals(OPEN) && time.getTime() - o.getOpen().getTime() > 0){
                         o.setStatus(CLOSED);
                         o.setClosed(new Date());
@@ -211,7 +209,7 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[0]);
         BigDecimal subtotalCny = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[1]);
 
-        if (System.currentTimeMillis() - lastBalanceTime.get() > 60000){
+        if (System.currentTimeMillis() - lastBalanceTime.get() >= 59000){
             balance.set(subtotalCny.compareTo(subtotalBtc.multiply(lastAction.get())) > 0);
             lastBalanceTime.set(System.currentTimeMillis());
         }
@@ -222,6 +220,8 @@ public class LevelStrategy extends BaseStrategy{
         return strategy.isLevelInverse() ? tradeService.getValue("ask") : tradeService.getValue("bid");
     }
 
+    private BigDecimal spreadDiv = new BigDecimal("8.45");
+
     protected BigDecimal getSpread(BigDecimal price){
         BigDecimal spread = ZERO;
         BigDecimal sideSpread = getSideSpread(price);
@@ -230,7 +230,7 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal stdDev = getStdDev();
 
             if (stdDev != null){
-                spread = stdDev.divide(BD_SQRT_TWO_PI, 8, HALF_UP);
+                spread = stdDev.divide(spreadDiv, 8, HALF_UP);
             }
         }else {
             spread = strategy.getSymbolType() == null
@@ -262,6 +262,8 @@ public class LevelStrategy extends BaseStrategy{
     private AtomicReference<BigDecimal> lastBuyPrice = new AtomicReference<>(ZERO);
     private AtomicReference<BigDecimal> lastSellPrice = new AtomicReference<>(ZERO);
 
+    private BigDecimal amountRange = new BigDecimal(125);
+
 
     private void action(String key, BigDecimal price, OrderType orderType, int priceLevel) {
         try {
@@ -277,16 +279,10 @@ public class LevelStrategy extends BaseStrategy{
                 log.info("{} "  + key + " {} {} {}", strategy.getId(), price.setScale(3, HALF_EVEN), orderType, spread);
 
                 BigDecimal total = userInfoService.getVolume("total", strategy.getAccount().getId(), null).setScale(8, HALF_UP);
-                BigDecimal amount = total.divide(price, 8, HALF_UP)
-                        .divide(getStdDev().multiply(TEN).divide(getSpread(price), 8, HALF_UP), 8, HALF_UP);
+                BigDecimal amount = total.divide(price, 8, HALF_UP).divide(spreadDiv.multiply(amountRange), 8, HALF_UP);
 
-                BigDecimal buyAmount = up
-                        ? amount.multiply(BigDecimal.valueOf(QuranRandom.nextDouble()))
-                        : BD_0_01;
-
-                BigDecimal sellAmount = up
-                        ? BD_0_01
-                        : amount.multiply(BigDecimal.valueOf(QuranRandom.nextDouble()));
+                BigDecimal buyAmount = amount.multiply(BigDecimal.valueOf(up ? 2 : 1));
+                BigDecimal sellAmount = amount.multiply(BigDecimal.valueOf(up ? 1 : 2));
 
                 //slip
                 if (lastBuyPrice.get().compareTo(ZERO) > 0 && buyPrice.compareTo(lastBuyPrice.get()) < 0){

@@ -1,7 +1,5 @@
 package ru.inheaven.aida.happy.trading.service;
 
-import com.xeiam.xchange.dto.trade.OpenOrders;
-import com.xeiam.xchange.service.polling.trade.PollingTradeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.Account;
@@ -16,15 +14,6 @@ import rx.subjects.PublishSubject;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static ru.inheaven.aida.happy.trading.entity.ExchangeType.OKCOIN;
-import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CANCELED;
 
 /**
  * @author inheaven on 29.06.2015 23:49.
@@ -54,12 +43,7 @@ public class OrderService {
         this.broadcastService = broadcastService;
 
 
-        orderObservable = okcoinService.createFutureOrderObservable()
-                .mergeWith(okcoinService.createSpotOrderObservable())
-                .mergeWith(okcoinService.createFutureRealTrades())
-                .mergeWith(okcoinService.createSpotRealTrades())
-                .mergeWith(okcoinFixService.getOrderObservable())
-                .mergeWith(okcoinCnFixService.getOrderObservable())
+        orderObservable = okcoinCnFixService.getOrderObservable()
                 .onBackpressureBuffer()
                 .observeOn(Schedulers.io())
                 .publish();
@@ -71,7 +55,7 @@ public class OrderService {
                 .publish();
         localClosedOrderObservable.connect();
 
-        accountMapper.getAccounts(OKCOIN).forEach(a -> okcoinService.realFutureTrades(a.getApiKey(), a.getSecretKey()));
+//        accountMapper.getAccounts(OKCOIN).forEach(a -> okcoinService.realFutureTrades(a.getApiKey(), a.getSecretKey()));
     }
 
     public ConnectableObservable<Order> getOrderObservable() {

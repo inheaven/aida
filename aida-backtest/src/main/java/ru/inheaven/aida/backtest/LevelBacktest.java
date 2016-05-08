@@ -53,24 +53,34 @@ public class LevelBacktest {
     public static void main(String[] args){
         TradeMapper tradeMapper = Module.getInjector().getInstance(TradeMapper.class);
 
-        Date startDate = Date.from(LocalDateTime.of(2016, 5, 7, 0, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
-        Date endDate = Date.from(LocalDateTime.of(2016, 5, 8, 0, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date startDate = Date.from(LocalDateTime.of(2016, 5, 7, 16, 30, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date endDate = Date.from(LocalDateTime.of(2016, 5, 8 , 16, 30, 0).atZone(ZoneId.systemDefault()).toInstant());
 
         List<LevelBacktest> levelBacktestList = new ArrayList<>();
 
-        for (int i = 1; i < 2; ++i){
-            for (int j = 1; j < 2; ++j) {
-                for (int k = 1; k < 20; ++k) {
-                    for (int l = 1; l < 20; ++l) {
-                        levelBacktestList.add(new LevelBacktest(34242, 60000, 20, 5000*k, 0.5*l, 0, 10, 60000, 1, 500, 60000));
+        System.out.println("LevelBacktest startDate: " + startDate + ", endDate: " + endDate + "\n");
+
+        for (int i = 1; i <= 1; ++i){
+            for (int j = 1; j <= 1; ++j) {
+                for (int k = 1; k <= 1; ++k) {
+                    for (int l = 1; l <= 100; ++l) {
+                        levelBacktestList.add(new LevelBacktest(34300, 60000, 10, 90000, 8.45, 0, 50 + l, 59000, 1, 1000, 300000, true));
                     }
                 }
             }
         }
 
+        //base
+        levelBacktestList.add(new LevelBacktest(34300, 60000, 10, 90000, 8.5, 0, 120, 59000, 1, 1000, 300000, true));
+
+        //amount level
+//        for (int l = 1; l <= 10; ++l) {
+//            levelBacktestList.add(new LevelBacktest(17000, 60000, 5, 10000 + 1000*l, Math.sqrt(2 * Math.PI), 0.01, 0, 60000, 2, 1000, 60000));
+//        }
+
         List<Trade> trades = tradeMapper.getLightTrades("BTC/CNY", startDate, endDate, 0, 10000000);
 
-        System.out.println("trade size: " + trades.size());
+        System.out.println("trade size: " + trades.size() + "\n");
 
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
@@ -80,17 +90,35 @@ public class LevelBacktest {
 
         levelBacktestList.forEach(l -> {
             Future future = executorService.submit(() -> {
-                long time = System.currentTimeMillis();
+                try {
+                    long time = System.currentTimeMillis();
 
-                System.out.println(new Date() + " start " + l);
+                    //action
+                    trades.forEach(l::action);
 
-                trades.forEach(l::action);
-
-                System.out.println(new Date() + " finish " +
-                        (System.currentTimeMillis() - time)/1000 + "s " +
-                        df.format(l.metrics.getLast().total) + " " +
-                        df.format(l.getProfit(l.metrics.getLast().price)) + " " +
-                        l + "\n");
+                    System.out.println("" +
+                            new Date() + " " +
+                            (System.currentTimeMillis() - time)/1000 + "s " +
+                            df.format(l.getProfit(l.metrics.getLast().price)) +
+                            df.format(l.metrics.getLast().total) + " " +
+                            df.format(l.subtotalCny) + " " +
+                            df.format(l.subtotalBtc) + " " +
+                            l.cancelDelay + " " +
+                            l.cancelRange + " " +
+                            l.tradeSize + " " +
+                            l.spreadDiv + " " +
+                            l.amountLevel + " " +
+                            l.amountRange + " " +
+                            l.balanceDelay + " " +
+                            l.balanceValue + " " +
+                            l.tradeDelay + " " +
+                            l.metricDelay + " " +
+                            df.format(l.buyVolume) + " " +
+                            df.format(l.sellVolume) + " " +
+                            l.slip);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             });
 
             futures.add(future);
@@ -106,8 +134,12 @@ public class LevelBacktest {
 
         levelBacktestList.sort((l1, l2) -> Double.compare(l2.metrics.getLast().total, l1.metrics.getLast().total));
 
+        System.out.println("\n Rank");
+
         levelBacktestList.forEach(l -> {
             System.out.println("" +
+                    df.format(l.getProfit(l.metrics.getLast().price)) +
+                    df.format(l.metrics.getLast().total) + " " +
                     df.format(l.subtotalCny) + " " +
                     df.format(l.subtotalBtc) + " " +
                     l.cancelDelay + " " +
@@ -120,9 +152,9 @@ public class LevelBacktest {
                     l.balanceValue + " " +
                     l.tradeDelay + " " +
                     l.metricDelay + " " +
-                    df.format(l.metrics.getLast().total) + " " +
-                    df.format(l.getProfit(l.metrics.getLast().price))
-            );
+                    df.format(l.buyVolume) + " " +
+                    df.format(l.sellVolume) + " " +
+                    l.slip);
         });
 
         //chart
@@ -180,12 +212,13 @@ public class LevelBacktest {
     private int amountRange;
     private int balanceDelay;
     private double balanceValue;
-
     private long tradeDelay;
+    private long metricDelay;
+    private boolean slip;
 
     private OrderDoubleMap orderMap = new OrderDoubleMap();
 
-    private long metricDelay;
+
     private Deque<Metric> metrics = new LinkedList<>();
 
     private double buyPrice = 0d;
@@ -196,7 +229,7 @@ public class LevelBacktest {
 
     private LevelBacktest(double subtotalCny, long cancelDelay, double cancelRange, int tradeSize,
                           double spreadDiv, double amountLevel, int amountRange, int balanceDelay, double balanceValue,
-                          long tradeDelay, long metricDelay) {
+                          long tradeDelay, long metricDelay, boolean slip) {
         this.subtotalCny = subtotalCny;
         this.cancelDelay = cancelDelay;
         this.cancelRange = cancelRange;
@@ -208,6 +241,7 @@ public class LevelBacktest {
         this.balanceValue = balanceValue;
         this.tradeDelay = tradeDelay;
         this.metricDelay = metricDelay;
+        this.slip = slip;
     }
 
     private Double getFreeBtc(){
@@ -351,6 +385,8 @@ public class LevelBacktest {
 
     private BigDecimal lastActionPrice = ZERO;
 
+    private QuranRandom quranRandom = new QuranRandom();
+
     private void action(Trade trade){
         if (lastActionPrice.equals(trade.getPrice())){
             return;
@@ -364,19 +400,30 @@ public class LevelBacktest {
         double sellPrice = up ? p + spread : p;
 
         if (!orderMap.contains(buyPrice, spread, BID) && !orderMap.contains(sellPrice, spread, ASK)){
-            double amount = (subtotalCny / p  + subtotalBtc) / (getStdDev(trade) * amountRange / getSpread(trade));
+            double buyAmount;
+            double sellAmount;
 
-            //amount
-            double buyAmount = (up ? QuranRandom.nextDouble() : 0) * amount;
-            double sellAmount = (up ? 0 : QuranRandom.nextDouble()) * amount;
+            if (amountLevel == 0 ){
+                //amount range
+                double amount = (subtotalCny / p  + subtotalBtc) / (spreadDiv * amountRange);
+                buyAmount = (up ? 2 : 1) * amount;
+                sellAmount = (up ? 1 : 2) * amount;
+            }else{
+                //amount level
+                buyAmount = (up ? random.nextGaussian()/2 + 2 : random.nextGaussian()/2 + 1) * amountLevel;
+                sellAmount = (up ? random.nextGaussian()/2 + 1 : random.nextGaussian()/2 + 2) * amountLevel;
+            }
 
             //slip
-            if (lastBuyPrice > 0 && buyPrice < lastBuyPrice){
-                buyAmount = buyAmount * Math.abs(lastBuyPrice - buyPrice) / spread;
+            if (slip) {
+                if (lastBuyPrice > 0 && buyPrice < lastBuyPrice){
+                    buyAmount = buyAmount * Math.abs(lastBuyPrice - buyPrice) / spread;
+                }
+                if (lastSellPrice > 0 && sellPrice > lastSellPrice){
+                    sellAmount = sellAmount * Math.abs(sellPrice - lastSellPrice) / spread;
+                }
             }
-            if (lastSellPrice > 0 && sellPrice > lastSellPrice){
-                sellAmount = sellAmount * Math.abs(sellPrice - lastSellPrice) / spread;
-            }
+
             lastBuyPrice = buyPrice;
             lastSellPrice = sellPrice;
 
