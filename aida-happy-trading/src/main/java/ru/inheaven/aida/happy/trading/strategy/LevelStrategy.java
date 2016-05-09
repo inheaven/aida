@@ -5,16 +5,16 @@ import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
+import ru.inhell.aida.algo.arima.ArimaFitter;
+import ru.inhell.aida.algo.arima.DefaultArimaForecaster;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.Date;
+import java.util.Deque;
 import java.util.Objects;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -173,6 +173,8 @@ public class LevelStrategy extends BaseStrategy{
 
     private AtomicReference<BigDecimal> lastAction = new AtomicReference<>(ZERO);
 
+    private Deque<Double> arimaPrices = new ConcurrentLinkedDeque<>();
+
     private void actionLevel(String key, BigDecimal price, OrderType orderType){
         try {
             if (isBidRefused() || isAskRefused()) {
@@ -185,16 +187,13 @@ public class LevelStrategy extends BaseStrategy{
 
             action(key, price, orderType, 0);
 
-//            BigDecimal spread = getSpread(price);
-//            for (int i = 1; i < 2; ++i){
-//                if (strategy.isLevelInverse()){
-//                    action(key, price.add(spread.multiply(BigDecimal.valueOf(i))), orderType, i);
-//                }else {
-//                    action(key, price.subtract(spread.multiply(BigDecimal.valueOf(i))), orderType, -i);
-//                }
-//            }
-
             lastAction.set(price);
+
+            arimaPrices.add(price.doubleValue());
+
+            if (arimaPrices.size() > 100000){
+                arimaPrices.removeFirst();
+            }
         } catch (Exception e) {
             log.error("error actionLevel", e);
         }
@@ -203,14 +202,22 @@ public class LevelStrategy extends BaseStrategy{
     private AtomicLong lastBalanceTime = new AtomicLong(System.currentTimeMillis());
     private AtomicBoolean balance = new AtomicBoolean(true);
 
+    private BigDecimal balanceValue = new BigDecimal("2.96");
+
     protected boolean getSpotBalance(){
-        String[] symbol = strategy.getSymbol().split("/");
-
-        BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[0]);
-        BigDecimal subtotalCny = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[1]);
-
         if (System.currentTimeMillis() - lastBalanceTime.get() >= 59000){
-            balance.set(subtotalCny.compareTo(subtotalBtc.multiply(lastAction.get())) > 0);
+            String[] symbol = strategy.getSymbol().split("/");
+            BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[0]);
+            BigDecimal subtotalCny = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[1]);
+
+            BigDecimal price = lastAction.get();
+
+            if (arimaPrices.size() > 0){
+                double[] prices = arimaPrices.stream().mapToDouble(d -> d).toArray();
+                price = BigDecimal.valueOf(new DefaultArimaForecaster(ArimaFitter.fit(prices, 2, 1, 0), prices).next());
+            }
+
+            balance.set(subtotalCny.divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(balanceValue) > 0);
             lastBalanceTime.set(System.currentTimeMillis());
         }
 
