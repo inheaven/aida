@@ -54,25 +54,25 @@ public class LevelBacktest {
     public static void main(String[] args){
         TradeMapper tradeMapper = Module.getInjector().getInstance(TradeMapper.class);
 
-        Date startDate = Date.from(LocalDateTime.of(2016, 5, 8, 22, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
-        Date endDate = Date.from(LocalDateTime.of(2016, 5, 9 , 22, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date startDate = Date.from(LocalDateTime.of(2016, 5, 9, 2, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date endDate = Date.from(LocalDateTime.of(2016, 5, 10 , 2, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
 
         List<LevelBacktest> levelBacktestList = new ArrayList<>();
 
         System.out.println("LevelBacktest startDate: " + startDate + ", endDate: " + endDate + "\n");
 
-        for (int i = 0; i <= 3; ++i){
-            for (int j = 0; j <= 3; ++j) {
-                for (int k = 0; k <= 3; ++k) {
-                    for (int l = 1; l <= 3; ++l) {
-                        levelBacktestList.add(new LevelBacktest(34200, 60000, 20, 90000, 8.45, 0, 125, 59000, 2.86, 1000, 300000, true, i, j, k, l));
+        for (int i = 0; i <= 10; ++i){
+            for (int j = 0; j <= 10; ++j) {
+                for (int k = 0; k <= 10; ++k) {
+                    for (int l = 1; l <= 10; ++l) {
+                        levelBacktestList.add(new LevelBacktest(28280, 60000, 20, 90000, 8.45, 0.022, 0, 59000, 2, 1000, 300000, true, i, j, k, 10000 * l, 1));
                     }
                 }
             }
         }
 
         //base
-        levelBacktestList.add(new LevelBacktest(34300, 60000, 20, 90000, 8.45, 0, 125, 59000, 2.86, 1000, 300000, true, -1, -1, -1, -1));
+        levelBacktestList.add(new LevelBacktest(28280, 60000, 20, 90000, 8.45, 0.022, 0, 59000, 2, 1000, 300000, true, 3, 1, 2, 100000, 1));
 
         //amount level
 //        for (int l = 1; l <= 10; ++l) {
@@ -96,6 +96,11 @@ public class LevelBacktest {
 
                     //action
                     trades.forEach(l::action);
+
+                    //clear
+                    l.arimaPriceQueue.clear();
+                    l.tradePriceQueue.clear();
+                    l.standardDeviation = null;
 
                     System.out.println("" +
                             new Date() + " " +
@@ -121,7 +126,8 @@ public class LevelBacktest {
                             l.p + " " +
                             l.d + " " +
                             l.q + " " +
-                            l.predictionSize);
+                            l.arimaSize + " " +
+                            l.arimaNext);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -165,7 +171,8 @@ public class LevelBacktest {
                     l.p + " " +
                     l.d + " " +
                     l.q + " " +
-                    l.predictionSize);
+                    l.arimaSize + " " +
+                    l.arimaNext);
         });
 
         //chart
@@ -228,7 +235,7 @@ public class LevelBacktest {
     private long metricDelay;
     private boolean slip;
 
-    private int p, d, q, predictionSize;
+    private int p, d, q, arimaSize, arimaNext;
 
     private OrderDoubleMap orderMap = new OrderDoubleMap();
 
@@ -243,7 +250,7 @@ public class LevelBacktest {
 
     private LevelBacktest(double subtotalCny, long cancelDelay, double cancelRange, int tradeSize,
                           double spreadDiv, double amountLevel, int amountRange, int balanceDelay, double balanceValue,
-                          long tradeDelay, long metricDelay, boolean slip, int p, int d, int q, int predictionSize) {
+                          long tradeDelay, long metricDelay, boolean slip, int p, int d, int q, int arimaSize, int arimaNext) {
         this.initialSubtotalCny = subtotalCny;
 
         this.subtotalCny = subtotalCny;
@@ -262,7 +269,8 @@ public class LevelBacktest {
         this.p = p;
         this.d = d;
         this.q = q;
-        this.predictionSize = predictionSize;
+        this.arimaSize = arimaSize;
+        this.arimaNext = arimaNext;
     }
 
     private Double getFreeBtc(){
@@ -311,9 +319,9 @@ public class LevelBacktest {
         if (lastBalanceTime == 0 || trade.getCreated().getTime() - lastBalanceTime > balanceDelay){
             double price = trade.getPrice().doubleValue();
 
-            if ((p > -1 || d > -1 || q > -1) && tradePriceQueue.size() > tradeSize / 2) {
-                double[] prices = tradePriceQueue.stream().mapToDouble(d -> d).toArray();
-                price = new DefaultArimaForecaster(ArimaFitter.fit(prices, p, d, q), prices).next(predictionSize)[predictionSize-1];
+            if (arimaSize > 0 && arimaPriceQueue.size() >= arimaSize) {
+                double[] prices = arimaPriceQueue.stream().mapToDouble(d -> d).toArray();
+                price = new DefaultArimaForecaster(ArimaFitter.fit(prices, p, d, q), prices).next(arimaNext)[arimaNext -1];
             }
 
             balance = subtotalCny / (subtotalBtc * price) > balanceValue;
@@ -335,22 +343,33 @@ public class LevelBacktest {
     }
 
     private Deque<Double> tradePriceQueue = new LinkedList<>();
+    private Deque<Double> arimaPriceQueue = new LinkedList<>();
+
     private long lastTradeTime = 0;
+    private double lastTradePrice = 0;
 
     private void trade(Trade trade){
-        //queue
+        double price = trade.getPrice().doubleValue();
+
+        //trade queue
+        tradePriceQueue.add(price);
         if (tradePriceQueue.size() > tradeSize){
             tradePriceQueue.removeFirst();
         }
 
-        tradePriceQueue.add(trade.getPrice().doubleValue());
+        if (lastTradePrice != price){
+            arimaPriceQueue.add(price);
+            if (arimaPriceQueue.size() > arimaSize){
+                arimaPriceQueue.removeFirst();
+            }
+        }
 
         //trade
         if (lastTradeTime > 0 && (trade.getCreated().getTime() - lastTradeTime < tradeDelay)){
             return;
         }
 
-        orderMap.getBidMap().tailMap(trade.getPrice().doubleValue()).forEach((k, v) -> v.values().forEach(o -> {
+        orderMap.getBidMap().tailMap(price).forEach((k, v) -> v.values().forEach(o -> {
             subtotalBtc += o.getAmount().doubleValue();
             subtotalCny -= o.getAmount().multiply(o.getPrice()).doubleValue();
 
@@ -361,7 +380,7 @@ public class LevelBacktest {
             buyPrice = (buyPrice * bv  + o.getPrice().multiply(o.getAmount()).doubleValue()) / (o.getAmount().doubleValue() + bv);
         }));
 
-        orderMap.getAskMap().headMap(trade.getPrice().doubleValue()).forEach((k, v) -> v.values().forEach(o -> {
+        orderMap.getAskMap().headMap(price).forEach((k, v) -> v.values().forEach(o -> {
             subtotalBtc -= o.getAmount().doubleValue();
             subtotalCny += o.getAmount().multiply(o.getPrice()).doubleValue();
 
@@ -373,6 +392,7 @@ public class LevelBacktest {
         }));
 
         lastTradeTime = trade.getCreated().getTime();
+        lastTradePrice = price;
     }
 
     private long lastCancelTime = 0;

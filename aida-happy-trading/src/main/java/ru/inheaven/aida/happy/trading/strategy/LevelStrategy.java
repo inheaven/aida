@@ -202,7 +202,7 @@ public class LevelStrategy extends BaseStrategy{
     private AtomicLong lastBalanceTime = new AtomicLong(System.currentTimeMillis());
     private AtomicBoolean balance = new AtomicBoolean(true);
 
-    private BigDecimal balanceValue = new BigDecimal("2.96");
+    private BigDecimal balanceValue = new BigDecimal("2");
 
     protected boolean getSpotBalance(){
         if (System.currentTimeMillis() - lastBalanceTime.get() >= 59000){
@@ -214,7 +214,7 @@ public class LevelStrategy extends BaseStrategy{
 
             if (arimaPrices.size() > 0){
                 double[] prices = arimaPrices.stream().mapToDouble(d -> d).toArray();
-                price = BigDecimal.valueOf(new DefaultArimaForecaster(ArimaFitter.fit(prices, 2, 1, 0), prices).next());
+                price = BigDecimal.valueOf(new DefaultArimaForecaster(ArimaFitter.fit(prices, 3, 1, 2), prices).next());
             }
 
             balance.set(subtotalCny.divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(balanceValue) > 0);
@@ -286,10 +286,10 @@ public class LevelStrategy extends BaseStrategy{
                 log.info("{} "  + key + " {} {} {}", strategy.getId(), price.setScale(3, HALF_EVEN), orderType, spread);
 
                 BigDecimal total = userInfoService.getVolume("total", strategy.getAccount().getId(), null).setScale(8, HALF_UP);
-                BigDecimal amount = total.divide(price, 8, HALF_UP).divide(spreadDiv.multiply(amountRange), 8, HALF_UP);
+//                BigDecimal amount = total.divide(price, 8, HALF_UP).divide(spreadDiv.multiply(amountRange), 8, HALF_UP);
 
-                BigDecimal buyAmount = amount.multiply(BigDecimal.valueOf(up ? 2 : 1));
-                BigDecimal sellAmount = amount.multiply(BigDecimal.valueOf(up ? 1 : 2));
+                BigDecimal buyAmount = strategy.getLevelLot().multiply(BigDecimal.valueOf(up ? random.nextGaussian()/2 + 2 : random.nextGaussian()/2 + 1));
+                BigDecimal sellAmount = strategy.getLevelLot().multiply(BigDecimal.valueOf(up ? random.nextGaussian()/2 + 1 : random.nextGaussian()/2 + 2));
 
                 //slip
                 if (lastBuyPrice.get().compareTo(ZERO) > 0 && buyPrice.compareTo(lastBuyPrice.get()) < 0){
