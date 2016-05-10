@@ -568,6 +568,10 @@ public class BaseStrategy {
         return false;
     }
 
+    protected double getForecast(){
+        return 0;
+    }
+
     private final static BigDecimal BD_SQRT_TWO_PI = new BigDecimal("2.506628274631000502415765284811");
 
     private AtomicLong index = new AtomicLong(0);
@@ -580,7 +584,7 @@ public class BaseStrategy {
                 index.incrementAndGet();
             }
 
-            log.info("{} {} {}  {} {} {}  {} {} {} {} {}  {} {} {}  {} {} {} {} {} {} {}",
+            log.info("{} {} {}  {} {} {}  {} {} {} {} {}  {} {} {}  {} {} {} {} {} {} {} {}",
                     index.get(),
                     o.getStrategyId(),
                     o.getStatus(),
@@ -602,6 +606,7 @@ public class BaseStrategy {
                     scale(userInfoService.getVolume("subtotal", strategy.getAccount().getId(), "CNY")),
                     userInfoService.getVolume("total", strategy.getAccount().getId(), null),
                     o.getProfit() != null ? o.getProfit().setScale(3, HALF_EVEN) : "",
+                    scale(BigDecimal.valueOf(getForecast())),
                     getSpotBalance() ? "↑" : "↓",
                     Objects.toString(o.getText(), ""),
                     Objects.toString(o.getSymbolType(), ""));

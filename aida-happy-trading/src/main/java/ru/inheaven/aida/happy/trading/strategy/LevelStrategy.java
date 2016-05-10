@@ -1,5 +1,6 @@
 package ru.inheaven.aida.happy.trading.strategy;
 
+import com.google.common.util.concurrent.AtomicDouble;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
@@ -204,6 +205,8 @@ public class LevelStrategy extends BaseStrategy{
 
     private BigDecimal balanceValue = new BigDecimal("2");
 
+    private AtomicDouble forecast = new AtomicDouble(0);
+
     protected boolean getSpotBalance(){
         if (System.currentTimeMillis() - lastBalanceTime.get() >= 59000){
             String[] symbol = strategy.getSymbol().split("/");
@@ -214,7 +217,18 @@ public class LevelStrategy extends BaseStrategy{
 
             if (arimaPrices.size() > 0){
                 double[] prices = arimaPrices.stream().mapToDouble(d -> d).toArray();
-                price = BigDecimal.valueOf(new DefaultArimaForecaster(ArimaFitter.fit(prices, 3, 1, 2), prices).next());
+                double[] pricesDelta = new double[prices.length - 1];
+
+                for (int i = 0; i < prices.length - 1; ++i){
+                    pricesDelta[i] = prices[i+1]/prices[i] - 1;
+                }
+
+                double f = new DefaultArimaForecaster(ArimaFitter.fit(pricesDelta, 3, 1, 2), pricesDelta).next();
+                double p = prices[prices.length -1] * (f + 1);
+
+                price = BigDecimal.valueOf(p);
+
+                forecast.set(p);
             }
 
             balance.set(subtotalCny.divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(balanceValue) > 0);
@@ -223,6 +237,12 @@ public class LevelStrategy extends BaseStrategy{
 
         return balance.get();
     }
+
+    @Override
+    protected double getForecast() {
+        return forecast.get();
+    }
+
     private BigDecimal getStdDev(){
         return strategy.isLevelInverse() ? tradeService.getValue("ask") : tradeService.getValue("bid");
     }
