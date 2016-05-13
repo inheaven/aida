@@ -24,7 +24,7 @@
     </select>
 
     <select id="selectTradeStdDevPtType" parameterType="map" resultType="decimal">
-        select stddev_samp(pt.price) from (select price from trade where symbol = #{symbol} and order_type = #{orderType} order by id desc limit #{points}) pt;
+        select stddev_pop(pt.price) from (select price from trade where symbol = #{symbol} and order_type = #{orderType} order by id desc limit #{points}) pt;
     </select>
 
     <select id="selectTradeAvgAmountPt" parameterType="map" resultType="decimal">

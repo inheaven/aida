@@ -36,7 +36,7 @@ public class OrderDoubleMap {
         Map<String, Order> subMap = map.get(price);
 
         if (subMap == null){
-            subMap = new ConcurrentHashMap<>();
+            subMap = new HashMap<>(1);
             map.put(price, subMap);
         }
 
@@ -88,6 +88,8 @@ public class OrderDoubleMap {
                     .removeIf(o -> order.getOrderId().equals(o.getOrderId()) ||
                             Objects.equals(order.getInternalId(), o.getInternalId())));
 
+            subMap.values().removeIf(Map::isEmpty);
+
             if (order.getPositionId() != null) {
                 (order.getType().equals(BID) ? bidPositionMap : askPositionMap).remove(order.getPositionId());
             }
@@ -111,19 +113,10 @@ public class OrderDoubleMap {
     }
 
     public boolean contains(Double price, Double spread, OrderType type){
-        ConcurrentNavigableMap<Double, Map<String, Order>> map =  type.equals(BID)
-                ? bidMap.subMap(price - spread, true, price + spread, true)
-                : askMap.subMap(price - spread, true, price + spread, true);
+        Double lowKey = type.equals(BID) ? bidMap.floorKey(price) : askMap.floorKey(price);
+        Double highestKey = type.equals(BID) ? bidMap.ceilingKey(price) : askMap.ceilingKey(price);
 
-        Set<Map.Entry<Double, Map<String, Order>>> set = map.entrySet();
-
-        for (Map.Entry<Double, Map<String, Order>> entry : set) {
-            if (!entry.getValue().isEmpty()){
-                return true;
-            }
-        }
-
-        return false;
+        return (lowKey != null && price - lowKey <= spread) || (highestKey != null && highestKey - price <= spread);
     }
 
     public boolean containsBid(Long positionId){

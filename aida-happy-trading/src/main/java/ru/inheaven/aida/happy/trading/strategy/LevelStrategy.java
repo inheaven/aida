@@ -192,7 +192,7 @@ public class LevelStrategy extends BaseStrategy{
 
             arimaPrices.add(price.doubleValue());
 
-            if (arimaPrices.size() > 100000){
+            if (arimaPrices.size() > 50000){
                 arimaPrices.removeFirst();
             }
         } catch (Exception e) {
@@ -203,7 +203,7 @@ public class LevelStrategy extends BaseStrategy{
     private AtomicLong lastBalanceTime = new AtomicLong(System.currentTimeMillis());
     private AtomicBoolean balance = new AtomicBoolean(true);
 
-    private BigDecimal balanceValue = new BigDecimal("2");
+    private BigDecimal balanceValue = new BigDecimal("1");
 
     private AtomicDouble forecast = new AtomicDouble(0);
 
@@ -223,12 +223,16 @@ public class LevelStrategy extends BaseStrategy{
                     pricesDelta[i] = prices[i+1]/prices[i] - 1;
                 }
 
-                double f = new DefaultArimaForecaster(ArimaFitter.fit(pricesDelta, 3, 1, 2), pricesDelta).next();
+                double f = new DefaultArimaForecaster(ArimaFitter.fit(pricesDelta, 4, 1, 1), pricesDelta).next();
                 double p = prices[prices.length -1] * (f + 1);
 
-                price = BigDecimal.valueOf(p);
+                if (!Double.isNaN(p) && Math.abs(p) <= 10000) {
+                    price = BigDecimal.valueOf(p);
 
-                forecast.set(p);
+                    forecast.set(p);
+                } else {
+                    forecast.set(Double.isNaN(p) ? 0 : p > 0 ? 1 : -1);
+                }
             }
 
             balance.set(subtotalCny.divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(balanceValue) > 0);
