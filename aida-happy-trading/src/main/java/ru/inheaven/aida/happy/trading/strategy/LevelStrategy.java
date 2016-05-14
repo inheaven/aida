@@ -255,10 +255,10 @@ public class LevelStrategy extends BaseStrategy{
     protected BigDecimal getStdDev(){
         double stdDev = standardDeviation.stdDev();
 
-        return BigDecimal.valueOf(!Double.isNaN(stdDev) && stdDev > 0 ? stdDev : 0.5);
+        return BigDecimal.valueOf(!Double.isNaN(stdDev) && stdDev > 0 ? stdDev : 0);
     }
 
-    private BigDecimal spreadDiv = new BigDecimal("5");
+    private BigDecimal spreadDiv = new BigDecimal("2");
 
     protected BigDecimal getSpread(BigDecimal price){
         BigDecimal spread = ZERO;
@@ -300,8 +300,7 @@ public class LevelStrategy extends BaseStrategy{
     private AtomicReference<BigDecimal> lastBuyPrice = new AtomicReference<>(ZERO);
     private AtomicReference<BigDecimal> lastSellPrice = new AtomicReference<>(ZERO);
 
-    private BigDecimal amountRange = new BigDecimal(125);
-
+    private BigDecimal amountRange = new BigDecimal(14);
 
     private void action(String key, BigDecimal price, OrderType orderType, int priceLevel) {
         try {
@@ -309,18 +308,26 @@ public class LevelStrategy extends BaseStrategy{
 
             BigDecimal spread = scale(getSpread(price));
 
-            BigDecimal p = scale(strategy.isLevelInverse() ? price.subtract(BD_0_05) : price.add(BD_0_05));
-            BigDecimal buyPrice = scale(strategy.isLevelInverse() ? p : p.subtract(spread));
-            BigDecimal sellPrice = scale(strategy.isLevelInverse() ? p.add(spread) : p);
+            BigDecimal p = scale(up ? price.add(BD_0_01) : price.subtract(BD_0_01));
+            BigDecimal buyPrice = scale(up ? p : p.subtract(spread));
+            BigDecimal sellPrice = scale(up ? p.add(spread) : p);
 
             if (!getOrderMap().contains(buyPrice, spread, BID) && !getOrderMap().contains(sellPrice, spread, ASK)){
                 log.info("{} "  + key + " {} {} {}", strategy.getId(), price.setScale(3, HALF_EVEN), orderType, spread);
 
-                BigDecimal total = userInfoService.getVolume("total", strategy.getAccount().getId(), null).setScale(8, HALF_UP);
+//                BigDecimal total = userInfoService.getVolume("total", strategy.getAccount().getId(), null).setScale(8, HALF_UP);
 //                BigDecimal amount = total.divide(price, 8, HALF_UP).divide(spreadDiv.multiply(amountRange), 8, HALF_UP);
 
-                BigDecimal buyAmount = strategy.getLevelLot().multiply(BigDecimal.valueOf(up ? random.nextGaussian()/2 + 2 : random.nextGaussian()/2 + 1));
-                BigDecimal sellAmount = strategy.getLevelLot().multiply(BigDecimal.valueOf(up ? random.nextGaussian()/2 + 1 : random.nextGaussian()/2 + 2));
+//                double q1 = QuranRandom.nextDouble();
+//                double q2 = QuranRandom.nextDouble();
+//                double max = Math.max(q1, q2);
+//                double min = Math.min(q1, q2);
+
+                double max = random.nextGaussian()/2 + 2;
+                double min = random.nextGaussian()/2 + 1;
+
+                BigDecimal buyAmount = strategy.getLevelLot().multiply(BigDecimal.valueOf(up ? max : min));
+                BigDecimal sellAmount = strategy.getLevelLot().multiply(BigDecimal.valueOf(up ? min : max));
 
                 //slip
                 if (lastBuyPrice.get().compareTo(ZERO) > 0 && buyPrice.compareTo(lastBuyPrice.get()) < 0){
@@ -377,7 +384,7 @@ public class LevelStrategy extends BaseStrategy{
 
                 queue.add(trade.getPrice());
 
-                standardDeviation.add(trade.getPrice().doubleValue());
+//                standardDeviation.add(trade.getPrice().doubleValue());
             }
 
             //closeByMarketAsync(trade.getPrice(), trade.getOrigTime());
