@@ -572,6 +572,10 @@ public class BaseStrategy {
         return 0;
     }
 
+    protected BigDecimal getStdDev(){
+        return ZERO;
+    }
+
     private final static BigDecimal BD_SQRT_TWO_PI = new BigDecimal("2.506628274631000502415765284811");
 
     private AtomicLong index = new AtomicLong(0);
@@ -584,7 +588,7 @@ public class BaseStrategy {
                 index.incrementAndGet();
             }
 
-            log.info("{} {} {}  {} {} {}  {} {} {} {} {}  {} {} {}  {} {} {} {} {} {} {} {}",
+            log.info("{} {} {}  {} {} {}  {} {} {} {} {}  {} {}  {} {} {} {} {} {} {} {}",
                     index.get(),
                     o.getStrategyId(),
                     o.getStatus(),
@@ -598,8 +602,7 @@ public class BaseStrategy {
                     scale(sellVolume.get().subtract(buyVolume.get())),
                     scale(sellVolume.get().multiply(sellPrice.get()).subtract(buyVolume.get().multiply(buyPrice.get()))),
 
-                    tradeService.getValue("bid").setScale(3, HALF_UP),
-                    tradeService.getValue("ask").setScale(3, HALF_UP),
+                    getStdDev().setScale(3, HALF_UP),
                     scale(o.getSpread()),
 
                     scale(userInfoService.getVolume("subtotal", strategy.getAccount().getId(), "BTC")),

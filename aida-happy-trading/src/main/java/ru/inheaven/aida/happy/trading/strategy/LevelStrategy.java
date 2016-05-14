@@ -8,14 +8,17 @@ import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
 import ru.inhell.aida.algo.arima.ArimaFitter;
 import ru.inhell.aida.algo.arima.DefaultArimaForecaster;
+import ru.inhell.aida.algo.func.StdDev;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.Date;
 import java.util.Deque;
 import java.util.Objects;
-import java.util.Queue;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -76,7 +79,7 @@ public class LevelStrategy extends BaseStrategy{
 
     private AtomicReference<BigDecimal> lastPrice = new AtomicReference<>(ZERO);
 
-    private Queue<BigDecimal> queue = new ConcurrentLinkedQueue<>();
+    private Deque<BigDecimal> queue = new ConcurrentLinkedDeque<>();
 
     public LevelStrategy(StrategyService strategyService, Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                          DepthService depthService, UserInfoService userInfoService,  XChangeService xChangeService) {
@@ -100,8 +103,8 @@ public class LevelStrategy extends BaseStrategy{
         }
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(()-> {
-            if (!queue.isEmpty()) {
-                actionLevel("schedule", queue.poll(), null);
+            while (!queue.isEmpty()) {
+                actionLevel("schedule", queue.pollLast(), null);
             }
         }, 5000, 10, TimeUnit.MILLISECONDS);
     }
@@ -208,7 +211,7 @@ public class LevelStrategy extends BaseStrategy{
     private AtomicDouble forecast = new AtomicDouble(0);
 
     protected boolean getSpotBalance(){
-        if (System.currentTimeMillis() - lastBalanceTime.get() >= 59000){
+        if (System.currentTimeMillis() - lastBalanceTime.get() >= 1000){
             String[] symbol = strategy.getSymbol().split("/");
             BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[0]);
             BigDecimal subtotalCny = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[1]);
@@ -223,7 +226,7 @@ public class LevelStrategy extends BaseStrategy{
                     pricesDelta[i] = prices[i+1]/prices[i] - 1;
                 }
 
-                double f = new DefaultArimaForecaster(ArimaFitter.fit(pricesDelta, 4, 1, 1), pricesDelta).next();
+                double f = new DefaultArimaForecaster(ArimaFitter.fit(pricesDelta, 4, 4, 2), pricesDelta).next();
                 double p = prices[prices.length -1] * (f + 1);
 
                 if (!Double.isNaN(p) && Math.abs(p) <= 10000) {
@@ -247,11 +250,15 @@ public class LevelStrategy extends BaseStrategy{
         return forecast.get();
     }
 
-    private BigDecimal getStdDev(){
-        return strategy.isLevelInverse() ? tradeService.getValue("ask") : tradeService.getValue("bid");
+    private StdDev standardDeviation = new StdDev(50000);
+
+    protected BigDecimal getStdDev(){
+        double stdDev = standardDeviation.stdDev();
+
+        return BigDecimal.valueOf(!Double.isNaN(stdDev) && stdDev > 0 ? stdDev : 0.5);
     }
 
-    private BigDecimal spreadDiv = new BigDecimal("8.45");
+    private BigDecimal spreadDiv = new BigDecimal("5");
 
     protected BigDecimal getSpread(BigDecimal price){
         BigDecimal spread = ZERO;
@@ -369,6 +376,8 @@ public class LevelStrategy extends BaseStrategy{
                 lastPrice.set(trade.getPrice());
 
                 queue.add(trade.getPrice());
+
+                standardDeviation.add(trade.getPrice().doubleValue());
             }
 
             //closeByMarketAsync(trade.getPrice(), trade.getOrigTime());

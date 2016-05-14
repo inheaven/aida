@@ -1,9 +1,9 @@
 package ru.inhell.aida.algo.arima;
 
 class MethodOfMomentsArimaFitterStrategy implements ArimaFitterStrategy {
-    private static final int MAX_INTEGRATION_ORDER = 10;
+    private static final int MAX_INTEGRATION_ORDER = 100;
     private static final double MA_EPSILON = 1E-3;
-    private static final double MA_ITERATION_LIMIT = 100;
+    private static final double MA_ITERATION_LIMIT = 1000;
 
     private final int arOrder;
     private final int maOrder;
