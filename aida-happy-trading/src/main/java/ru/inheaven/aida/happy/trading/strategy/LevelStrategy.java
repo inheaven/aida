@@ -7,6 +7,7 @@ import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
 import ru.inhell.aida.algo.arima.ArimaFitter;
+import ru.inhell.aida.algo.arima.ArimaProcess;
 import ru.inhell.aida.algo.arima.DefaultArimaForecaster;
 import ru.inhell.aida.algo.func.StdDev;
 
@@ -81,6 +82,8 @@ public class LevelStrategy extends BaseStrategy{
 
     private Deque<BigDecimal> queue = new ConcurrentLinkedDeque<>();
 
+    private AtomicDouble forecast = new AtomicDouble(0);
+
     public LevelStrategy(StrategyService strategyService, Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                          DepthService depthService, UserInfoService userInfoService,  XChangeService xChangeService) {
         super(strategy, orderService, orderMapper, tradeService, depthService, xChangeService);
@@ -107,6 +110,31 @@ public class LevelStrategy extends BaseStrategy{
                 actionLevel("schedule", queue.pollLast(), null);
             }
         }, 5000, 10, TimeUnit.MILLISECONDS);
+
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
+            if (arimaPrices.size() > 0){
+                try {
+                    double[] prices = arimaPrices.stream().mapToDouble(d -> d).toArray();
+
+                    double[] pricesDelta = new double[prices.length - 1];
+                    for (int i = 0; i < prices.length - 1; ++i){
+                        pricesDelta[i] = prices[i+1]/prices[i] - 1;
+                    }
+
+                    double f = new DefaultArimaForecaster(ArimaFitter.fit(pricesDelta, 4, 4, 2), pricesDelta).next();
+
+                    double p = prices[prices.length -1] * (f + 1);
+
+                    if (!Double.isNaN(p)) {
+                        forecast.set(p);
+                    } else {
+                        forecast.set(Double.isNaN(p) ? 0 : p > 0 ? 1 : -1);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }, 5000, 1000, TimeUnit.MILLISECONDS);
     }
 
     private void pushOrders(BigDecimal price){
@@ -192,12 +220,6 @@ public class LevelStrategy extends BaseStrategy{
             action(key, price, orderType, 0);
 
             lastAction.set(price);
-
-            arimaPrices.add(price.doubleValue());
-
-            if (arimaPrices.size() > 50000){
-                arimaPrices.removeFirst();
-            }
         } catch (Exception e) {
             log.error("error actionLevel", e);
         }
@@ -208,35 +230,13 @@ public class LevelStrategy extends BaseStrategy{
 
     private BigDecimal balanceValue = new BigDecimal("1");
 
-    private AtomicDouble forecast = new AtomicDouble(0);
-
     protected boolean getSpotBalance(){
         if (System.currentTimeMillis() - lastBalanceTime.get() >= 1000){
             String[] symbol = strategy.getSymbol().split("/");
             BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[0]);
             BigDecimal subtotalCny = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[1]);
 
-            BigDecimal price = lastAction.get();
-
-            if (arimaPrices.size() > 0){
-                double[] prices = arimaPrices.stream().mapToDouble(d -> d).toArray();
-                double[] pricesDelta = new double[prices.length - 1];
-
-                for (int i = 0; i < prices.length - 1; ++i){
-                    pricesDelta[i] = prices[i+1]/prices[i] - 1;
-                }
-
-                double f = new DefaultArimaForecaster(ArimaFitter.fit(pricesDelta, 4, 4, 2), pricesDelta).next();
-                double p = prices[prices.length -1] * (f + 1);
-
-                if (!Double.isNaN(p) && Math.abs(p) <= 10000) {
-                    price = BigDecimal.valueOf(p);
-
-                    forecast.set(p);
-                } else {
-                    forecast.set(Double.isNaN(p) ? 0 : p > 0 ? 1 : -1);
-                }
-            }
+            BigDecimal price = forecast.get() > 1 ? BigDecimal.valueOf(forecast.get()) : lastAction.get();
 
             balance.set(subtotalCny.divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(balanceValue) > 0);
             lastBalanceTime.set(System.currentTimeMillis());
@@ -302,6 +302,9 @@ public class LevelStrategy extends BaseStrategy{
 
     private BigDecimal amountRange = new BigDecimal(14);
 
+    private BigDecimal A_MAX = new BigDecimal("0.02");
+    private BigDecimal A_MIN = new BigDecimal("0.01");
+
     private void action(String key, BigDecimal price, OrderType orderType, int priceLevel) {
         try {
             boolean up = getSpotBalance();
@@ -323,11 +326,14 @@ public class LevelStrategy extends BaseStrategy{
 //                double max = Math.max(q1, q2);
 //                double min = Math.min(q1, q2);
 
-                double max = random.nextGaussian()/2 + 2;
-                double min = random.nextGaussian()/2 + 1;
+//                double max = random.nextGaussian()/2 + 2;
+//                double min = random.nextGaussian()/2 + 1;
 
-                BigDecimal buyAmount = strategy.getLevelLot().multiply(BigDecimal.valueOf(up ? max : min));
-                BigDecimal sellAmount = strategy.getLevelLot().multiply(BigDecimal.valueOf(up ? min : max));
+//                BigDecimal buyAmount = strategy.getLevelLot().multiply(BigDecimal.valueOf(up ? max : min));
+//                BigDecimal sellAmount = strategy.getLevelLot().multiply(BigDecimal.valueOf(up ? min : max));
+
+                BigDecimal buyAmount = up ? A_MAX : A_MIN;
+                BigDecimal sellAmount = up ? A_MIN : A_MAX;
 
                 //slip
                 if (lastBuyPrice.get().compareTo(ZERO) > 0 && buyPrice.compareTo(lastBuyPrice.get()) < 0){
@@ -383,6 +389,12 @@ public class LevelStrategy extends BaseStrategy{
                 lastPrice.set(trade.getPrice());
 
                 queue.add(trade.getPrice());
+
+                arimaPrices.add(trade.getPrice().doubleValue());
+
+                if (arimaPrices.size() > 50000){
+                    arimaPrices.removeFirst();
+                }
 
 //                standardDeviation.add(trade.getPrice().doubleValue());
             }
