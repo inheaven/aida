@@ -1,7 +1,7 @@
 package ru.inhell.aida.algo.arima;
 
 class StationarityTest {
-    private static final double STATIONARITY_THRESHOLD = 0.05;
+    private static final double STATIONARITY_THRESHOLD = 1E-5;
 
     public static Result test(double[] observations, Result previousResult) {
         // TODO (improvement): also check variation stationarity.
@@ -48,7 +48,7 @@ class StationarityTest {
         double stationarityEstimation = c1 / c2;
         boolean stationary = stationarityEstimation < STATIONARITY_THRESHOLD;
         if (!stationary && previousResult != null) {
-            stationary = Math.abs(stationarityEstimation - previousResult.stationarityEstimation) < 0.01;
+            stationary = Math.abs(stationarityEstimation - previousResult.stationarityEstimation) < STATIONARITY_THRESHOLD/10;
         }
         return new Result(stationary, mean, stationarityEstimation);
     }

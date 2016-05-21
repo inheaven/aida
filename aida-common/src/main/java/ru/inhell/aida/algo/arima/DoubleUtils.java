@@ -8,7 +8,7 @@ import java.util.Arrays;
 
 final class DoubleUtils {
     public static final double[] EMPTY_DOUBLE_ARRAY = new double[0];
-    public static final double EQUALITY_EPSILON = 1E-10;
+    public static final double EQUALITY_EPSILON = 1E-5;
 
     private DoubleUtils() {
     }

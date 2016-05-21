@@ -57,8 +57,8 @@ public class LevelBacktest {
     }
 
     public static void main(String[] args){
-        Date startDate = Date.from(LocalDateTime.of(2016, 5, 16, 20, 8, 0).atZone(ZoneId.systemDefault()).toInstant());
-        Date endDate = Date.from(LocalDateTime.of(2016, 5, 17, 21, 8, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date startDate = Date.from(LocalDateTime.of(2016, 5, 20, 9, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date endDate = Date.from(LocalDateTime.of(2016, 5, 21, 9, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
 
         TradeMapper tradeMapper = Module.getInjector().getInstance(TradeMapper.class);
 
@@ -80,8 +80,8 @@ public class LevelBacktest {
             for (int i2 = 1; i2 <= 10; ++i2) {
                 for (int i1 = 1; i1 <= 10; ++i1) {
                     for (int i0 = 1; i0 <= 10; ++i0) {
-                        levelBacktestList.add(new LevelBacktest(17650, 60000, 20, 50000, 0.10, 0, 1, 0, 1000, 1, 1000, 300000, false, i0, i1, i2, 50000, 1, 2, null, BID));
-                        levelBacktestList.add(new LevelBacktest(17650, 60000, 20, 50000, 0.10, 0, 1, 0, 1000, 1, 1000, 300000, false, i0, i1, i2, 50000, 1, 2, null, ASK));
+                        levelBacktestList.add(new LevelBacktest(17680, 60000, 20, 50000, 0.10, 0, 1, 0, 1000, 1, 50000, 300000, false, i0, i1, i1, 50000, 1, 2, null, 1, BID));
+                        levelBacktestList.add(new LevelBacktest(17680, 60000, 20, 50000, 0.10, 0, 1, 0, 1000, 1, 50000, 300000, false, i0, i1, i1, 50000, 1, 2, null, 1, ASK));
                     }
                 }
             }
@@ -200,6 +200,7 @@ public class LevelBacktest {
     private boolean slip;
 
     private int p, d, q, arimaSize, arimaNext, arimaFilter;
+    private double arimaCoef;
     private ArimaProcess arimaProcess;
 
     private OrderDoubleMap orderMap = new OrderDoubleMap();
@@ -222,7 +223,7 @@ public class LevelBacktest {
     private LevelBacktest(double initialTotal, long cancelDelay, double cancelRange, int spreadSize, double spreadFixed,
                           double spreadDiv, double amountLot, int amountRange, int balanceDelay, double balanceValue,
                           long tradeDelay, long metricDelay, boolean slip, int p, int d, int q, int arimaSize, int arimaNext,
-                          int arimaFilter, ArimaProcess arimaProcess, OrderType orderType) {
+                          int arimaFilter, ArimaProcess arimaProcess, double arimaCoef, OrderType orderType) {
         this.initialTotal = initialTotal;
 
         this.cancelDelay = cancelDelay;
@@ -242,6 +243,7 @@ public class LevelBacktest {
         this.d = d;
         this.q = q;
         this.arimaSize = arimaSize;
+        this.arimaCoef = arimaCoef;
         this.arimaNext = arimaNext;
         this.arimaFilter = arimaFilter;
         this.arimaProcess = arimaProcess;
@@ -297,6 +299,8 @@ public class LevelBacktest {
             return true;
         }
 
+        double forecast = 0;
+
         if (lastBalanceTime == 0 || trade.getCreated().getTime() - lastBalanceTime > balanceDelay){
             double price = trade.getPrice().doubleValue();
 
@@ -319,7 +323,7 @@ public class LevelBacktest {
                     t.process = ArimaFitter.fit(train, p, d, q);
 
                     double check = prices[prices.length - 1]/prices[prices.length - 2] - 1;
-                    double forecast =  new DefaultArimaForecaster(t.process, train).next();
+                    forecast =  new DefaultArimaForecaster(t.process, train).next();
                     t.check = check*forecast > 0 && Math.abs(forecast) > Math.abs(check);
 
                     if (t.check) {
@@ -358,13 +362,7 @@ public class LevelBacktest {
                         prices = arimaPriceQueue.stream().mapToDouble(d -> d).toArray();
                     }
 
-                    price = new DefaultArimaForecaster(arimaProcess != null ? arimaProcess : fit(prices, p, d, q), prices).next(arimaNext)[arimaNext - 1];
-
-                    if (arimaFilter == 1) {
-                        price = Math.exp(price);
-                    } else if (arimaFilter == 2) {
-                        price = trade.getPrice().doubleValue() * (price + 1);
-                    }
+                    forecast = new DefaultArimaForecaster(arimaProcess != null ? arimaProcess : fit(prices, p, d, q), prices).next(arimaNext)[arimaNext - 1];
                 }
 
                 //error
@@ -376,7 +374,7 @@ public class LevelBacktest {
                 }
             }
 
-            balance = subtotalCny / (subtotalBtc * price) > balanceValue;
+            balance = subtotalCny / (subtotalBtc * price) > balanceValue*(1 - forecast);
 
             lastBalanceTime = trade.getCreated().getTime();
         }
@@ -654,6 +652,7 @@ public class LevelBacktest {
                 arimaFilter + " " +
                 (arimaProcess != null) + " " +
                 arimaError + " " +
+                arimaCoef + " " +
                 orderType;
     }
 }

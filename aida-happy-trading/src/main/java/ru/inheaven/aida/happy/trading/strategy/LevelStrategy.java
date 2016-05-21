@@ -60,7 +60,7 @@ public class LevelStrategy extends BaseStrategy{
     private final static BigDecimal BD_0_002 = new BigDecimal("0.002");
     private final static BigDecimal BD_1_1 = new BigDecimal("1.1");
     private final static BigDecimal BD_1_2 = new BigDecimal("1.2");
-    private final static BigDecimal BD_1_3 = new BigDecimal("1.3");
+    private final static BigDecimal BD_1_33 = new BigDecimal("1.33");
 
     private final static BigDecimal BD_2 = new BigDecimal(2);
     private final static BigDecimal BD_2_5 = new BigDecimal("2.5");
@@ -121,16 +121,10 @@ public class LevelStrategy extends BaseStrategy{
                         pricesDelta[i] = prices[i+1]/prices[i] - 1;
                     }
 
-                    double f = new DefaultArimaForecaster(ArimaFitter.fit(pricesDelta, 4, 4, 2), pricesDelta).next();
-
-                    double p = prices[prices.length -1] * (f + 1);
-
-                    if (!Double.isNaN(p)) {
-                        forecast.set(p);
-                    } else {
-                        forecast.set(Double.isNaN(p) ? 0 : p > 0 ? 1 : -1);
-                    }
+                    double f = new DefaultArimaForecaster(ArimaFitter.fit(pricesDelta, 4, 2, 2), pricesDelta).next();
+                    forecast.set(f);
                 } catch (Exception e) {
+                    forecast.set(0);
                     e.printStackTrace();
                 }
             }
@@ -228,17 +222,15 @@ public class LevelStrategy extends BaseStrategy{
     private AtomicLong lastBalanceTime = new AtomicLong(System.currentTimeMillis());
     private AtomicBoolean balance = new AtomicBoolean(true);
 
-    private BigDecimal balanceValue = new BigDecimal("1");
-
     protected boolean getSpotBalance(){
         if (System.currentTimeMillis() - lastBalanceTime.get() >= 1000){
             String[] symbol = strategy.getSymbol().split("/");
             BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[0]);
             BigDecimal subtotalCny = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[1]);
 
-            BigDecimal price = forecast.get() > 1 ? BigDecimal.valueOf(forecast.get()) : lastAction.get();
+            BigDecimal balanceValue = forecast.get() != 0 ? BigDecimal.valueOf(1 - forecast.get()): ONE;
 
-            balance.set(subtotalCny.divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(balanceValue) > 0);
+            balance.set(subtotalCny.divide(subtotalBtc.multiply(lastAction.get()), 8, HALF_EVEN).compareTo(balanceValue) > 0);
             lastBalanceTime.set(System.currentTimeMillis());
         }
 
