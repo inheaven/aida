@@ -37,6 +37,7 @@ public class Order extends AbstractEntity {
     private BigDecimal spread;
 
     private BigDecimal profit;
+    private double forecast;
 
     private volatile Long accountId;
 
@@ -283,6 +284,14 @@ public class Order extends AbstractEntity {
 
     public void setSpread(BigDecimal spread) {
         this.spread = spread;
+    }
+
+    public double getForecast() {
+        return forecast;
+    }
+
+    public void setForecast(double forecast) {
+        this.forecast = forecast;
     }
 
     @Override

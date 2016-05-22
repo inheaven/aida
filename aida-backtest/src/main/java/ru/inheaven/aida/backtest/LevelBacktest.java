@@ -15,6 +15,7 @@ import ru.inheaven.aida.happy.trading.entity.Trade;
 import ru.inheaven.aida.happy.trading.mapper.TradeMapper;
 import ru.inheaven.aida.happy.trading.service.Module;
 import ru.inheaven.aida.happy.trading.util.OrderDoubleMap;
+import ru.inheaven.aida.happy.trading.util.QuranRandom;
 import ru.inhell.aida.algo.arima.ArimaFitter;
 import ru.inhell.aida.algo.arima.ArimaProcess;
 import ru.inhell.aida.algo.arima.DefaultArimaForecaster;
@@ -57,12 +58,12 @@ public class LevelBacktest {
     }
 
     public static void main(String[] args){
-        Date startDate = Date.from(LocalDateTime.of(2016, 5, 20, 9, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
-        Date endDate = Date.from(LocalDateTime.of(2016, 5, 21, 9, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date startDate = Date.from(LocalDateTime.of(2016, 5, 20, 18, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date endDate = Date.from(LocalDateTime.of(2016, 5, 22, 18, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
 
         TradeMapper tradeMapper = Module.getInjector().getInstance(TradeMapper.class);
 
-        List<Trade> trades = tradeMapper.getLightTrades("BTC/CNY", startDate, endDate, 0, 2000000);
+        List<Trade> trades = tradeMapper.getLightTrades("BTC/CNY", startDate, endDate, 0, 3000000);
 
         System.out.println("trade size: " + trades.size() + "\n");
 
@@ -71,23 +72,23 @@ public class LevelBacktest {
         System.out.println("LevelBacktest startDate: " + startDate + ", endDate: " + endDate + "\n");
 
         //base
-//        levelBacktestList.add(new LevelBacktest(17650, 60000, 20, 50000, 0, 8.45, 0.022, 0, 59000, 1, 500, 300000, false, 3, 1, 2, 50000, 1, 2, null, null));
-//        levelBacktestList.add(new LevelBacktest(17650, 60000, 20, 50000, 0, 8.45, 0.022, 0, 59000, 1, 500, 300000, false, 4, 1, 1, 50000, 1, 2, null, null));
-//        levelBacktestList.add(new LevelBacktest(17650, 60000, 20, 50000, 0, 8.45, 0.022, 0, 59000, 1, 500, 300000, false, 8, 1, 1, 50000, 1, 2, null, null));
+//        levelBacktestList.add(new LevelBacktest(17680, 60000, 20, 50000, 0, 8.45, 0.022, 0, 59000, 1, 500, 300000, false, 3, 1, 2, 50000, 1, 2, null, 1, null));
+//        levelBacktestList.add(new LevelBacktest(17680, 60000, 20, 50000, 0, 8.45, 0.022, 0, 59000, 1, 500, 300000, false, 4, 1, 1, 50000, 1, 2, null, 1, null));
+//        levelBacktestList.add(new LevelBacktest(17680, 60000, 20, 50000, 0, 8.45, 0.022, 0, 59000, 1, 500, 300000, false, 8, 1, 8, 50000, 1, 2, null, 1, null));
 
         //optimize
         for (int i3 = 1; i3 <= 1; ++i3){
-            for (int i2 = 1; i2 <= 10; ++i2) {
-                for (int i1 = 1; i1 <= 10; ++i1) {
-                    for (int i0 = 1; i0 <= 10; ++i0) {
-                        levelBacktestList.add(new LevelBacktest(17680, 60000, 20, 50000, 0.10, 0, 1, 0, 1000, 1, 50000, 300000, false, i0, i1, i1, 50000, 1, 2, null, 1, BID));
-                        levelBacktestList.add(new LevelBacktest(17680, 60000, 20, 50000, 0.10, 0, 1, 0, 1000, 1, 50000, 300000, false, i0, i1, i1, 50000, 1, 2, null, 1, ASK));
+            for (int i2 = 0; i2 <= 0; ++i2) {
+                for (int i1 = 1; i1 <= 1; ++i1) {
+                    for (int i0 = 1; i0 <= 1; ++i0) {
+                        levelBacktestList.add(new LevelBacktest(10400, 60000, 10, 10000, 0, 2.5, 0.01, 0, 30000, 2, 200, 300000, false, 0, 0, 0, 0, 0, 0, null, 0, null));
+//                        levelBacktestList.add(new LevelBacktest(17680, 60000, 20, 50000, 0.1, 0, 0.022, 0, 1000, 1, 1000, 300000, false, i0, i1, i2, 50000, 1, 2, null, 1, ASK));
                     }
                 }
             }
         }
 
-        ExecutorService executorService = Executors.newFixedThreadPool(2);
+        ExecutorService executorService = Executors.newFixedThreadPool(3);
 
         List<Future> futures = new ArrayList<>();
 
@@ -522,10 +523,6 @@ public class LevelBacktest {
         double p = trade.getPrice().doubleValue();
         double spread = getSpread(trade);
 
-        if (Math.abs(lastActionPrice - p) < spread/2){
-            return;
-        }
-
         boolean up = isBalance(trade);
 
         double buyPrice = up ? p : p - spread;
@@ -535,14 +532,14 @@ public class LevelBacktest {
             double buyAmount;
             double sellAmount;
 
-//            double q1 = QuranRandom.nextDouble();
-//            double q2 = QuranRandom.nextDouble();
+//            double q1 = QuranRandom.nextDouble()*2;
+//            double q2 = QuranRandom.nextDouble()*2;
 //
 //            double max = Math.max(q1, q2);
 //            double min = Math.min(q1, q2);
 
-            double max = 0.02;
-            double min = 0.01;
+            double max = random.nextGaussian()/2 + 2;
+            double min = random.nextGaussian()/2 + 1;
 
             if (amountLot == 0 ){
                 //amount range
@@ -557,11 +554,13 @@ public class LevelBacktest {
             }
 
             //slip
-            if (lastBuyPrice > 0 && (slip || buyPrice < lastBuyPrice)){
-                buyAmount = buyAmount * Math.abs(lastBuyPrice - buyPrice) / spread;
-            }
-            if (lastSellPrice > 0 && (slip || sellPrice > lastSellPrice)){
-                sellAmount = sellAmount * Math.abs(sellPrice - lastSellPrice) / spread;
+            if (slip) {
+                if (lastBuyPrice > 0 && buyPrice < lastBuyPrice){
+                    buyAmount = buyAmount * Math.abs(lastBuyPrice - buyPrice) / spread;
+                }
+                if (lastSellPrice > 0 && sellPrice > lastSellPrice){
+                    sellAmount = sellAmount * Math.abs(sellPrice - lastSellPrice) / spread;
+                }
             }
 
             lastBuyPrice = buyPrice;
@@ -624,10 +623,12 @@ public class LevelBacktest {
     
     private String getStringRow(){
         DecimalFormat df = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+        DecimalFormat df3 = new DecimalFormat("0.000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
         
         return  df.format(subtotalBtc * lastTradePrice.doubleValue() + subtotalCny - initialTotal) + " " +
                 df.format(getProfit(lastTradePrice.doubleValue())) + " " +
                 df.format(100*getProfit(lastTradePrice.doubleValue())/ initialTotal) + "% " +
+                df.format(initialTotal) + " " +
                 df.format(subtotalCny) + " " +
                 df.format(subtotalBtc) + " " +
                 cancelDelay + " " +
@@ -635,7 +636,7 @@ public class LevelBacktest {
                 spreadSize + " " +
                 spreadFixed + " " +
                 spreadDiv + " " +
-                amountLot + " " +
+                df3.format(amountLot) + " " +
                 amountRange + " " +
                 balanceDelay + " " +
                 balanceValue + " " +

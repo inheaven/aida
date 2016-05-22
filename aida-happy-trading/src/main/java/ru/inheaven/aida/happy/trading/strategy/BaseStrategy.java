@@ -609,7 +609,7 @@ public class BaseStrategy {
                     scale(userInfoService.getVolume("subtotal", strategy.getAccount().getId(), "CNY")),
                     userInfoService.getVolume("total", strategy.getAccount().getId(), null),
                     o.getProfit() != null ? o.getProfit().setScale(3, HALF_EVEN) : "",
-                    BigDecimal.valueOf(getForecast()*100).setScale(3, HALF_EVEN) + "%",
+                    BigDecimal.valueOf(o.getForecast()*100).setScale(3, HALF_EVEN) + "%",
                     getSpotBalance() ? "↑" : "↓",
                     Objects.toString(o.getText(), ""),
                     Objects.toString(o.getSymbolType(), ""));
