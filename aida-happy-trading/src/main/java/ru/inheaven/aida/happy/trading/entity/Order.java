@@ -38,6 +38,7 @@ public class Order extends AbstractEntity {
 
     private BigDecimal profit;
     private double forecast;
+    private boolean balance;
 
     private volatile Long accountId;
 
@@ -292,6 +293,14 @@ public class Order extends AbstractEntity {
 
     public void setForecast(double forecast) {
         this.forecast = forecast;
+    }
+
+    public boolean isBalance() {
+        return balance;
+    }
+
+    public void setBalance(boolean balance) {
+        this.balance = balance;
     }
 
     @Override
