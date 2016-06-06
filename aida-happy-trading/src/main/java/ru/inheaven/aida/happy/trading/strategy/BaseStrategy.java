@@ -160,21 +160,27 @@ public class BaseStrategy {
 
                         onTrade(t);
                     } catch (Exception e) {
-                        log.error("error on trader -> ", e);
+                        log.error("error onTrade", e);
                     }
                 });
 
         orderSubscription = orderObservable
-                .filter(o -> orderMap.contains(o.getOrderId()) ||
+                .filter(o -> o.getOrderId() != null && orderMap.contains(o.getOrderId()) ||
                         (o.getInternalId() != null && orderMap.contains(o.getInternalId())))
-                .subscribe(this::onOrder);
+                .subscribe(o -> {
+                    try {
+                        onOrder(o);
+                    } catch (Exception e) {
+                        log.error("error onOrder");
+                    }
+                });
 
         realTradeSubscription = orderObservable
                 .subscribe(o -> {
                     try {
                         onRealTrade(o);
                     } catch (Exception e) {
-                        log.error("error on real trade -> ", e);
+                        log.error("error onRealTrade", e);
                     }
                 });
 
@@ -182,7 +188,7 @@ public class BaseStrategy {
             try {
                 onDepth(d);
             } catch (Exception e) {
-                log.error("error on depth -> ", e);
+                log.error("error onDepth", e);
             }
         });
 

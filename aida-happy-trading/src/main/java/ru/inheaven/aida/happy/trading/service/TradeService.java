@@ -33,8 +33,6 @@ public class TradeService {
 
         tradeObservable.subscribe(tradeMapper::asyncSave);
 
-        tradeObservable.subscribe(t -> broadcastService.broadcast(getClass(), "trade", t));
-
 //        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
 //            BigDecimal bid = tradeMapper.getTradeStdDevPtType("BTC/CNY", 50000, OrderType.BID);
 //            stdDevMap.put("bid", bid);

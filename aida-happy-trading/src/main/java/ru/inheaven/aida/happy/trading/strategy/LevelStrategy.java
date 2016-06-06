@@ -127,7 +127,7 @@ public class LevelStrategy extends BaseStrategy{
 
                     //f = p1/p0 - 1 -> p1 = (f + 1)*p0
                     ArimaProcess process = strategy.isLevelInverse()
-                            ? ArimaFitter.fit(pricesDelta, 4, 6, 10)
+                            ? ArimaFitter.fit(pricesDelta, 4, 1, 10)
                             : ArimaFitter.fit(pricesDelta, 5, 1, 3);
 
                     double f = new DefaultArimaForecaster(process, pricesDelta).next();
@@ -136,7 +136,7 @@ public class LevelStrategy extends BaseStrategy{
                         if (Math.abs(f) < 1) {
                             forecast.set(prices[prices.length-1]*(f + 1));
                         }else{
-                            forecast.set(prices[prices.length-1]*Math.signum(f));
+                            forecast.set(prices[prices.length-1]*(0.1*Math.signum(f) + 1));
                         }
                     }else{
                         forecast.set(0);
@@ -412,14 +412,15 @@ public class LevelStrategy extends BaseStrategy{
 
                 queue.add(trade.getPrice());
 
+                double price = trade.getPrice().doubleValue();
+
                 //spread
-                spreadPrices.add(trade.getPrice().doubleValue());
+                spreadPrices.add(price);
                 if (spreadPrices.size() > 5000){
                     spreadPrices.removeFirst();
                 }
 
                 //arima
-                double price = trade.getPrice().doubleValue();
                 if (arimaPrices.isEmpty() || Math.abs(arimaPrices.peekLast() - price) > 1) {
                     arimaPrices.add(price);
                     if (arimaPrices.size() > 10000){

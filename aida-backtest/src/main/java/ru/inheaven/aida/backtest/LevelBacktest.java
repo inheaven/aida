@@ -58,8 +58,8 @@ public class LevelBacktest {
     }
 
     public static void main(String[] args){
-        Date startDate = Date.from(LocalDateTime.of(2016, 5, 30, 11, 35, 0).atZone(ZoneId.systemDefault()).toInstant());
-        Date endDate = Date.from(LocalDateTime.of(2016, 5, 30, 12, 35, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date startDate = Date.from(LocalDateTime.of(2016, 6, 5, 0, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date endDate = Date.from(LocalDateTime.of(2016, 6, 6, 0, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
 
         TradeMapper tradeMapper = Module.getInjector().getInstance(TradeMapper.class);
 
@@ -72,19 +72,19 @@ public class LevelBacktest {
         System.out.println("LevelBacktest startDate: " + startDate + ", endDate: " + endDate + "\n");
 
         //base
-        levelBacktestList.add(new LevelBacktest(9200, 60000, 20, 50000, 0, 8.45, 0.022, 0, 59000, 1, 500, 300000, false, 3, 1, 2, 50000, 1, 2, null, 1, null));
-        levelBacktestList.add(new LevelBacktest(9200, 60000, 20, 50000, 0, 8.45, 0.022, 0, 59000, 1, 500, 300000, false, 4, 1, 1, 50000, 1, 2, null, 1, null));
-        levelBacktestList.add(new LevelBacktest(9200, 60000, 20, 50000, 0, 8.45, 0.011, 0, 59000, 1, 500, 300000, false, 8, 1, 8, 50000, 1, 2, null, 1, null));
+        levelBacktestList.add(new LevelBacktest(10100, 60000, 20, 50000, 0, 8.45, 0.022, 0, 59000, 1, 500, 300000, false, 3, 1, 2, 50000, 1, 2, null, 1, null));
+        levelBacktestList.add(new LevelBacktest(10100, 60000, 20, 50000, 0, 8.45, 0.022, 0, 59000, 1, 500, 300000, false, 4, 1, 1, 50000, 1, 2, null, 1, null));
+        levelBacktestList.add(new LevelBacktest(10100, 60000, 20, 50000, 0, 8.45, 0.011, 0, 59000, 1, 500, 300000, false, 8, 1, 8, 50000, 1, 2, null, 1, null));
 
         Random random = new SecureRandom();
 
         //optimize
         for (int i3 = 1; i3 <= 1; ++i3){
-            for (int i2 = 1; i2 <= 10; ++i2) {
-                for (int i1 = 0; i1 <= 10; ++i1) {
-                    for (int i0 = 1; i0 <= 1; ++i0) {
-//                        levelBacktestList.add(new LevelBacktest(9200, 60000, 20, 10000, 0, 2.5, 0.011, 0, 1000, 1, 150, 300000, false, i0, i1, i2, 10000, 1, 2, null, 1, BID));
-                        levelBacktestList.add(new LevelBacktest(9200, 60000, 20, 5000, 0, 2.5, 0.011, 0, 1000, 1, 150, 300000, false, 4, i1, i2, 10000, 1, 2, null, 1, ASK));
+            for (int i2 = 1; i2 <= 1; ++i2) {
+                for (int i1 = 0; i1 <= 0; ++i1) {
+                    for (int i0 = 1; i0 <= 100; ++i0) {
+                        levelBacktestList.add(new LevelBacktest(10100, 60000, 20, 5000, 0, 2 + i0*0.1, 0.011, 0, 1000, 1, 150, 300000, false, 5, 1, 3, 10000, 1, 2, null, 1, BID));
+                        levelBacktestList.add(new LevelBacktest(10100, 60000, 20, 5000, 0, 2 + i0*0.1, 0.011, 0, 1000, 1, 150, 300000, false, 4, 1, 10, 10000, 1, 2, null, 1, ASK));
 //                        levelBacktestList.add(new LevelBacktest(9200, 60000, 20, 10000, 0, 2.5, 0.011, 0, 1000, 1, 150, 300000, false, 4, 1, 1, 1000*i0, 1, 2, null, 1, BID));
 //                        levelBacktestList.add(new LevelBacktest(9200, 60000, 20, 10000, 0, 2.5, 0.011, 0, 1000, 1, 150, 300000, false, 4, 1, 1, 1000*i0, 1, 2, null, 1, ASK));
                     }
