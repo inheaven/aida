@@ -30,13 +30,14 @@ public class TradeRequestCreator {
 		return message;
 	}
 
-    public NewOrderSingle createNewOrderSingle(String clOrdId, char side, char ordType, BigDecimal orderQty,
-                                               BigDecimal price, String symbol) {
+    @SuppressWarnings("Duplicates")
+	public NewOrderSingle createNewOrderSingle(String clOrdId, char side, char ordType, BigDecimal orderQty,
+											   BigDecimal price, String symbol) {
 		NewOrderSingle message = new NewOrderSingle(new ClOrdID(clOrdId), new Side(side), new TransactTime(new Date()),
 				new OrdType(ordType));
 		message.set(new Account(account));
-		message.set(new OrderQty(orderQty));
-		message.set(new Price(price));
+		message.set(new OrderQty(orderQty.doubleValue()));
+		message.set(new Price(price.doubleValue()));
 		message.set(new Symbol(symbol));
 
 		return message;

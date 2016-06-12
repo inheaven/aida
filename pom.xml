@@ -461,7 +461,7 @@
             <dependency>
                 <groupId>io.reactivex</groupId>
                 <artifactId>rxjava</artifactId>
-                <version>1.0.14</version>
+                <version>1.1.5</version>
             </dependency>
             <dependency>
                 <groupId>io.reactivex</groupId>
@@ -545,22 +545,22 @@
 
             <!--QuickFixJ-->
             <dependency>
-                <groupId>quickfixj</groupId>
+                <groupId>org.quickfixj</groupId>
                 <artifactId>quickfixj-core</artifactId>
-                <version>1.5.3-bd</version>
+                <version>1.6.2</version>
             </dependency>
             <dependency>
-                <groupId>quickfixj</groupId>
+                <groupId>org.quickfixj</groupId>
                 <artifactId>quickfixj-messages-fix44</artifactId>
-                <version>1.6.1</version>
+                <version>1.6.2</version>
             </dependency>
-            <dependency>
-                <groupId>quickfixj</groupId>
+           <!-- <dependency>
+                <groupId>org.quickfixj</groupId>
                 <artifactId>quickfixj-msg-fix44</artifactId>
-                <version>1.5.3-bd</version>
-            </dependency>
+                <version>1.6.2</version>
+            </dependency>-->
 
-            <dependency>
+            <!--<dependency>
                 <groupId>org.apache.mina</groupId>
                 <artifactId>mina-core</artifactId>
                 <version>1.1.7</version>
@@ -569,7 +569,7 @@
                 <groupId>org.apache.mina</groupId>
                 <artifactId>mina-filter-ssl</artifactId>
                 <version>1.1.7</version>
-            </dependency>
+            </dependency>-->
 
             <!--Hibernate-->
             <dependency>

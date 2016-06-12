@@ -204,17 +204,17 @@ public class OKCoinApplication extends MessageCracker implements Application {
             order.setInternalId(message.getClOrdID().getValue().replace("\\", ""));
         }
 
-        order.setAvgPrice(message.getAvgPx().getValue());
+        order.setAvgPrice(BigDecimal.valueOf(message.getAvgPx().getValue()));
 
         if (message.isSetPrice()) {
-            order.setPrice(message.getPrice().getValue());
+            order.setPrice(BigDecimal.valueOf(message.getPrice().getValue()));
         }
 
 		if (message.isSetText()){
             order.setText(message.getText().getValue() + " " + sessionId.getSenderCompID());
         }
 
-        order.setAmount(message.getOrderQty().getValue());
+        order.setAmount(BigDecimal.valueOf(message.getOrderQty().getValue()));
 
         order.setType(message.getSide().getValue() == Side.BUY ? OrderType.BID : OrderType.ASK);
 

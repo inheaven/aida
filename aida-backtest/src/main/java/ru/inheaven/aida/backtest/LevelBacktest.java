@@ -15,10 +15,6 @@ import ru.inheaven.aida.happy.trading.entity.Trade;
 import ru.inheaven.aida.happy.trading.mapper.TradeMapper;
 import ru.inheaven.aida.happy.trading.service.Module;
 import ru.inheaven.aida.happy.trading.util.OrderDoubleMap;
-import ru.inheaven.aida.happy.trading.util.QuranRandom;
-import ru.inhell.aida.algo.arima.ArimaFitter;
-import ru.inhell.aida.algo.arima.ArimaProcess;
-import ru.inhell.aida.algo.arima.DefaultArimaForecaster;
 import ru.inhell.aida.algo.func.StdDev;
 
 import javax.swing.*;
@@ -44,8 +40,8 @@ import static ru.inhell.aida.algo.arima.ArimaFitter.fit;
 /**
  * inheaven on 04.05.2016.
  */
-public class LevelBacktest {
-    private class Metric{
+public class LevelBacktest<P> {
+    static class Metric{
         private double price;
         private double total;
         private Date date;
@@ -57,13 +53,13 @@ public class LevelBacktest {
         }
     }
 
-    public static void main(String[] args){
-        Date startDate = Date.from(LocalDateTime.of(2016, 6, 5, 0, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
-        Date endDate = Date.from(LocalDateTime.of(2016, 6, 6, 0, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+    protected void start(){
+        Date startDate = Date.from(LocalDateTime.of(2016, 6, 11, 8, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date endDate = Date.from(LocalDateTime.of(2016, 6, 12, 8, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
 
         TradeMapper tradeMapper = Module.getInjector().getInstance(TradeMapper.class);
 
-        List<Trade> trades = tradeMapper.getLightTrades("BTC/CNY", startDate, endDate, 0, 3000000);
+        List<Trade> trades = tradeMapper.getLightTrades("BTC/CNY", startDate, endDate, 0, 10000000);
 
         System.out.println("trade size: " + trades.size() + "\n");
 
@@ -72,31 +68,36 @@ public class LevelBacktest {
         System.out.println("LevelBacktest startDate: " + startDate + ", endDate: " + endDate + "\n");
 
         //base
-        levelBacktestList.add(new LevelBacktest(10100, 60000, 20, 50000, 0, 8.45, 0.022, 0, 59000, 1, 500, 300000, false, 3, 1, 2, 50000, 1, 2, null, 1, null));
-        levelBacktestList.add(new LevelBacktest(10100, 60000, 20, 50000, 0, 8.45, 0.022, 0, 59000, 1, 500, 300000, false, 4, 1, 1, 50000, 1, 2, null, 1, null));
-        levelBacktestList.add(new LevelBacktest(10100, 60000, 20, 50000, 0, 8.45, 0.011, 0, 59000, 1, 500, 300000, false, 8, 1, 8, 50000, 1, 2, null, 1, null));
+//        levelBacktestList.add(new LevelBacktest(10100, 60000, 20, 50000, 0, 8.45, 0.022, 0, 59000, 1, 500, 300000, false, 3, 1, 2, 50000, 1, 2, null, 1, null));
+//        levelBacktestList.add(new LevelBacktest(10100, 60000, 20, 50000, 0, 8.45, 0.022, 0, 59000, 1, 500, 300000, false, 4, 1, 1, 50000, 1, 2, null, 1, null));
+//        levelBacktestList.add(new LevelBacktest(10100, 60000, 20, 50000, 0, 8.45, 0.011, 0, 59000, 1, 500, 300000, false, 8, 1, 8, 50000, 1, 2, null, 1, null));
 
         Random random = new SecureRandom();
 
         //optimize
-        for (int i3 = 1; i3 <= 1; ++i3){
-            for (int i2 = 1; i2 <= 1; ++i2) {
-                for (int i1 = 0; i1 <= 0; ++i1) {
-                    for (int i0 = 1; i0 <= 100; ++i0) {
-                        levelBacktestList.add(new LevelBacktest(10100, 60000, 20, 5000, 0, 2 + i0*0.1, 0.011, 0, 1000, 1, 150, 300000, false, 5, 1, 3, 10000, 1, 2, null, 1, BID));
-                        levelBacktestList.add(new LevelBacktest(10100, 60000, 20, 5000, 0, 2 + i0*0.1, 0.011, 0, 1000, 1, 150, 300000, false, 4, 1, 10, 10000, 1, 2, null, 1, ASK));
-//                        levelBacktestList.add(new LevelBacktest(9200, 60000, 20, 10000, 0, 2.5, 0.011, 0, 1000, 1, 150, 300000, false, 4, 1, 1, 1000*i0, 1, 2, null, 1, BID));
-//                        levelBacktestList.add(new LevelBacktest(9200, 60000, 20, 10000, 0, 2.5, 0.011, 0, 1000, 1, 150, 300000, false, 4, 1, 1, 1000*i0, 1, 2, null, 1, ASK));
-                    }
-                }
-            }
-        }
+//        for (int i3 = 1; i3 <= 1; ++i3){
+//            for (int i2 = 1; i2 <= 1; ++i2) {
+//                for (int i1 = 0; i1 <= 0; ++i1) {
+//                    for (int i0 = 1; i0 <= 100; ++i0) {
+//                        levelBacktestList.add(new LevelBacktest(10100, 60000, 20, 5000, 0, 2 + i0*0.1, 0.011, 0, 1000, 1, 150, 300000, false, 5, 1, 3, 10000, 1, 2, null, 1, BID));
+//                        levelBacktestList.add(new LevelBacktest(10100, 60000, 20, 5000, 0, 2 + i0*0.1, 0.011, 0, 1000, 1, 150, 300000, false, 4, 1, 10, 10000, 1, 2, null, 1, ASK));
+////                        levelBacktestList.add(new LevelBacktest(9200, 60000, 20, 10000, 0, 2.5, 0.011, 0, 1000, 1, 150, 300000, false, 4, 1, 1, 1000*i0, 1, 2, null, 1, BID));
+////                        levelBacktestList.add(new LevelBacktest(9200, 60000, 20, 10000, 0, 2.5, 0.011, 0, 1000, 1, 150, 300000, false, 4, 1, 1, 1000*i0, 1, 2, null, 1, ASK));
+//                    }
+//                }
+//            }
+//        }
 
-        ExecutorService executorService = Executors.newFixedThreadPool(3);
+
+//        for (int i = 0; i <= 100; ++i) {
+//            levelBacktestList.add(new LevelBacktest(13350, 60000, 10, 10000, 0, Math.sqrt(Math.PI * 2), 0.001*i + 0.01, 0, 30000, 2, 10, 300000, false, 0, 0, 0, 0, 0, 0, null, 0, null));
+//        }
+
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
 
         List<Future> futures = new ArrayList<>();
 
-        AtomicDouble bestTotal = new AtomicDouble(0);
+        AtomicDouble bestProfit = new AtomicDouble(0);
 
         levelBacktestList.forEach(l -> {
             Future future = executorService.submit(() -> {
@@ -107,17 +108,19 @@ public class LevelBacktest {
                     trades.forEach(l::action);
 
                     //clear
-                    l.arimaPriceQueue.clear();
+                    l.forecastPriceQueue.clear();
                     l.metrics.clear();
                     if (l.standardDeviation != null) {
                         l.standardDeviation.clear();
                         l.standardDeviation = null;
                     }
 
-                    System.out.println(new Date() + " " + (System.currentTimeMillis() - time)/1000 + "s " + l.getStringRow() + " " +  (l.total - bestTotal.get()));
+                    System.out.println(new Date() + " " + (System.currentTimeMillis() - time)/1000 + "s " + l.getStringRow());
 
-                    if (bestTotal.get() == 0 || l.total > bestTotal.get()){
-                        bestTotal.set(l.total);
+                    if (bestProfit.get() == 0 || l.getProfit(l.lastActionPrice) > bestProfit.get()){
+                        bestProfit.set(l.getProfit(l.lastActionPrice));
+
+//                        System.out.println(new Date() + " " + (System.currentTimeMillis() - time)/1000 + "s " + l.getStringRow());
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -135,7 +138,7 @@ public class LevelBacktest {
             }
         });
 
-        levelBacktestList.sort((l1, l2) -> Double.compare(l2.total, l1.total));
+        levelBacktestList.sort((l1, l2) -> Double.compare(l2.getProfit(l2.lastActionPrice), l1.getProfit(l1.lastActionPrice)));
 
         System.out.println("\n Rank");
 
@@ -147,10 +150,11 @@ public class LevelBacktest {
         XYSeries priceSeries = new XYSeries("price");
         XYSeries totalSeries = new XYSeries("total");
 
-        levelBacktestList.get(0).metrics.forEach(m -> {
-            priceSeries.add(m.date.getTime(), m.price);
-            totalSeries.add(m.date.getTime(), m.total);
-        });
+        //noinspection unchecked
+//        levelBacktestList.get(0).metrics.forEach(m -> {
+//            priceSeries.add(m.date.getTime(), m.price);
+//            totalSeries.add(m.date.getTime(), m.total);
+//        });
 
         XYPlot plot = new XYPlot();
         XYLineAndShapeRenderer renderer1 = new XYLineAndShapeRenderer(true, false);
@@ -204,15 +208,15 @@ public class LevelBacktest {
     private long metricDelay;
     private boolean slip;
 
-    private int p, d, q, arimaSize, arimaNext, arimaFilter;
-    private double arimaCoef;
-    private ArimaProcess arimaProcess;
+    private int forecastSize;
+    private P parameters;
+    private int forecastError;
 
     private OrderDoubleMap orderMap = new OrderDoubleMap();
 
     private StdDev standardDeviation;
 
-    private Deque<Metric> metrics = new LinkedList<>();
+    private Deque<Metric> metrics = new LinkedList<Metric>();
     private double total = 0d;
 
     private double buyPrice = 0d;
@@ -221,14 +225,11 @@ public class LevelBacktest {
     private double sellPrice = 0d;
     private double sellVolume = 0d;
 
-    private int arimaError = 0;
-
     private OrderType orderType;
 
-    private LevelBacktest(double initialTotal, long cancelDelay, double cancelRange, int spreadSize, double spreadFixed,
-                          double spreadDiv, double amountLot, int amountRange, int balanceDelay, double balanceValue,
-                          long tradeDelay, long metricDelay, boolean slip, int p, int d, int q, int arimaSize, int arimaNext,
-                          int arimaFilter, ArimaProcess arimaProcess, double arimaCoef, OrderType orderType) {
+    protected LevelBacktest(double initialTotal, long cancelDelay, double cancelRange, int spreadSize, double spreadFixed,
+                            double spreadDiv, double amountLot, int amountRange, int balanceDelay, double balanceValue,
+                            long tradeDelay, long metricDelay, boolean slip, int forecastSize, P parameters, OrderType orderType) {
         this.initialTotal = initialTotal;
 
         this.cancelDelay = cancelDelay;
@@ -244,14 +245,9 @@ public class LevelBacktest {
         this.metricDelay = metricDelay;
         this.slip = slip;
 
-        this.p = p;
-        this.d = d;
-        this.q = q;
-        this.arimaSize = arimaSize;
-        this.arimaCoef = arimaCoef;
-        this.arimaNext = arimaNext;
-        this.arimaFilter = arimaFilter;
-        this.arimaProcess = arimaProcess;
+        this.forecastSize = forecastSize;
+        this.parameters = parameters;
+
         this.orderType = orderType;
     }
 
@@ -297,95 +293,35 @@ public class LevelBacktest {
     private long lastBalanceTime = 0;
     private boolean balance;
 
-    Deque<ArimaTest.Train> trains = new ConcurrentLinkedDeque<>();
-
     private boolean isBalance(Trade trade){
         if (subtotalBtc == 0){
             return true;
         }
 
-        double forecast = 0;
-
         if (lastBalanceTime == 0 || trade.getCreated().getTime() - lastBalanceTime > balanceDelay){
             double price = trade.getPrice().doubleValue();
 
-            if (arimaSize > 0 && arimaPriceQueue.size() > 100) {
-                double[] prices;
+            double forecast = getForecast(forecastPriceQueue.stream().mapToDouble(d -> d).toArray(), parameters);
 
-                if (arimaFilter == 3){
-                    prices = arimaPriceQueue.stream().mapToDouble(d -> d).toArray();
+            if (Double.isNaN(forecast) || forecast == 0){
+                forecast = trade.getPrice().doubleValue();
 
-                    int trainSize = (int) (prices.length*2/Math.PI);
-                    int trainStart = prices.length - trainSize - 3;
-
-                    double[] train = new double[trainSize];
-
-                    for (int j = 0; j < trainSize; ++j){
-                        train[j] = prices[trainStart + j + 1]/prices[trainStart + j] - 1;
-                    }
-
-                    ArimaTest.Train t = new ArimaTest.Train();
-                    t.process = ArimaFitter.fit(train, p, d, q);
-
-                    double check = prices[prices.length - 1]/prices[prices.length - 2] - 1;
-                    forecast =  new DefaultArimaForecaster(t.process, train).next();
-                    t.check = check*forecast > 0 && Math.abs(forecast) > Math.abs(check);
-
-                    if (t.check) {
-                        trains.add(t);
-
-                        if (trains.size() > 11){
-                            trains.removeFirst();
-                        }
-                    }
-
-                    double[] predictsDelta = new double[trainSize];
-                    trainStart = prices.length - trainSize - 2;
-                    for (int i = 0; i < trainSize; ++i){
-                        predictsDelta[i] = prices[trainStart + i + 1]/prices[trainStart + i] - 1;
-                    }
-
-                    trains.forEach(t1 -> t1.forecast = new DefaultArimaForecaster(t1.process, predictsDelta).next());
-
-                    double f = trains.parallelStream().mapToDouble(t1 -> t1.forecast).average().orElse(0);
-
-                    price = prices[prices.length -1] * (f + 1);
-                }else {
-                    if (arimaFilter == 1) {
-                        prices = arimaPriceQueue.stream().mapToDouble(Math::log).toArray();
-                    } else if (arimaFilter == 2) {
-                        prices = arimaPriceQueue.stream().mapToDouble(d -> d).toArray();
-                        price = prices[prices.length - 1];
-
-                        double[] pricesDelta = new double[prices.length - 1];
-
-                        for (int i = 0; i < prices.length - 1; ++i) {
-                            pricesDelta[i] = prices[i+1]/prices[i] - 1;
-                        }
-
-                        prices = pricesDelta;
-                    } else {
-                        prices = arimaPriceQueue.stream().mapToDouble(d -> d).toArray();
-                    }
-
-                    forecast = new DefaultArimaForecaster(arimaProcess != null ? arimaProcess : fit(prices, p, d, q), prices).next(arimaNext)[arimaNext - 1];
-                }
-
-                //error
-                double tradePrice = trade.getPrice().doubleValue();
-                if (Double.isNaN(price)){
-                    price = tradePrice;
-
-                    ++arimaError;
-                }
+                ++forecastError;
+            }else if (Math.abs(price - forecast)/price > 0.33) {
+                forecast = price*(0.33*Math.signum(price - forecast) + 1);
             }
 
-            balance = subtotalCny > subtotalBtc*price*(forecast + 1);
+            balance = subtotalCny > subtotalBtc*forecast;
 
             lastBalanceTime = trade.getCreated().getTime();
         }
 
         return balance;
+    }
+
+
+    protected double getForecast(double[] prices, P parameters){
+        return 0;
     }
 
     private void order(Order order){
@@ -398,7 +334,7 @@ public class LevelBacktest {
         }
     }
 
-    private Deque<Double> arimaPriceQueue = new LinkedList<>();
+    private Deque<Double> forecastPriceQueue = new LinkedList<>();
 
     private long lastTradeTime = 0;
     private BigDecimal lastTradePrice = ZERO;
@@ -439,9 +375,9 @@ public class LevelBacktest {
 
 //            if (orderType == null || orderType.equals(ASK)) {
 //                //arima
-//                arimaPriceQueue.add(o.getPrice().doubleValue());
-//                if (arimaPriceQueue.size() > arimaSize){
-//                    arimaPriceQueue.removeFirst();
+//                forecastPriceQueue.add(o.getPrice().doubleValue());
+//                if (forecastPriceQueue.size() > arimaSize){
+//                    forecastPriceQueue.removeFirst();
 //                }
 //            }
         }));
@@ -458,8 +394,8 @@ public class LevelBacktest {
 
 //            if (orderType == null || orderType.equals(BID)) {
 //                //arima
-//                if (arimaPriceQueue.size() > arimaSize){
-//                    arimaPriceQueue.removeFirst();
+//                if (forecastPriceQueue.size() > arimaSize){
+//                    forecastPriceQueue.removeFirst();
 //                }
 //            }
         }));
@@ -515,7 +451,7 @@ public class LevelBacktest {
 
     private int count = 0;
 
-    private void action(Trade trade){
+    public void action(Trade trade){
         //order type
         if (orderType != null && !orderType.equals(trade.getOrderType())){
             return;
@@ -529,10 +465,10 @@ public class LevelBacktest {
         }
 
         //arima
-        if (arimaPriceQueue.isEmpty() ||  Math.abs(arimaPriceQueue.peekLast() - price) > 1) {
-            arimaPriceQueue.add(price);
-            if (arimaPriceQueue.size() > arimaSize){
-                arimaPriceQueue.removeFirst();
+        if (forecastPriceQueue.isEmpty() ||  Math.abs(forecastPriceQueue.peekLast() - price) > getStdDev(trade)) {
+            forecastPriceQueue.add(price);
+            if (forecastPriceQueue.size() > forecastSize){
+                forecastPriceQueue.removeFirst();
             }
         }
 
@@ -645,7 +581,7 @@ public class LevelBacktest {
                 '}';
     }
     
-    private String getStringRow(){
+    public String getStringRow(){
         DecimalFormat df = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
         DecimalFormat df3 = new DecimalFormat("0.000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
         
@@ -658,8 +594,8 @@ public class LevelBacktest {
                 cancelDelay + " " +
                 cancelRange + " " +
                 spreadSize + " " +
-                spreadFixed + " " +
-                spreadDiv + " " +
+                df.format(spreadFixed) + " " +
+                df.format(spreadDiv) + " " +
                 df3.format(amountLot) + " " +
                 amountRange + " " +
                 balanceDelay + " " +
@@ -669,16 +605,9 @@ public class LevelBacktest {
                 df.format(buyVolume) + " " +
                 df.format(sellVolume) + " " +
                 slip + " " +
-                p + " " +
-                d + " " +
-                q + " " +
-                arimaSize + " " +
-                arimaNext + " " +
-                arimaFilter + " " +
-                (arimaProcess != null) + " " +
-                arimaError + " " +
-                arimaCoef + " " +
-                orderType;
+                forecastError + " " +
+                orderType + " " +
+                parameters.toString();
     }
 }
 

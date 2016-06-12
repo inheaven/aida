@@ -33,13 +33,17 @@ public class BaseMapper<T extends AbstractEntity> {
     private Executor executor = Executors.newCachedThreadPool();
 
     public void asyncSave(T entity){
-        executor.execute(() -> {
-            try {
-                save(entity);
-            } catch (Exception e) {
-                log.error("error save -> ", e);
-            }
-        });
+        try {
+            executor.execute(() -> {
+                try {
+                    save(entity);
+                } catch (Exception e) {
+                    log.error("error save", e);
+                }
+            });
+        } catch (Exception e) {
+            log.error("error save", e);
+        }
     }
 
     public void delete(T entity){

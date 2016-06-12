@@ -127,16 +127,18 @@ public class LevelStrategy extends BaseStrategy{
 
                     //f = p1/p0 - 1 -> p1 = (f + 1)*p0
                     ArimaProcess process = strategy.isLevelInverse()
-                            ? ArimaFitter.fit(pricesDelta, 4, 1, 10)
-                            : ArimaFitter.fit(pricesDelta, 5, 1, 3);
+                            ? ArimaFitter.fit(pricesDelta, 10, 2, 10)
+                            : ArimaFitter.fit(pricesDelta, 10, 6, 8);
 
                     double f = new DefaultArimaForecaster(process, pricesDelta).next();
 
+                    //
+
                     if (!Double.isNaN(f)) {
-                        if (Math.abs(f) < 1) {
+                        if (Math.abs(f) < 0.33) {
                             forecast.set(prices[prices.length-1]*(f + 1));
                         }else{
-                            forecast.set(prices[prices.length-1]*(0.1*Math.signum(f) + 1));
+                            forecast.set(prices[prices.length-1]*(0.33*Math.signum(f) + 1));
                         }
                     }else{
                         forecast.set(0);
@@ -336,9 +338,7 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal sellPrice = scale(up ? p.add(spread) : p);
 
             if (!getOrderMap().contains(buyPrice, spread, BID) && !getOrderMap().contains(sellPrice, spread, ASK)){
-                log.info("{} "  + key + " {} {} {}", strategy.getId(), price.setScale(3, HALF_EVEN), orderType, spread);
-
-//                BigDecimal total = userInfoService.getVolume("total", strategy.getAccount().getId(), null).setScale(8, HALF_UP);
+                //                BigDecimal total = userInfoService.getVolume("total", strategy.getAccount().getId(), null).setScale(8, HALF_UP);
 //                BigDecimal amount = total.divide(price, 8, HALF_UP).divide(spreadDiv.multiply(amountRange), 8, HALF_UP);
 
 //                double q1 = QuranRandom.nextDouble();
@@ -348,6 +348,8 @@ public class LevelStrategy extends BaseStrategy{
 
                 double max = random.nextGaussian()/2 + 2;
                 double min = random.nextGaussian()/2 + 1;
+
+                log.info("{} "  + key + " {} {} {} {}", strategy.getId(), price.setScale(3, HALF_EVEN), spread, min, max);
 
                 BigDecimal buyAmount = strategy.getLevelLot().multiply(BigDecimal.valueOf(up ? max : min));
                 BigDecimal sellAmount = strategy.getLevelLot().multiply(BigDecimal.valueOf(up ? min : max));
@@ -421,7 +423,7 @@ public class LevelStrategy extends BaseStrategy{
                 }
 
                 //arima
-                if (arimaPrices.isEmpty() || Math.abs(arimaPrices.peekLast() - price) > 1) {
+                if (arimaPrices.isEmpty() || Math.abs(arimaPrices.peekLast() - price) > stdDev.get()) {
                     arimaPrices.add(price);
                     if (arimaPrices.size() > 10000){
                         arimaPrices.removeFirst();

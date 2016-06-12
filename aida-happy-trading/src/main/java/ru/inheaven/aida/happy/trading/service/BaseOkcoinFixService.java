@@ -88,9 +88,7 @@ public abstract class BaseOkcoinFixService {
 
             @Override
             protected void onOrder(Order order) {
-                if (tradeSessionId == null){
-                    orderPublishSubject.onNext(order);
-                }
+                orderPublishSubject.onNext(order);
             }
         };
         init(okCoinApplicationMarket, marketConfig);

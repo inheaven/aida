@@ -23,6 +23,10 @@
             <groupId>ru.inhell.aida</groupId>
             <artifactId>aida-common</artifactId>
         </dependency>
+        <dependency>
+            <groupId>ru.inhell.aida</groupId>
+            <artifactId>aida-core</artifactId>
+        </dependency>
 
         <!-- WICKET -->
 
@@ -200,21 +204,21 @@
         </dependency>
 
         <dependency>
-            <groupId>quickfixj</groupId>
+            <groupId>org.quickfixj</groupId>
             <artifactId>quickfixj-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>quickfixj</groupId>
-            <artifactId>quickfixj-msg-fix44</artifactId>
+            <groupId>org.quickfixj</groupId>
+            <artifactId>quickfixj-messages-fix44</artifactId>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>org.apache.mina</groupId>
             <artifactId>mina-core</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.mina</groupId>
             <artifactId>mina-filter-ssl</artifactId>
-        </dependency>
+        </dependency>-->
     </dependencies>
 
 

@@ -227,7 +227,7 @@ public class BaseStrategy {
                     if (openOrdersCache.get().getOpenOrders().size() > 45){
                         list.sort((o1, o2) -> o1.getTimestamp().compareTo(o2.getTimestamp()));
 
-                        for (int i=0; i<=5; ++i){
+                        for (int i=0; i<=30; ++i){
                             try {
                                 LimitOrder l = list.get(i);
 
@@ -545,10 +545,6 @@ public class BaseStrategy {
             order.setSellVolume(sellVolume.get());
             //order.setSpotBalance(getSpotBalance());
 
-            BigDecimal profit = getProfit();
-
-            order.setProfit(profit);
-
 //            if (window.incrementAndGet() > 100){
 //                window.set(0);
 //
@@ -614,7 +610,7 @@ public class BaseStrategy {
                     scale(userInfoService.getVolume("subtotal", strategy.getAccount().getId(), "BTC")),
                     scale(userInfoService.getVolume("subtotal", strategy.getAccount().getId(), "CNY")),
                     userInfoService.getVolume("total", strategy.getAccount().getId(), null),
-                    o.getProfit() != null ? o.getProfit().setScale(3, HALF_EVEN) : "",
+                    getProfit().setScale(3, HALF_EVEN),
                     BigDecimal.valueOf(o.getForecast()).setScale(3, HALF_EVEN),
                     o.isBalance() ? "↑" : "↓",
                     Objects.toString(o.getText(), ""),
