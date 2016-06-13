@@ -5,12 +5,10 @@ import org.apache.ibatis.session.SqlSessionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.ujmp.core.Matrix;
-import org.ujmp.core.MatrixFactory;
-import org.ujmp.core.enums.FileFormat;
+import ru.inhell.aida.common.mybatis.SqlSessionFactory;
 import ru.inhell.aida.entity.Quote;
 import ru.inhell.aida.entity.VectorForecast;
 import ru.inhell.aida.entity.VectorForecastData;
-import ru.inhell.aida.common.mybatis.SqlSessionFactory;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -37,7 +35,7 @@ public class AlphaTraderTest {
     }
 
     private void importQuotes() throws IOException, ParseException {
-        Matrix importFromCsv = MatrixFactory.importFromFile(FileFormat.CSV, "F:\\data\\GAZP_091204_101204.txt", ",");
+        Matrix importFromCsv = Matrix.Factory.linkTo().file("F:\\data\\GAZP_091204_101204.txt").asDenseCSV(';');
 
         sm.startManagedSession(ExecutorType.BATCH);
 

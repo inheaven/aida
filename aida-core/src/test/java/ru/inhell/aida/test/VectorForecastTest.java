@@ -1,11 +1,8 @@
 package ru.inhell.aida.test;
 
 import org.ujmp.core.Matrix;
-import org.ujmp.core.MatrixFactory;
 import org.ujmp.core.calculation.Calculation;
-import org.ujmp.core.enums.FileFormat;
 import org.ujmp.core.enums.ValueType;
-import org.ujmp.gui.plot.MatrixPlot;
 import ru.inhell.aida.common.mybatis.SqlSessionFactory;
 import ru.inhell.aida.ssa.VectorForecastSSA;
 import ru.inhell.stock.core.VSSA;
@@ -68,7 +65,7 @@ public class VectorForecastTest {
     }
 
     private  void test2() throws IOException {
-        Matrix importFromCsv = MatrixFactory.importFromFile(FileFormat.CSV, "E:\\Java\\Projects-2010\\aida\\data\\GAZP_091202_101202.csv",";");
+        Matrix importFromCsv = Matrix.Factory.linkTo().file("E:\\Java\\Projects-2010\\aida\\data\\GAZP_091202_101202.csv").asDenseCSV(';');
 
         Matrix price = importFromCsv.selectColumns(Calculation.Ret.LINK, 4);
 
@@ -88,13 +85,13 @@ public class VectorForecastTest {
 
         final float[] f = new float[N+M+L-1];
 
-        final Matrix matrix = MatrixFactory.dense(ValueType.FLOAT, N + M, 3);
+        final Matrix matrix = Matrix.Factory.zeros(ValueType.FLOAT, N + M, 3);
 
-        final MatrixPlot mp = new MatrixPlot(matrix);
-        mp.getPlotSettings().setShowRunningAverage(false);
-
-
-        frame.add(mp, BorderLayout.CENTER);
+//        final MatrixPlot mp = new MatrixPlot(matrix);
+//        mp.getPlotSettings().setShowRunningAverage(false);
+//
+//
+//        frame.add(mp, BorderLayout.CENTER);
 
         final JButton go = new JButton("PREDICT");
         go.addActionListener(new ActionListener(){
@@ -131,7 +128,7 @@ public class VectorForecastTest {
                                     go.setText(String.valueOf("PREDICT: " + index));
                                     go.repaint();
 
-                                    mp.repaint();
+//                                    mp.repaint();
                                 }
                             });
 

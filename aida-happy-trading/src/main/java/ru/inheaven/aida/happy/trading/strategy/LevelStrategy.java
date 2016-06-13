@@ -10,17 +10,12 @@ import ru.inheaven.aida.happy.trading.service.*;
 import ru.inhell.aida.algo.arima.ArimaFitter;
 import ru.inhell.aida.algo.arima.ArimaProcess;
 import ru.inhell.aida.algo.arima.DefaultArimaForecaster;
-import ru.inhell.aida.algo.func.StdDev;
+import ru.inhell.stock.core.VSSA;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
-import java.util.Date;
-import java.util.Deque;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -85,8 +80,8 @@ public class LevelStrategy extends BaseStrategy{
 
     private AtomicDouble forecast = new AtomicDouble(0);
 
-    private Deque<Double> arimaPrices = new ConcurrentLinkedDeque<>();
-    private Deque<Double> spreadPrices = new ConcurrentLinkedDeque<>();
+    private List<Double> forecastPrices = Collections.synchronizedList(new ArrayList<>(10000));
+    private List<Double> spreadPrices = Collections.synchronizedList(new ArrayList<>(5000));
 
     public LevelStrategy(StrategyService strategyService, Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                          DepthService depthService, UserInfoService userInfoService,  XChangeService xChangeService) {
@@ -115,10 +110,32 @@ public class LevelStrategy extends BaseStrategy{
             }
         }, 5000, 10, TimeUnit.MILLISECONDS);
 
+        VSSA vssa = new VSSA(256, 128, 8, 8);
+
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
-            if (arimaPrices.size() > 10){
+            if (strategy.getName().contains("vssa")){
                 try {
-                    double[] prices = arimaPrices.stream().mapToDouble(d -> d).toArray();
+                    if (forecastPrices.size() >= vssa.getRangeLength()) {
+                        double[] prices = forecastPrices.stream().mapToDouble(d -> d).toArray();
+                        double f = vssa.execute(Arrays.copyOfRange(prices, prices.length - vssa.getRangeLength() - 1, prices.length))[vssa.getPredictionPointCount() - 1];
+                        double price = prices[prices.length - 1];
+
+                        if (Math.abs(price - f)/price > 0.5) {
+                            forecast.set(price*(0.5*Math.signum(price - f) + 1));
+                        }else {
+                            forecast.set(f);
+                        }
+                    }else{
+                        forecast.set(0);
+                    }
+                } catch (Exception e) {
+                    forecast.set(0);
+
+                    e.printStackTrace();
+                }
+            }else if (forecastPrices.size() > 10){
+                try {
+                    double[] prices = forecastPrices.stream().mapToDouble(d -> d).toArray();
 
                     double[] pricesDelta = new double[prices.length - 1];
                     for (int i = 0; i < prices.length - 1; ++i){
@@ -127,31 +144,38 @@ public class LevelStrategy extends BaseStrategy{
 
                     //f = p1/p0 - 1 -> p1 = (f + 1)*p0
                     ArimaProcess process = strategy.isLevelInverse()
-                            ? ArimaFitter.fit(pricesDelta, 10, 2, 10)
-                            : ArimaFitter.fit(pricesDelta, 10, 6, 8);
+                            ? ArimaFitter.fit(pricesDelta, 3, 2, 1)
+                            : ArimaFitter.fit(pricesDelta, 3, 2, 1);
 
                     double f = new DefaultArimaForecaster(process, pricesDelta).next();
 
                     //
 
                     if (!Double.isNaN(f)) {
-                        if (Math.abs(f) < 0.33) {
+                        if (Math.abs(f) < 0.5) {
                             forecast.set(prices[prices.length-1]*(f + 1));
                         }else{
-                            forecast.set(prices[prices.length-1]*(0.33*Math.signum(f) + 1));
+                            forecast.set(prices[prices.length-1]*(0.5*Math.signum(f) + 1));
                         }
                     }else{
                         forecast.set(0);
                     }
 
-                    //stddev
-                    stdDev.set(standardDeviation.evaluate(spreadPrices.stream().mapToDouble(d -> d).toArray()));
                 } catch (Exception e) {
                     forecast.set(0);
-                    stdDev.set(0);
 
                     e.printStackTrace();
                 }
+            }
+
+
+            try {
+                //stddev
+                stdDev.set(standardDeviation.evaluate(spreadPrices.stream().mapToDouble(d -> d).toArray()));
+            } catch (Exception e) {
+                stdDev.set(0);
+
+                e.printStackTrace();
             }
         }, 5000, 1000, TimeUnit.MILLISECONDS);
     }
@@ -253,8 +277,13 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal subtotalCny = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[1]);
 
             if (forecast.get() != 0){
-                balance.set(subtotalCny.compareTo(subtotalBtc.multiply(BigDecimal.valueOf(forecast.get()))) > 0);
+                balance.set(forecast.get() > lastAction.get().doubleValue());
 
+//                if (strategy.getName().contains("vssa")) {
+//                    balance.set(forecast.get() > lastAction.get().doubleValue());
+//                }else{
+//                    balance.set(subtotalCny.compareTo(subtotalBtc.multiply(BigDecimal.valueOf(forecast.get()))) > 0);
+//                }
             }else{
                 balance.set(subtotalCny.compareTo(subtotalBtc.multiply(lastAction.get())) > 0);
             }
@@ -334,8 +363,8 @@ public class LevelStrategy extends BaseStrategy{
             boolean inverse = strategy.isLevelInverse();
 
             BigDecimal p = scale(up ? price.add(BD_0_01) : price.subtract(BD_0_01));
-            BigDecimal buyPrice = scale(up ? p : p.subtract(spread));
-            BigDecimal sellPrice = scale(up ? p.add(spread) : p);
+            BigDecimal buyPrice = scale(!inverse ? p : p.subtract(spread));
+            BigDecimal sellPrice = scale(!inverse ? p.add(spread) : p);
 
             if (!getOrderMap().contains(buyPrice, spread, BID) && !getOrderMap().contains(sellPrice, spread, ASK)){
                 //                BigDecimal total = userInfoService.getVolume("total", strategy.getAccount().getId(), null).setScale(8, HALF_UP);
@@ -388,12 +417,12 @@ public class LevelStrategy extends BaseStrategy{
                 BigDecimal freeBtc = userInfoService.getVolume("free", strategy.getAccount().getId(), "BTC");
                 BigDecimal freeCny = userInfoService.getVolume("free", strategy.getAccount().getId(), "CNY");
 
-                if (freeCny.compareTo(buyAmount.multiply(buyPrice)) > 0){
-                    createOrderAsync(buyOrder);
+                if (freeCny.compareTo(buyAmount.multiply(buyPrice).multiply(BD_2)) > 0){
+                    createOrderSync(buyOrder);
                 }
 
-                if (freeBtc.compareTo(sellAmount) > 0){
-                    createOrderAsync(sellOrder);
+                if (freeBtc.compareTo(sellAmount.multiply(BD_2)) > 0){
+                    createOrderSync(sellOrder);
                 }
 
                 lastBuyPrice.set(buyPrice);
@@ -419,14 +448,14 @@ public class LevelStrategy extends BaseStrategy{
                 //spread
                 spreadPrices.add(price);
                 if (spreadPrices.size() > 5000){
-                    spreadPrices.removeFirst();
+                    spreadPrices.remove(0);
                 }
 
                 //arima
-                if (arimaPrices.isEmpty() || Math.abs(arimaPrices.peekLast() - price) > stdDev.get()) {
-                    arimaPrices.add(price);
-                    if (arimaPrices.size() > 10000){
-                        arimaPrices.removeFirst();
+                if (forecastPrices.isEmpty() || Math.abs(forecastPrices.get(forecastPrices.size() - 1) - price) > getSpread(trade.getPrice()).doubleValue()) {
+                    forecastPrices.add(price);
+                    if (forecastPrices.size() > 10000){
+                        forecastPrices.remove(0);
                     }
                 }
             }

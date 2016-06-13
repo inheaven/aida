@@ -55,8 +55,8 @@ public class OKCoinXChangeApplication extends OKCoinApplication {
 		for (int i = 1, l = message.getNoMDEntries().getValue(); i <= l; i++) {
 			Group group = message.getGroup(i, NoMDEntries.FIELD);
 			char type = group.getChar(MDEntryType.FIELD);
-			BigDecimal px = BigDecimal.valueOf(group.getField(new MDEntryPx()).getValue());
-			BigDecimal size = BigDecimal.valueOf(group.isSetField(MDEntrySize.FIELD) ? group.getField(new MDEntrySize()).getValue() : null);
+			BigDecimal px = BigDecimal.valueOf(group.getField(new MDEntryPx()).getValue().doubleValue());
+			BigDecimal size = BigDecimal.valueOf(group.isSetField(MDEntrySize.FIELD) ? group.getField(new MDEntrySize()).getValue().doubleValue() : 0d);
             log.debug("type: {}, px: {}, size: {}", type, px, size);
 
 			switch (type) {

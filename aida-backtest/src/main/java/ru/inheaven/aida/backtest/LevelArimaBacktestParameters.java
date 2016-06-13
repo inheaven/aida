@@ -87,13 +87,13 @@ public class LevelArimaBacktestParameters {
 
     @Override
     public String toString() {
-        return  p + " " +
-                d + " " +
-                q + " " +
-                arimaNext + " " +
+        return  " " + arimaNext + " " +
                 arimaFilter + " " +
                 (arimaProcess != null) + " " +
                 arimaError + " " +
-                arimaCoef + " ";
+                arimaCoef + " " +
+                p + " " +
+                d + " " +
+                q + " ";
     }
 }

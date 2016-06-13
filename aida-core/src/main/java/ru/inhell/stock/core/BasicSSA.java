@@ -1,8 +1,7 @@
 package ru.inhell.stock.core;
 
 import org.ujmp.core.Matrix;
-import org.ujmp.core.MatrixFactory;
-import org.ujmp.core.enums.ValueType;
+import org.ujmp.core.doublematrix.DoubleMatrix;
 import org.ujmp.core.interfaces.HasColumnMajorDoubleArray1D;
 
 import static org.ujmp.core.calculation.Calculation.Ret;
@@ -25,6 +24,14 @@ public class BasicSSA {
             this.V = V;
             this.XI = XI;
             this.G = G;
+        }
+
+        public void clear(){
+            U.clear();
+            S.clear();
+            V.clear();
+            XI.clear();
+            G.clear();
         }
 
         public Matrix getU() {
@@ -81,9 +88,9 @@ public class BasicSSA {
         this.windowLength = windowLength;
         this.eigenfunctionsCount = eigenfunctionsCount;
 
-        X = MatrixFactory.dense(ValueType.DOUBLE, windowLength, rangeLength - windowLength + 1);
-        XI = MatrixFactory.dense(ValueType.DOUBLE, windowLength, rangeLength - windowLength + 1);
-        G = MatrixFactory.dense(ValueType.DOUBLE, rangeLength, eigenfunctionsCount);
+        X = DoubleMatrix.Factory.zeros(windowLength, rangeLength - windowLength + 1);
+        XI = DoubleMatrix.Factory.zeros(windowLength, rangeLength - windowLength + 1);
+        G = DoubleMatrix.Factory.zeros(rangeLength, eigenfunctionsCount);
     }
 
     public Result execute(double[] timeSeries){
@@ -104,7 +111,7 @@ public class BasicSSA {
         for (int i = 0 ; i < eigenfunctionsCount ; ++i){
             Matrix Xi = U.selectColumns(Ret.LINK, i)
                     .mtimes(Ret.NEW, false, V.selectColumns(Ret.LINK, i).transpose(Ret.LINK))
-                    .mtimes(Ret.ORIG, false, S.getAsDouble(i, i));
+                    .times(Ret.ORIG, false, S.getAsDouble(i, i));
 
             XI.plus(Ret.ORIG, false, Xi);
 
@@ -135,5 +142,16 @@ public class BasicSSA {
         }
 
         return sum;
+    }
+
+    public void clear(){
+        X.clear();
+        X = null;
+
+        XI.clear();
+        XI = null;
+
+        G.clear();
+        G = null;
     }
 }

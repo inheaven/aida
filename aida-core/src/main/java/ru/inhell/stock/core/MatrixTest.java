@@ -1,15 +1,7 @@
 package ru.inhell.stock.core;
 
-import org.ujmp.core.Matrix;
-import org.ujmp.core.MatrixFactory;
 import org.ujmp.core.calculation.Calculation;
-import org.ujmp.core.enums.FileFormat;
-import org.ujmp.core.enums.ValueType;
-import org.ujmp.core.util.UJMPSettings;
-import org.ujmp.gui.plot.MatrixPlot;
-import ru.inhell.aida.acml.ACML;
 import ru.inhell.aida.matrix.AcmlMatrix;
-
 
 import javax.swing.*;
 import java.awt.*;
@@ -54,13 +46,13 @@ public class MatrixTest {
 
         System.out.println("ACML. The time is " + (System.currentTimeMillis() - time));
 
-        UJMPSettings.setNumberOfThreads(3);
-        Matrix m2 = MatrixFactory.rand(ValueType.DOUBLE, 5000, 5000);
-        Matrix m3 = MatrixFactory.rand(ValueType.DOUBLE, 5000, 5000);
+//        UJMPSettings.setNumberOfThreads(3);
+//        Matrix m2 = MatrixFactory.rand(ValueType.DOUBLE, 5000, 5000);
+//        Matrix m3 = MatrixFactory.rand(ValueType.DOUBLE, 5000, 5000);
 
         time = System.currentTimeMillis();
 
-        m2.mtimes(m3);
+//        m2.mtimes(m3);
 
         System.out.println("UJMP. The time is " + (System.currentTimeMillis() - time));
 
@@ -156,13 +148,13 @@ public class MatrixTest {
         frame.setContentPane(splitPane);
 
 
-        MatrixPlot mpTS = new MatrixPlot(MatrixFactory.linkToArray(timeSeries));
-        mpTS.getPlotSettings().setShowRunningAverage(false);
-        mpTS.getPlotSettings().setShowPlotBackGround(false);
-        panel.add(mpTS);
+//        MatrixPlot mpTS = new MatrixPlot(MatrixFactory.linkToArray(timeSeries));
+//        mpTS.getPlotSettings().setShowRunningAverage(false);
+//        mpTS.getPlotSettings().setShowPlotBackGround(false);
+//        panel.add(mpTS);
 
         for (int i = 0; i < P; ++i){
-            addMatrixPlot(panel2, Yi[i]);
+//            addMatrixPlot(panel2, Yi[i]);
         }
 
         frame.pack();
@@ -182,13 +174,13 @@ public class MatrixTest {
 
         final double[] g = new double[N];
 
-        final Matrix matrix = MatrixFactory.dense(ValueType.DOUBLE, N+M, 3);
-
-        final MatrixPlot mp = new MatrixPlot(matrix);
-        mp.getPlotSettings().setShowRunningAverage(false);
-
-
-        frame.add(mp, BorderLayout.CENTER);
+//        final Matrix matrix = MatrixFactory.dense(ValueType.DOUBLE, N+M, 3);
+//
+//        final MatrixPlot mp = new MatrixPlot(matrix);
+//        mp.getPlotSettings().setShowRunningAverage(false);
+//
+//
+//        frame.add(mp, BorderLayout.CENTER);
 
         final JButton go = new JButton("PREDICT");
         go.addActionListener(new ActionListener(){
@@ -209,21 +201,21 @@ public class MatrixTest {
 
                             long time = System.currentTimeMillis();
 
-                            double[] f = vssa.execute(g);
-
+//                            double[] f = vssa.execute(g);
+//
                             System.out.println("t" + k  + ": " + (System.currentTimeMillis() - time));
 
-                            for (int i = 0; i < M+N; ++i){
-                                matrix.setAsDouble(i==N ? f[i] + 2 : f[i], i, 0);
-                                matrix.setAsDouble(fullTS[i+index], i, 1);
-                                matrix.setAsDouble(f[i], i, 2);
-                            }
-
-                            try {
-                                matrix.exportToFile(FileFormat.CSV, "I:\\Java\\Projects-2010\\ru.inhell.stock\\data\\test-01-06-990-45-445-15\\test"+k+".csv", ";");
-                            } catch (IOException e1) {
-                                e1.printStackTrace();
-                            }
+//                            for (int i = 0; i < M+N; ++i){
+//                                matrix.setAsDouble(i==N ? f[i] + 2 : f[i], i, 0);
+//                                matrix.setAsDouble(fullTS[i+index], i, 1);
+//                                matrix.setAsDouble(f[i], i, 2);
+//                            }
+//
+//                            try {
+//                                matrix.exportToFile(FileFormat.CSV, "I:\\Java\\Projects-2010\\ru.inhell.stock\\data\\test-01-06-990-45-445-15\\test"+k+".csv", ";");
+//                            } catch (IOException e1) {
+//                                e1.printStackTrace();
+//                            }
 
 
                             SwingUtilities.invokeLater(new Runnable(){
@@ -232,7 +224,7 @@ public class MatrixTest {
                                     go.setText(String.valueOf("PREDICT: " + index));
                                     go.repaint();
 
-                                    mp.repaint();
+//                                    mp.repaint();
                                 }
                             });
 
@@ -250,10 +242,10 @@ public class MatrixTest {
         frame.setVisible(true);
     }
 
-    private static void addMatrixPlot(JPanel panel, double[] data){
-        MatrixPlot mp = new MatrixPlot(MatrixFactory.linkToArray(data));
-        mp.getPlotSettings().setShowRunningAverage(false);
-        mp.getPlotSettings().setShowPlotBackGround(false);
-        panel.add(mp);
-    }
+//    private static void addMatrixPlot(JPanel panel, double[] data){
+//        MatrixPlot mp = new MatrixPlot(MatrixFactory.linkToArray(data));
+//        mp.getPlotSettings().setShowRunningAverage(false);
+//        mp.getPlotSettings().setShowPlotBackGround(false);
+//        panel.add(mp);
+//    }
 }

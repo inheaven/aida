@@ -4,14 +4,12 @@ import org.apache.ibatis.session.SqlSessionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.ujmp.core.Matrix;
-import org.ujmp.core.MatrixFactory;
 import org.ujmp.core.calculation.Calculation;
-import org.ujmp.core.enums.FileFormat;
+import ru.inhell.aida.common.mybatis.SqlSessionFactory;
 import ru.inhell.aida.entity.Interval;
 import ru.inhell.aida.entity.VectorForecast;
 import ru.inhell.aida.entity.VectorForecastData;
 import ru.inhell.aida.entity.VectorForecastFilter;
-import ru.inhell.aida.common.mybatis.SqlSessionFactory;
 import ru.inhell.aida.ssa.VectorForecastSSA;
 
 import java.io.IOException;
@@ -72,7 +70,7 @@ public class AlphaOracleTest {
     }
 
     public void train(int N, int L, int P, int M) throws IOException, ParseException {
-        Matrix importFromCsv = MatrixFactory.importFromFile(FileFormat.CSV, "E:\\Java\\Projects-2010\\aida\\data\\GAZP_091202_101202.csv", ";");
+        Matrix importFromCsv = Matrix.Factory.linkTo().file("E:\\Java\\Projects-2010\\aida\\data\\GAZP_091202_101202.csv").asDenseCSV(';');
         String contract = "GAZP";
 
         Calendar start = Calendar.getInstance();

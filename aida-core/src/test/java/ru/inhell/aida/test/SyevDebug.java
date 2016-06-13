@@ -1,16 +1,9 @@
 package ru.inhell.aida.test;
 
-import com.sun.jna.Native;
-import org.ujmp.core.Matrix;
-import org.ujmp.core.MatrixFactory;
-import org.ujmp.core.enums.ValueType;
 import ru.inhell.aida.acml.ACML_DLL;
 import ru.inhell.aida.ssa.BasicAnalysisSSA;
 import ru.inhell.aida.ssa.VectorForecastSSA;
-import sun.misc.Perf;
 
-import javax.xml.transform.Source;
-import java.awt.geom.FlatteningPathIterator;
 import java.util.Arrays;
 
 /**

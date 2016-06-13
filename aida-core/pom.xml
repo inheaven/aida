@@ -43,20 +43,13 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>complete</artifactId>
-            <version>0.2.5</version>
-            <scope>system</scope>
-            <systemPath>${pom.basedir}\lib\ujmp-complete-0.2.5.jar</systemPath>
-        </dependency>
-
-        <dependency>
             <groupId>ru.inhell.aida</groupId>
             <artifactId>aida-common</artifactId>
         </dependency>
+
         <dependency>
-            <groupId>ru.inhell.aida</groupId>
-            <artifactId>aida-matrix</artifactId>
+            <groupId>org.ujmp</groupId>
+            <artifactId>ujmp-complete</artifactId>
         </dependency>
 
         <dependency>
@@ -79,10 +72,6 @@
             <artifactId>slf4j-api</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jul-to-slf4j</artifactId>

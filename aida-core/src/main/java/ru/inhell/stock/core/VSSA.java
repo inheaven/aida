@@ -1,10 +1,7 @@
 package ru.inhell.stock.core;
 
 import org.ujmp.core.Matrix;
-import org.ujmp.core.MatrixFactory;
-import org.ujmp.core.enums.ValueType;
-
-import java.util.Arrays;
+import org.ujmp.core.doublematrix.DoubleMatrix;
 
 import static org.ujmp.core.calculation.Calculation.Ret;
 
@@ -19,7 +16,7 @@ public class VSSA {
     private int predictionPointCount;
 
     private Matrix Z;
-    private Matrix R, Rt;
+    private Matrix R;
 
     private BasicSSA basicSSA;
 
@@ -31,16 +28,16 @@ public class VSSA {
 
         this.basicSSA = new BasicSSA(rangeLength, windowLength, eigenfunctionsCount);
 
-        Z = MatrixFactory.dense(ValueType.DOUBLE, windowLength, rangeLength + predictionPointCount);
-        R = MatrixFactory.dense(ValueType.DOUBLE, windowLength-1, 1);
+        Z = DoubleMatrix.Factory.zeros(windowLength, rangeLength + predictionPointCount);
+        R = DoubleMatrix.Factory.zeros(windowLength-1, 1);
     }
 
     public double[] execute(double[] timeSeries) {
         BasicSSA.Result ssa = basicSSA.execute(timeSeries);
 
-        Matrix VD = ssa.getU().select(Ret.NEW, "0-" + (windowLength-2) + ";0-" + (predictionPointCount-1));
+        Matrix VD = ssa.getU().select(Ret.NEW, "0-" + (windowLength-1) + ";0-" + predictionPointCount);
 
-        Matrix pi = ssa.getU().select(Ret.NEW, windowLength-1 + ";0-" + (predictionPointCount-1));
+        Matrix pi = ssa.getU().select(Ret.NEW, windowLength-1 + ";0-" + predictionPointCount);
 
         double v2 = 0;
         for (int i = 0; i < predictionPointCount; ++i){
@@ -52,19 +49,14 @@ public class VSSA {
         R.fill(Ret.ORIG, 0);
 
         for (int i = 0; i < predictionPointCount ; ++i){
-            R.plus(Ret.ORIG, false, VD.selectColumns(Ret.LINK, i).mtimes(Ret.NEW, false, pi.getAsDouble(0,i)));
+            R.plus(Ret.ORIG, false, VD.selectColumns(Ret.LINK, i).times(Ret.NEW, false, pi.getAsDouble(0,i)));
         }
-        R.mtimes(Ret.ORIG, false, 1/(1-v2));
+        R.times(Ret.ORIG, false, 1/(1-v2));
 
-        Rt = R.transpose(Ret.LINK); //транспонированная R
+        Matrix Rt = R.transpose(Ret.LINK); //транспонированная R
 
         Matrix Pr = VD.mtimes(Ret.NEW, false, VD.transpose(Ret.LINK))
-                .plus(Ret.ORIG, false, R.mtimes(Ret.NEW, false, R.transpose(Ret.LINK)).mtimes(Ret.ORIG, false, 1 - v2));
-
-//        Matrix Pr = matrixUtil.multiply((DefaultDenseDoubleMatrix2D)VD, (DefaultDenseDoubleMatrix2D)VD.transpose(Ret.NEW))
-//                .plus(Ret.ORIG, false, matrixUtil.multiply((DefaultDenseDoubleMatrix2D)R, (DefaultDenseDoubleMatrix2D)R.transpose(Ret.NEW))
-//                        .mtimes(Ret.ORIG, false, 1 - v2));
-
+                .plus(Ret.ORIG, false, R.mtimes(Ret.NEW, false, R.transpose(Ret.LINK)).times(Ret.ORIG, false, 1 - v2));
 
         Z.fill(Ret.ORIG, 0);
 
@@ -86,12 +78,9 @@ public class VSSA {
     }
 
     private Matrix Pv(Matrix Pr, Matrix Rt, Matrix Y){
-        Matrix Yd = Y.select(Ret.LINK, "1-" + (Y.getSize(0)-1) + ";*");
+        Matrix Yd = Y.select(Ret.LINK, "1-" + Y.getSize(0) + ";*");
 
-        Matrix m1 = Pr.mtimes(Ret.NEW, false, Yd);
-        Matrix m2 = Rt.mtimes(Ret.NEW, false, Yd);
-
-        return m1.append(0, m2);
+        return Pr.mtimes(Ret.NEW, false, Yd).append(Ret.NEW, 0, Rt.mtimes(Ret.NEW, false, Yd));
     }
 
     public double[] getDiagonalAveraging(Matrix Y){
@@ -128,5 +117,31 @@ public class VSSA {
         }
 
         return sum;
+    }
+
+    public void clear(){
+        basicSSA.clear();
+
+        R.clear();
+        R = null;
+
+        Z.clear();
+        Z = null;
+    }
+
+    public int getRangeLength() {
+        return rangeLength;
+    }
+
+    public int getWindowLength() {
+        return windowLength;
+    }
+
+    public int getEigenfunctionsCount() {
+        return eigenfunctionsCount;
+    }
+
+    public int getPredictionPointCount() {
+        return predictionPointCount;
     }
 }

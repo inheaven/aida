@@ -8,11 +8,11 @@ import ru.inhell.aida.algo.arima.ArimaFitter;
 import ru.inhell.aida.algo.arima.ArimaProcess;
 import ru.inhell.aida.algo.arima.DefaultArimaForecaster;
 
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.Date;
+import java.util.Deque;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -37,8 +37,8 @@ public class LevelArimaBacktest extends LevelBacktest<LevelArimaBacktestParamete
     }
 
     public static void main(String[] args){
-        Date startDate = Date.from(LocalDateTime.of(2016, 6, 11, 8, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
-        Date endDate = Date.from(LocalDateTime.of(2016, 6, 12, 8, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date startDate = Date.from(LocalDateTime.of(2016, 6, 12, 0, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date endDate = Date.from(LocalDateTime.of(2016, 6, 13, 0, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
 
         TradeMapper tradeMapper = Module.getInjector().getInstance(TradeMapper.class);
 
@@ -47,10 +47,10 @@ public class LevelArimaBacktest extends LevelBacktest<LevelArimaBacktestParamete
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
         for (int i3 = 1; i3 <= 1; ++i3){
-            for (int i2 = 1; i2 <= 10; ++i2) {
-                for (int i1 = 10; i1 <= 20; ++i1) {
-                    for (int i0 = 2; i0 <= 20; ++i0) {
-                        LevelArimaBacktest bid = new LevelArimaBacktest(10100, 60000, 20, 5000, 0, Math.sqrt(2*Math.PI), 0.011, 0, 1000, 1, 150, 300000, false, i1, i2, i0, 10000, 1, 2, null, 1, BID);
+            for (int i2 = 1; i2 <= 1; ++i2) {
+                for (int i1 = 1; i1 <= 1; ++i1) {
+                    for (int i0 = 1; i0 <= 10; ++i0) {
+                        LevelArimaBacktest bid = new LevelArimaBacktest(20930, 60000, 20, 5000, 0, Math.sqrt(2*Math.PI), 0.011, 0, 1000, 1, 150, 300000, false, 3, 1, 2, 10000, i0, 2, null, 1, BID);
 
                         executorService.submit(() -> {
                             trades.forEach(bid::action);
@@ -59,7 +59,7 @@ public class LevelArimaBacktest extends LevelBacktest<LevelArimaBacktestParamete
 
                         });
 
-                        LevelArimaBacktest ask = new LevelArimaBacktest(10100, 60000, 20, 5000, 0, Math.sqrt(2*Math.PI), 0.011, 0, 1000, 1, 150, 300000, false, i1, i2, i0, 10000, 1, 2, null, 1, ASK);
+                        LevelArimaBacktest ask = new LevelArimaBacktest(20930, 60000, 20, 5000, 0, Math.sqrt(2*Math.PI), 0.011, 0, 1000, 1, 150, 300000, false, 3, 1, 2, 10000, i0, 2, null, 1, ASK);
 
                         executorService.submit(() -> {
                             trades.forEach(ask::action);

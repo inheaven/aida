@@ -25,7 +25,6 @@ import java.text.DecimalFormatSymbols;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -35,7 +34,6 @@ import static java.math.BigDecimal.valueOf;
 import static java.math.RoundingMode.HALF_EVEN;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.ASK;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.BID;
-import static ru.inhell.aida.algo.arima.ArimaFitter.fit;
 
 /**
  * inheaven on 04.05.2016.
@@ -217,7 +215,7 @@ public class LevelBacktest<P> {
     private StdDev standardDeviation;
 
     private Deque<Metric> metrics = new LinkedList<Metric>();
-    private double total = 0d;
+    protected double total = 0d;
 
     private double buyPrice = 0d;
     private double buyVolume = 0d;
@@ -307,11 +305,14 @@ public class LevelBacktest<P> {
                 forecast = trade.getPrice().doubleValue();
 
                 ++forecastError;
-            }else if (Math.abs(price - forecast)/price > 0.33) {
-                forecast = price*(0.33*Math.signum(price - forecast) + 1);
+            }else if (Math.abs(price - forecast)/price > 0.5) {
+                forecast = price*(0.5*Math.signum(price - forecast) + 1);
             }
 
-            balance = subtotalCny > subtotalBtc*forecast;
+//            balance = subtotalCny > subtotalBtc*forecast;
+
+//            balance = subtotalCny > subtotalBtc*(2*forecast - price);
+            balance = forecast > price;
 
             lastBalanceTime = trade.getCreated().getTime();
         }
@@ -465,7 +466,7 @@ public class LevelBacktest<P> {
         }
 
         //arima
-        if (forecastPriceQueue.isEmpty() ||  Math.abs(forecastPriceQueue.peekLast() - price) > getStdDev(trade)) {
+        if (forecastPriceQueue.isEmpty() ||  Math.abs(forecastPriceQueue.peekLast() - price) > getSpread(trade)) {
             forecastPriceQueue.add(price);
             if (forecastPriceQueue.size() > forecastSize){
                 forecastPriceQueue.removeFirst();
@@ -606,7 +607,7 @@ public class LevelBacktest<P> {
                 df.format(sellVolume) + " " +
                 slip + " " +
                 forecastError + " " +
-                orderType + " " +
+                orderType +
                 parameters.toString();
     }
 }
