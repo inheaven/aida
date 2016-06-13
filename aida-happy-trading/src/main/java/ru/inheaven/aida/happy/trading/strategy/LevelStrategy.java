@@ -83,6 +83,10 @@ public class LevelStrategy extends BaseStrategy{
     private List<Double> forecastPrices = Collections.synchronizedList(new ArrayList<>(10000));
     private List<Double> spreadPrices = Collections.synchronizedList(new ArrayList<>(5000));
 
+    private AtomicBoolean maxProfit = new AtomicBoolean();
+
+    private StrategyService strategyService;
+
     public LevelStrategy(StrategyService strategyService, Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                          DepthService depthService, UserInfoService userInfoService,  XChangeService xChangeService) {
         super(strategy, orderService, orderMapper, tradeService, depthService, xChangeService);
@@ -91,6 +95,7 @@ public class LevelStrategy extends BaseStrategy{
         this.userInfoService = userInfoService;
         this.tradeService = tradeService;
         this.orderService = orderService;
+        this.strategyService = strategyService;
 
         if (strategy.getSymbolType() != null) {
             userInfoService.createUserInfoObservable(strategy.getAccount().getId(), strategy.getSymbol().substring(0, 3))
@@ -144,8 +149,8 @@ public class LevelStrategy extends BaseStrategy{
 
                     //f = p1/p0 - 1 -> p1 = (f + 1)*p0
                     ArimaProcess process = strategy.isLevelInverse()
-                            ? ArimaFitter.fit(pricesDelta, 3, 2, 1)
-                            : ArimaFitter.fit(pricesDelta, 3, 2, 1);
+                            ? ArimaFitter.fit(pricesDelta, 3, 1, 2)
+                            : ArimaFitter.fit(pricesDelta, 3, 1, 2);
 
                     double f = new DefaultArimaForecaster(process, pricesDelta).next();
 
@@ -177,6 +182,10 @@ public class LevelStrategy extends BaseStrategy{
 
                 e.printStackTrace();
             }
+
+            //max profit
+            maxProfit.set(strategyService.isMaxProfit(strategy.getId()));
+
         }, 5000, 1000, TimeUnit.MILLISECONDS);
     }
 
@@ -359,12 +368,13 @@ public class LevelStrategy extends BaseStrategy{
             double forecast = getForecast();
 
             BigDecimal spread = scale(getSpread(price));
+            BigDecimal spread_0_1 = spread.divide(TEN, 8, HALF_EVEN);
 
             boolean inverse = strategy.isLevelInverse();
 
-            BigDecimal p = scale(up ? price.add(BD_0_01) : price.subtract(BD_0_01));
-            BigDecimal buyPrice = scale(!inverse ? p : p.subtract(spread));
-            BigDecimal sellPrice = scale(!inverse ? p.add(spread) : p);
+            BigDecimal p = scale(up ? price.add(spread_0_1) : price.subtract(spread_0_1));
+            BigDecimal buyPrice = scale(up ? p : p.subtract(spread));
+            BigDecimal sellPrice = scale(up ? p.add(spread) : p);
 
             if (!getOrderMap().contains(buyPrice, spread, BID) && !getOrderMap().contains(sellPrice, spread, ASK)){
                 //                BigDecimal total = userInfoService.getVolume("total", strategy.getAccount().getId(), null).setScale(8, HALF_UP);
@@ -377,6 +387,11 @@ public class LevelStrategy extends BaseStrategy{
 
                 double max = random.nextGaussian()/2 + 2;
                 double min = random.nextGaussian()/2 + 1;
+
+                if (maxProfit.get()){
+                    max *= Math.PI;
+                    min *= Math.PI;
+                }
 
                 log.info("{} "  + key + " {} {} {} {}", strategy.getId(), price.setScale(3, HALF_EVEN), spread, min, max);
 

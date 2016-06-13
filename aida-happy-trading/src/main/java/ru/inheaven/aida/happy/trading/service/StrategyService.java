@@ -64,4 +64,13 @@ public class StrategyService {
                 .filter(bs -> Objects.equals(bs.getStrategy().getSymbolType(), symbolType))
                 .collect(Collectors.toList());
     }
+
+    public boolean isMaxProfit(Long strategyId){
+        return baseStrategies.stream()
+                .max((s1, s2) -> s1.getProfit().compareTo(s2.getProfit()))
+                .filter(s -> s.getStrategy().getId().equals(strategyId))
+                .isPresent();
+    }
+
+
 }
