@@ -14,7 +14,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -38,8 +37,6 @@ public class LevelSSABacktest extends LevelBacktest<LevelSSABacktestParameters>{
                 balanceDelay, balanceValue, tradeDelay, metricDelay, slip, forecastSize,
                 new LevelSSABacktestParameters(rangeLength, windowLength, eigenfunctionsCount, predictionPointCount), orderType);
 
-        vssa = new VSSA(rangeLength, windowLength, eigenfunctionsCount, predictionPointCount);
-
         UJMPSettings ujmpSettings = UJMPSettings.getInstance();
 
         ujmpSettings.put(USEJBLAS, false);
@@ -50,12 +47,14 @@ public class LevelSSABacktest extends LevelBacktest<LevelSSABacktestParameters>{
         ujmpSettings.put(USECOMMONSMATH, false);
 
         ujmpSettings.setNumberOfThreads(2);
+
+        vssa = new VSSA(rangeLength, windowLength, eigenfunctionsCount, predictionPointCount);
     }
 
     @SuppressWarnings("Duplicates")
     public static void main(String... args){
-        Date startDate = Date.from(LocalDateTime.of(2016, 6, 15, 10, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
-        Date endDate = Date.from(LocalDateTime.of(2016, 6, 15, 12, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date startDate = Date.from(LocalDateTime.of(2016, 6, 15, 23, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date endDate = Date.from(LocalDateTime.of(2016, 6, 16, 1, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
 
         TradeMapper tradeMapper = Module.getInjector().getInstance(TradeMapper.class);
 
@@ -63,18 +62,18 @@ public class LevelSSABacktest extends LevelBacktest<LevelSSABacktestParameters>{
 
         System.out.println(trades.size());
 
-        ExecutorService executorService = Executors.newFixedThreadPool(1);
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
 
         Map<Double, String> results = new LinkedTreeMap<>(Comparator.reverseOrder());
 
         for (int i3 = 0; i3 <= 0; i3 += 1){
             for (int i2 = 8; i2 <= 8; i2 += 8) {
                 for (int i1 = 1; i1 <= 10; i1 += 1) {
-                    for (int i0 = 8; i0 <= 8; i0 += 1) {
+                    for (int i0 = 7; i0 <= 7; i0 += 1) {
                         int l = (int) Math.pow(2, i0);
                         int n = 2*l - 1;
 
-                        LevelSSABacktest bid = new LevelSSABacktest(33400, 60000, 20, 5000, 0, Math.sqrt(2*Math.PI), 0.01983, 0, 1000, 1, 500, 300000, false, n, n, l, i1, l/2, BID);
+                        LevelSSABacktest bid = new LevelSSABacktest(33400, 60000, 20, 5000, 0, Math.sqrt(2*Math.PI), 0.01983, 0, 1000, 1, 500, 300000, false, n, n, l, i1, l/4, BID);
 
                         Future bidFuture = executorService.submit(() -> {
                             trades.forEach(bid::action);
@@ -85,7 +84,7 @@ public class LevelSSABacktest extends LevelBacktest<LevelSSABacktestParameters>{
 
                         });
 
-                        LevelSSABacktest ask = new LevelSSABacktest(33400, 60000, 20, 5000, 0, Math.sqrt(2*Math.PI), 0.01983, 0, 1000, 1, 500, 300000, false, n, n, l, i1, l/2, ASK);
+                        LevelSSABacktest ask = new LevelSSABacktest(33400, 60000, 20, 5000, 0, Math.sqrt(2*Math.PI), 0.01983, 0, 1000, 1, 500, 300000, false, n, n, l, i1, l/4, ASK);
 
                         Future askFuture = executorService.submit(() -> {
                             trades.forEach(ask::action);
@@ -94,18 +93,6 @@ public class LevelSSABacktest extends LevelBacktest<LevelSSABacktestParameters>{
                             results.put(ask.total, ask.getStringRow());
                             System.out.println(ask.getStringRow());
                         });
-
-                        try {
-                            bidFuture.get();
-                        } catch (InterruptedException | ExecutionException e) {
-                            e.printStackTrace();
-                        }
-
-                        try {
-                            askFuture.get();
-                        } catch (InterruptedException | ExecutionException e) {
-                            e.printStackTrace();
-                        }
                     }
                 }
             }
@@ -118,13 +105,28 @@ public class LevelSSABacktest extends LevelBacktest<LevelSSABacktestParameters>{
     protected double getForecast(double[] prices, LevelSSABacktestParameters parameters) {
         if (prices.length >= parameters.getRangeLength()) {
             try {
-                double[] train = new double[parameters.getRangeLength()];
+//                float[] train = new float[parameters.getRangeLength()];
+//
+//                int start = prices.length - train.length;
+//
+//                for (int i = 0; i < train.length; ++i){
+//                    train[i] = (float) prices[i + start];
+//                }
+//
+//                float[] forecast = new float[parameters.getPredictionPointCount()];
+//
+//                int[] pp = new int[parameters.getEigenfunctionsCount()];
+//
+//                for (int i = 0; i < pp.length; i++){
+//                    pp[i] = i;
+//                }
+//
+//                ACML.jni().vssa(parameters.getRangeLength(), parameters.getWindowLength(), pp.length, pp,
+//                        parameters.getPredictionPointCount(), train, forecast, 0);
+//
+//                return forecast[forecast.length - 1];
 
-                int start = prices.length - train.length;
-
-                System.arraycopy(prices, start, train, 0, train.length);
-
-                return vssa.execute(train)[parameters.getPredictionPointCount() - 1];
+                return vssa.execute(prices)[parameters.getPredictionPointCount()-1];
             }  catch (Exception e) {
                 throw e;
             }

@@ -207,7 +207,7 @@ public class LevelBacktest<P> {
     private boolean slip;
 
     private int forecastSize;
-    private P parameters;
+    protected P parameters;
     private int forecastError;
 
     private OrderDoubleMap orderMap = new OrderDoubleMap();

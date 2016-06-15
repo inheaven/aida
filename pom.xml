@@ -667,6 +667,12 @@
             </dependency>
 
             <dependency>
+                <groupId>org.ujmp</groupId>
+                <artifactId>ujmp-mtj</artifactId>
+                <version>0.3.0</version>
+            </dependency>
+
+            <dependency>
                 <groupId>org.ojalgo</groupId>
                 <artifactId>ojalgo</artifactId>
                 <version>39.0</version>

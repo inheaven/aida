@@ -1,7 +1,7 @@
 package ru.inhell.stock.core;
 
 import org.ujmp.core.Matrix;
-import org.ujmp.core.doublematrix.DoubleMatrix;
+import org.ujmp.ojalgo.OjalgoDenseDoubleMatrix2D;
 
 import static org.ujmp.core.calculation.Calculation.Ret;
 
@@ -28,8 +28,8 @@ public class VSSA {
 
         this.basicSSA = new BasicSSA(rangeLength, windowLength, eigenfunctionsCount);
 
-        Z = DoubleMatrix.Factory.zeros(windowLength, rangeLength + predictionPointCount);
-        R = DoubleMatrix.Factory.zeros(windowLength-1, 1);
+        Z = OjalgoDenseDoubleMatrix2D.Factory.zeros(windowLength, rangeLength + predictionPointCount);
+        R = OjalgoDenseDoubleMatrix2D.Factory.zeros(windowLength-1, 1);
     }
 
     public double[] execute(double[] timeSeries) {

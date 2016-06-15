@@ -11,7 +11,7 @@ set INCLUDE_JNI=/I "C:\Program Files\Java\jdk1.8.0_66\include" /I "C:\Program Fi
 
 rem x64
 call %CL_DIR%vcvars64.bat
-%CL_DIR%cl %C_OPT% %INCLUDE_JNI% /I "C:\AMD\acml\ifort64_mp\include" src\main\c\acml_wrapper.cpp "C:\AMD\acml\ifort64_mp\lib\libacml_mp_dll.lib"  /LD /Fetarget\bin\acml_wrapper.dll
+%CL_DIR%cl %C_OPT% %INCLUDE_JNI% /I "C:\AMD\acml\ifort64_mp\include" src\main\c\acml_wrapper.cpp "C:\AMD\acml\ifort64_mp\lib\libacml_mp_dll.lib" /MT /LD /Fetarget\bin\acml_wrapper.dll
 
 rem MP
 rem %CL_DIR%cl %C_OPT% %INCLUDE_JNI% /I "C:\AMD\acml4.4.0\win64_mp\include" src\main\c\acml_wrapper.cpp "C:\AMD\acml4.4.0\win64_mp\lib\libacml_mp_dll.lib" /LD /Fotarget\bin\acml_wrapper_mp.obj /Fetarget\bin\acml_wrapper_mp.dll

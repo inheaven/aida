@@ -116,7 +116,7 @@ public class LevelStrategy extends BaseStrategy{
             }
         }, 5000, 10, TimeUnit.MILLISECONDS);
 
-        VSSA vssa = new VSSA(256, 128, 9, 16);
+        VSSA vssa = new VSSA(255, 128, 9, 16);
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             if (strategy.getName().contains("vssa")){
@@ -468,9 +468,9 @@ public class LevelStrategy extends BaseStrategy{
                 }
 
                 //forecast
-                if (forecastPrices.size() < 256 || Math.abs(forecastPrices.peekLast()) > stdDev.get()) {
+                if (forecastPrices.size() < 255 || Math.abs(forecastPrices.peekLast()) > stdDev.get()) {
                     forecastPrices.add(price);
-                    if (forecastPrices.size() > 256){
+                    if (forecastPrices.size() > 255){
                         forecastPrices.removeFirst();
                     }
                 }

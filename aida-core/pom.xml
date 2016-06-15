@@ -57,10 +57,10 @@
             <artifactId>ujmp-gui</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-ojalgo</artifactId>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.ujmp</groupId>-->
+            <!--<artifactId>ujmp-mtj</artifactId>-->
+        <!--</dependency>-->
 
         <dependency>
             <groupId>org.ojalgo</groupId>
@@ -136,6 +136,11 @@
         <dependency>
             <groupId>org.scalanlp</groupId>
             <artifactId>breeze_2.10</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.fommil.netlib</groupId>
+            <artifactId>all</artifactId>
         </dependency>
     </dependencies>
 
