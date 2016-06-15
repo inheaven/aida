@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <string.h>
 #include <math.h>
+#include <ios> 
 
 void check_memory(JNIEnv * env, void * arg) {
 	if (arg != NULL) {
@@ -21,8 +22,7 @@ void check_memory(JNIEnv * env, void * arg) {
 }
 
 // LAPACK
-
-JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_sgesvd 
+JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_sgesvd
 	(JNIEnv *env, jobject calling_obj, jstring jobu, jstring jobvt, jint m, jint n, jfloatArray a, jint lda, jfloatArray s, jfloatArray u, jint ldu, jfloatArray vt, jint ldvt, jintArray info)
 {
 
@@ -100,7 +100,7 @@ JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_sgesdd
 }
 
 
-JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_dgesvd 
+JNIEXPORT void JNICALL Java_ru_inhell_aida_acml_ACML_dgesvd
 	(JNIEnv *env, jobject calling_obj, jstring jobu, jstring jobvt, jint m, jint n, jdoubleArray a, jint lda, jdoubleArray s, jdoubleArray u, jint ldu, jdoubleArray vt, jint ldvt, jintArray info)
 {	
 

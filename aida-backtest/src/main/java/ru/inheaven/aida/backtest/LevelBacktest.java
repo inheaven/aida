@@ -465,8 +465,8 @@ public class LevelBacktest<P> {
             getStandardDeviation().add(price);
         }
 
-        //arima
-        if (forecastPriceQueue.isEmpty() ||  Math.abs(forecastPriceQueue.peekLast() - price) > getSpread(trade)) {
+        //forecast
+        if (forecastPriceQueue.size() < forecastSize ||  Math.abs(forecastPriceQueue.peekLast() - price) > getSpread(trade)) {
             forecastPriceQueue.add(price);
             if (forecastPriceQueue.size() > forecastSize){
                 forecastPriceQueue.removeFirst();
@@ -481,11 +481,11 @@ public class LevelBacktest<P> {
 
         cancel(trade);
 
-        double p = trade.getPrice().doubleValue();
         double spread = getSpread(trade);
 
         boolean up = isBalance(trade);
 
+        double p = trade.getPrice().doubleValue() + (up ? spread/10 : -spread/10);
         double buyPrice = up ? p : p - spread;
         double sellPrice = up ? p + spread : p;
 

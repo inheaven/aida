@@ -1,5 +1,6 @@
 package ru.inheaven.aida.happy.trading.strategy;
 
+import com.google.common.primitives.Doubles;
 import com.google.common.util.concurrent.AtomicDouble;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.slf4j.Logger;
@@ -80,8 +81,8 @@ public class LevelStrategy extends BaseStrategy{
 
     private AtomicDouble forecast = new AtomicDouble(0);
 
-    private List<Double> forecastPrices = Collections.synchronizedList(new ArrayList<>(10000));
-    private List<Double> spreadPrices = Collections.synchronizedList(new ArrayList<>(5000));
+    private Deque<Double> forecastPrices = new ConcurrentLinkedDeque<>();
+    private Deque<Double> spreadPrices = new ConcurrentLinkedDeque<>();
 
     private AtomicBoolean maxProfit = new AtomicBoolean();
 
@@ -115,14 +116,14 @@ public class LevelStrategy extends BaseStrategy{
             }
         }, 5000, 10, TimeUnit.MILLISECONDS);
 
-        VSSA vssa = new VSSA(256, 128, 8, 8);
+        VSSA vssa = new VSSA(256, 128, 9, 16);
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             if (strategy.getName().contains("vssa")){
                 try {
                     if (forecastPrices.size() >= vssa.getRangeLength()) {
-                        double[] prices = forecastPrices.stream().mapToDouble(d -> d).toArray();
-                        double f = vssa.execute(Arrays.copyOfRange(prices, prices.length - vssa.getRangeLength() - 1, prices.length))[vssa.getPredictionPointCount() - 1];
+                        double[] prices = Doubles.toArray(forecastPrices);
+                        double f = vssa.execute(Arrays.copyOfRange(prices, prices.length - vssa.getRangeLength(), prices.length))[vssa.getPredictionPointCount() - 1];
                         double price = prices[prices.length - 1];
 
                         if (Math.abs(price - f)/price > 0.5) {
@@ -140,7 +141,7 @@ public class LevelStrategy extends BaseStrategy{
                 }
             }else if (forecastPrices.size() > 10){
                 try {
-                    double[] prices = forecastPrices.stream().mapToDouble(d -> d).toArray();
+                    double[] prices = Doubles.toArray(forecastPrices);
 
                     double[] pricesDelta = new double[prices.length - 1];
                     for (int i = 0; i < prices.length - 1; ++i){
@@ -149,8 +150,8 @@ public class LevelStrategy extends BaseStrategy{
 
                     //f = p1/p0 - 1 -> p1 = (f + 1)*p0
                     ArimaProcess process = strategy.isLevelInverse()
-                            ? ArimaFitter.fit(pricesDelta, 3, 1, 2)
-                            : ArimaFitter.fit(pricesDelta, 3, 1, 2);
+                            ? ArimaFitter.fit(pricesDelta, 7, 5, 8)
+                            : ArimaFitter.fit(pricesDelta, 7, 10, 3);
 
                     double f = new DefaultArimaForecaster(process, pricesDelta).next();
 
@@ -176,7 +177,7 @@ public class LevelStrategy extends BaseStrategy{
 
             try {
                 //stddev
-                stdDev.set(standardDeviation.evaluate(spreadPrices.stream().mapToDouble(d -> d).toArray()));
+                stdDev.set(standardDeviation.evaluate(Doubles.toArray(spreadPrices)));
             } catch (Exception e) {
                 stdDev.set(0);
 
@@ -388,10 +389,10 @@ public class LevelStrategy extends BaseStrategy{
                 double max = random.nextGaussian()/2 + 2;
                 double min = random.nextGaussian()/2 + 1;
 
-                if (maxProfit.get()){
-                    max *= Math.PI;
-                    min *= Math.PI;
-                }
+//                if (maxProfit.get()){
+//                    max *= Math.PI;
+//                    min *= Math.PI;
+//                }
 
                 log.info("{} "  + key + " {} {} {} {}", strategy.getId(), price.setScale(3, HALF_EVEN), spread, min, max);
 
@@ -463,14 +464,14 @@ public class LevelStrategy extends BaseStrategy{
                 //spread
                 spreadPrices.add(price);
                 if (spreadPrices.size() > 5000){
-                    spreadPrices.remove(0);
+                    spreadPrices.removeFirst();
                 }
 
-                //arima
-                if (forecastPrices.isEmpty() || Math.abs(forecastPrices.get(forecastPrices.size() - 1) - price) > getSpread(trade.getPrice()).doubleValue()) {
+                //forecast
+                if (forecastPrices.size() < 256 || Math.abs(forecastPrices.peekLast()) > stdDev.get()) {
                     forecastPrices.add(price);
-                    if (forecastPrices.size() > 10000){
-                        forecastPrices.remove(0);
+                    if (forecastPrices.size() > 256){
+                        forecastPrices.removeFirst();
                     }
                 }
             }

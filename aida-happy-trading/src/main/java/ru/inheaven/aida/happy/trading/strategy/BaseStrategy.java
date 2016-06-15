@@ -227,15 +227,15 @@ public class BaseStrategy {
                     if (openOrdersCache.get().getOpenOrders().size() > 45){
                         list.sort((o1, o2) -> o1.getTimestamp().compareTo(o2.getTimestamp()));
 
-                        for (int i=0; i<=30; ++i){
+                        for (int i=0; i<=5; ++i){
                             try {
                                 LimitOrder l = list.get(i);
+
+                                ts.cancelOrder(l.getId());
 
                                 Order order = orderMap.get(l.getId());
 
                                 if (order != null){
-                                    ts.cancelOrder(l.getId());
-
                                     order.setStatus(CANCELED);
 
                                     log.info("schedule 50 cancel order {}", l);
