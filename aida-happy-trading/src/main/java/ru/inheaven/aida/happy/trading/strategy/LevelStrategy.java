@@ -123,8 +123,17 @@ public class LevelStrategy extends BaseStrategy{
                 try {
                     if (forecastPrices.size() >= vssa.getRangeLength()) {
                         double[] prices = Doubles.toArray(forecastPrices);
-                        double f = vssa.execute(Arrays.copyOfRange(prices, prices.length - vssa.getRangeLength(), prices.length))[vssa.getPredictionPointCount() - 1];
+
+                        double[] train = new double[vssa.getRangeLength()];
+
+                        for (int j = 0; j < train.length; ++j){
+                            train[j] = prices[j + 1]/prices[j] - 1;
+                        }
+
                         double price = prices[prices.length - 1];
+
+                        double f = vssa.execute(Arrays.copyOfRange(train, prices.length - vssa.getRangeLength(), prices.length))[vssa.getPredictionPointCount() - 1];
+                        f = (f+1)*price;
 
                         if (Math.abs(price - f)/price > 0.5) {
                             forecast.set(price*(0.5*Math.signum(price - f) + 1));
@@ -468,9 +477,9 @@ public class LevelStrategy extends BaseStrategy{
                 }
 
                 //forecast
-                if (forecastPrices.size() < 255 || Math.abs(forecastPrices.peekLast()) > stdDev.get()) {
+                if (forecastPrices.size() < 256 || Math.abs(forecastPrices.peekLast()) > stdDev.get()) {
                     forecastPrices.add(price);
-                    if (forecastPrices.size() > 255){
+                    if (forecastPrices.size() > 256){
                         forecastPrices.removeFirst();
                     }
                 }

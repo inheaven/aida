@@ -3,7 +3,6 @@ package ru.inhell.stock.core;
 import org.ujmp.core.Matrix;
 import org.ujmp.core.doublematrix.DoubleMatrix;
 import org.ujmp.core.interfaces.HasColumnMajorDoubleArray1D;
-import org.ujmp.ojalgo.OjalgoDenseDoubleMatrix2D;
 
 import static org.ujmp.core.calculation.Calculation.Ret;
 
@@ -90,8 +89,8 @@ public class BasicSSA {
         this.eigenfunctionsCount = eigenfunctionsCount;
 
         X = DoubleMatrix.Factory.zeros(windowLength, rangeLength - windowLength + 1);
-        XI = OjalgoDenseDoubleMatrix2D.Factory.zeros(windowLength, rangeLength - windowLength + 1);
-        G = OjalgoDenseDoubleMatrix2D.Factory.zeros(rangeLength, eigenfunctionsCount);
+        XI = DoubleMatrix.Factory.zeros(windowLength, rangeLength - windowLength + 1);
+        G = DoubleMatrix.Factory.zeros(rangeLength, eigenfunctionsCount);
     }
 
     public Result execute(double[] timeSeries){
@@ -100,8 +99,6 @@ public class BasicSSA {
         for (int j = 0; j < rangeLength - windowLength + 1; j++){
             System.arraycopy(timeSeries, j, values, j*windowLength, windowLength);
         }
-
-        X = OjalgoDenseDoubleMatrix2D.Factory.copyFromMatrix(X);
 
         Matrix[] svd = X.svd();
 

@@ -49,18 +49,8 @@
 
         <dependency>
             <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-core</artifactId>
+            <artifactId>ujmp-complete</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-gui</artifactId>
-        </dependency>
-
-        <!--<dependency>-->
-            <!--<groupId>org.ujmp</groupId>-->
-            <!--<artifactId>ujmp-mtj</artifactId>-->
-        <!--</dependency>-->
 
         <dependency>
             <groupId>org.ojalgo</groupId>
