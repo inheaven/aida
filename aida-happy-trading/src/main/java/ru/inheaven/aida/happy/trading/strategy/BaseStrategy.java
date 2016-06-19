@@ -144,7 +144,6 @@ public class BaseStrategy {
     }
 
     private static AtomicReference<OpenOrders> openOrdersCache = new AtomicReference<>();
-    private static AtomicReference<Long> openOrdersTime = new AtomicReference<>(System.currentTimeMillis());
 
     public void start(){
         if (flying){
@@ -217,19 +216,14 @@ public class BaseStrategy {
                 try {
                     PollingTradeService ts = xChangeService.getExchange(strategy.getAccount()).getPollingTradeService();
 
-                    if (System.currentTimeMillis() - openOrdersTime.get() > 2000){
-                        openOrdersTime.set(System.currentTimeMillis());
-                        openOrdersCache.set(ts.getOpenOrders());
-                    }
+                    List<LimitOrder> openOrders = ts.getOpenOrders().getOpenOrders();
 
-                    List<LimitOrder> list = openOrdersCache.get().getOpenOrders();
-
-                    if (openOrdersCache.get().getOpenOrders().size() > 45){
-                        list.sort((o1, o2) -> o1.getTimestamp().compareTo(o2.getTimestamp()));
+                    if (openOrders.size() > 45){
+                        openOrders.sort((o1, o2) -> o1.getTimestamp().compareTo(o2.getTimestamp()));
 
                         for (int i=0; i<=5; ++i){
                             try {
-                                LimitOrder l = list.get(i);
+                                LimitOrder l = openOrders.get(i);
 
                                 ts.cancelOrder(l.getId());
 
@@ -246,9 +240,9 @@ public class BaseStrategy {
                         }
                     }
 
-                    BigDecimal range = getSpread(lastPrice.get()).multiply(BigDecimal.valueOf(20));
+                    BigDecimal range = getSpread(lastPrice.get()).multiply(BigDecimal.valueOf(10));
 
-                    openOrdersCache.get().getOpenOrders().forEach(l -> {
+                    openOrders.forEach(l -> {
                         if (lastPrice.get() != null && l.getCurrencyPair().toString().equals(strategy.getSymbol()) &&
                                 lastPrice.get().subtract(l.getLimitPrice()).abs().compareTo(range) > 0){
                             try {
@@ -270,7 +264,7 @@ public class BaseStrategy {
                     log.error("error schedule cancel order -> ", e);
                 }
 
-            }, 0, 60, SECONDS);
+            }, 0, 15, SECONDS);
         }
 
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(

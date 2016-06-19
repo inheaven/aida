@@ -13,6 +13,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -51,8 +52,8 @@ public class LevelSSABacktest extends LevelBacktest<LevelSSABacktestParameters>{
 
     @SuppressWarnings("Duplicates")
     public static void main(String... args){
-        Date startDate = Date.from(LocalDateTime.of(2016, 6, 17, 0, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
-        Date endDate = Date.from(LocalDateTime.of(2016, 6, 17, 1, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date startDate = Date.from(LocalDateTime.of(2016, 6, 17, 10, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date endDate = Date.from(LocalDateTime.of(2016, 6, 17, 15, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
 
         TradeMapper tradeMapper = Module.getInjector().getInstance(TradeMapper.class);
 
@@ -66,31 +67,38 @@ public class LevelSSABacktest extends LevelBacktest<LevelSSABacktestParameters>{
 
         for (int i3 = 0; i3 <= 0; i3 += 1){
             for (int i2 = 8; i2 <= 8; i2 += 8) {
-                for (int i1 = 2; i1 <= 10; i1 += 1) {
+                for (int i1 = 2; i1 <= 16; i1 += 1) {
                     for (int i0 = 7; i0 <= 7; i0 += 1) {
                         int l = (int) Math.pow(2, i0);
                         int n = 2*l - 1;
 
-                        LevelSSABacktest bid = new LevelSSABacktest(33400, 60000, 20, 5000, 0, Math.sqrt(2*Math.PI), 0.01983, 0, 1000, 1, 500, 300000, false, n+1, n, l, i1, l/8, BID);
+                        LevelSSABacktest bid = new LevelSSABacktest(33400, 60000, 20, 5000, 0, Math.sqrt(2*Math.PI), 0.01983, 0, 15000, 1, 500, 300000, false, n+1, n, l, i1, l/8, BID);
 
                         Future bidFuture = executorService.submit(() -> {
                             trades.forEach(bid::action);
-                            //bid.vssa.clear();
+                            bid.vssa.clear();
 
                             results.put(bid.total, bid.getStringRow());
                             System.out.println(bid.getStringRow());
 
                         });
 
-                        LevelSSABacktest ask = new LevelSSABacktest(33400, 60000, 20, 5000, 0, Math.sqrt(2*Math.PI), 0.01983, 0, 1000, 1, 500, 300000, false, n+1, n, l, i1, l/8, ASK);
+                        LevelSSABacktest ask = new LevelSSABacktest(33400, 60000, 20, 5000, 0, Math.sqrt(2*Math.PI), 0.01983, 0, 30000, 1, 500, 300000, false, n+1, n, l, i1, l/8, ASK);
 
                         Future askFuture = executorService.submit(() -> {
                             trades.forEach(ask::action);
-                            //ask.vssa.clear();
+                            ask.vssa.clear();
 
                             results.put(ask.total, ask.getStringRow());
                             System.out.println(ask.getStringRow());
                         });
+
+                        try {
+                            bidFuture.get();
+                            askFuture.get();
+                        } catch (InterruptedException | ExecutionException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
@@ -130,9 +138,15 @@ public class LevelSSABacktest extends LevelBacktest<LevelSSABacktestParameters>{
                     train[j] = prices[j + 1]/prices[j] - 1;
                 }
 
-                double f = vssa.execute(train)[parameters.getPredictionPointCount()-1];
+                double[] forecasts = vssa.execute(train);
 
-                return prices[prices.length - 1] * (f + 1);
+                double value = 1;
+
+                for (double f : forecasts){
+                    value *= f + 1;
+                }
+
+                return prices[prices.length - 1] * value;
             }  catch (Exception e) {
                 throw e;
             }

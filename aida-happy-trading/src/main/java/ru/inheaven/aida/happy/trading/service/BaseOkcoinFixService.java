@@ -187,7 +187,7 @@ public abstract class BaseOkcoinFixService {
             MessageStoreFactory storeFactory = new MemoryStoreFactory();
             LogFactory logFactory = !config.contains("market") ? new FileLogFactory(settings) : null;
             MessageFactory messageFactory = new OKCoinMessageFactory();
-            ThreadedSocketInitiator initiator = new ThreadedSocketInitiator(application, storeFactory, settings, logFactory, messageFactory);
+            SocketInitiator initiator = new SocketInitiator(application, storeFactory, settings, logFactory, messageFactory);
             initiator.start();
         } catch (Exception e) {
             log.error("error init okcoin fix");

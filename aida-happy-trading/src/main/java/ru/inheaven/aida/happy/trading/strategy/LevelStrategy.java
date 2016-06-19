@@ -5,6 +5,7 @@ import com.google.common.util.concurrent.AtomicDouble;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.ujmp.core.util.UJMPSettings;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
@@ -88,6 +89,8 @@ public class LevelStrategy extends BaseStrategy{
 
     private StrategyService strategyService;
 
+    private VSSA vssa;
+
     public LevelStrategy(StrategyService strategyService, Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                          DepthService depthService, UserInfoService userInfoService,  XChangeService xChangeService) {
         super(strategy, orderService, orderMapper, tradeService, depthService, xChangeService);
@@ -116,37 +119,35 @@ public class LevelStrategy extends BaseStrategy{
             }
         }, 5000, 10, TimeUnit.MILLISECONDS);
 
-        VSSA vssa = new VSSA(255, 128, 9, 16);
+        // 512 128 3 128
+
+        UJMPSettings.getInstance().setNumberOfThreads(4);
+
+        vssa = new VSSA(512, 128, 3, 1);
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             if (strategy.getName().contains("vssa")){
                 try {
-                    if (forecastPrices.size() >= vssa.getRangeLength()) {
+                    if (forecastPrices.size() > vssa.getRangeLength()) {
                         double[] prices = Doubles.toArray(forecastPrices);
 
                         double[] train = new double[vssa.getRangeLength()];
 
                         for (int j = 0; j < train.length; ++j){
-                            train[j] = prices[j + 1]/prices[j] - 1;
+                            train[j] = prices[j + 1];
                         }
+
+                        double[] forecasts = vssa.execute(train);
 
                         double price = prices[prices.length - 1];
-
-                        double f = vssa.execute(Arrays.copyOfRange(train, prices.length - vssa.getRangeLength(), prices.length))[vssa.getPredictionPointCount() - 1];
-                        f = (f+1)*price;
-
-                        if (Math.abs(price - f)/price > 0.5) {
-                            forecast.set(price*(0.5*Math.signum(price - f) + 1));
-                        }else {
-                            forecast.set(f);
-                        }
+                        forecast.set(forecasts[forecasts.length - 1] - forecasts[train.length - 1]);
                     }else{
                         forecast.set(0);
                     }
                 } catch (Exception e) {
                     forecast.set(0);
 
-                    e.printStackTrace();
+                    log.error("error forecast", e);
                 }
             }else if (forecastPrices.size() > 10){
                 try {
@@ -179,24 +180,24 @@ public class LevelStrategy extends BaseStrategy{
                 } catch (Exception e) {
                     forecast.set(0);
 
-                    e.printStackTrace();
+                    log.error("error forecast", e);
                 }
             }
+        }, 5000, 15000, TimeUnit.MILLISECONDS);
 
-
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             try {
                 //stddev
                 stdDev.set(standardDeviation.evaluate(Doubles.toArray(spreadPrices)));
             } catch (Exception e) {
                 stdDev.set(0);
 
-                e.printStackTrace();
+                log.error("error stdDev", e);
             }
 
             //max profit
             maxProfit.set(strategyService.isMaxProfit(strategy.getId()));
-
-        }, 5000, 1000, TimeUnit.MILLISECONDS);
+        }, 5000, 15000, TimeUnit.MILLISECONDS);
     }
 
     private void pushOrders(BigDecimal price){
@@ -237,7 +238,7 @@ public class LevelStrategy extends BaseStrategy{
     @SuppressWarnings("Duplicates")
     private void closeByMarket(BigDecimal price, Date time){
         try {
-            getOrderMap().get(price.add(getSideSpread(price)), BID, false).forEach((k,v) -> {
+            getOrderMap().get(price, BID, false).forEach((k,v) -> {
                 v.values().forEach(o -> {
                     if (o.getStatus().equals(OPEN) && time.getTime() - o.getOpen().getTime() > 0){
                         o.setStatus(CLOSED);
@@ -247,7 +248,7 @@ public class LevelStrategy extends BaseStrategy{
                 });
             });
 
-            getOrderMap().get(price.subtract(getSideSpread(price)), ASK, false).forEach((k,v) -> {
+            getOrderMap().get(price, ASK, false).forEach((k,v) -> {
                 v.values().forEach(o -> {
                     if (o.getStatus().equals(OPEN) && time.getTime() - o.getOpen().getTime() > 0){
                         o.setStatus(CLOSED);
@@ -279,6 +280,8 @@ public class LevelStrategy extends BaseStrategy{
             }
 
             action(key, price, orderType, 0);
+//            action(key, price.add(getSideSpread(price)), orderType, 1);
+//            action(key, price.subtract(getSideSpread(price)), orderType, -1);
 
             lastAction.set(price);
         } catch (Exception e) {
@@ -296,7 +299,13 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal subtotalCny = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[1]);
 
             if (forecast.get() != 0){
-                balance.set(forecast.get() > lastAction.get().doubleValue());
+                balance.set(random.nextBoolean() ? forecast.get() > 0
+                        : subtotalCny.divide(subtotalBtc.multiply(lastTrade.get().subtract(BigDecimal.valueOf(forecast.get()))), 8, HALF_EVEN).compareTo(BD_2) > 0
+                );
+
+
+                //balance.set(forecast.get() > lastAction.get().doubleValue());
+
 
 //                if (strategy.getName().contains("vssa")) {
 //                    balance.set(forecast.get() > lastAction.get().doubleValue());
@@ -382,9 +391,9 @@ public class LevelStrategy extends BaseStrategy{
 
             boolean inverse = strategy.isLevelInverse();
 
-            BigDecimal p = scale(up ? price.add(spread_0_1) : price.subtract(spread_0_1));
-            BigDecimal buyPrice = scale(up ? p : p.subtract(spread));
-            BigDecimal sellPrice = scale(up ? p.add(spread) : p);
+            BigDecimal p = scale(!inverse ? price.add(spread_0_1) : price.subtract(spread_0_1));
+            BigDecimal buyPrice = scale(!inverse ? p : p.subtract(spread));
+            BigDecimal sellPrice = scale(!inverse ? p.add(spread) : p);
 
             if (!getOrderMap().contains(buyPrice, spread, BID) && !getOrderMap().contains(sellPrice, spread, ASK)){
                 //                BigDecimal total = userInfoService.getVolume("total", strategy.getAccount().getId(), null).setScale(8, HALF_UP);
@@ -459,6 +468,9 @@ public class LevelStrategy extends BaseStrategy{
     }
 
     private AtomicReference<BigDecimal> lastTrade = new AtomicReference<>(ZERO);
+    private AtomicLong lastTradeTime = new AtomicLong(System.currentTimeMillis());
+
+    private Deque<Double> forecastPricesAvg = new ConcurrentLinkedDeque<>();
 
     @Override
     protected void onTrade(Trade trade) {
@@ -476,16 +488,25 @@ public class LevelStrategy extends BaseStrategy{
                     spreadPrices.removeFirst();
                 }
 
+                forecastPricesAvg.add(price);
+
                 //forecast
-                if (forecastPrices.size() < 256 || Math.abs(forecastPrices.peekLast()) > stdDev.get()) {
-                    forecastPrices.add(price);
-                    if (forecastPrices.size() > 256){
+                if (forecastPrices.size() < vssa.getRangeLength() + 1 || System.currentTimeMillis() - lastTradeTime.get() > 15000) {
+                    lastTradeTime.set(System.currentTimeMillis());
+
+                    double avg = forecastPricesAvg.stream().mapToDouble(d -> d).average().orElse(0);
+
+                    forecastPrices.add(avg);
+
+                    forecastPricesAvg.clear();
+
+                    if (forecastPrices.size() > vssa.getRangeLength() + 1){
                         forecastPrices.removeFirst();
                     }
                 }
             }
 
-            //closeByMarketAsync(trade.getPrice(), trade.getOrigTime());
+            closeByMarketAsync(trade.getPrice(), trade.getOrigTime());
         }else{
             log.warn("trade price diff 1% {} {} {}", trade.getPrice(), trade.getSymbol(), Objects.toString(trade.getSymbolType(), ""));
         }

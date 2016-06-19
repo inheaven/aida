@@ -128,120 +128,130 @@ public class OKCoinApplication extends MessageCracker implements Application {
     @Override
     public void onMessage(MarketDataSnapshotFullRefresh message, SessionID sessionID) throws FieldNotFound,
             UnsupportedMessageType, IncorrectTagValue {
-        String symbol = message.getSymbol().getValue();
-        List<PriceAmount> bids = null;
-        List<PriceAmount> asks = null;
+		try {
+			String symbol = message.getSymbol().getValue();
+			List<PriceAmount> bids = null;
+			List<PriceAmount> asks = null;
 
-        for (int i = 1, l = message.getNoMDEntries().getValue(); i <= l; i++) {
-            Group group = message.getGroup(i, NoMDEntries.FIELD);
+			for (int i = 1, l = message.getNoMDEntries().getValue(); i <= l; i++) {
+                Group group = message.getGroup(i, NoMDEntries.FIELD);
 
-            char type = group.getChar(MDEntryType.FIELD);
-            BigDecimal price = new BigDecimal(group.getString(MDEntryPx.FIELD));
-            BigDecimal amount = group.isSetField(MDEntrySize.FIELD) ? new BigDecimal(group.getString(MDEntrySize.FIELD)) : null;
+                char type = group.getChar(MDEntryType.FIELD);
+                BigDecimal price = new BigDecimal(group.getString(MDEntryPx.FIELD));
+                BigDecimal amount = group.isSetField(MDEntrySize.FIELD) ? new BigDecimal(group.getString(MDEntrySize.FIELD)) : null;
 
-            switch (type){
-                case MDEntryType.TRADE:
-                    Trade trade = new Trade();
-                    trade.setTradeId(String.valueOf(System.nanoTime()));
-                    trade.setExchangeType(exchangeType);
-                    trade.setSymbol(symbol);
-                    trade.setOrderType(group.getField(new Side()).getValue() == Side.SELL ? OrderType.BID : OrderType.ASK);
-                    trade.setPrice(price);
-                    trade.setAmount(amount);
-                    trade.setTime(message.getString(OrigTime.FIELD));
-                    trade.setCreated(new Date());
-                    trade.setOrigTime(message.getField(new OrigTime()).getValue());
+                switch (type){
+                    case MDEntryType.TRADE:
+                        Trade trade = new Trade();
+                        trade.setTradeId(String.valueOf(System.nanoTime()));
+                        trade.setExchangeType(exchangeType);
+                        trade.setSymbol(symbol);
+                        trade.setOrderType(group.getField(new Side()).getValue() == Side.SELL ? OrderType.BID : OrderType.ASK);
+                        trade.setPrice(price);
+                        trade.setAmount(amount);
+                        trade.setTime(message.getString(OrigTime.FIELD));
+                        trade.setCreated(new Date());
+                        trade.setOrigTime(message.getField(new OrigTime()).getValue());
 
-                    onTrade(trade);
-                    break;
-                case MDEntryType.BID:
-                    if (bids == null){
-                        bids = new ArrayList<>();
-                    }
+                        onTrade(trade);
+                        break;
+                    case MDEntryType.BID:
+                        if (bids == null){
+                            bids = new ArrayList<>();
+                        }
 
-                    bids.add(new PriceAmount(price, amount));
-                    break;
-                case MDEntryType.OFFER:
-                    if (asks == null){
-                        asks = new ArrayList<>();
-                    }
+                        bids.add(new PriceAmount(price, amount));
+                        break;
+                    case MDEntryType.OFFER:
+                        if (asks == null){
+                            asks = new ArrayList<>();
+                        }
 
-                    asks.add(new PriceAmount(price, amount));
-                    break;
+                        asks.add(new PriceAmount(price, amount));
+                        break;
+                }
             }
-        }
 
 
-        if (asks != null && bids != null){
-            Depth depth = new Depth();
+			if (asks != null && bids != null){
+                Depth depth = new Depth();
 
-            depth.setExchangeType(exchangeType);
-            depth.setSymbol(symbol);
+                depth.setExchangeType(exchangeType);
+                depth.setSymbol(symbol);
 
-            depth.setAsk(asks.get(asks.size()-1).getPrice());
-            depth.setBid(bids.get(0).getPrice());
+                depth.setAsk(asks.get(asks.size()-1).getPrice());
+                depth.setBid(bids.get(0).getPrice());
 
-            depth.setAskJson("[" + Joiner.on(",").join(asks) + "]");
-            depth.setBidJson("[" + Joiner.on(",").join(bids) + "]");
+                depth.setAskJson("[" + Joiner.on(",").join(asks) + "]");
+                depth.setBidJson("[" + Joiner.on(",").join(bids) + "]");
 
-            depth.setTime(message.getField(new OrigTime()).getValue());
-            depth.setCreated(new Date());
+                depth.setTime(message.getField(new OrigTime()).getValue());
+                depth.setCreated(new Date());
 
-            onDepth(depth);
-        }
-    }
+                onDepth(depth);
+            }
+		} catch (Exception e) {
+			log.error("error onMessage", e);
+		}
+	}
 
     @Override
     public void onMessage(ExecutionReport message, SessionID sessionId) throws FieldNotFound, UnsupportedMessageType,
             IncorrectTagValue {
-        Order order = new Order();
+		try {
+			Order order = new Order();
 
-        order.setExchangeType(exchangeType);
-        order.setSymbol(message.getSymbol().getValue());
-        order.setOrderId(message.getOrderID().getValue());
+			order.setExchangeType(exchangeType);
+			order.setSymbol(message.getSymbol().getValue());
+			order.setOrderId(message.getOrderID().getValue());
 
-        if (message.isSetClOrdID()) {
-            order.setInternalId(message.getClOrdID().getValue().replace("\\", ""));
-        }
+			if (message.isSetClOrdID()) {
+                order.setInternalId(message.getClOrdID().getValue().replace("\\", ""));
+            }
 
-        order.setAvgPrice(BigDecimal.valueOf(message.getAvgPx().getValue()));
+			order.setAvgPrice(BigDecimal.valueOf(message.getAvgPx().getValue()));
 
-        if (message.isSetPrice()) {
-            order.setPrice(BigDecimal.valueOf(message.getPrice().getValue()));
-        }
+			if (message.isSetPrice()) {
+                order.setPrice(BigDecimal.valueOf(message.getPrice().getValue()));
+            }
 
-		if (message.isSetText()){
-            order.setText(message.getText().getValue() + " " + sessionId.getSenderCompID());
-        }
+			if (message.isSetText()){
+                order.setText(message.getText().getValue() + " " + sessionId.getSenderCompID());
+            }
 
-        order.setAmount(BigDecimal.valueOf(message.getOrderQty().getValue()));
+			order.setAmount(BigDecimal.valueOf(message.getOrderQty().getValue()));
 
-        order.setType(message.getSide().getValue() == Side.BUY ? OrderType.BID : OrderType.ASK);
+			order.setType(message.getSide().getValue() == Side.BUY ? OrderType.BID : OrderType.ASK);
 
-        Date time = message.isSetTransactTime() ? message.getTransactTime().getValue() : new Date();
+			Date time = message.isSetTransactTime() ? message.getTransactTime().getValue() : new Date();
 
-        switch (message.getOrdStatus().getValue()){
-            case '0':
-            case '1':
-                order.setStatus(OrderStatus.OPEN);
-                order.setOpen(time);
-                break;
-            case '2':
-                order.setStatus(OrderStatus.CLOSED);
-                order.setClosed(time);
-                break;
-            case '4':
-            case '8':
-                order.setStatus(OrderStatus.CANCELED);
-                order.setClosed(time);
-                break;
-            default:
-                order.setStatus(OrderStatus.CANCELED);
-                log.error("unknow order type - > {}", message.toString());
-        }
+			switch (message.getOrdStatus().getValue()){
+                case '0':
+                case '1':
+                    order.setStatus(OrderStatus.OPEN);
+                    order.setOpen(time);
+                    break;
+                case '2':
+                	log.info("closed {}", order);
 
-        onOrder(order);
-    }
+                    order.setStatus(OrderStatus.CLOSED);
+                    order.setClosed(time);
+                    break;
+                case '4':
+                case '8':
+                    order.setStatus(OrderStatus.CANCELED);
+                    order.setClosed(time);
+                    break;
+                default:
+                    order.setStatus(OrderStatus.CANCELED);
+                    log.error("unknow order type - > {}", message.toString());
+            }
+
+			onOrder(order);
+		} catch (Exception e) {
+			log.error("error onMessage", e);
+		}
+	}
 
     protected void onTrade(Trade trade){
     }
