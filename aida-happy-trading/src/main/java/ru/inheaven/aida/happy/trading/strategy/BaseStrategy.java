@@ -442,7 +442,7 @@ public class BaseStrategy {
         }
     }
 
-    private void onOrder(Order o){
+    protected void onOrder(Order o){
         if (o.getOrderId() != null && o.getOrderId().contains("refused")){
             if (o.getType().equals(OrderType.ASK)){
                 askRefusedTime.set(System.currentTimeMillis());

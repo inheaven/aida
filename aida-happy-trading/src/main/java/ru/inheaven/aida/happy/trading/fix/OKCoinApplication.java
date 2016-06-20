@@ -232,8 +232,6 @@ public class OKCoinApplication extends MessageCracker implements Application {
                     order.setOpen(time);
                     break;
                 case '2':
-                	log.info("closed {}", order);
-
                     order.setStatus(OrderStatus.CLOSED);
                     order.setClosed(time);
                     break;

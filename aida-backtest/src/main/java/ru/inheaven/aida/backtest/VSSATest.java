@@ -29,10 +29,14 @@ public class VSSATest {
 
         Random random = new SecureRandom();
 
-        for (int i2 = 62; i2 < 129; ++i2) {
+        for (int i2 = 64; i2 <= 256; ++i2) {
             for (int i1 = 2; i1 < i2/2; ++i1) {
                 for (int i = 1; i < i2/2; ++i){
                     long time = 15000;
+
+                    //todo 1. arima test
+                    //todo 2. predictor sum test
+                    //todo 3. subtract test
 
                     //filter
                     List<Double> filter = new ArrayList<>();
@@ -42,6 +46,7 @@ public class VSSATest {
                     List<Trade> bid = new ArrayList<>();
                     List<Trade> ask = new ArrayList<>();
 
+                    //noinspection Duplicates
                     for (Trade t : trades){
                         (t.getOrderType().equals(OrderType.BID) ? bid : ask).add(t);
 
@@ -73,7 +78,7 @@ public class VSSATest {
 
                         for (int k = 0; k < train.length; ++k){
 //                            train[k] = prices[start + k + 1]/prices[start + k] - 1;
-                            train[k] = prices[start + k + 1];
+                            train[k] = prices[start + k + 1] - prices[start + k] > 0 ? 1 : -1;
                         }
 
                         float[] train_f = new float[train.length];
@@ -83,20 +88,12 @@ public class VSSATest {
 
                         float[] forecasts = vssa.execute(train_f);
 
-//                        double value = 1;
-//
-//                        for (int m = vssa.getN(); m < forecasts.length; ++m){
-//                            value *= forecasts[m] + 1;
-//                        }
+                        double forecast = forecasts[vssa.getN() + vssa.getM() - 1];
 
                         double price = prices[start + vssa.getN()];
+                        double test = prices[start + vssa.getN() + vssa.getM()];
 
-//                        double forecast = value*price;
-                        double forecast = forecasts[forecasts.length - 1];
-
-                        double predict = prices[start + vssa.getN() + vssa.getM()];
-
-                        if (Double.isNaN(forecast) || (price - predict)*(forecasts[vssa.getN()] - forecast) < 0){
+                        if (Double.isNaN(forecast) || (test - price)*(forecast) < 0){
                             error++;
                         }
                     }
@@ -106,4 +103,6 @@ public class VSSATest {
             }
         }
     }
+
+
 }

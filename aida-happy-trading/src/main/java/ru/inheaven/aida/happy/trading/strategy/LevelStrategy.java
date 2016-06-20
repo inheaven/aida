@@ -139,8 +139,7 @@ public class LevelStrategy extends BaseStrategy{
 
                         double[] forecasts = vssa.execute(train);
 
-                        double price = prices[prices.length - 1];
-                        forecast.set(forecasts[forecasts.length - 1] - forecasts[train.length - 1]);
+                        forecast.set(forecasts[vssa.getRangeLength() + vssa.getPredictionPointCount() - 1] - forecasts[vssa.getRangeLength() - 1]);
                     }else{
                         forecast.set(0);
                     }
@@ -243,7 +242,9 @@ public class LevelStrategy extends BaseStrategy{
                     if (o.getStatus().equals(OPEN) && time.getTime() - o.getOpen().getTime() > 0){
                         o.setStatus(CLOSED);
                         o.setClosed(new Date());
-                        log.info("{} CLOSE by market {} {} {} {}", o.getStrategyId(), scale(o.getPrice()), price, o.getType(), time.getTime() - o.getOpen().getTime());
+
+                        onOrder(o);
+//                        log.info("{} CLOSE by market {} {} {} {}", o.getStrategyId(), scale(o.getPrice()), price, o.getType(), time.getTime() - o.getOpen().getTime());
                     }
                 });
             });
@@ -253,7 +254,9 @@ public class LevelStrategy extends BaseStrategy{
                     if (o.getStatus().equals(OPEN) && time.getTime() - o.getOpen().getTime() > 0){
                         o.setStatus(CLOSED);
                         o.setClosed(new Date());
-                        log.info("{} CLOSE by market {} {} {} {}", o.getStrategyId(), scale(o.getPrice()), price, o.getType(), time.getTime() - o.getOpen().getTime());
+
+                        onOrder(o);
+                        //log.info("{} CLOSE by market {} {} {} {}", o.getStrategyId(), scale(o.getPrice()), price, o.getType(), time.getTime() - o.getOpen().getTime());
                     }
                 });
             });
@@ -527,13 +530,13 @@ public class LevelStrategy extends BaseStrategy{
                 lastTrade.get().subtract(ask).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(BD_0_01) < 0 &&
                 lastTrade.get().subtract(bid).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(BD_0_01) < 0) {
 
-//            if (strategy.isLevelInverse()) {
-////                lastPrice.set(ask);
-////                queue.add(ask);
-//            }else {
-////                lastPrice.set(bid);
-////                queue.add(bid);
-//            }
+            if (strategy.isLevelInverse()) {
+//                lastPrice.set(ask);
+                queue.add(ask);
+            }else {
+//                lastPrice.set(bid);
+                queue.add(bid);
+            }
 
             depthSpread.set(ask.subtract(bid).abs());
             depthBid.set(bid);

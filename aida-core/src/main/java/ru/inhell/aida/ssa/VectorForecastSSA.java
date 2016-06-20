@@ -42,6 +42,7 @@ public class VectorForecastSSA {
 
     private BasicAnalysisSSA.TYPE type;
 
+    private double error;
 
     /**
      *
@@ -51,11 +52,11 @@ public class VectorForecastSSA {
      * @param M - длина прогноза
      */
     public VectorForecastSSA(int N, int L, int P, int M) {
-        this(N, L, P, new int[0], M, BasicAnalysisSSA.TYPE.SGESDD);
+        this(N, L, P, new int[0], M, BasicAnalysisSSA.TYPE.SGESVD);
     }
 
     public VectorForecastSSA(int N, int L, int P, int[] PP, int M){
-        this(N, L, P, PP, M, BasicAnalysisSSA.TYPE.SGESDD);
+        this(N, L, P, PP, M, BasicAnalysisSSA.TYPE.SGESVD);
     }
 
     public VectorForecastSSA(int N, int L, int P, int[] PP, int M, BasicAnalysisSSA.TYPE type) {
@@ -241,5 +242,13 @@ public class VectorForecastSSA {
 
     public String getName(){
         return N + "-" + L + "-" + P;
+    }
+
+    public double getError() {
+        return error;
+    }
+
+    public void setError(double error) {
+        this.error = error;
     }
 }
