@@ -38,7 +38,8 @@
     <select id="selectLightTrades" parameterType="map" resultMap="tradeLight">
         select id, order_type, price, amount, created
         from trade where symbol = #{symbol} and created between #{startDate} and #{endDate}
-        limit #{count} offset #{first}
+        <if test="orderType != null">and order_type = #{orderType}</if>
+        <if test="count != null and first != null">limit #{count} offset #{first}</if>
     </select>
 
 </mapper>

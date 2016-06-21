@@ -36,4 +36,8 @@ public class TradeMapper extends BaseMapper<Trade> {
     public List<Trade> getLightTrades(String symbol, Date startDate, Date endDate, int first, int count){
         return sqlSession().selectList("selectLightTrades", of("symbol", symbol, "startDate", startDate, "endDate", endDate, "first", first, "count", count));
     }
+
+    public List<Trade> getLightTrades(String symbol, OrderType orderType, Date startDate, Date endDate){
+        return sqlSession().selectList("selectLightTrades", of("symbol", symbol, "orderType", orderType, "startDate", startDate, "endDate", endDate));
+    }
 }

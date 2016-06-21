@@ -123,7 +123,7 @@ public class LevelStrategy extends BaseStrategy{
 
         UJMPSettings.getInstance().setNumberOfThreads(4);
 
-        vssa = new VSSA(512, 128, 3, 1);
+        vssa = new VSSA(512, 108, 33, 10);
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             if (strategy.getName().contains("vssa")){

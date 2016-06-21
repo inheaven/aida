@@ -44,6 +44,8 @@ public class VectorForecastSSA {
 
     private double error;
 
+    private int index = 0;
+
     /**
      *
      * @param N - длина временного интервала
@@ -250,5 +252,13 @@ public class VectorForecastSSA {
 
     public void setError(double error) {
         this.error = error;
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
     }
 }

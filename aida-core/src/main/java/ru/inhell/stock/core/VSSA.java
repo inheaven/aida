@@ -20,6 +20,9 @@ public class VSSA {
 
     private BasicSSA basicSSA;
 
+    private double error = 0;
+    private int index = 0;
+
     public VSSA(int rangeLength, int windowLength, int eigenfunctionsCount, int predictionPointCount) {
         this.rangeLength = rangeLength;
         this.windowLength = windowLength;
@@ -143,5 +146,25 @@ public class VSSA {
 
     public int getPredictionPointCount() {
         return predictionPointCount;
+    }
+
+    public String getName(){
+        return rangeLength + "-" + windowLength + "-" + eigenfunctionsCount;
+    }
+
+    public double getError() {
+        return error;
+    }
+
+    public void setError(double error) {
+        this.error = error;
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
     }
 }

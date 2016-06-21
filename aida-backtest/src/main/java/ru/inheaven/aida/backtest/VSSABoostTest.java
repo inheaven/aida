@@ -1,6 +1,8 @@
 package ru.inheaven.aida.backtest;
 
 import com.google.common.base.Joiner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.OrderType;
 import ru.inheaven.aida.happy.trading.entity.Trade;
 import ru.inheaven.aida.happy.trading.mapper.TradeMapper;
@@ -19,11 +21,13 @@ import java.util.Random;
  * @author inheaven on 20.06.2016.
  */
 public class VSSABoostTest {
-    public static void main(String[] args){
-        Date startDate = Date.from(LocalDateTime.of(2016, 6, 18, 3, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
-        Date endDate = Date.from(LocalDateTime.of(2016, 6, 19, 3, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+    private static Logger log = LoggerFactory.getLogger(VSSABoostTest.class);
 
-        List<Trade> trades = Module.getInjector().getInstance(TradeMapper.class).getLightTrades("BTC/CNY", startDate, endDate, 0, 1000000);
+    public static void main(String[] args){
+        Date startDate = Date.from(LocalDateTime.of(2016, 6, 19, 0, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date endDate = Date.from(LocalDateTime.of(2016, 6, 20, 0, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+
+        List<Trade> trades = Module.getInjector().getInstance(TradeMapper.class).getLightTrades("BTC/CNY", startDate, endDate, 0, 10000000);
 
         System.out.println(trades.size());
 
@@ -42,9 +46,9 @@ public class VSSABoostTest {
 
             if (t.getCreated().getTime() - last > time){
                 double avgBid = bid.stream().mapToDouble(s -> s.getPrice().doubleValue()).average().orElse(0);
-                double avgAsk = ask.stream().mapToDouble(s -> s.getPrice().doubleValue()).average().orElse(0);
+                //double avgAsk = ask.stream().mapToDouble(s -> s.getPrice().doubleValue()).average().orElse(0);
 
-                filter.add(avgAsk);
+                filter.add(avgBid);
 
                 last = t.getCreated().getTime();
 
@@ -57,34 +61,39 @@ public class VSSABoostTest {
 
         //vssa boost
         int error = 0;
-        int count = 100;
-        int n = 512;
-        int m = 1;
+        int count = 50;
+        int n = 256;
+        int m = 4;
 
-        VSSABoost vssaBoost = new VSSABoost(0.45, 10, 100, n, m);
+        VSSABoost vssaBoost = new VSSABoost(0.5, 11, 50, n, m);
 
         double[] train = new double[prices.length/2];
         System.arraycopy(prices, 0, train, 0, train.length);
 
-        vssaBoost.fit(train);
+        for (int f = 0; f < 1000; ++f) {
+            long t = System.currentTimeMillis();
 
-        Random random = new SecureRandom();
+            vssaBoost.fit(train);
 
-        for (int j = 0; j < count; ++j){
-            int start = random.nextInt(prices.length/2 - n - m - 1) + prices.length/2;
+            log.info("fit " + (System.currentTimeMillis() - t));
 
-            double[] test = new double[n];
-            System.arraycopy(prices, start, test, 0, n);
+            Random random = new SecureRandom();
 
-            double up = vssaBoost.execute(test);
+            for (int j = 0; j < count; ++j){
+                int start = random.nextInt(prices.length/2 - n - m - 1) + prices.length/2;
 
-            if ((prices[start + n + m - 1] - prices[start + n - 1])*(up > 0.5 ? 1 : -1) < 0){
-                error++;
+                double[] series = new double[n];
+                System.arraycopy(prices, start, series, 0, n);
+
+                double forecast = vssaBoost.execute(series);
+                double test = prices[start + n + m - 1] - prices[start + n - 1];
+
+                if ((int)Math.signum(test) != (int)Math.signum(forecast)){
+                    error++;
+                }
             }
+
+            log.info("error " + Joiner.on(" ").join((double)error/count, time));
         }
-
-        System.out.println(Joiner.on(" ").join((double)error/count, time));
-
-        vssaBoost.getList().forEach((v) -> System.out.println(v.getError() + " " + v.getName()));
     }
 }

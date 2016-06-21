@@ -77,7 +77,6 @@ public class VSSATest {
                         double[] train = new double[vssa.getN()];
 
                         for (int k = 0; k < train.length; ++k){
-//                            train[k] = prices[start + k + 1]/prices[start + k] - 1;
                             train[k] = prices[start + k + 1] - prices[start + k] > 0 ? 1 : -1;
                         }
 
