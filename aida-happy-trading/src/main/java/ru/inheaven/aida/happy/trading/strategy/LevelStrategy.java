@@ -297,7 +297,7 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[0]);
             BigDecimal subtotalCny = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[1]);
 
-            if (forecast.get() > 0){
+            if (forecast.get() != 0){
                 balance.set(random.nextInt(2) !=0 ? forecast.get() > 0
                         : subtotalCny.divide(subtotalBtc.multiply(lastTrade.get().subtract(BigDecimal.valueOf(forecast.get()))), 8, HALF_EVEN).compareTo(ONE) > 0
                 );
