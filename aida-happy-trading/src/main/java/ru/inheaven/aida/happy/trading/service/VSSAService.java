@@ -7,10 +7,7 @@ import ru.inheaven.aida.happy.trading.entity.Trade;
 import ru.inheaven.aida.happy.trading.mapper.TradeMapper;
 import ru.inhell.aida.ssa.VSSABoost;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Deque;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 /**
@@ -32,7 +29,9 @@ public class VSSAService {
 
         TradeMapper tradeMapper = Module.getInjector().getInstance(TradeMapper.class);
 
-        trades.addAll(tradeMapper.getLightTrades(symbol, orderType, new Date(System.currentTimeMillis() - N*delay), new Date()));
+        trades.addAll(tradeMapper.getLightTrades(symbol, orderType, new Date(System.currentTimeMillis() - 2*N*delay), new Date()));
+
+        log.info("trades load " + trades.size());
 
         vssaBoost = new VSSABoost(threshold, vssaCount, trainCount, N, M);
     }
@@ -49,17 +48,34 @@ public class VSSAService {
         List<Double> pricesD = new ArrayList<>();
         List<Trade> avg = new ArrayList<>();
 
-        long last = trades.peekFirst().getCreated().getTime();
+        long time = 0;
 
-        for (Trade t : trades){
+        for (Iterator<Trade> it = trades.descendingIterator(); it.hasNext();){
+            Trade t = it.next();
+
+            if (time == 0){
+                time = t.getCreated().getTime();
+            }
+
             avg.add(t);
 
-            if (t.getCreated().getTime() - last > delay){
-                double avgAsk = avg.stream().mapToDouble(s -> s.getPrice().doubleValue()).average().orElse(0);
+            if (time - t.getCreated().getTime() > delay){
+                double priceSum = 0;
+                double volumeSum = 0;
 
-                pricesD.add(avgAsk);
+                for (Trade trade : avg){
+                    double tradeVolume = trade.getAmount().doubleValue();
 
-                last = t.getCreated().getTime();
+                    priceSum = trade.getPrice().doubleValue()*tradeVolume;
+
+                    volumeSum += tradeVolume;
+                }
+
+                if (priceSum > 0 && volumeSum > 0) {
+                    pricesD.add(0, priceSum/volumeSum);
+                }
+
+                time = t.getCreated().getTime();
                 avg.clear();
             }
         }

@@ -232,7 +232,7 @@ public class BaseStrategy {
                                 if (order != null){
                                     order.setStatus(CANCELED);
 
-                                    log.info("schedule 50 cancel order {}", l);
+                                    log.info("schedule 50 cancel order {} {}", l.getLimitPrice(), l.getTradableAmount());
                                 }
                             } catch (IOException e) {
                                 log.error("error schedule 50 cancel order -> ", e);
@@ -254,7 +254,7 @@ public class BaseStrategy {
                                     order.setStatus(CANCELED);
                                 }
 
-                                log.info("schedule cancel order {}", l);
+                                log.info("schedule cancel order {} {}", l.getLimitPrice(), l.getTradableAmount());
                             } catch (IOException e) {
                                 log.error("error schedule cancel order -> ", e);
                             }

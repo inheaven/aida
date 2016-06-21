@@ -45,7 +45,7 @@ public class VSSABoost {
             VSSA vssa = localQueue.poll();
 
             if (vssa == null) {
-                int L = random.nextInt(N/2 - 8) + 8;
+                int L = random.nextInt(N/2 - M) + M;
                 int P = random.nextInt(L/4 - 1) + 1;
 
                 vssa = new VSSA(N, L, P, M);
@@ -100,30 +100,21 @@ public class VSSABoost {
         queue.addAll(fitQueue);
     }
 
-    public int execute(double[] series){
-        int up = 0;
-        int down = 0;
+    public double execute(double[] series){
+        int forecast = 0;
 
         double[] seriesF = new double[N];
 
         int start = series.length - N;
 
-        System.arraycopy(series, start, seriesF, 0, series.length);
+        System.arraycopy(series, start, seriesF, 0, N);
 
         for (VSSA vssa : queue){
             double[] forecasts = vssa.execute(seriesF);
 
-            double forecast = forecasts[N + M - 1] - forecasts[N - 1];
-
-            if (forecast > 0){
-                up++;
-            }
-
-            if (forecast < 0){
-                down++;
-            }
+            forecast += Math.signum(forecasts[N + M - 1] - forecasts[N - 1]);
         }
 
-        return up > down ? 1 : up == down ? 0 : -1;
+        return forecast;
     }
 }

@@ -1,6 +1,5 @@
 package ru.inheaven.aida.backtest;
 
-import com.google.common.base.Joiner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.OrderType;
@@ -60,17 +59,16 @@ public class VSSABoostTest {
         double[] prices = filter.stream().mapToDouble(d -> d).toArray();
 
         //vssa boost
-        int error = 0;
         int count = 50;
-        int n = 256;
-        int m = 4;
+        int n = 500;
+        int m = 20;
 
-        VSSABoost vssaBoost = new VSSABoost(0.5, 11, 50, n, m);
+        VSSABoost vssaBoost = new VSSABoost(0.48, 11, 50, n, m);
 
         double[] train = new double[prices.length/2];
         System.arraycopy(prices, 0, train, 0, train.length);
 
-        for (int f = 0; f < 1000; ++f) {
+        for (int f = 0; f < 100; ++f) {
             long t = System.currentTimeMillis();
 
             vssaBoost.fit(train);
@@ -78,6 +76,8 @@ public class VSSABoostTest {
             log.info("fit " + (System.currentTimeMillis() - t));
 
             Random random = new SecureRandom();
+
+            int error = 0;
 
             for (int j = 0; j < count; ++j){
                 int start = random.nextInt(prices.length/2 - n - m - 1) + prices.length/2;
@@ -88,12 +88,12 @@ public class VSSABoostTest {
                 double forecast = vssaBoost.execute(series);
                 double test = prices[start + n + m - 1] - prices[start + n - 1];
 
-                if ((int)Math.signum(test) != (int)Math.signum(forecast)){
+                if ((int)(Math.signum(test) + Math.signum(forecast)) != 0){
                     error++;
                 }
             }
 
-            log.info("error " + Joiner.on(" ").join((double)error/count, time));
+            log.info("error " + (double)error/count);
         }
     }
 }
