@@ -29,7 +29,7 @@ public class VSSAService {
 
         TradeMapper tradeMapper = Module.getInjector().getInstance(TradeMapper.class);
 
-        trades.addAll(tradeMapper.getLightTrades(symbol, orderType, new Date(System.currentTimeMillis() - 2*N*delay), new Date()));
+        trades.addAll(tradeMapper.getLightTrades(symbol, orderType, new Date(System.currentTimeMillis() - 1000*60*60*6), new Date()));
 
         log.info("trades load " + trades.size());
 
@@ -80,7 +80,13 @@ public class VSSAService {
             }
         }
 
-        return pricesD.stream().mapToDouble(d -> d).toArray();
+        double[] prices = new double[pricesD.size()];
+
+        for (int i = 0; i < prices.length; ++i){
+            prices[i] = pricesD.get(i);
+        }
+
+        return prices;
     }
 
     public void fit(){

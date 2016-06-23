@@ -58,7 +58,7 @@ public class MarketDataRequestCreator {
 		return createMarketDataRequest(
 				mdReqId,
 				symbol,
-				SubscriptionRequestType.SNAPSHOT_PLUS_UPDATES, 0,
+				SubscriptionRequestType.SNAPSHOT_PLUS_UPDATES, 1,
 				MDUpdateType.FULL_REFRESH,
                 new char[] { MDEntryType.BID, MDEntryType.OFFER,});
 	}

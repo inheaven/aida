@@ -45,8 +45,8 @@ public class OrderService {
 
         orderObservable = okcoinCnFixService.getOrderObservable()
                 .onBackpressureBuffer()
-                .observeOn(Schedulers.computation())
-                .subscribeOn(Schedulers.computation())
+                .observeOn(Schedulers.io())
+                .subscribeOn(Schedulers.io())
                 .publish();
         orderObservable.connect();
 

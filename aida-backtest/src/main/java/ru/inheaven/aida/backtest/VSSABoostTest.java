@@ -2,6 +2,7 @@ package ru.inheaven.aida.backtest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.ujmp.core.util.UJMPSettings;
 import ru.inheaven.aida.happy.trading.entity.OrderType;
 import ru.inheaven.aida.happy.trading.entity.Trade;
 import ru.inheaven.aida.happy.trading.mapper.TradeMapper;
@@ -23,15 +24,17 @@ public class VSSABoostTest {
     private static Logger log = LoggerFactory.getLogger(VSSABoostTest.class);
 
     public static void main(String[] args){
-        Date startDate = Date.from(LocalDateTime.of(2016, 6, 19, 0, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
-        Date endDate = Date.from(LocalDateTime.of(2016, 6, 20, 0, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date startDate = Date.from(LocalDateTime.of(2016, 6, 22, 16, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date endDate = Date.from(LocalDateTime.of(2016, 6, 23, 16, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
 
         List<Trade> trades = Module.getInjector().getInstance(TradeMapper.class).getLightTrades("BTC/CNY", startDate, endDate, 0, 10000000);
 
         System.out.println(trades.size());
 
+        UJMPSettings.getInstance().setNumberOfThreads(2);
+
         //filter
-        long time = 15000;
+        long time = 30000;
         List<Double> filter = new ArrayList<>();
 
         long last = trades.get(0).getCreated().getTime();
@@ -56,14 +59,14 @@ public class VSSABoostTest {
             }
         }
 
-        double[] prices = filter.stream().mapToDouble(d -> d).toArray();
+        double[] prices = filter.stream().mapToDouble(Math::log).toArray();
 
         //vssa boost
-        int count = 50;
-        int n = 500;
-        int m = 20;
+        int count = 100;
+        int n = 256;
+        int m = 32;
 
-        VSSABoost vssaBoost = new VSSABoost(0.48, 11, 50, n, m);
+        VSSABoost vssaBoost = new VSSABoost(0.48, 11, 100, n, m);
 
         double[] train = new double[prices.length/2];
         System.arraycopy(prices, 0, train, 0, train.length);
@@ -86,9 +89,9 @@ public class VSSABoostTest {
                 System.arraycopy(prices, start, series, 0, n);
 
                 double forecast = vssaBoost.execute(series);
-                double test = prices[start + n + m - 1] - prices[start + n - 1];
+                double test = vssaBoost.getTarget(prices, start + n, m) - prices[start + n - 1];
 
-                if ((int)(Math.signum(test) + Math.signum(forecast)) != 0){
+                if ((int)Math.signum(test) != (int)Math.signum(forecast)){
                     error++;
                 }
             }

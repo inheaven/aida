@@ -42,13 +42,16 @@ public class VSSABoost {
         Queue<VSSA> fitQueue = new ConcurrentLinkedQueue<>();
 
         for (int v = 0; v < MAX_VSSA_ITERATION; v++){
-            VSSA vssa = localQueue.poll();
+            VSSA vssa;
+            VSSA local = localQueue.poll();
 
-            if (vssa == null) {
+            if (local == null) {
                 int L = random.nextInt(N/2 - M) + M;
                 int P = random.nextInt(L/4 - 1) + 1;
 
                 vssa = new VSSA(N, L, P, M);
+            }else{
+                vssa = new VSSA(local.getRangeLength(), local.getWindowLength(), local.getEigenfunctionsCount(), local.getPredictionPointCount());
             }
 
             int error = 0;
@@ -62,8 +65,8 @@ public class VSSABoost {
 
                 double[] forecasts = vssa.execute(train);
 
-                double forecast = forecasts[N + M - 1] - forecasts[N - 1];
-                double test = series[start + N + M - 1] - series[start + N - 1];
+                double forecast = getTarget(forecasts, N, M) - forecasts[N - 1];
+                double test = getTarget(series, start + N, M) - series[start + N - 1];
 
                 if (Double.isNaN(forecast) || (int)Math.signum(test) != (int)Math.signum(forecast)){
                     error++;
@@ -76,8 +79,10 @@ public class VSSABoost {
             if (trainError <= threshold){
                 fitQueue.add(vssa);
 
-                if (queue.contains(vssa)){
-                    vssa.setIndex(vssa.getIndex() + 1);
+                VSSA vq = queue.stream().filter(q -> q.getName().equals(vssa.getName())).findAny().orElse(null);
+
+                if (vq != null){
+                    vssa.setIndex(vq.getIndex() + 1);
                 }
 
                 log.info(fitQueue.size() + " " + trainError + " " + vssa.getName() + " " + vssa.getIndex());
@@ -88,6 +93,8 @@ public class VSSABoost {
                     fitQueue.add(vssa);
 
                     log.info(fitQueue.size() + " " + trainError + " " + vssa.getName() + " " + vssa.getIndex());
+                }else{
+                    vssa.clear();
                 }
             }
 
@@ -96,7 +103,9 @@ public class VSSABoost {
             }
         }
 
+        queue.forEach(VSSA::clear);
         queue.clear();
+
         queue.addAll(fitQueue);
     }
 
@@ -112,9 +121,38 @@ public class VSSABoost {
         for (VSSA vssa : queue){
             double[] forecasts = vssa.execute(seriesF);
 
-            forecast += Math.signum(forecasts[N + M - 1] - forecasts[N - 1]);
+            forecast += Math.signum(getTarget(forecasts, N, M) - forecasts[N - 1]);
         }
 
         return forecast;
+    }
+
+    public double getTarget2(double[] series, int start, int size){
+        double sum = 0;
+
+        for (int i = start; i < start + size; ++i){
+            sum += series[i];
+        }
+
+        return sum/size;
+    }
+
+    public double getTarget(double[] series, int start, int size){
+        double max = series[start];
+        double min = series[start];
+
+        for (int i = start; i < start + size; ++i){
+            double value = series[i];
+
+            if (value > max){
+                max = value;
+            }
+
+            if (value < min){
+                min = value;
+            }
+        }
+
+        return (max + min)/2;
     }
 }

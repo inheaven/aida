@@ -27,8 +27,8 @@ public class TradeService {
                         TradeMapper tradeMapper, BroadcastService broadcastService) {
         tradeObservable = okcoinCnFixService.getTradeObservable()
                 .onBackpressureBuffer()
-                .observeOn(Schedulers.computation())
-                .subscribeOn(Schedulers.computation())
+                .observeOn(Schedulers.io())
+                .subscribeOn(Schedulers.io())
                 .publish();
         tradeObservable.connect();
 
