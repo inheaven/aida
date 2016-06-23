@@ -107,6 +107,8 @@ public class VSSABoost {
         queue.clear();
 
         queue.addAll(fitQueue);
+
+        fitQueue.clear();
     }
 
     public double execute(double[] series){

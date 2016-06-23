@@ -5,7 +5,6 @@ import com.google.common.util.concurrent.AtomicDouble;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.ujmp.core.util.UJMPSettings;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
@@ -18,10 +17,7 @@ import java.security.SecureRandom;
 import java.util.Date;
 import java.util.Deque;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -117,19 +113,21 @@ public class LevelStrategy extends BaseStrategy{
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(()-> {
             actionLevel("schedule", lastPrice.get(), null);
-        }, 5000, 10, TimeUnit.MILLISECONDS);
+        }, 5000, 34, TimeUnit.MILLISECONDS);
 
         // 512 128 3 128
 
         log.info("availableProcessors " + Runtime.getRuntime().availableProcessors());
 
-        UJMPSettings.getInstance().setNumberOfThreads(2);
-
-        vssaService = new VSSAService(strategy.getSymbol(), strategy.isLevelInverse() ? ASK : BID, 0.48, 11, 100, 256, 32, 30000);
+        vssaService = new VSSAService(strategy.getSymbol(), strategy.isLevelInverse() ? ASK : BID, 0.48, 11, 100, 256, 16, 60000);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
+            Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+
             try {
-                vssaService.fit();
+                if (vssaService.isLoaded()) {
+                    vssaService.fit();
+                }
             } catch (Throwable e) {
                 log.error("vssaService ", e);
             }
@@ -491,7 +489,7 @@ public class LevelStrategy extends BaseStrategy{
                 lastTrade.get().subtract(ask).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(BD_0_01) < 0 &&
                 lastTrade.get().subtract(bid).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(BD_0_01) < 0) {
 
-            lastPrice.set(strategy.isLevelInverse() ? ask : bid);
+            //lastPrice.set(strategy.isLevelInverse() ? ask : bid);
 
             depthSpread.set(ask.subtract(bid).abs());
             depthBid.set(bid);
@@ -502,7 +500,7 @@ public class LevelStrategy extends BaseStrategy{
     @Override
     protected void onRealTrade(Order order) {
         if (order.getStatus().equals(CLOSED) && order.getAvgPrice().compareTo(ZERO) > 0){
-            lastPrice.set(order.getAvgPrice());
+            //lastPrice.set(order.getAvgPrice());
         }
     }
 }

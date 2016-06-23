@@ -17,6 +17,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
+import static ru.inheaven.aida.happy.trading.entity.OrderType.BID;
+
 /**
  * @author inheaven on 20.06.2016.
  */
@@ -24,51 +26,56 @@ public class VSSABoostTest {
     private static Logger log = LoggerFactory.getLogger(VSSABoostTest.class);
 
     public static void main(String[] args){
-        Date startDate = Date.from(LocalDateTime.of(2016, 6, 22, 16, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
-        Date endDate = Date.from(LocalDateTime.of(2016, 6, 23, 16, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date startDate = Date.from(LocalDateTime.of(2016, 6, 21, 23, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date endDate = Date.from(LocalDateTime.of(2016, 6, 23, 23, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
 
-        List<Trade> trades = Module.getInjector().getInstance(TradeMapper.class).getLightTrades("BTC/CNY", startDate, endDate, 0, 10000000);
+        List<Trade> trades = new ArrayList<>();
+
+        long delay = (long) (1000*60);
+
+        for (long t = startDate.getTime(); t < endDate.getTime(); t += delay){
+            trades.addAll(Module.getInjector().getInstance(TradeMapper.class).getLightTrades("BTC/CNY", OrderType.BID, new Date(t), new Date(t + delay)));
+        }
 
         System.out.println(trades.size());
 
         UJMPSettings.getInstance().setNumberOfThreads(2);
 
         //filter
-        long time = 30000;
+        long time = (long) (60000*Math.PI);
         List<Double> filter = new ArrayList<>();
 
         long last = trades.get(0).getCreated().getTime();
 
-        List<Trade> bid = new ArrayList<>();
-        List<Trade> ask = new ArrayList<>();
+        List<Trade> avg = new ArrayList<>();
 
         //noinspection Duplicates
         for (Trade t : trades){
-            (t.getOrderType().equals(OrderType.BID) ? bid : ask).add(t);
+            if (t.getOrderType().equals(BID)) {
+                avg.add(t);
+            }
 
             if (t.getCreated().getTime() - last > time){
-                double avgBid = bid.stream().mapToDouble(s -> s.getPrice().doubleValue()).average().orElse(0);
-                //double avgAsk = ask.stream().mapToDouble(s -> s.getPrice().doubleValue()).average().orElse(0);
+                double sum = avg.stream().mapToDouble(s -> s.getPrice().doubleValue()*s.getAmount().doubleValue()).sum();
+                double volume = avg.stream().mapToDouble(s -> s.getAmount().doubleValue()).sum();
 
-                filter.add(avgBid);
+                filter.add(sum/volume);
 
                 last = t.getCreated().getTime();
-
-                bid.clear();
-                ask.clear();
+                avg.clear();
             }
         }
 
-        double[] prices = filter.stream().mapToDouble(Math::log).toArray();
+        double[] prices = filter.stream().mapToDouble(d -> d).toArray();
 
         //vssa boost
         int count = 100;
         int n = 256;
-        int m = 32;
+        int m = 16;
 
         VSSABoost vssaBoost = new VSSABoost(0.48, 11, 100, n, m);
 
-        double[] train = new double[prices.length/2];
+        double[] train = new double[2*prices.length/3];
         System.arraycopy(prices, 0, train, 0, train.length);
 
         for (int f = 0; f < 100; ++f) {
@@ -83,7 +90,7 @@ public class VSSABoostTest {
             int error = 0;
 
             for (int j = 0; j < count; ++j){
-                int start = random.nextInt(prices.length/2 - n - m - 1) + prices.length/2;
+                int start = random.nextInt(Math.abs(prices.length/3 - n - m - 1)) + (2*prices.length/3);
 
                 double[] series = new double[n];
                 System.arraycopy(prices, start, series, 0, n);

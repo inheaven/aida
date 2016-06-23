@@ -11,9 +11,9 @@ import rx.subjects.PublishSubject;
 
 import java.io.InputStream;
 import java.util.List;
-import java.util.Queue;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -37,7 +37,7 @@ public abstract class BaseOkcoinFixService {
 
     private AtomicLong index = new AtomicLong(4);
 
-    private Queue<Order> orderQueue = new ConcurrentLinkedQueue<>();
+    private AtomicLong lastTrade = new AtomicLong(System.currentTimeMillis());
 
     public BaseOkcoinFixService(ExchangeType exchangeType, String apiKey, String secretKey, String marketConfig,
                                 String tradeConfig, String tradeConfig2, String tradeConfig3, String tradeConfig4,
@@ -54,8 +54,18 @@ public abstract class BaseOkcoinFixService {
 //                    }
 //                }, 0, 30, TimeUnit.MILLISECONDS);
 
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
+            if (System.currentTimeMillis() - lastTrade.get() > 60000){
+                symbols.forEach(s -> {
+                    okCoinApplicationMarket.requestLiveTrades(UUID.randomUUID().toString(), s, marketSessionId);
+                    okCoinApplicationMarket.requestOrderBook(UUID.randomUUID().toString(), s, marketSessionId);
+                });
+            }
+        }, 5, 1, TimeUnit.MINUTES);
+
         //MARKET
         okCoinApplicationMarket = new OKCoinApplication(exchangeType, apiKey, secretKey){
+
             @Override
             public void onLogon(SessionID sessionId) {
                 BaseOkcoinFixService.this.marketSessionId = sessionId;
@@ -78,6 +88,8 @@ public abstract class BaseOkcoinFixService {
 
             @Override
             protected void onTrade(Trade trade) {
+                lastTrade.set(System.currentTimeMillis());
+
                 tradePublishSubject.onNext(trade);
             }
 
@@ -187,7 +199,7 @@ public abstract class BaseOkcoinFixService {
             MessageStoreFactory storeFactory = new MemoryStoreFactory();
             LogFactory logFactory = !config.contains("market") ? new FileLogFactory(settings) : null;
             MessageFactory messageFactory = new OKCoinMessageFactory();
-            ThreadedSocketInitiator initiator = new ThreadedSocketInitiator(application, storeFactory, settings, logFactory, messageFactory);
+            SocketInitiator initiator = new SocketInitiator(application, storeFactory, settings, logFactory, messageFactory);
             initiator.start();
         } catch (Exception e) {
             log.error("error init okcoin fix");

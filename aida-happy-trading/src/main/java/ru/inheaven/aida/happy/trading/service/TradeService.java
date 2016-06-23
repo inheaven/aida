@@ -2,6 +2,7 @@ package ru.inheaven.aida.happy.trading.service;
 
 import ru.inheaven.aida.happy.trading.entity.Trade;
 import ru.inheaven.aida.happy.trading.mapper.TradeMapper;
+import rx.Observable;
 import rx.observables.ConnectableObservable;
 import rx.schedulers.Schedulers;
 
@@ -16,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Singleton
 public class TradeService {
-    private ConnectableObservable<Trade> tradeObservable;
+    private Observable<Trade> tradeObservable;
 
     private Map<String, BigDecimal> stdDevMap = new ConcurrentHashMap<>();
 
@@ -25,7 +26,7 @@ public class TradeService {
     public TradeService(OkcoinService okcoinService, OkcoinFixService okcoinFixService,
                         OkcoinCnFixService okcoinCnFixService,
                         TradeMapper tradeMapper, BroadcastService broadcastService) {
-        tradeObservable = okcoinCnFixService.getTradeObservable()
+        ConnectableObservable<Trade> tradeObservable = okcoinCnFixService.getTradeObservable()
                 .onBackpressureBuffer()
                 .observeOn(Schedulers.io())
                 .subscribeOn(Schedulers.io())
@@ -33,6 +34,8 @@ public class TradeService {
         tradeObservable.connect();
 
         tradeObservable.subscribe(tradeMapper::asyncSave);
+
+        this.tradeObservable = tradeObservable.asObservable();
 
 //        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
 //            BigDecimal bid = tradeMapper.getTradeStdDevPtType("BTC/CNY", 50000, OrderType.BID);
@@ -65,7 +68,7 @@ public class TradeService {
 //        }, 0, 60, TimeUnit.SECONDS);
     }
 
-    public ConnectableObservable<Trade> getTradeObservable() {
+    public Observable<Trade> getTradeObservable() {
         return tradeObservable;
     }
 

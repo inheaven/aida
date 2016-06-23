@@ -177,6 +177,10 @@ public class BaseStrategy {
         realTradeSubscription = orderObservable
                 .subscribe(o -> {
                     try {
+                        if (o.getPrice() != null) {
+                            lastPrice.set(o.getPrice());
+                        }
+
                         onRealTrade(o);
                     } catch (Exception e) {
                         log.error("error onRealTrade", e);
@@ -185,6 +189,10 @@ public class BaseStrategy {
 
         depthSubscription = depthObservable.subscribe(d -> {
             try {
+                if (d.getBid() != null) {
+                    lastPrice.set(d.getBid());
+                }
+
                 onDepth(d);
             } catch (Exception e) {
                 log.error("error onDepth", e);
@@ -254,7 +262,7 @@ public class BaseStrategy {
                                     order.setStatus(CANCELED);
                                 }
 
-                                log.info("schedule cancel order {} {}", l.getLimitPrice(), l.getTradableAmount());
+                                log.info("schedule cancel order {} {} {}", lastPrice.get(), l.getLimitPrice(), l.getTradableAmount());
                             } catch (IOException e) {
                                 log.error("error schedule cancel order -> ", e);
                             }
