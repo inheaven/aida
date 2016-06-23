@@ -17,8 +17,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
-import static ru.inheaven.aida.happy.trading.entity.OrderType.BID;
-
 /**
  * @author inheaven on 20.06.2016.
  */
@@ -34,10 +32,10 @@ public class VSSABoostTest {
         long delay = (long) (1000*60);
 
         for (long t = startDate.getTime(); t < endDate.getTime(); t += delay){
-            trades.addAll(Module.getInjector().getInstance(TradeMapper.class).getLightTrades("BTC/CNY", OrderType.BID, new Date(t), new Date(t + delay)));
+            trades.addAll(Module.getInjector().getInstance(TradeMapper.class).getLightTrades("BTC/CNY", OrderType.ASK, new Date(t), new Date(t + delay)));
         }
 
-        System.out.println(trades.size());
+        System.out.println("trades " + trades.size());
 
         UJMPSettings.getInstance().setNumberOfThreads(2);
 
@@ -51,9 +49,7 @@ public class VSSABoostTest {
 
         //noinspection Duplicates
         for (Trade t : trades){
-            if (t.getOrderType().equals(BID)) {
-                avg.add(t);
-            }
+            avg.add(t);
 
             if (t.getCreated().getTime() - last > time){
                 double sum = avg.stream().mapToDouble(s -> s.getPrice().doubleValue()*s.getAmount().doubleValue()).sum();
@@ -67,6 +63,8 @@ public class VSSABoostTest {
         }
 
         double[] prices = filter.stream().mapToDouble(d -> d).toArray();
+
+        System.out.println("prices " + prices.length);
 
         //vssa boost
         int count = 100;

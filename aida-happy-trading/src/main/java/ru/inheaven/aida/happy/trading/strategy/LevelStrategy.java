@@ -119,7 +119,7 @@ public class LevelStrategy extends BaseStrategy{
 
         log.info("availableProcessors " + Runtime.getRuntime().availableProcessors());
 
-        vssaService = new VSSAService(strategy.getSymbol(), strategy.isLevelInverse() ? ASK : BID, 0.48, 11, 100, 256, 16, 60000);
+        vssaService = new VSSAService(strategy.getSymbol(), strategy.isLevelInverse() ? ASK : BID, 0.48, 11, 100, 256, 16, (int) (60000*Math.PI));
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
             Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
@@ -489,7 +489,7 @@ public class LevelStrategy extends BaseStrategy{
                 lastTrade.get().subtract(ask).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(BD_0_01) < 0 &&
                 lastTrade.get().subtract(bid).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(BD_0_01) < 0) {
 
-            //lastPrice.set(strategy.isLevelInverse() ? ask : bid);
+            lastPrice.set(strategy.isLevelInverse() ? ask : bid);
 
             depthSpread.set(ask.subtract(bid).abs());
             depthBid.set(bid);
@@ -500,7 +500,7 @@ public class LevelStrategy extends BaseStrategy{
     @Override
     protected void onRealTrade(Order order) {
         if (order.getStatus().equals(CLOSED) && order.getAvgPrice().compareTo(ZERO) > 0){
-            //lastPrice.set(order.getAvgPrice());
+            lastPrice.set(order.getAvgPrice());
         }
     }
 }
