@@ -1,6 +1,7 @@
 package ru.inheaven.aida.happy.trading.service;
 
 import com.google.common.primitives.Doubles;
+import com.google.common.util.concurrent.AtomicDouble;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.OrderType;
@@ -70,28 +71,38 @@ public class VSSAService {
         });
     }
 
-    private Executor executor = Executors.newWorkStealingPool();
+    private Executor executor = Executors.newSingleThreadExecutor();
 
     private AtomicLong index = new AtomicLong(0);
 
+    private AtomicDouble forecast = new AtomicDouble(0);
+
     public void add(Trade trade){
         executor.execute(() -> {
-            tradesBuffer.add(trade);
+            try {
+                tradesBuffer.add(trade);
 
-            if (tradesBuffer.getLast().getCreated().getTime() - tradesBuffer.getFirst().getCreated().getTime() > delay){
-                double[] prices = getPrices(tradesBuffer);
+                if (tradesBuffer.getLast().getCreated().getTime() - tradesBuffer.getFirst().getCreated().getTime() > delay){
+                    double[] prices = getPrices(tradesBuffer);
 
-                for (double price : prices){
-                    this.prices.add(price);
+                    for (double price : prices){
+                        this.prices.add(price);
+                    }
+
+                    tradesBuffer.clear();
+
+                    if (loaded.get()) {
+                        forecast.set(execute());
+                    }
                 }
 
-                tradesBuffer.clear();
-            }
-
-            if (index.incrementAndGet() % 1000 == 0 && prices.size() > 3*N){
-                for (int i = 0; i < N; ++i){
-                    this.prices.removeFirst();
+                if (index.incrementAndGet() % 1000 == 0 && prices.size() > 3*N){
+                    for (int i = 0; i < N; ++i){
+                        prices.removeFirst();
+                    }
                 }
+            } catch (Exception e) {
+                log.error("error add", e);
             }
         });
     }
@@ -138,6 +149,8 @@ public class VSSAService {
             prices[i] = pricesD.get(i);
         }
 
+        log.info("prices " + Arrays.toString(prices));
+
         return prices;
     }
 
@@ -148,10 +161,20 @@ public class VSSAService {
     }
 
     public double execute(){
-        return loaded.get() ? vssaBoost.execute(Doubles.toArray(prices)) : 0;
+        try {
+            return loaded.get() ? vssaBoost.execute(Doubles.toArray(prices)) : 0;
+        } catch (Exception e) {
+            log.error("error execute", e);
+
+            return 0;
+        }
     }
 
     public boolean isLoaded(){
         return loaded.get();
+    }
+
+    public double getForecast(){
+        return forecast.get();
     }
 }

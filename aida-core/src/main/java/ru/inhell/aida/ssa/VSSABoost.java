@@ -46,12 +46,13 @@ public class VSSABoost {
             VSSA local = localQueue.poll();
 
             if (local == null) {
-                int L = random.nextInt(N/2 - M) + M;
-                int P = random.nextInt(L/4 - 1) + 1;
+                int L = random.nextInt(N/2 - M - 1) + M + 1;
+                int P = random.nextInt(L - 1) + 1;
 
                 vssa = new VSSA(N, L, P, M);
             }else{
                 vssa = new VSSA(local.getRangeLength(), local.getWindowLength(), local.getEigenfunctionsCount(), local.getPredictionPointCount());
+                vssa.setIndex(local.getIndex() + 1);
             }
 
             int error = 0;
@@ -78,12 +79,6 @@ public class VSSABoost {
 
             if (trainError <= threshold){
                 fitQueue.add(vssa);
-
-                VSSA vq = queue.stream().filter(q -> q.getName().equals(vssa.getName())).findAny().orElse(null);
-
-                if (vq != null){
-                    vssa.setIndex(vq.getIndex() + 1);
-                }
 
                 log.info(fitQueue.size() + " " + trainError + " " + vssa.getName() + " " + vssa.getIndex());
             }else{
@@ -129,7 +124,7 @@ public class VSSABoost {
         return forecast;
     }
 
-    public double getTarget2(double[] series, int start, int size){
+    public double getTarget(double[] series, int start, int size){
         double sum = 0;
 
         for (int i = start; i < start + size; ++i){
@@ -139,7 +134,7 @@ public class VSSABoost {
         return sum/size;
     }
 
-    public double getTarget(double[] series, int start, int size){
+    public double getTarget2(double[] series, int start, int size){
         double max = series[start];
         double min = series[start];
 

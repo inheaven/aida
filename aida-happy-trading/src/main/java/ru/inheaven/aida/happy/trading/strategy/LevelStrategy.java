@@ -8,16 +8,16 @@ import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
-import ru.inhell.aida.algo.arima.ArimaFitter;
-import ru.inhell.aida.algo.arima.ArimaProcess;
-import ru.inhell.aida.algo.arima.DefaultArimaForecaster;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.Date;
 import java.util.Deque;
 import java.util.Objects;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -78,8 +78,6 @@ public class LevelStrategy extends BaseStrategy{
 
     private AtomicReference<BigDecimal> lastPrice = new AtomicReference<>(ZERO);
 
-    private AtomicDouble forecast = new AtomicDouble(0);
-
     private Deque<Double> forecastPrices = new ConcurrentLinkedDeque<>();
     private Deque<Double> spreadPrices = new ConcurrentLinkedDeque<>();
 
@@ -119,7 +117,7 @@ public class LevelStrategy extends BaseStrategy{
 
         log.info("availableProcessors " + Runtime.getRuntime().availableProcessors());
 
-        vssaService = new VSSAService(strategy.getSymbol(), strategy.isLevelInverse() ? ASK : BID, 0.48, 11, 100, 256, 16, (int) (60000*Math.PI));
+        vssaService = new VSSAService(strategy.getSymbol(), strategy.isLevelInverse() ? ASK : BID, 0.48, 11, 100, 256, 1, 60000);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
             Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
@@ -133,50 +131,50 @@ public class LevelStrategy extends BaseStrategy{
             }
         }, 0, 30, TimeUnit.MINUTES);
 
-        Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
-            if (strategy.getName().contains("vssa")){
-                try {
-                    forecast.set(vssaService.execute());
-                } catch (Exception e) {
-                    forecast.set(0);
-
-                    log.error("error forecast", e);
-                }
-            }else if (forecastPrices.size() > 10){
-                try {
-                    double[] prices = Doubles.toArray(forecastPrices);
-
-                    double[] pricesDelta = new double[prices.length - 1];
-                    for (int i = 0; i < prices.length - 1; ++i){
-                        pricesDelta[i] = prices[i+1]/prices[i] - 1;
-                    }
-
-                    //f = p1/p0 - 1 -> p1 = (f + 1)*p0
-                    ArimaProcess process = strategy.isLevelInverse()
-                            ? ArimaFitter.fit(pricesDelta, 7, 5, 8)
-                            : ArimaFitter.fit(pricesDelta, 7, 10, 3);
-
-                    double f = new DefaultArimaForecaster(process, pricesDelta).next();
-
-                    //
-
-                    if (!Double.isNaN(f)) {
-                        if (Math.abs(f) < 0.5) {
-                            forecast.set(prices[prices.length-1]*(f + 1));
-                        }else{
-                            forecast.set(prices[prices.length-1]*(0.5*Math.signum(f) + 1));
-                        }
-                    }else{
-                        forecast.set(0);
-                    }
-
-                } catch (Exception e) {
-                    forecast.set(0);
-
-                    log.error("error forecast", e);
-                }
-            }
-        }, 5, 30, TimeUnit.SECONDS);
+//        Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
+//            if (strategy.getName().contains("vssa")){
+//                try {
+//                    forecast.set(vssaService.execute());
+//                } catch (Exception e) {
+//                    forecast.set(0);
+//
+//                    log.error("error forecast", e);
+//                }
+//            }else if (forecastPrices.size() > 10){
+//                try {
+//                    double[] prices = Doubles.toArray(forecastPrices);
+//
+//                    double[] pricesDelta = new double[prices.length - 1];
+//                    for (int i = 0; i < prices.length - 1; ++i){
+//                        pricesDelta[i] = prices[i+1]/prices[i] - 1;
+//                    }
+//
+//                    //f = p1/p0 - 1 -> p1 = (f + 1)*p0
+//                    ArimaProcess process = strategy.isLevelInverse()
+//                            ? ArimaFitter.fit(pricesDelta, 7, 5, 8)
+//                            : ArimaFitter.fit(pricesDelta, 7, 10, 3);
+//
+//                    double f = new DefaultArimaForecaster(process, pricesDelta).next();
+//
+//                    //
+//
+//                    if (!Double.isNaN(f)) {
+//                        if (Math.abs(f) < 0.5) {
+//                            forecast.set(prices[prices.length-1]*(f + 1));
+//                        }else{
+//                            forecast.set(prices[prices.length-1]*(0.5*Math.signum(f) + 1));
+//                        }
+//                    }else{
+//                        forecast.set(0);
+//                    }
+//
+//                } catch (Exception e) {
+//                    forecast.set(0);
+//
+//                    log.error("error forecast", e);
+//                }
+//            }
+//        }, 5, 60, TimeUnit.SECONDS);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
             try {
@@ -293,8 +291,8 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[0]);
             BigDecimal subtotalCny = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[1]);
 
-            if (forecast.get() != 0){
-                balance.set(forecast.get() > 0);
+            if (vssaService.getForecast() != 0){
+                balance.set(vssaService.getForecast() > 0);
 
 //                balance.set(random.nextInt(2) !=0 ? forecast.get() > 0
 //                        : subtotalCny.divide(subtotalBtc.multiply(lastTrade.get().subtract(BigDecimal.valueOf(forecast.get()))), 8, HALF_EVEN).compareTo(ONE) > 0
@@ -311,7 +309,7 @@ public class LevelStrategy extends BaseStrategy{
 
     @Override
     protected double getForecast() {
-        return forecast.get();
+        return vssaService.getForecast();
     }
 
     private StandardDeviation standardDeviation = new StandardDeviation(true);
@@ -418,19 +416,19 @@ public class LevelStrategy extends BaseStrategy{
                 BigDecimal freeCny = userInfoService.getVolume("free", strategy.getAccount().getId(), "CNY");
 
                 if (strategy.isLevelInverse()) {
-                    if (freeBtc.compareTo(sellAmount.multiply(BD_2)) > 0){
+                    if (freeBtc.compareTo(sellAmount.multiply(BD_5)) > 0){
                         createOrderSync(sellOrder);
                     }
 
-                    if (freeCny.compareTo(buyAmount.multiply(buyPrice).multiply(BD_2)) > 0){
+                    if (freeCny.compareTo(buyAmount.multiply(buyPrice).multiply(BD_5)) > 0){
                         createOrderSync(buyOrder);
                     }
                 }else{
-                    if (freeCny.compareTo(buyAmount.multiply(buyPrice).multiply(BD_2)) > 0){
+                    if (freeCny.compareTo(buyAmount.multiply(buyPrice).multiply(BD_5)) > 0){
                         createOrderSync(buyOrder);
                     }
 
-                    if (freeBtc.compareTo(sellAmount.multiply(BD_2)) > 0){
+                    if (freeBtc.compareTo(sellAmount.multiply(BD_5)) > 0){
                         createOrderSync(sellOrder);
                     }
 

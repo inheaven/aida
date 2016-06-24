@@ -24,8 +24,8 @@ public class VSSABoostTest {
     private static Logger log = LoggerFactory.getLogger(VSSABoostTest.class);
 
     public static void main(String[] args){
-        Date startDate = Date.from(LocalDateTime.of(2016, 6, 21, 23, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
-        Date endDate = Date.from(LocalDateTime.of(2016, 6, 23, 23, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date startDate = Date.from(LocalDateTime.of(2016, 6, 20, 0, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date endDate = Date.from(LocalDateTime.of(2016, 6, 24, 19, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
 
         List<Trade> trades = new ArrayList<>();
 
@@ -68,8 +68,8 @@ public class VSSABoostTest {
 
         //vssa boost
         int count = 100;
-        int n = 256;
-        int m = 16;
+        int n = 512;
+        int m = 1;
 
         VSSABoost vssaBoost = new VSSABoost(0.48, 11, 100, n, m);
 
