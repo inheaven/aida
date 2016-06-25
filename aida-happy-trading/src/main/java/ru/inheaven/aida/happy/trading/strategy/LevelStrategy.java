@@ -109,7 +109,7 @@ public class LevelStrategy extends BaseStrategy{
                     });
         }
 
-        Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(()-> {
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(()-> {
             actionLevel("schedule", lastPrice.get(), null);
         }, 5000, 34, TimeUnit.MILLISECONDS);
 
@@ -117,7 +117,7 @@ public class LevelStrategy extends BaseStrategy{
 
         log.info("availableProcessors " + Runtime.getRuntime().availableProcessors());
 
-        vssaService = new VSSAService(strategy.getSymbol(), strategy.isLevelInverse() ? ASK : BID, 0.48, 11, 100, 256, 1, 60000);
+        vssaService = new VSSAService(strategy.getSymbol(), strategy.isLevelInverse() ? ASK : BID, 0.48, 11, 100, 256, 5, 15000);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
             Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
@@ -276,6 +276,14 @@ public class LevelStrategy extends BaseStrategy{
 
             action(key, price, orderType, 0);
 
+            if (getForecast() > 0){
+                action(key, price.add(getSpread(price)), orderType, 1);
+                action(key, price.subtract(getSpread(price)), orderType, -1);
+            }else{
+                action(key, price.subtract(getSpread(price)), orderType, -1);
+                action(key, price.add(getSpread(price)), orderType, 1);
+            }
+
             lastAction.set(price);
         } catch (Exception e) {
             log.error("error actionLevel", e);
@@ -286,17 +294,20 @@ public class LevelStrategy extends BaseStrategy{
     private AtomicBoolean balance = new AtomicBoolean(true);
 
     protected boolean getSpotBalance(){
-        if (System.currentTimeMillis() - lastBalanceTime.get() >= 100){
+        if (System.currentTimeMillis() - lastBalanceTime.get() >= 10000){
             String[] symbol = strategy.getSymbol().split("/");
             BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[0]);
             BigDecimal subtotalCny = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[1]);
 
-            if (vssaService.getForecast() != 0){
-                balance.set(vssaService.getForecast() > 0);
+            double forecast = getForecast();
 
-//                balance.set(random.nextInt(2) !=0 ? forecast.get() > 0
-//                        : subtotalCny.divide(subtotalBtc.multiply(lastTrade.get().subtract(BigDecimal.valueOf(forecast.get()))), 8, HALF_EVEN).compareTo(ONE) > 0
-//                );
+            if (forecast != 0){
+//                balance.set(vssaService.getForecast() > 0);
+
+                balance.set(random.nextBoolean()
+                        ? forecast > 0
+                        : subtotalCny.divide(subtotalBtc.multiply(lastTrade.get()), 8, HALF_EVEN).compareTo(BD_2) > 0
+                );
             }else{
                 balance.set(subtotalCny.compareTo(subtotalBtc.multiply(lastAction.get())) > 0);
             }
@@ -319,7 +330,7 @@ public class LevelStrategy extends BaseStrategy{
         return BigDecimal.valueOf(stdDev.get());
     }
 
-    private BigDecimal spreadDiv = BigDecimal.valueOf(Math.sqrt(Math.PI*6));
+    private BigDecimal spreadDiv = BigDecimal.valueOf(Math.sqrt(Math.PI*3));
 
     protected BigDecimal getSpread(BigDecimal price){
         BigDecimal spread = ZERO;
@@ -455,20 +466,18 @@ public class LevelStrategy extends BaseStrategy{
             if ((!strategy.isLevelInverse() && trade.getOrderType().equals(BID)) || (strategy.isLevelInverse() && trade.getOrderType().equals(ASK))) {
                 lastPrice.set(trade.getPrice());
 
-                double price = trade.getPrice().doubleValue();
-
-                //spread
-                spreadPrices.add(price);
-                if (spreadPrices.size() > 5000){
-                    spreadPrices.removeFirst();
-                }
-
                 vssaService.add(trade);
             }
 
             closeByMarketAsync(trade.getPrice(), trade.getOrigTime());
         }else{
             log.warn("trade price diff 1% {} {} {}", trade.getPrice(), trade.getSymbol(), Objects.toString(trade.getSymbolType(), ""));
+        }
+
+        //spread
+        spreadPrices.add(trade.getPrice().doubleValue());
+        if (spreadPrices.size() > 10000){
+            spreadPrices.removeFirst();
         }
 
         lastTrade.set(trade.getPrice());

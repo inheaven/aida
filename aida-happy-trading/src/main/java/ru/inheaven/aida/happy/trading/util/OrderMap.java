@@ -118,10 +118,8 @@ public class OrderMap {
 
     public boolean contains(BigDecimal price, BigDecimal spread, OrderType type){
         ConcurrentNavigableMap<BigDecimal, Map<String, Order>> map =  type.equals(BID)
-                ? bidMap.subMap(scale(price.subtract(spread)), true, scale(price.add(spread).add(spread)), true)
-                : askMap.subMap(scale(price.subtract(spread).subtract(spread)), true, scale(price.add(spread)), true);
-
-        boolean contains = false;
+                ? bidMap.subMap(scale(price.subtract(spread)), false, scale(price.add(spread)), false)
+                : askMap.subMap(scale(price.subtract(spread)), false, scale(price.add(spread)), false);
 
         for (Map.Entry<BigDecimal, Map<String, Order>> entry : map.entrySet()) {
             if (!entry.getValue().isEmpty()){

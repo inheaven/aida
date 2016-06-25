@@ -25,7 +25,7 @@ public class VSSABoostTest {
 
     public static void main(String[] args){
         Date startDate = Date.from(LocalDateTime.of(2016, 6, 20, 0, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
-        Date endDate = Date.from(LocalDateTime.of(2016, 6, 24, 19, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date endDate = Date.from(LocalDateTime.of(2016, 6, 25, 21, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
 
         List<Trade> trades = new ArrayList<>();
 
@@ -40,7 +40,7 @@ public class VSSABoostTest {
         UJMPSettings.getInstance().setNumberOfThreads(2);
 
         //filter
-        long time = (long) (60000*Math.PI);
+        long time = 15000;
         List<Double> filter = new ArrayList<>();
 
         long last = trades.get(0).getCreated().getTime();
@@ -68,10 +68,10 @@ public class VSSABoostTest {
 
         //vssa boost
         int count = 100;
-        int n = 512;
-        int m = 1;
+        int n = 256;
+        int m = 5;
 
-        VSSABoost vssaBoost = new VSSABoost(0.48, 11, 100, n, m);
+        VSSABoost vssaBoost = new VSSABoost(0.48, 101, 100, n, m);
 
         double[] train = new double[2*prices.length/3];
         System.arraycopy(prices, 0, train, 0, train.length);

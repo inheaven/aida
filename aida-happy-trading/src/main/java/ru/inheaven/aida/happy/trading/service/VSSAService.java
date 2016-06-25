@@ -177,4 +177,21 @@ public class VSSAService {
     public double getForecast(){
         return forecast.get();
     }
+
+    public static void main(String[] args){
+        ConcurrentLinkedDeque<Double> test = new ConcurrentLinkedDeque<>();
+
+        test.add(1.0);
+        test.add(2.0);
+        test.add(3.0);
+
+        System.out.println(test);
+        System.out.println(test.getFirst());
+        System.out.println(test.getLast());
+
+        for (Iterator<Double> it = test.descendingIterator(); it.hasNext();){
+            System.out.println(it.next());
+        }
+
+    }
 }
