@@ -98,7 +98,7 @@ public class VSSABoost {
             }
         }
 
-        queue.forEach(VSSA::clear);
+        queue.forEach(VSSA::clear); //todo thread
         queue.clear();
 
         queue.addAll(fitQueue);
