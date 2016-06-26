@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.BiConsumer;
@@ -117,11 +116,18 @@ public class OrderMap {
     }
 
     public boolean contains(BigDecimal price, BigDecimal spread, OrderType type){
-        ConcurrentNavigableMap<BigDecimal, Map<String, Order>> map =  type.equals(BID)
-                ? bidMap.subMap(scale(price.subtract(spread)), false, scale(price.add(spread)), false)
-                : askMap.subMap(scale(price.subtract(spread)), false, scale(price.add(spread)), false);
 
-        for (Map.Entry<BigDecimal, Map<String, Order>> entry : map.entrySet()) {
+        Map<BigDecimal, Map<String, Order>> bid = bidMap.subMap(scale(price.subtract(spread)), true, scale(price.add(spread)), true);
+
+        for (Map.Entry<BigDecimal, Map<String, Order>> entry : bid.entrySet()) {
+            if (!entry.getValue().isEmpty()){
+                return true;
+            }
+        }
+
+        Map<BigDecimal, Map<String, Order>> ask = askMap.subMap(scale(price.subtract(spread)), true, scale(price.add(spread)), true);
+
+        for (Map.Entry<BigDecimal, Map<String, Order>> entry : ask.entrySet()) {
             if (!entry.getValue().isEmpty()){
                 return true;
             }
