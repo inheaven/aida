@@ -3,7 +3,6 @@ package ru.inheaven.aida.backtest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.ujmp.core.util.UJMPSettings;
-import ru.inheaven.aida.happy.trading.entity.OrderType;
 import ru.inheaven.aida.happy.trading.entity.Trade;
 import ru.inheaven.aida.happy.trading.mapper.TradeMapper;
 import ru.inheaven.aida.happy.trading.service.Module;
@@ -24,15 +23,15 @@ public class VSSABoostTest {
     private static Logger log = LoggerFactory.getLogger(VSSABoostTest.class);
 
     public static void main(String[] args){
-        Date startDate = Date.from(LocalDateTime.of(2016, 6, 20, 0, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
-        Date endDate = Date.from(LocalDateTime.of(2016, 6, 25, 21, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date startDate = Date.from(LocalDateTime.of(2016, 6, 25, 4, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date endDate = Date.from(LocalDateTime.of(2016, 6, 26, 4, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
 
         List<Trade> trades = new ArrayList<>();
 
-        long delay = (long) (1000*60);
+        long delay = (long) (1000*60*10);
 
         for (long t = startDate.getTime(); t < endDate.getTime(); t += delay){
-            trades.addAll(Module.getInjector().getInstance(TradeMapper.class).getLightTrades("BTC/CNY", OrderType.ASK, new Date(t), new Date(t + delay)));
+            trades.addAll(Module.getInjector().getInstance(TradeMapper.class).getLightTrades("BTC/CNY", null, new Date(t), new Date(t + delay)));
         }
 
         System.out.println("trades " + trades.size());
@@ -40,7 +39,7 @@ public class VSSABoostTest {
         UJMPSettings.getInstance().setNumberOfThreads(2);
 
         //filter
-        long time = 15000;
+        long time = 1000;
         List<Double> filter = new ArrayList<>();
 
         long last = trades.get(0).getCreated().getTime();
@@ -67,11 +66,11 @@ public class VSSABoostTest {
         System.out.println("prices " + prices.length);
 
         //vssa boost
-        int count = 100;
-        int n = 256;
-        int m = 5;
+        int count = 10;
+        int n = 60;
+        int m = 15;
 
-        VSSABoost vssaBoost = new VSSABoost(0.48, 101, 100, n, m);
+        VSSABoost vssaBoost = new VSSABoost(0.42, 11, 60, n, m);
 
         double[] train = new double[2*prices.length/3];
         System.arraycopy(prices, 0, train, 0, train.length);

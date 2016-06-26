@@ -28,14 +28,18 @@ public class VSSAService {
 
     private VSSABoost vssaBoost;
 
-    private int delay;
+    private long delay;
     private int N;
+
+    private long execute;
 
     private AtomicBoolean loaded = new AtomicBoolean(false);
 
-    public VSSAService(String symbol, OrderType orderType, double threshold, int vssaCount, int trainCount, int N, int M, int delay) {
+    public VSSAService(String symbol, OrderType orderType, double threshold, int vssaCount, int trainCount, int N, int M, long delay, long execute) {
         this.delay = delay;
         this.N = N;
+
+        this.execute = execute;
 
         vssaBoost = new VSSABoost(threshold, vssaCount, trainCount, N, M);
 
@@ -77,6 +81,8 @@ public class VSSAService {
 
     private AtomicDouble forecast = new AtomicDouble(0);
 
+    private AtomicLong lastExecute = new AtomicLong(System.currentTimeMillis());
+
     public void add(Trade trade){
         executor.execute(() -> {
             try {
@@ -91,8 +97,10 @@ public class VSSAService {
 
                     tradesBuffer.clear();
 
-                    if (loaded.get()) {
+                    if (loaded.get() && System.currentTimeMillis() - lastExecute.get() > execute) {
                         forecast.set(execute());
+
+                        lastExecute.set(System.currentTimeMillis());
                     }
                 }
 
@@ -148,8 +156,6 @@ public class VSSAService {
         for (int i = 0; i < prices.length; ++i){
             prices[i] = pricesD.get(i);
         }
-
-        log.info("prices " + Arrays.toString(prices));
 
         return prices;
     }

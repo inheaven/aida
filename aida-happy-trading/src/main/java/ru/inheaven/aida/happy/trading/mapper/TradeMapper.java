@@ -5,7 +5,9 @@ import ru.inheaven.aida.happy.trading.entity.Trade;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.google.common.collect.ImmutableMap.of;
 
@@ -38,6 +40,12 @@ public class TradeMapper extends BaseMapper<Trade> {
     }
 
     public List<Trade> getLightTrades(String symbol, OrderType orderType, Date startDate, Date endDate){
-        return sqlSession().selectList("selectLightTrades", of("symbol", symbol, "orderType", orderType, "startDate", startDate, "endDate", endDate));
+        Map<String, Object> map = new HashMap<>();
+        map.put("symbol", symbol);
+        map.put("orderType", orderType);
+        map.put("startDate", startDate);
+        map.put("endDate", endDate);
+
+        return sqlSession().selectList("selectLightTrades", map);
     }
 }

@@ -117,7 +117,7 @@ public class LevelStrategy extends BaseStrategy{
 
         log.info("availableProcessors " + Runtime.getRuntime().availableProcessors());
 
-        vssaService = new VSSAService(strategy.getSymbol(), strategy.isLevelInverse() ? ASK : BID, 0.48, 11, 100, 256, 5, 15000);
+        vssaService = new VSSAService(strategy.getSymbol(), strategy.isLevelInverse() ? ASK : BID, 0.42, 11, 15, 60, 15, 1000, 5000);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
             Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
@@ -129,7 +129,7 @@ public class LevelStrategy extends BaseStrategy{
             } catch (Throwable e) {
                 log.error("vssaService ", e);
             }
-        }, 0, 30, TimeUnit.MINUTES);
+        }, 0, 5, TimeUnit.MINUTES);
 
 //        Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
 //            if (strategy.getName().contains("vssa")){
