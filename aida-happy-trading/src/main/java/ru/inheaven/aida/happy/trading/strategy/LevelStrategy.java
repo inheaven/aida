@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
+import ru.inheaven.aida.happy.trading.util.TradeUtil;
+import rx.subjects.PublishSubject;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
@@ -75,10 +77,6 @@ public class LevelStrategy extends BaseStrategy{
     private final static BigDecimal BD_TWO_SQRT_PI = new BigDecimal("3.5449077018110320545963349666823");
 
     private final static BigDecimal BD_PI = new BigDecimal(Math.PI);
-
-    private AtomicReference<BigDecimal> lastPrice = new AtomicReference<>(ZERO);
-
-    private Deque<Double> forecastPrices = new ConcurrentLinkedDeque<>();
     private Deque<Double> spreadPrices = new ConcurrentLinkedDeque<>();
 
     private AtomicBoolean maxProfit = new AtomicBoolean();
@@ -275,8 +273,8 @@ public class LevelStrategy extends BaseStrategy{
             }
 
             action(key, price, orderType, 0);
-            action(key, price.add(getSpread(price)), orderType, 1);
-            action(key, price.subtract(getSpread(price)), orderType, -1);
+//            action(key, price.add(getSpread(price)), orderType, 1);
+//            action(key, price.subtract(getSpread(price)), orderType, -1);
 
             lastAction.set(price);
         } catch (Exception e) {
@@ -288,12 +286,14 @@ public class LevelStrategy extends BaseStrategy{
     private AtomicBoolean balance = new AtomicBoolean(true);
 
     protected boolean getSpotBalance(){
-        if (System.currentTimeMillis() - lastBalanceTime.get() >= 10000){
+        if (System.currentTimeMillis() - lastBalanceTime.get() >= 60000){
             String[] symbol = strategy.getSymbol().split("/");
             BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[0]);
             BigDecimal subtotalCny = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[1]);
 
-            balance.set(subtotalCny.divide(subtotalBtc.multiply(lastTrade.get()), 8, HALF_EVEN).compareTo(BD_2) > 0);
+            BigDecimal price = lastAvgPrice.get().compareTo(ZERO) > 0 ? lastAvgPrice.get() : lastPrice.get();
+
+            balance.set(subtotalCny.compareTo(subtotalBtc.multiply(price)) > 0);
 
             lastBalanceTime.set(System.currentTimeMillis());
         }
@@ -361,7 +361,7 @@ public class LevelStrategy extends BaseStrategy{
             boolean balance = getSpotBalance();
 
             BigDecimal spread = scale(getSpread(price));
-            BigDecimal spread_0_1 = spread.multiply(BD_0_1);
+            BigDecimal spread_0_1 = BD_0_01;
 
             BigDecimal p = scale(forecast ? price.add(spread_0_1) : price.subtract(spread_0_1));
             BigDecimal buyPrice = scale(forecast ? p : p.subtract(spread));
@@ -433,11 +433,21 @@ public class LevelStrategy extends BaseStrategy{
 
     private AtomicReference<BigDecimal> lastTrade = new AtomicReference<>(ZERO);
 
+    private AtomicReference<BigDecimal> lastPrice = new AtomicReference<>(ZERO);
+    private AtomicReference<BigDecimal> lastAvgPrice = new AtomicReference<>(ZERO);
+
     private AtomicReference<BigDecimal> tradeBid = new AtomicReference<>(ZERO);
     private AtomicReference<BigDecimal> tradeAsk = new AtomicReference<>(ZERO);
 
-    private Deque<Trade> trades = new ConcurrentLinkedDeque<>();
+    private PublishSubject<Trade> tradeBuffer = PublishSubject.create();
 
+    {
+        tradeBuffer.buffer(1, TimeUnit.SECONDS).filter(b -> !b.isEmpty()).forEach(b -> lastPrice.set(TradeUtil.avg(b)));
+        tradeBuffer.buffer(60, TimeUnit.SECONDS).filter(b -> !b.isEmpty()).forEach(b -> lastAvgPrice.set(TradeUtil.avg(b)));
+    }
+
+
+    @SuppressWarnings("Duplicates")
     @Override
     protected void onTrade(Trade trade) {
         (trade.getOrderType().equals(BID) ? tradeBid : tradeAsk).set(trade.getPrice());
@@ -446,23 +456,7 @@ public class LevelStrategy extends BaseStrategy{
 
         if (lastTrade.get().compareTo(ZERO) != 0 && lastTrade.get().subtract(trade.getPrice()).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(BD_0_01) < 0){
             if ((!strategy.isLevelInverse() && trade.getOrderType().equals(BID)) || (strategy.isLevelInverse() && trade.getOrderType().equals(ASK))) {
-                trades.add(trade);
-
-                if (!trades.isEmpty() && trades.getLast().getCreated().getTime() - trades.getFirst().getCreated().getTime() > 500){
-                    BigDecimal priceSum = ZERO;
-                    BigDecimal volumeSum = ZERO;
-
-                    for (Trade t : trades){
-                        priceSum = priceSum.add(t.getPrice().multiply(t.getAmount()));
-                        volumeSum = volumeSum.add(t.getAmount());
-                    }
-
-                    if (priceSum.compareTo(ZERO) > 0 && volumeSum.compareTo(ZERO) > 0) {
-                        lastPrice.set(priceSum.divide(volumeSum, 8, HALF_EVEN));
-                    }
-
-                    trades.clear();
-                }
+                tradeBuffer.onNext(trade);
 
                 vssaService.add(trade);
             }
