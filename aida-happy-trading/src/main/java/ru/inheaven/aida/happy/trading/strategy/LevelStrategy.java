@@ -13,9 +13,7 @@ import rx.subjects.PublishSubject;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
-import java.util.Date;
-import java.util.Deque;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -274,14 +272,14 @@ public class LevelStrategy extends BaseStrategy{
 
             action(key, price, orderType, 0);
 
-            BigDecimal spread = scale(getSpread(price));
+            BigDecimal spread = scale(getSpread(price).divide(BD_2, 8, HALF_UP));
 
-            for (int i = 1; i <= strategy.getLevelSize().intValue(); ++i){
-                action(key, price.add(spread.multiply(BigDecimal.valueOf(i))), orderType, i);
-            }
-
-            for (int i = 1; i <= strategy.getLevelSize().intValue(); ++i){
-                action(key, price.subtract(spread.multiply(BigDecimal.valueOf(i))), orderType, -i);
+            if (getForecast() > 0){
+                action(key, price.add(spread), orderType, 1);
+                action(key, price.subtract(spread), orderType, -1);
+            }else {
+                action(key, price.subtract(spread), orderType, -1);
+                action(key, price.add(spread), orderType, 1);
             }
 
             lastAction.set(price);
@@ -294,14 +292,14 @@ public class LevelStrategy extends BaseStrategy{
     private AtomicBoolean balance = new AtomicBoolean(true);
 
     protected boolean getSpotBalance(){
-        if (System.currentTimeMillis() - lastBalanceTime.get() >= 10000){
+        if (System.currentTimeMillis() - lastBalanceTime.get() >= window.get()){
             String[] symbol = strategy.getSymbol().split("/");
             BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[0]);
             BigDecimal subtotalCny = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[1]);
 
             BigDecimal price = lastAvgPrice.get().compareTo(ZERO) > 0 ? lastAvgPrice.get() : lastPrice.get();
 
-            balance.set(subtotalCny.compareTo(subtotalBtc.multiply(price)) > 0);
+            balance.set(subtotalCny.divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(ONE) > 0);
 
             lastBalanceTime.set(System.currentTimeMillis());
         }
@@ -321,7 +319,7 @@ public class LevelStrategy extends BaseStrategy{
         return BigDecimal.valueOf(stdDev.get());
     }
 
-    private BigDecimal spreadDiv = ONE;
+    private BigDecimal spreadDiv = BigDecimal.valueOf(Math.sqrt(Math.PI*3));
 
     protected BigDecimal getSpread(BigDecimal price){
         BigDecimal spread = ZERO;
@@ -331,7 +329,7 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal stdDev = getStdDev();
 
             if (stdDev != null){
-                spread = stdDev.divide(spreadDiv, 8, HALF_EVEN).divide(strategy.getLevelSize(), 8, HALF_EVEN);
+                spread = stdDev.divide(spreadDiv, 8, HALF_EVEN);
             }
         }else {
             spread = strategy.getSymbolType() == null
@@ -445,13 +443,36 @@ public class LevelStrategy extends BaseStrategy{
     private AtomicReference<BigDecimal> tradeBid = new AtomicReference<>(ZERO);
     private AtomicReference<BigDecimal> tradeAsk = new AtomicReference<>(ZERO);
 
+    private AtomicLong window = new AtomicLong(1000);
+
     private PublishSubject<Trade> tradeBuffer = PublishSubject.create();
 
     {
         tradeBuffer.buffer(1, TimeUnit.SECONDS).filter(b -> !b.isEmpty()).forEach(b -> lastPrice.set(TradeUtil.avg(b)));
-        tradeBuffer.buffer(60, TimeUnit.SECONDS).filter(b -> !b.isEmpty()).forEach(b -> lastAvgPrice.set(TradeUtil.avg(b)));
-    }
 
+        tradeBuffer.buffer(1, TimeUnit.SECONDS).buffer(60, 1)
+                .forEach(l -> {
+                    List<Trade> list = new ArrayList<>();
+                    l.forEach(l1 -> l1.forEach(list::add));
+
+                    if (!list.isEmpty()) {
+                        lastAvgPrice.set(TradeUtil.avg(list));
+
+                        Trade max = list.get(0);
+                        Trade min = list.get(0);
+
+                        for (Trade t : list){
+                            if (t.getPrice().compareTo(max.getPrice()) > 0){
+                                max = t;
+                            }else if (t.getPrice().compareTo(min.getPrice()) < 0){
+                                min = t;
+                            }
+                        }
+
+                        window.set(Math.abs(max.getCreated().getTime() - min.getCreated().getTime()));
+                    }
+                });
+    }
 
     @SuppressWarnings("Duplicates")
     @Override
