@@ -115,21 +115,22 @@ public class OrderMap {
         return get(price, type, true);
     }
 
-    public boolean contains(BigDecimal price, BigDecimal spread, OrderType type){
+    public boolean contains(BigDecimal price, BigDecimal spread, OrderType orderType){
+        if (BID.equals(orderType)){
+            Map<BigDecimal, Map<String, Order>> bid = bidMap.subMap(scale(price.subtract(spread)), true, scale(price.add(spread)), true);
 
-        Map<BigDecimal, Map<String, Order>> bid = bidMap.subMap(scale(price.subtract(spread)), true, scale(price.add(spread)), true);
-
-        for (Map.Entry<BigDecimal, Map<String, Order>> entry : bid.entrySet()) {
-            if (!entry.getValue().isEmpty()){
-                return true;
+            for (Map.Entry<BigDecimal, Map<String, Order>> entry : bid.entrySet()) {
+                if (!entry.getValue().isEmpty()){
+                    return true;
+                }
             }
-        }
+        }else {
+            Map<BigDecimal, Map<String, Order>> ask = askMap.subMap(scale(price.subtract(spread)), true, scale(price.add(spread)), true);
 
-        Map<BigDecimal, Map<String, Order>> ask = askMap.subMap(scale(price.subtract(spread)), true, scale(price.add(spread)), true);
-
-        for (Map.Entry<BigDecimal, Map<String, Order>> entry : ask.entrySet()) {
-            if (!entry.getValue().isEmpty()){
-                return true;
+            for (Map.Entry<BigDecimal, Map<String, Order>> entry : ask.entrySet()) {
+                if (!entry.getValue().isEmpty()){
+                    return true;
+                }
             }
         }
 

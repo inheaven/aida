@@ -273,8 +273,16 @@ public class LevelStrategy extends BaseStrategy{
             }
 
             action(key, price, orderType, 0);
-            action(key, price.add(getSpread(price)), orderType, 1);
-            action(key, price.subtract(getSpread(price)), orderType, -1);
+
+            BigDecimal spread = scale(getSpread(price));
+
+            for (int i = 1; i <= strategy.getLevelSize().intValue(); ++i){
+                action(key, price.add(spread.multiply(BigDecimal.valueOf(i))), orderType, i);
+            }
+
+            for (int i = 1; i <= strategy.getLevelSize().intValue(); ++i){
+                action(key, price.subtract(spread.multiply(BigDecimal.valueOf(i))), orderType, -i);
+            }
 
             lastAction.set(price);
         } catch (Exception e) {
@@ -286,7 +294,7 @@ public class LevelStrategy extends BaseStrategy{
     private AtomicBoolean balance = new AtomicBoolean(true);
 
     protected boolean getSpotBalance(){
-        if (System.currentTimeMillis() - lastBalanceTime.get() >= 20000){
+        if (System.currentTimeMillis() - lastBalanceTime.get() >= 10000){
             String[] symbol = strategy.getSymbol().split("/");
             BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[0]);
             BigDecimal subtotalCny = userInfoService.getVolume("subtotal", strategy.getAccount().getId(), symbol[1]);
@@ -313,7 +321,7 @@ public class LevelStrategy extends BaseStrategy{
         return BigDecimal.valueOf(stdDev.get());
     }
 
-    private BigDecimal spreadDiv = BigDecimal.valueOf(Math.sqrt(Math.PI*2.5));
+    private BigDecimal spreadDiv = ONE;
 
     protected BigDecimal getSpread(BigDecimal price){
         BigDecimal spread = ZERO;
@@ -323,7 +331,7 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal stdDev = getStdDev();
 
             if (stdDev != null){
-                spread = stdDev.divide(spreadDiv, 8, HALF_UP);
+                spread = stdDev.divide(spreadDiv, 8, HALF_EVEN).divide(strategy.getLevelSize(), 8, HALF_EVEN);
             }
         }else {
             spread = strategy.getSymbolType() == null
@@ -361,11 +369,9 @@ public class LevelStrategy extends BaseStrategy{
 //            boolean forecast = getForecast() != 0 ? getForecast() > 0 : getSpotBalance();
 
             BigDecimal spread = scale(getSpread(price));
-            BigDecimal spread_0_1 = BD_0_01;
 
-            BigDecimal p = scale(balance ? price.add(spread_0_1) : price.subtract(spread_0_1));
-            BigDecimal buyPrice = scale(balance ? p : p.subtract(spread));
-            BigDecimal sellPrice = scale(balance ? p.add(spread) : p);
+            BigDecimal buyPrice = scale(balance ? price : price.subtract(spread));
+            BigDecimal sellPrice = scale(balance ? price.add(spread) : price);
 
             if (!getOrderMap().contains(buyPrice, spread, BID) && !getOrderMap().contains(sellPrice, spread, ASK)){
 //                double q1 = QuranRandom.nextDouble()*2;
@@ -443,7 +449,7 @@ public class LevelStrategy extends BaseStrategy{
 
     {
         tradeBuffer.buffer(1, TimeUnit.SECONDS).filter(b -> !b.isEmpty()).forEach(b -> lastPrice.set(TradeUtil.avg(b)));
-        tradeBuffer.buffer(20, TimeUnit.SECONDS).filter(b -> !b.isEmpty()).forEach(b -> lastAvgPrice.set(TradeUtil.avg(b)));
+        tradeBuffer.buffer(60, TimeUnit.SECONDS).filter(b -> !b.isEmpty()).forEach(b -> lastAvgPrice.set(TradeUtil.avg(b)));
     }
 
 
