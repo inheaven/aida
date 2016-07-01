@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
-import ru.inheaven.aida.happy.trading.util.OrderMap;
+import ru.inheaven.aida.happy.trading.util.OrderDoubleMap;
 import rx.Observable;
 import rx.Subscription;
 
@@ -54,7 +54,7 @@ public class BaseStrategy {
 
     private XChangeService xChangeService;
 
-    private OrderMap orderMap;
+    private OrderDoubleMap orderMap;
 
     private Strategy strategy;
 
@@ -90,7 +90,7 @@ public class BaseStrategy {
         tradeObservable = createTradeObservable();
         depthObservable = createDepthObservable();
 
-        orderMap = new OrderMap(getScale(strategy.getSymbol()));
+        orderMap = new OrderDoubleMap();
 
         orderMapper.getOpenOrders(strategy.getId()).forEach(o -> orderMap.put(o));
 
@@ -664,7 +664,7 @@ public class BaseStrategy {
         return scale(v1).compareTo(scale(v2));
     }
 
-    public OrderMap getOrderMap() {
+    public OrderDoubleMap getOrderMap() {
         return orderMap;
     }
 

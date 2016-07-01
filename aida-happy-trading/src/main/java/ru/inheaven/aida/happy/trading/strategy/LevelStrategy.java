@@ -193,30 +193,30 @@ public class LevelStrategy extends BaseStrategy{
         }, 5, 1, TimeUnit.SECONDS);
     }
 
-    private void pushOrders(BigDecimal price){
-        BigDecimal spread = ZERO;
-        boolean inverse = strategy.isLevelInverse();
-
-        if (!isBidRefused()){
-            getOrderMap().get(price.subtract(spread), BID).forEach((k,v) -> {
-                v.values().forEach(o -> {
-                    if (o.getStatus().equals(WAIT) && (isVol() || !inverse || !getOrderMap().containsAsk(o.getPositionId()))){
-                        pushWaitOrder(o);
-                    }
-                });
-            });
-        }
-
-        if (!isAskRefused()){
-            getOrderMap().get(price.add(spread), ASK).forEach((k,v) -> {
-                v.values().forEach(o -> {
-                    if (o.getStatus().equals(WAIT) && (isVol() || inverse || !getOrderMap().containsBid(o.getPositionId()))){
-                        pushWaitOrder(o);
-                    }
-                });
-            });
-        }
-    }
+//    private void pushOrders(BigDecimal price){
+//        BigDecimal spread = ZERO;
+//        boolean inverse = strategy.isLevelInverse();
+//
+//        if (!isBidRefused()){
+//            getOrderMap().get(price.subtract(spread), BID).forEach((k,v) -> {
+//                v.values().forEach(o -> {
+//                    if (o.getStatus().equals(WAIT) && (isVol() || !inverse || !getOrderMap().containsAsk(o.getPositionId()))){
+//                        pushWaitOrder(o);
+//                    }
+//                });
+//            });
+//        }
+//
+//        if (!isAskRefused()){
+//            getOrderMap().get(price.add(spread), ASK).forEach((k,v) -> {
+//                v.values().forEach(o -> {
+//                    if (o.getStatus().equals(WAIT) && (isVol() || inverse || !getOrderMap().containsBid(o.getPositionId()))){
+//                        pushWaitOrder(o);
+//                    }
+//                });
+//            });
+//        }
+//    }
 
     private Executor executor = Executors.newCachedThreadPool();
     private AtomicReference<BigDecimal> lastMarket = new AtomicReference<>(ZERO);
@@ -231,7 +231,7 @@ public class LevelStrategy extends BaseStrategy{
     @SuppressWarnings("Duplicates")
     private void closeByMarket(BigDecimal price, Date time){
         try {
-            getOrderMap().get(price, BID, false).forEach((k,v) -> {
+            getOrderMap().get(price.doubleValue(), BID, false).forEach((k,v) -> {
                 v.values().forEach(o -> {
                     if (o.getStatus().equals(OPEN) && time.getTime() - o.getOpen().getTime() > 0){
                         o.setStatus(CLOSED);
@@ -243,7 +243,7 @@ public class LevelStrategy extends BaseStrategy{
                 });
             });
 
-            getOrderMap().get(price, ASK, false).forEach((k,v) -> {
+            getOrderMap().get(price.doubleValue(), ASK, false).forEach((k,v) -> {
                 v.values().forEach(o -> {
                     if (o.getStatus().equals(OPEN) && time.getTime() - o.getOpen().getTime() > 0){
                         o.setStatus(CLOSED);

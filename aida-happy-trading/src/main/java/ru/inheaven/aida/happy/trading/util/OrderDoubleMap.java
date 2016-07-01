@@ -3,6 +3,7 @@ package ru.inheaven.aida.happy.trading.util;
 import ru.inheaven.aida.happy.trading.entity.Order;
 import ru.inheaven.aida.happy.trading.entity.OrderType;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentNavigableMap;
@@ -36,7 +37,7 @@ public class OrderDoubleMap {
         Map<String, Order> subMap = map.get(price);
 
         if (subMap == null){
-            subMap = new HashMap<>(1);
+            subMap = new ConcurrentHashMap<>();
             map.put(price, subMap);
         }
 
@@ -117,6 +118,10 @@ public class OrderDoubleMap {
         Double highestKey = type.equals(BID) ? bidMap.ceilingKey(price) : askMap.ceilingKey(price);
 
         return (lowKey != null && price - lowKey <= spread) || (highestKey != null && highestKey - price <= spread);
+    }
+
+    public boolean contains(BigDecimal price, BigDecimal spread, OrderType type){
+        return contains(price.doubleValue(), spread.doubleValue(), type);
     }
 
     public boolean containsBid(Long positionId){
