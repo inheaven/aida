@@ -25,7 +25,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import static java.math.BigDecimal.*;
 import static java.math.RoundingMode.HALF_EVEN;
 import static java.math.RoundingMode.HALF_UP;
-import static ru.inheaven.aida.happy.trading.entity.OrderStatus.*;
+import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CLOSED;
+import static ru.inheaven.aida.happy.trading.entity.OrderStatus.OPEN;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.ASK;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.BID;
 
@@ -231,7 +232,7 @@ public class LevelStrategy extends BaseStrategy{
     @SuppressWarnings("Duplicates")
     private void closeByMarket(BigDecimal price, Date time){
         try {
-            getOrderMap().get(price.doubleValue(), BID, false).forEach((k,v) -> {
+            getOrderMap().get(price.doubleValue() + 0.01, BID, false).forEach((k,v) -> {
                 v.values().forEach(o -> {
                     if (o.getStatus().equals(OPEN) && time.getTime() - o.getOpen().getTime() > 0){
                         o.setStatus(CLOSED);
@@ -243,7 +244,7 @@ public class LevelStrategy extends BaseStrategy{
                 });
             });
 
-            getOrderMap().get(price.doubleValue(), ASK, false).forEach((k,v) -> {
+            getOrderMap().get(price.doubleValue() - 0.01, ASK, false).forEach((k,v) -> {
                 v.values().forEach(o -> {
                     if (o.getStatus().equals(OPEN) && time.getTime() - o.getOpen().getTime() > 0){
                         o.setStatus(CLOSED);
@@ -278,7 +279,11 @@ public class LevelStrategy extends BaseStrategy{
 
             action(key, price, orderType, 0);
 
-            BigDecimal spread = tradeAsk.get().subtract(tradeBid.get()).abs();
+//            price = price.add(BD_0_01.multiply(BigDecimal.valueOf(random.nextGaussian())));
+
+//            BigDecimal spread = tradeAsk.get().subtract(tradeBid.get()).abs();
+
+            BigDecimal spread = getSpread(price);
 
             action(key, price.add(spread), orderType, 1);
             action(key, price.subtract(spread), orderType, -1);
@@ -320,7 +325,7 @@ public class LevelStrategy extends BaseStrategy{
         return BigDecimal.valueOf(stdDev.get());
     }
 
-    private BigDecimal spreadDiv = BigDecimal.valueOf(Math.sqrt(Math.PI*8));
+    private BigDecimal spreadDiv = BigDecimal.valueOf(Math.sqrt(Math.PI*13));
 
     protected BigDecimal getSpread(BigDecimal price){
         BigDecimal spread = ZERO;
@@ -445,7 +450,7 @@ public class LevelStrategy extends BaseStrategy{
     {
         tradeBuffer.buffer(1, TimeUnit.SECONDS).filter(b -> !b.isEmpty()).forEach(b -> prices.add(TradeUtil.avg(b)));
 
-        tradeBuffer.buffer(250, TimeUnit.SECONDS).filter(b -> !b.isEmpty()).forEach(b -> lastAvgPrice.set(TradeUtil.avg(b)));
+        tradeBuffer.buffer(10, TimeUnit.MINUTES).filter(b -> !b.isEmpty()).forEach(b -> lastAvgPrice.set(TradeUtil.avg(b)));
 
         tradeBuffer.buffer(1, TimeUnit.SECONDS).buffer(60, 1)
                 .forEach(l -> {
@@ -515,8 +520,8 @@ public class LevelStrategy extends BaseStrategy{
                 lastTrade.get().subtract(ask).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(BD_0_01) < 0 &&
                 lastTrade.get().subtract(bid).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(BD_0_01) < 0) {
 
-            prices.add(ask);
-            prices.add(bid);
+//            prices.add(ask);
+//            prices.add(bid);
 
             depthSpread.set(ask.subtract(bid).abs());
             depthBid.set(bid);
@@ -527,7 +532,7 @@ public class LevelStrategy extends BaseStrategy{
     @Override
     protected void onRealTrade(Order order) {
         if (order.getStatus().equals(CLOSED) && order.getAvgPrice().compareTo(ZERO) > 0){
-            prices.add(order.getAvgPrice());
+//            prices.add(order.getAvgPrice());
         }
     }
 }

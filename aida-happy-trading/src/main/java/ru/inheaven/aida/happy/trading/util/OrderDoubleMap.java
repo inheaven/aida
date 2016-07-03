@@ -117,7 +117,7 @@ public class OrderDoubleMap {
         Double lowKey = type.equals(BID) ? bidMap.floorKey(price) : askMap.floorKey(price);
         Double highestKey = type.equals(BID) ? bidMap.ceilingKey(price) : askMap.ceilingKey(price);
 
-        return (lowKey != null && price - lowKey <= spread) || (highestKey != null && highestKey - price <= spread);
+        return (lowKey != null && price - lowKey <= spread + 0.01) || (highestKey != null && highestKey - price <= spread + 0.01);
     }
 
     public boolean contains(BigDecimal price, BigDecimal spread, OrderType type){
