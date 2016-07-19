@@ -453,28 +453,44 @@ public class LevelStrategy extends BaseStrategy{
     private PublishSubject<Trade> tradeBuffer = PublishSubject.create();
 
     {
-        tradeBuffer.buffer(1, TimeUnit.SECONDS).filter(b -> !b.isEmpty()).forEach(b -> prices.add(TradeUtil.avg(b)));
+        tradeBuffer.buffer(1, TimeUnit.SECONDS).filter(b -> !b.isEmpty()).forEach(b -> {
+            try {
+                prices.add(TradeUtil.avg(b));
+            } catch (Exception e) {
+                log.error("error buffer 1", e);
+            }
+        });
 
-        tradeBuffer.buffer(10, TimeUnit.MINUTES).filter(b -> !b.isEmpty()).forEach(b -> lastAvgPrice.set(TradeUtil.avg(b)));
+        tradeBuffer.buffer(10, TimeUnit.MINUTES).filter(b -> !b.isEmpty()).forEach(b -> {
+            try {
+                lastAvgPrice.set(TradeUtil.avg(b));
+            } catch (Exception e) {
+                log.error("error buffer 10", e);
+            }
+        });
 
         tradeBuffer.buffer(1, TimeUnit.SECONDS).buffer(60, 1)
                 .forEach(l -> {
-                    List<Trade> list = new ArrayList<>();
-                    l.forEach(l1 -> l1.forEach(list::add));
+                    try {
+                        List<Trade> list = new ArrayList<>();
+                        l.forEach(l1 -> l1.forEach(list::add));
 
-                    if (!list.isEmpty()) {
-                        Trade max = list.get(0);
-                        Trade min = list.get(0);
+                        if (!list.isEmpty()) {
+                            Trade max = list.get(0);
+                            Trade min = list.get(0);
 
-                        for (Trade t : list){
-                            if (t.getPrice().compareTo(max.getPrice()) > 0){
-                                max = t;
-                            }else if (t.getPrice().compareTo(min.getPrice()) < 0){
-                                min = t;
+                            for (Trade t : list){
+                                if (t.getPrice().compareTo(max.getPrice()) > 0){
+                                    max = t;
+                                }else if (t.getPrice().compareTo(min.getPrice()) < 0){
+                                    min = t;
+                                }
                             }
-                        }
 
-                        window.set(Math.abs(max.getCreated().getTime() - min.getCreated().getTime()));
+                            window.set(Math.abs(max.getCreated().getTime() - min.getCreated().getTime()));
+                        }
+                    } catch (Exception e) {
+                        log.error("error buffer 60", e);
                     }
                 });
     }
