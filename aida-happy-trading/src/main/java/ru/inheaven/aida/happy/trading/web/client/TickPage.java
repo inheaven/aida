@@ -45,17 +45,17 @@ public class TickPage extends HighstockPage {
                     String color = o.getType().equals(OrderType.BID) ? "#90ee7e" : "#f45b5b";
 
                     queue.add("tick_chart.series[0]" +
-                            ".addPoint({x:" + o.getClosed().getTime() + ", y:" +  o.getAvgPrice() + ", marker: {fillColor: '"+ color +"'}}, " +
+                            ".addPoint({x:" + o.getClosed().getTime() + ", y:" +  o.getPrice() + ", marker: {fillColor: '"+ color +"'}}, " +
                             "false, " + (count >1500 ? "true" : "false") + ");");
 
                     last = System.currentTimeMillis();
 
-                    queue.add("tick_chart.series[1]" +
-                            ".addPoint({x:" + o.getClosed().getTime() + ", y:" +  o.getProfit() + "}, " +
-                            "false, " + (count >1500 ? "true" : "false") + ");");
-                    queue.add("tick_chart.series[2]" +
-                            ".addPoint({x:" + o.getClosed().getTime() + ", y:" +  o.getSpotBalance() + "}, " +
-                            "false, " + (count >1500 ? "true" : "false") + ");");
+//                    queue.add("tick_chart.series[1]" +
+//                            ".addPoint({x:" + o.getClosed().getTime() + ", y:" +  o.getProfit() + "}, " +
+//                            "false, " + (count >1500 ? "true" : "false") + ");");
+//                    queue.add("tick_chart.series[2]" +
+//                            ".addPoint({x:" + o.getClosed().getTime() + ", y:" +  o.getSpotBalance() + "}, " +
+//                            "false, " + (count >1500 ? "true" : "false") + ");");
 
                     UserInfoService userInfoService = Module.getInjector().getInstance(UserInfoService.class);
 
