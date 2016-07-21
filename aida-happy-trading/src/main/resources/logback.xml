@@ -5,6 +5,23 @@
         </encoder>
     </appender>
 
+    <appender name="FILE_ERROR" class="ch.qos.logback.core.FileAppender">
+        <file>/opt/log/error.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%n %d{HH:mm:ss.SSS} %level %msg</pattern>
+        </encoder>
+
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="FILE_ERROR" />
+    </root>
+
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
         <file>/opt/log/vssa.log</file>
         <append>true</append>
@@ -17,7 +34,5 @@
         <appender-ref ref="FILE" />
     </logger>
 
-    <root level="info">
-        <appender-ref ref="STDOUT" />
-    </root>
+
 </configuration>

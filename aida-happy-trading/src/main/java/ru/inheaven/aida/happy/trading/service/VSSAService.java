@@ -11,8 +11,8 @@ import ru.inhell.aida.ssa.VSSABoost;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -75,44 +75,48 @@ public class VSSAService {
         });
     }
 
-    private Executor executor = Executors.newSingleThreadExecutor();
-
     private AtomicLong index = new AtomicLong(0);
 
     private AtomicDouble forecast = new AtomicDouble(0);
 
     private AtomicLong lastExecute = new AtomicLong(System.currentTimeMillis());
 
+    private Semaphore semaphore = new Semaphore(1);
+
     public void add(Trade trade){
-        executor.execute(() -> {
-            try {
-                tradesBuffer.add(trade);
+        try {
+            //lock
+            semaphore.acquire();
 
-                if (tradesBuffer.getLast().getCreated().getTime() - tradesBuffer.getFirst().getCreated().getTime() > delay){
-                    double[] prices = getPrices(tradesBuffer);
+            tradesBuffer.add(trade);
 
-                    for (double price : prices){
-                        this.prices.add(price);
-                    }
+            if (tradesBuffer.getLast().getCreated().getTime() - tradesBuffer.getFirst().getCreated().getTime() > delay){
+                double[] prices = getPrices(tradesBuffer);
 
-                    tradesBuffer.clear();
-
-                    if (loaded.get() && System.currentTimeMillis() - lastExecute.get() > execute) {
-                        forecast.set(execute());
-
-                        lastExecute.set(System.currentTimeMillis());
-                    }
+                for (double price : prices){
+                    this.prices.add(price);
                 }
 
-                if (index.incrementAndGet() % 1000 == 0 && prices.size() > 3*N){
-                    for (int i = 0; i < N; ++i){
-                        prices.removeFirst();
-                    }
+                tradesBuffer.clear();
+
+                if (loaded.get() && System.currentTimeMillis() - lastExecute.get() > execute) {
+                    forecast.set(execute());
+
+                    lastExecute.set(System.currentTimeMillis());
                 }
-            } catch (Exception e) {
-                log.error("error add", e);
             }
-        });
+
+            if (index.incrementAndGet() % 1000 == 0 && prices.size() > 3*N){
+                for (int i = 0; i < N; ++i){
+                    prices.removeFirst();
+                }
+            }
+
+            //release
+            semaphore.release();
+        } catch (Exception e) {
+            log.error("error add", e);
+        }
     }
 
     private double[] getPrices(Deque<Trade> trades){

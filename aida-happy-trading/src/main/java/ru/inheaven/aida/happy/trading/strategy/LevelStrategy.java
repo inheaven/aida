@@ -502,30 +502,34 @@ public class LevelStrategy extends BaseStrategy{
 
     @Override
     protected void onTrade(Trade trade) {
-        (trade.getOrderType().equals(BID) ? tradeBid : tradeAsk).set(trade.getPrice());
+        try {
+            (trade.getOrderType().equals(BID) ? tradeBid : tradeAsk).set(trade.getPrice());
 
 
-        if (lastTrade.get().compareTo(ZERO) != 0 && lastTrade.get().subtract(trade.getPrice()).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(BD_0_01) < 0){
-//            if ((!strategy.isLevelInverse() && trade.getOrderType().equals(BID)) || (strategy.isLevelInverse() && trade.getOrderType().equals(ASK))) {
-            prices.add(trade.getPrice());
+            if (lastTrade.get().compareTo(ZERO) != 0 && lastTrade.get().subtract(trade.getPrice()).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(BD_0_01) < 0){
+    //            if ((!strategy.isLevelInverse() && trade.getOrderType().equals(BID)) || (strategy.isLevelInverse() && trade.getOrderType().equals(ASK))) {
+                prices.add(trade.getPrice());
 
-            tradeBuffer.onNext(trade);
+                tradeBuffer.onNext(trade);
 
-            vssaService.add(trade);
-//            }
+                vssaService.add(trade);
+    //            }
 
-            closeByMarketAsync(trade.getPrice(), trade.getOrigTime());
-        }else{
-            log.warn("trade price diff 1% {} {} {}", trade.getPrice(), trade.getSymbol(), Objects.toString(trade.getSymbolType(), ""));
+                closeByMarketAsync(trade.getPrice(), trade.getOrigTime());
+            }else{
+                log.warn("trade price diff 1% {} {} {}", trade.getPrice(), trade.getSymbol(), Objects.toString(trade.getSymbolType(), ""));
+            }
+
+            //spread
+            spreadPrices.add(trade.getPrice().doubleValue());
+            if (spreadPrices.size() > 40000){
+                spreadPrices.removeFirst();
+            }
+
+            lastTrade.set(trade.getPrice());
+        } catch (Exception e) {
+            log.error("error onTrade", e);
         }
-
-        //spread
-        spreadPrices.add(trade.getPrice().doubleValue());
-        if (spreadPrices.size() > 40000){
-            spreadPrices.removeFirst();
-        }
-
-        lastTrade.set(trade.getPrice());
     }
 
     private AtomicReference<BigDecimal> depthSpread = new AtomicReference<>(BD_0_25);
