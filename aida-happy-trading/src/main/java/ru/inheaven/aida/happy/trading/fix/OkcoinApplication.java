@@ -16,8 +16,8 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * inheaven on 14.03.2016.
  */
-public abstract class OkcoinApplication2 extends BaseApplication{
-    private Logger log = LoggerFactory.getLogger(OkcoinApplication2.class);
+public abstract class OkcoinApplication extends BaseApplication{
+    private Logger log = LoggerFactory.getLogger(OkcoinApplication.class);
 
     private MarketDataRequestCreator marketDataRequestCreator = new MarketDataRequestCreator();
 

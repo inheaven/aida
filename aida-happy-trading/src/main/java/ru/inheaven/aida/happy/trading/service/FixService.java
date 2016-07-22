@@ -9,7 +9,7 @@ import quickfix.ThreadedSocketInitiator;
 import ru.inheaven.aida.happy.trading.entity.Depth;
 import ru.inheaven.aida.happy.trading.entity.Order;
 import ru.inheaven.aida.happy.trading.entity.Trade;
-import ru.inheaven.aida.happy.trading.fix.OkcoinApplication2;
+import ru.inheaven.aida.happy.trading.fix.OkcoinApplication;
 import ru.inheaven.aida.happy.trading.fix.fix44.OKCoinMessageFactory;
 import ru.inheaven.aida.happy.trading.mapper.AccountMapper;
 import rx.Observable;
@@ -29,12 +29,12 @@ public class FixService {
     private PublishSubject<Depth> depthPublishSubject = PublishSubject.create();
     private PublishSubject<Order> orderPublishSubject = PublishSubject.create();
 
-    private OkcoinApplication2 okcoinApplication;
+    private OkcoinApplication okcoinApplication;
 
     @Inject
     public FixService(AccountMapper accountMapper) {
         try {
-            okcoinApplication = new OkcoinApplication2() {
+            okcoinApplication = new OkcoinApplication() {
 
                 @Override
                 public void onLogon(SessionID sessionId) {
