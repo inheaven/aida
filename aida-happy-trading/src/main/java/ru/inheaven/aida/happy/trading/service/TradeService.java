@@ -21,12 +21,9 @@ public class TradeService {
 
     private Map<String, BigDecimal> stdDevMap = new ConcurrentHashMap<>();
 
-    private final static BigDecimal TWO = new BigDecimal(2);
     @Inject
-    public TradeService(OkcoinService okcoinService, OkcoinFixService okcoinFixService,
-                        OkcoinCnFixService okcoinCnFixService,
-                        TradeMapper tradeMapper, BroadcastService broadcastService) {
-        ConnectableObservable<Trade> tradeObservable = okcoinCnFixService.getTradeObservable()
+    public TradeService(FixService fixService, TradeMapper tradeMapper, BroadcastService broadcastService) {
+        ConnectableObservable<Trade> tradeObservable = fixService.getTradeObservable()
                 .onBackpressureBuffer()
                 .observeOn(Schedulers.io())
                 .subscribeOn(Schedulers.io())

@@ -13,69 +13,80 @@ $(function(){
 
     tick_chart = $('#tick').highcharts('StockChart', {
         title: {text: 'Tick Chart', style:{"fontSize": "16px"}},
-        chart:{animation: false, spacingBottom: 0, alignTicks:false},
+        chart:{animation: true, spacingBottom: 0, alignTicks:true},
         credits: {enabled: false},
         //scrollbar: {enabled: true},
-        navigator: {enabled: true, adaptToUpdatedData: true,  xAxis: {type:'datetime', labels:{enabled:false}}, height:20,
+        navigator: {enabled: true, adaptToUpdatedData: true,  xAxis: {type:'linear', labels:{enabled:false}}, height:20,
         series:{lineWidth:0}},
         rangeSelector: {enabled: true, selected : 0, inputEnabled: false,
             buttons: [{type: 'all', count: 1, text: '0'},
                 {type: 'minute', count: 1, text: '1'},
                 {type: 'minute', count: 3, text: '3'},
                 {type: 'minute', count: 5, text: '5'},
-                {type: 'minute', count: 15, text: '15'},
-                {type: 'minute', count: 60, text: '60'}
+                                {type: 'minute', count: 10, text: '10'},
+                        {type: 'minute', count: 15, text: '15'},
+                {type: 'minute', count: 30, text: '30'}
             ]},
         legend: {enabled: false},
-        xAxis: {type:'datetime'},
+        xAxis: {type:'linear', ordinal:true},
         yAxis: [
-            {top: '0%', height: '80%', lineWidth: 0, offset: 50, opposite: false},
-            {top: '0%', height: '80%', lineWidth: 0, offset:50},
-            {top: '80%', height: '20%', lineWidth: 0, offset:50}
+            {top: '0%', height: '39%', lineWidth: 0, offset:50, opposite: true},
+            {top: '0%', height: '39%', lineWidth: 0, offset:50, opposite: false},
+            {top: '39%', height: '61%', lineWidth: 0, offset:50, opposite:false},
+            {top: '39%', height: '61%', lineWidth: 0, offset:50, opposite: true}
         ],
         plotOptions: {scatter: {
             lineWidth: 0,
-            marker: {enabled: true, radius: 2, lineWidth: 0, symbol: 'square'},
+            marker: {enabled: true, radius: 2, lineWidth: 0, symbol: 'circle'},
             states: {hover: {lineWidthPlus: 0}},
             turboThreshold: 10000,
-            dataGrouping: {enabled: true,  groupPixelWidth: 1},
+            dataGrouping: {enabled: false,  groupPixelWidth: 1},
 
             enableMouseTracking: false
         },
-            line: {
-                turboThreshold: 10000,
-                dataGrouping: {enabled: true,  groupPixelWidth: 1},
+            spline: {
+                turboThreshold: false,
+                //dataGrouping: {enabled: false,  groupPixelWidth: 1},
                 enableMouseTracking: false,
                 lineWidth:1
             },
-            area: {
-                turboThreshold: 10000,
-                dataGrouping: {enabled: true,  groupPixelWidth: 1},
+            areaspline: {
+                turboThreshold: false,
+                dataGrouping: {enabled: false,  groupPixelWidth: 1},
                 enableMouseTracking: false,
-                lineWidth:1
+                lineWidth:1,                
             }},
         series: [{
             type:'scatter',
             name: 'ORDER',
-            color: '#00FF00'
+            color: '#00FF00',
+            zIndex:2
         }, {
-            type:'line',
-            name: 'DELTA',
-            color: '#FFFFFF'
-,
-            yAxis:1
-        },{
-            type:'area',
-            name: 'BALANCE',
-            color: '#FFFFFF',
-            yAxis:2
-        },{
             type:'scatter',
-            name: 'SELL',
-            color: '#FF0000',
-            marker: {enabled: true, radius: 5, lineWidth: 0, symbol: 'triangle-down'},
-            //dataGrouping: {enabled: true, approximation : 'average'},
-            lineWidth: 0
+            name: 'DELTA',
+            marker:{radius:1},
+            //color: '#FFFFFF'
+            yAxis:1,
+            zIndex:1,
+            enableMouseTracking: false
+        },{
+            type:'areaspline',
+            name: 'BALANCE',
+            color: Highcharts.getOptions().colors[0],
+            yAxis:2,
+             fillColor: {
+                                 linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
+                                                     stops: [
+                                                                             [0, Highcharts.getOptions().colors[0]],
+                                                                                                     [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+                                                                                                                         ]
+                                                                                                                                         }
+        },{
+            type:'line',
+            name: 'NET',
+            color: Highcharts.getOptions().colors[0],
+            yAxis:3
+            
         }, {
             type:'scatter',
             name: 'VOLUME BID',

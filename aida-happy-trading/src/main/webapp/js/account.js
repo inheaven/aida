@@ -21,17 +21,19 @@ var all_order_rate_chart;
 function areaChart(id, title, data0, data1){
         return $('#'+id).highcharts('StockChart', {
             title: {text: title},
-            chart: {animation: false, spacingBottom: 0},
+            chart: {animation: true, spacingBottom: 0},
             tooltip: {valueDecimals: 4},
             credits: {enabled: false},
             navigator: {height: 0, xAxis: {labels: {enabled: false}}},
             scrollbar: {enabled: false},
             xAxis: {type: 'datetime'},
-            yAxis: [{opposite: true}, {opposite: false}],
+            yAxis: [{opposite: true, endOnTick:false, startOnTick:false}, 
+            {opposite: false, endOnTick:false, startOnTick:false}],
             series: [{
-                type: 'areaspline', threshold: null,
+                type: 'line', threshold: null,
                 data: data0,                
-                
+                                color: Highcharts.getOptions().colors[0],
+                                lineWidth:1,
                 fillColor: {
                     linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
                     stops: [
@@ -40,9 +42,10 @@ function areaChart(id, title, data0, data1){
                     ]
                 }
             }, {
-                type: 'spline', threshold: null,
+                type: 'line', threshold: null,
                 data: data1,
                 color: Highcharts.getOptions().colors[0],
+                lineWidth:1,
                 yAxis:1,
                 fillColor: {
                     linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
@@ -60,7 +63,7 @@ function areaChart(id, title, data0, data1){
                     {type: 'week', count: 1, text: ' '},
                     {type: 'all', count: 1, text: ' '}
                 ],
-                //selected : 1,
+                selected : 1,
                 inputEnabled: false
             }
         }).highcharts();
@@ -120,7 +123,7 @@ $(function () {
 
     all_order_rate_chart = $('#all_order_rate').highcharts({
         title: {text: 'Trade Volume', style:{"fontSize": "16px"}},
-        chart:{animation: true, spacingBottom: 0,  alignTicks: false},
+        chart:{animation: true, spacingBottom: 0,  alignTicks: true},
         tooltip: {valueDecimals: 3, positioner: function (w, h, p) {
             return { x: p.plotX - w/2, y: p.plotY < all_order_rate_chart.plotTop ? all_order_rate_chart.plotTop-h/2 : p.plotY};
         }},
@@ -132,7 +135,7 @@ $(function () {
         xAxis: {type: 'datetime', minRange: 3600000, min: new Date().getTime() - 24*3600000 + offset, max: new Date().getTime() + 60000 + offset},
         yAxis: [
             {labels: {enabled: false}, title:{text: null}, opposite: true, endOnTick:false, max: 200, tickLength:0},
-            {labels: {enabled: true}, title:{text: null}, opposite: true, endOnTick:false, max: 50000}
+            {labels: {enabled: true}, title:{text: null}, opposite: true, endOnTick:true, max: 40000}
         ],
         series: [{
             type : 'column',
@@ -148,15 +151,17 @@ $(function () {
                 ]
             }
         }, {
-            type : 'column',
+            type : 'line',
             name: 'CNY Trade Volume',
+            pointWidth:1,
+            lineWidth:1, 
             borderWidth:0,
             //stacking: 'normal',
             yAxis:1,
             color: {
                 linearGradient: {x1: 0, y1: 0, x2: 0, y2: 1},
                 stops: [
-                    [0, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')],
+                    [0, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(1).get('rgba')],
                     [1, Highcharts.getOptions().colors[0]]
                 ]
             }
@@ -171,15 +176,18 @@ $(function () {
 
         $('#reconnect').show();
 
-        var i = 42;
-        setInterval(function(){
-            $('#reconnect').text(Math.abs(i--));
+        var i = 0;
+        setInterval(function(){        
+        i = i + (Math.random() > 0.42 ? 1 : -1);
+        
+            $('#reconnect').text((Math.random()*10|0) + '' + (Math.random()*10|0) + '' + (Math.random()*10|0));           
 
-            if (i == 1){
-                location.reload();
-            }
+        
         }, 100);
+                        location.reload();
+        
     });
+    
 });
 
 function hour(chart){

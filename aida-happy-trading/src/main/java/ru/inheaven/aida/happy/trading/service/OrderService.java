@@ -23,9 +23,7 @@ public class OrderService {
     private ConnectableObservable<Order> orderObservable;
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private OkcoinService okcoinService;
-    private BaseOkcoinFixService okcoinFixUsService;
-    private BaseOkcoinFixService okcoinFixCnService;
+    private FixService fixService;
     private XChangeService xChangeService;
     private BroadcastService broadcastService;
 
@@ -33,17 +31,15 @@ public class OrderService {
     private ConnectableObservable<Order> localClosedOrderObservable;
 
     @Inject
-    public OrderService(OkcoinService okcoinService, OkcoinFixService okcoinFixService,
-                        OkcoinCnFixService okcoinCnFixService, XChangeService xChangeService,
+    public OrderService(FixService fixService,XChangeService xChangeService,
                         AccountMapper accountMapper, BroadcastService broadcastService) {
-        this.okcoinService = okcoinService;
-        this.okcoinFixUsService = okcoinFixService;
-        this.okcoinFixCnService = okcoinCnFixService;
+
+        this.fixService = fixService;
         this.xChangeService = xChangeService;
         this.broadcastService = broadcastService;
 
 
-        orderObservable = okcoinCnFixService.getOrderObservable()
+        orderObservable = fixService.getOrderObservable()
                 .onBackpressureBuffer()
                 .observeOn(Schedulers.io())
                 .subscribeOn(Schedulers.io())
@@ -67,7 +63,7 @@ public class OrderService {
         switch (order.getExchangeType()){
             case OKCOIN:
                 if (order.getSymbolType() == null){
-                    okcoinFixUsService.placeLimitOrder(account, order);
+                    fixService.placeLimitOrder(account.getId(), order);
                 }else{
                     xChangeService.placeLimitOrder(account, order);
                 }
@@ -75,7 +71,7 @@ public class OrderService {
                 break;
             case OKCOIN_CN:
                 if (order.getSymbolType() == null){
-                    okcoinFixCnService.placeLimitOrder(account, order);
+                    fixService.placeLimitOrder(account.getId(), order);
                 }else{
                     xChangeService.placeLimitOrder(account, order);
                 }
@@ -88,17 +84,17 @@ public class OrderService {
         switch (order.getExchangeType()){
             case OKCOIN:
                 if (order.getSymbolType() == null){
-                    okcoinFixUsService.orderInfo(order);
+                    fixService.orderInfo(account.getId(), order);
                 }else{
-                    okcoinService.orderFutureInfo(account.getApiKey(), account.getSecretKey(), order);
+                    //okcoinService.orderFutureInfo(account.getApiKey(), account.getSecretKey(), order);
                 }
 
                 break;
             case OKCOIN_CN:
                 if (order.getSymbolType() == null){
-                    okcoinFixCnService.orderInfo(order);
+                    fixService.orderInfo(account.getId(), order);
                 }else{
-                    okcoinService.orderFutureInfo(account.getApiKey(), account.getSecretKey(), order);
+//                    okcoinService.orderFutureInfo(account.getApiKey(), account.getSecretKey(), order);
                 }
 
                 break;
@@ -118,7 +114,7 @@ public class OrderService {
         switch (account.getExchangeType()){
             case OKCOIN:
                 if (order.getSymbolType() == null){
-                    okcoinFixUsService.cancelOrder(account, order);
+                    fixService.cancelOrder(account.getId(), order);
                 }else{
                     xChangeService.cancelOrder(account, order);
                 }
@@ -127,7 +123,7 @@ public class OrderService {
             case OKCOIN_CN:
                 if (order.getSymbolType() == null){
                     try {
-                        okcoinFixCnService.cancelOrder(account, order);
+                        fixService.cancelOrder(account.getId(), order);
                     } catch (Exception e) {
                         log.error("cancel order error{}", order, e);
                     }

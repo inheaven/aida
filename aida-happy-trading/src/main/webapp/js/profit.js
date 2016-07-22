@@ -11,7 +11,7 @@ Highcharts.setOptions({
     }
 });
 
-function areaChart(id, title, data0, data1, data2, data3){
+function areaChart(id, title, data0, data1, data2, data3, data4){
     return $('#'+id).highcharts('StockChart', {
         title: {text: title},
         chart: {animation: false, spacingBottom: 0},
@@ -39,9 +39,14 @@ function areaChart(id, title, data0, data1, data2, data3){
             data: data2,
             name: 'BTC',
             yAxis:0
-        }, {
+        },{
             type: 'spline', threshold: null,
             data: data3,
+            name: 'LTC',
+            yAxis:0
+        }, {
+            type: 'spline', threshold: null,
+            data: data4,
             name: 'SPOT/LTC',
             yAxis:0,
             //lineWidth:0,
@@ -84,8 +89,9 @@ $.getJSON('/account_info_rest/user_info_total/8', function (data) {
     chart_cny = areaChart('cny_profit', 'CNY Profit',
         data.map(function(a){return [a[0], 100*(a[1] - last[1])/(last[1])]}),
         data.map(function(a){return [a[0], 100*((a[1]/a[3]) - (last[1]/last[3]))/(last[1]/last[3])]}),
-        data.map(function(a){return [a[0], 100*(a[3] - last[3])/(last[3])]}),
-        data.map(function(a){return [a[0], 100*((a[1]/a[4]) - (last[1]/last[4]))/(last[1]/last[4])]})
+        data.map(function(a){return [a[0], 100*(a[3] - last[3])/(last[3])]})
+        //data.map(function(a){return [a[0], 100*(a[4] - last[4])/(last[4])]}),        
+        //data.map(function(a){return [a[0], 100*((a[1]/a[4]) - (last[1]/last[4]))/(last[1]/last[4])]})
     );
     //    data.map(function(a){return [a[0], 100*((((a[1]/a[3]) - (last[1]/last[3]))/(last[1]/last[3])) - (a[3] - last[3])/(last[3]))]})
     //);
