@@ -2,10 +2,7 @@ package ru.inheaven.aida.happy.trading.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import quickfix.MemoryStoreFactory;
-import quickfix.SessionID;
-import quickfix.SessionSettings;
-import quickfix.ThreadedSocketInitiator;
+import quickfix.*;
 import ru.inheaven.aida.happy.trading.entity.Depth;
 import ru.inheaven.aida.happy.trading.entity.Order;
 import ru.inheaven.aida.happy.trading.entity.Trade;
@@ -40,7 +37,7 @@ public class FixService {
                 public void onLogon(SessionID sessionId) {
                     super.onLogon(sessionId);
 
-                    if ("MARKET_DATA".equalsIgnoreCase(sessionId.getSessionQualifier())){
+                    if ("8b8620cf-83ed-46d8-91e6-41e5eb65f44f".equalsIgnoreCase(sessionId.getSessionQualifier())){
                         requestLiveTrades(sessionId, "BTC/CNY");
                         requestOrderBook(sessionId, "BTC/CNY");
 
@@ -99,11 +96,11 @@ public class FixService {
         return tradePublishSubject.asObservable();
     }
 
-    public Observable<Order> getOrderObservable(){
-        return orderPublishSubject.asObservable();
-    }
-
     public Observable<Depth> getDepthObservable(){
         return depthPublishSubject.asObservable();
+    }
+
+    public Observable<Order> getOrderObservable(){
+        return orderPublishSubject.asObservable();
     }
 }

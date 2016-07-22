@@ -119,11 +119,11 @@ public abstract class OkcoinApplication extends BaseApplication{
 
     protected abstract void onTrade(Trade trade);
 
-    public TradeRequestCreator getTradeRequestCreator(SessionID sessionID){
+    private TradeRequestCreator getTradeRequestCreator(SessionID sessionID){
         TradeRequestCreator tradeRequestCreator =  tradeRequestCreatorMap.get(sessionID);
 
         if (tradeRequestCreator == null){
-            tradeRequestCreator = new TradeRequestCreator(sessionID.getSenderSubID(), OKCoinAPI.KEY.get(sessionID.getSenderSubID()));
+            tradeRequestCreator = new TradeRequestCreator(sessionID.getSessionQualifier(), OKCoinAPI.KEY.get(sessionID.getSessionQualifier()));
 
             tradeRequestCreatorMap.put(sessionID, tradeRequestCreator);
         }
@@ -132,7 +132,7 @@ public abstract class OkcoinApplication extends BaseApplication{
     }
 
     private Long getAccountId(SessionID sessionID) {
-        return OKCoinAPI.ACCOUNT_ID.get(sessionID.getSenderSubID());
+        return 8L; //todo account id
     }
 
     @Override
@@ -238,6 +238,7 @@ public abstract class OkcoinApplication extends BaseApplication{
             Order order = new Order();
 
             order.setAccountId(getAccountId(sessionId));
+            order.setExchangeType(getExchangeType(sessionId));
             order.setSymbol(message.getSymbol().getValue());
             order.setOrderId(message.getOrderID().getValue());
 
@@ -287,15 +288,15 @@ public abstract class OkcoinApplication extends BaseApplication{
         }
     }
 
+    protected abstract void onOrder(Order order);
+
     @Override
     protected String getApiKey(SessionID sessionID) {
-        return sessionID.getSenderSubID();
+        return sessionID.getSessionQualifier();
     }
 
     @Override
     protected String getSecretKey(SessionID sessionID) {
-        return OKCoinAPI.KEY.get(sessionID.getSenderSubID());
+        return OKCoinAPI.KEY.get(sessionID.getSessionQualifier());
     }
-
-    protected abstract void onOrder(Order order);
 }

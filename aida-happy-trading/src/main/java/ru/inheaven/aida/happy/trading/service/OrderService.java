@@ -38,7 +38,6 @@ public class OrderService {
         this.xChangeService = xChangeService;
         this.broadcastService = broadcastService;
 
-
         orderObservable = fixService.getOrderObservable()
                 .onBackpressureBuffer()
                 .observeOn(Schedulers.io())
