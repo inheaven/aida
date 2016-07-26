@@ -73,6 +73,12 @@ public class FixService {
         } catch (Exception e) {
             log.error("error init okcoin fix");
         }
+
+        /*
+        Access Keyc6446eee-e820690a-3224e7e8-7f0f4
+        Secret Keyde1ab7d9-c34894b7-2e6931fa-60880
+        IP地址 : 45.115.36.120
+        */
     }
 
 

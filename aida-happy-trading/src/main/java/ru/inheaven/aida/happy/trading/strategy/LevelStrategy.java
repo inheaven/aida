@@ -125,8 +125,6 @@ public class LevelStrategy extends BaseStrategy{
         vssaService = new VSSAService(strategy.getSymbol(), null, 0.3819660112501453, 11, 98, 147, 6, 1000, 0);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
-            Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
-
             try {
                 if (vssaService.isLoaded()) {
                     vssaService.fit();
@@ -134,7 +132,7 @@ public class LevelStrategy extends BaseStrategy{
             } catch (Throwable e) {
                 log.error("vssaService ", e);
             }
-        }, 0, 1, TimeUnit.HOURS);
+        }, 0, 30, TimeUnit.MINUTES);
 
 //        Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
 //            if (strategy.getName().contains("vssa")){

@@ -82,7 +82,7 @@ public class VSSABoost {
 
                 log.info(fitQueue.size() + " " + trainError + " " + vssa.getName() + " " + vssa.getIndex());
             }else{
-                vssa.setIndex(vssa.getIndex()/2);
+                vssa.setIndex(vssa.getIndex() - 1);
 
                 if (vssa.getIndex() > 0){
                     fitQueue.add(vssa);
