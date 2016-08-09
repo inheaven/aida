@@ -199,7 +199,7 @@ public class BaseStrategy {
             }
         });
 
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> orderMap.forEach((id, o) -> {
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> orderMap.forEach((id, o) -> {
             try {
                 if (o.getStatus().equals(OPEN)) {
                     orderService.checkOrder(strategy.getAccount(), o);
@@ -275,7 +275,7 @@ public class BaseStrategy {
             }, 0, 15, SECONDS);
         }
 
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(
                 () -> orderMap.forEach((id, o) -> {
                     try {
                         if (lastPrice != null && lastPrice.get() != null && o.getStatus().equals(OPEN)) {

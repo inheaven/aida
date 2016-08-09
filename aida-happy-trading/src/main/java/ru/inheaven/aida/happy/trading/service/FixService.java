@@ -41,6 +41,8 @@ public class FixService {
                     Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
                         if (requestSessionId != null && System.currentTimeMillis() - time > 300000){
                             request(requestSessionId);
+
+                            log.error("fix service trade delay");
                         }
                     }, 0, 1, TimeUnit.MINUTES);
                 }

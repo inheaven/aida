@@ -127,7 +127,7 @@ public class UserInfoService {
     }
 
     private void startOkcoinUserInfoScheduler(Account account){
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             try {
                 OkCoinFunds funds = ((OkCoinAccountServiceRaw) xChangeService.getExchange(account)
                         .getPollingAccountService()).getUserInfo().getInfo().getFunds();
