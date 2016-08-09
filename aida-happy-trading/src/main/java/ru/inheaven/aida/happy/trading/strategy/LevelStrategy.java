@@ -113,7 +113,7 @@ public class LevelStrategy extends BaseStrategy{
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(()-> {
             BigDecimal price = null;
 
-            while ((price = Math.abs(getForecast()) <  7 ? prices.pollFirst() : prices.pollLast()) != null){
+            while ((price = Math.abs(getForecast()) < 5 ? prices.pollFirst() : prices.pollLast()) != null){
                 actionLevel("schedule", price, null);
             }
         }, 5000, 10, TimeUnit.MILLISECONDS);
@@ -122,7 +122,7 @@ public class LevelStrategy extends BaseStrategy{
 
         log.info("availableProcessors " + Runtime.getRuntime().availableProcessors());
 
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.3819660112501453, 11, 98, 147, 6, 1000, 0);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 11, 100, 300, 5, 1000, 0);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
             try {
@@ -132,7 +132,7 @@ public class LevelStrategy extends BaseStrategy{
             } catch (Throwable e) {
                 log.error("vssaService ", e);
             }
-        }, 0, 30, TimeUnit.MINUTES);
+        }, 0, 20, TimeUnit.MINUTES);
 
 //        Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
 //            if (strategy.getName().contains("vssa")){
@@ -279,10 +279,10 @@ public class LevelStrategy extends BaseStrategy{
 
             action(key, price, orderType, 0);
 
-            BigDecimal spread = depthAsk.get().subtract(depthBid.get()).abs();
-
-            action(key, price.add(spread), orderType, 1);
-            action(key, price.subtract(spread), orderType, -1);
+//            BigDecimal spread = depthAsk.get().subtract(depthBid.get()).abs();
+//
+//            action(key, price.add(spread), orderType, 1);
+//            action(key, price.subtract(spread), orderType, -1);
 
             lastAction.set(price);
         } catch (Exception e) {
@@ -301,7 +301,9 @@ public class LevelStrategy extends BaseStrategy{
 
             BigDecimal price = lastAvgPrice.get().compareTo(ZERO) > 0 ? lastAvgPrice.get() : lastTrade.get();
 
-            balance.set(subtotalCny.divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(ONE) > 0);
+            if (subtotalBtc.compareTo(ZERO) > 0 && price.compareTo(ZERO) > 0) {
+                balance.set(subtotalCny.divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(ONE) > 0);
+            }
 
             lastBalanceTime.set(System.currentTimeMillis());
         }
@@ -451,7 +453,7 @@ public class LevelStrategy extends BaseStrategy{
     private PublishSubject<Trade> tradeBuffer = PublishSubject.create();
 
     {
-        tradeBuffer.buffer(1, TimeUnit.SECONDS).filter(b -> !b.isEmpty()).forEach(b -> {
+        tradeBuffer.buffer(55).filter(b -> !b.isEmpty()).forEach(b -> {
             try {
                 prices.add(TradeUtil.avg(b));
             } catch (Exception e) {
@@ -459,7 +461,7 @@ public class LevelStrategy extends BaseStrategy{
             }
         });
 
-        tradeBuffer.buffer(10, TimeUnit.MINUTES).filter(b -> !b.isEmpty()).forEach(b -> {
+        tradeBuffer.buffer(33000).filter(b -> !b.isEmpty()).forEach(b -> {
             try {
                 lastAvgPrice.set(TradeUtil.avg(b));
             } catch (Exception e) {
@@ -467,7 +469,7 @@ public class LevelStrategy extends BaseStrategy{
             }
         });
 
-        tradeBuffer.buffer(1, TimeUnit.SECONDS).buffer(60, 1)
+        tradeBuffer.buffer(55).buffer(55, 1)
                 .forEach(l -> {
                     try {
                         List<Trade> list = new ArrayList<>();
@@ -520,7 +522,7 @@ public class LevelStrategy extends BaseStrategy{
 
             //spread
             spreadPrices.add(trade.getPrice().doubleValue());
-            if (spreadPrices.size() > 40000){
+            if (spreadPrices.size() > 33000){
                 spreadPrices.removeFirst();
             }
 

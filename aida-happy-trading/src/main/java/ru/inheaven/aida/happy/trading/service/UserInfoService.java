@@ -27,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
-import static ru.inheaven.aida.happy.trading.entity.ExchangeType.OKCOIN;
 import static ru.inheaven.aida.happy.trading.entity.ExchangeType.OKCOIN_CN;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CLOSED;
 
@@ -59,7 +58,7 @@ public class UserInfoService {
         this.userInfoTotalMapper = userInfoTotalMapper;
         this.broadcastService = broadcastService;
 
-        accountMapper.getAccounts(OKCOIN).forEach(this::startOkcoinUserInfoScheduler);
+        //accountMapper.getAccounts(OKCOIN).forEach(this::startOkcoinUserInfoScheduler);
         accountMapper.getAccounts(OKCOIN_CN).forEach(this::startOkcoinUserInfoScheduler);
 
         tradeService.getTradeObservable()

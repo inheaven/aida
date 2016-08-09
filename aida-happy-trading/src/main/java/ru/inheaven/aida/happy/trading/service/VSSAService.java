@@ -44,12 +44,10 @@ public class VSSAService {
         vssaBoost = new VSSABoost(threshold, vssaCount, trainCount, N, M);
 
         Executors.newSingleThreadExecutor().submit(() -> {
-            Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
-
             try {
                 TradeMapper tradeMapper = Module.getInjector().getInstance(TradeMapper.class);
 
-                long start = System.currentTimeMillis() - 2*delay*(N + M);
+                long start = (long) (System.currentTimeMillis() - 100*Math.PI*delay*(N + M));
                 long end = System.currentTimeMillis();
 
                 Deque<Trade> trades = new LinkedList<>();
@@ -99,17 +97,15 @@ public class VSSAService {
 
                 tradesBuffer.clear();
 
-                if (loaded.get() && System.currentTimeMillis() - lastExecute.get() > execute) {
+                if (loaded.get() && System.currentTimeMillis() - lastExecute.get() > execute && this.prices.size() > N) {
                     forecast.set(execute());
 
                     lastExecute.set(System.currentTimeMillis());
                 }
             }
 
-            if (index.incrementAndGet() % 1000 == 0 && prices.size() > 3*N){
-                for (int i = 0; i < N; ++i){
-                    prices.removeFirst();
-                }
+            if (prices.size() > Math.PI*N){
+                prices.removeFirst();
             }
 
             //release
@@ -122,19 +118,12 @@ public class VSSAService {
     private double[] getPrices(Deque<Trade> trades){
         List<Double> pricesD = new ArrayList<>();
         List<Trade> avg = new ArrayList<>();
-
-        long time = 0;
-
         for (Iterator<Trade> it = trades.descendingIterator(); it.hasNext();){
             Trade t = it.next();
 
-            if (time == 0){
-                time = t.getCreated().getTime();
-            }
-
             avg.add(t);
 
-            if (time - t.getCreated().getTime() > delay){
+            if (avg.size() >= 55){
                 double priceSum = 0;
                 double volumeSum = 0;
 
@@ -150,7 +139,6 @@ public class VSSAService {
                     pricesD.add(0, priceSum/volumeSum);
                 }
 
-                time = t.getCreated().getTime();
                 avg.clear();
             }
         }

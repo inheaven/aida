@@ -14,6 +14,8 @@ import rx.subjects.PublishSubject;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author inheaven on 04.09.2015 2:46.
@@ -32,18 +34,22 @@ public class FixService {
     public FixService(AccountMapper accountMapper) {
         try {
             okcoinApplication = new OkcoinApplication() {
+                private SessionID requestSessionId;
+                private long time = System.currentTimeMillis();
+
+                {
+                    Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
+                        if (requestSessionId != null && System.currentTimeMillis() - time > 300000){
+                            request(requestSessionId);
+                        }
+                    }, 0, 1, TimeUnit.MINUTES);
+                }
 
                 @Override
                 public void onLogon(SessionID sessionId) {
                     super.onLogon(sessionId);
 
-                    if ("8b8620cf-83ed-46d8-91e6-41e5eb65f44f".equalsIgnoreCase(sessionId.getSessionQualifier())){
-                        requestLiveTrades(sessionId, "BTC/CNY");
-                        requestOrderBook(sessionId, "BTC/CNY");
-
-                        requestLiveTrades(sessionId, "LTC/CNY");
-                        requestOrderBook(sessionId, "LTC/CNY");
-                    }
+                    request(sessionId);
                 }
 
                 @Override
@@ -53,12 +59,26 @@ public class FixService {
 
                 @Override
                 protected void onTrade(Trade trade) {
+                    time = System.currentTimeMillis();
+
                     tradePublishSubject.onNext(trade);
                 }
 
                 @Override
                 protected void onOrder(Order order) {
                     orderPublishSubject.onNext(order);
+                }
+
+                private void request(SessionID sessionId){
+                    if ("8b8620cf-83ed-46d8-91e6-41e5eb65f44f".equalsIgnoreCase(sessionId.getSessionQualifier())){
+                        requestSessionId = sessionId;
+
+                        requestLiveTrades(sessionId, "BTC/CNY");
+                        requestOrderBook(sessionId, "BTC/CNY");
+
+                        requestLiveTrades(sessionId, "LTC/CNY");
+                        requestOrderBook(sessionId, "LTC/CNY");
+                    }
                 }
             };
 
