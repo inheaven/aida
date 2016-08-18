@@ -30,17 +30,25 @@ public class FixService {
 
     private OkcoinApplication okcoinApplication;
 
+    private Connector connector;
+
     @Inject
     public FixService(AccountMapper accountMapper) {
         try {
             okcoinApplication = new OkcoinApplication() {
-                private SessionID requestSessionId;
+                private SessionID marketSessionId;
                 private long time = System.currentTimeMillis();
 
                 {
                     Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
-                        if (requestSessionId != null && System.currentTimeMillis() - time > 300000){
-                            request(requestSessionId);
+                        if (System.currentTimeMillis() - time > 300000){
+                            connector.stop();
+
+                            try {
+                                connector.start();
+                            } catch (Exception e) {
+                                log.error("error connector restart", e);
+                            }
 
                             log.error("fix service trade delay");
                         }
@@ -73,7 +81,7 @@ public class FixService {
 
                 private void request(SessionID sessionId){
                     if ("8b8620cf-83ed-46d8-91e6-41e5eb65f44f".equalsIgnoreCase(sessionId.getSessionQualifier())){
-                        requestSessionId = sessionId;
+                        marketSessionId = sessionId;
 
                         requestLiveTrades(sessionId, "BTC/CNY");
                         requestOrderBook(sessionId, "BTC/CNY");
@@ -86,12 +94,12 @@ public class FixService {
 
             SessionSettings settings = new SessionSettings("okcoin_cn.cfg");
 
-            ThreadedSocketInitiator initiator = new ThreadedSocketInitiator(okcoinApplication,
+            connector = new ThreadedSocketInitiator(okcoinApplication,
                     new MemoryStoreFactory(),
                     settings,
                     null, //todo market
                     new OKCoinMessageFactory());
-            initiator.start();
+            connector.start();
         } catch (Exception e) {
             log.error("error init okcoin fix");
         }

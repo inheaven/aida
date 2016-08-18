@@ -28,17 +28,16 @@ public class VSSAService {
 
     private VSSABoost vssaBoost;
 
-    private long delay;
+    private int window;
     private int N;
 
     private long execute;
 
     private AtomicBoolean loaded = new AtomicBoolean(false);
 
-    public VSSAService(String symbol, OrderType orderType, double threshold, int vssaCount, int trainCount, int N, int M, long delay, long execute) {
-        this.delay = delay;
+    public VSSAService(String symbol, OrderType orderType, double threshold, int vssaCount, int trainCount, int N, int M, int window, long execute) {
         this.N = N;
-
+        this.window = window;
         this.execute = execute;
 
         vssaBoost = new VSSABoost(threshold, vssaCount, trainCount, N, M);
@@ -47,13 +46,13 @@ public class VSSAService {
             try {
                 TradeMapper tradeMapper = Module.getInjector().getInstance(TradeMapper.class);
 
-                long start = (long) (System.currentTimeMillis() - 100*Math.PI*delay*(N + M));
+                long start = (long) (System.currentTimeMillis() - 100*Math.PI*1000*(N + M));
                 long end = System.currentTimeMillis();
 
                 Deque<Trade> trades = new LinkedList<>();
 
-                for (long t = start; t < end; t += delay){
-                    trades.addAll(tradeMapper.getLightTrades(symbol, orderType, new Date(t), new Date(t + delay)));
+                for (long t = start; t < end; t += 1000){
+                    trades.addAll(tradeMapper.getLightTrades(symbol, orderType, new Date(t), new Date(t + 1000)));
                 }
 
                 double[] prices = getPrices(trades);
@@ -88,7 +87,7 @@ public class VSSAService {
 
             tradesBuffer.add(trade);
 
-            if (tradesBuffer.getLast().getCreated().getTime() - tradesBuffer.getFirst().getCreated().getTime() > delay){
+            if (tradesBuffer.size() > window){
                 double[] prices = getPrices(tradesBuffer);
 
                 for (double price : prices){
@@ -104,7 +103,7 @@ public class VSSAService {
                 }
             }
 
-            if (prices.size() > Math.PI*N){
+            if (prices.size() > N){
                 prices.removeFirst();
             }
 

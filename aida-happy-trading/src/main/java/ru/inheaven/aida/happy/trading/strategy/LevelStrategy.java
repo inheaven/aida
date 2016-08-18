@@ -113,7 +113,7 @@ public class LevelStrategy extends BaseStrategy{
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(()-> {
             BigDecimal price = null;
 
-            while ((price = Math.abs(getForecast()) < 5 ? prices.pollFirst() : prices.pollLast()) != null){
+            while ((price = Math.abs(getForecast()) < 7 ? prices.pollFirst() : prices.pollLast()) != null){
                 actionLevel("schedule", price, null);
             }
         }, 5000, 10, TimeUnit.MILLISECONDS);
@@ -122,7 +122,7 @@ public class LevelStrategy extends BaseStrategy{
 
         log.info("availableProcessors " + Runtime.getRuntime().availableProcessors());
 
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 11, 100, 300, 5, 1000, 0);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.49, 11, 100, 275, 5, 55, 0);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
             try {
@@ -279,10 +279,10 @@ public class LevelStrategy extends BaseStrategy{
 
             action(key, price, orderType, 0);
 
-//            BigDecimal spread = depthAsk.get().subtract(depthBid.get()).abs();
-//
-//            action(key, price.add(spread), orderType, 1);
-//            action(key, price.subtract(spread), orderType, -1);
+            BigDecimal spread = depthAsk.get().subtract(depthBid.get()).abs();
+
+            action(key, price.add(spread), orderType, 1);
+            action(key, price.subtract(spread), orderType, -1);
 
             lastAction.set(price);
         } catch (Exception e) {
@@ -368,9 +368,8 @@ public class LevelStrategy extends BaseStrategy{
     private void action(String key, BigDecimal price, OrderType orderType, int priceLevel) {
         try {
             boolean balance = getSpotBalance();
-            boolean forecast = getForecast() > 0;
 
-            boolean momentum = balance == forecast;
+            boolean momentum = balance == getForecast() > 0 && Math.abs(getForecast()) > 5;
 
             BigDecimal spread = scale(getSpread(price));
 
@@ -505,15 +504,12 @@ public class LevelStrategy extends BaseStrategy{
         try {
             (trade.getOrderType().equals(BID) ? tradeBid : tradeAsk).set(trade.getPrice());
 
-
             if (lastTrade.get().compareTo(ZERO) != 0 && lastTrade.get().subtract(trade.getPrice()).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(BD_0_01) < 0){
-    //            if ((!strategy.isLevelInverse() && trade.getOrderType().equals(BID)) || (strategy.isLevelInverse() && trade.getOrderType().equals(ASK))) {
                 prices.add(trade.getPrice());
 
                 tradeBuffer.onNext(trade);
 
                 vssaService.add(trade);
-    //            }
 
                 closeByMarketAsync(trade.getPrice(), trade.getOrigTime());
             }else{

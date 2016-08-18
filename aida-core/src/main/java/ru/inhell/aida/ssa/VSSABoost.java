@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -30,6 +31,9 @@ public class VSSABoost {
     private int N;
     private int M;
 
+
+    private AtomicBoolean fitting = new AtomicBoolean(false);
+
     public VSSABoost(double threshold, int vssaCount, int trainCount, int n, int m) {
         this.threshold = threshold;
         this.vssaCount = vssaCount;
@@ -39,6 +43,12 @@ public class VSSABoost {
     }
 
     public void fit(double[] series){
+        if (fitting.get()){
+            return;
+        }
+
+        fitting.set(true);
+
         Random random = new SecureRandom("corets".getBytes());
 
         Queue<VSSA> localQueue = new ConcurrentLinkedQueue<>();
@@ -81,6 +91,8 @@ public class VSSABoost {
         }
 
         fitQueue.clear();
+
+        fitting.set(false);
     }
 
     private void boost(double[] series, Random random, Queue<VSSA> localQueue, Queue<VSSA> fitQueue) {
