@@ -103,7 +103,7 @@ public class VSSAService {
                 }
             }
 
-            if (prices.size() > N){
+            if (prices.size() > 10*N){
                 prices.removeFirst();
             }
 

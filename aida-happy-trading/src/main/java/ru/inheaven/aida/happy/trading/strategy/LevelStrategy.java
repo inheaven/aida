@@ -122,7 +122,7 @@ public class LevelStrategy extends BaseStrategy{
 
         log.info("availableProcessors " + Runtime.getRuntime().availableProcessors());
 
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.49, 11, 100, 275, 5, 55, 0);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.48, 11, 11, 512, 16, 64, 1000);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
             try {
@@ -132,7 +132,7 @@ public class LevelStrategy extends BaseStrategy{
             } catch (Throwable e) {
                 log.error("vssaService ", e);
             }
-        }, 0, 20, TimeUnit.MINUTES);
+        }, 0, 10, TimeUnit.MINUTES);
 
 //        Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
 //            if (strategy.getName().contains("vssa")){
@@ -179,7 +179,7 @@ public class LevelStrategy extends BaseStrategy{
 //            }
 //        }, 5, 60, TimeUnit.SECONDS);
 
-        Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             try {
                 //stddev
                 stdDev.set(standardDeviation.evaluate(Doubles.toArray(spreadPrices)));
@@ -369,7 +369,7 @@ public class LevelStrategy extends BaseStrategy{
         try {
             boolean balance = getSpotBalance();
 
-            boolean momentum = balance == getForecast() > 0 && Math.abs(getForecast()) > 5;
+            boolean momentum = (balance == getForecast() > 0) && (Math.abs(getForecast()) > 5);
 
             BigDecimal spread = scale(getSpread(price));
 
@@ -386,8 +386,8 @@ public class LevelStrategy extends BaseStrategy{
 //                double min = random.nextGaussian()/2 + 1;
 
                 if (momentum){
-                    max *= 2;
-                    min *= 2;
+                    max *= Math.PI;
+                    min *= Math.PI;
                 }
 
                 log.info("{} "  + key + " {} {} {} {}", strategy.getId(), price.setScale(3, HALF_EVEN), spread, min, max);
@@ -460,7 +460,7 @@ public class LevelStrategy extends BaseStrategy{
             }
         });
 
-        tradeBuffer.buffer(33000).filter(b -> !b.isEmpty()).forEach(b -> {
+        tradeBuffer.buffer(66000).filter(b -> !b.isEmpty()).forEach(b -> {
             try {
                 lastAvgPrice.set(TradeUtil.avg(b));
             } catch (Exception e) {
@@ -518,7 +518,7 @@ public class LevelStrategy extends BaseStrategy{
 
             //spread
             spreadPrices.add(trade.getPrice().doubleValue());
-            if (spreadPrices.size() > 33000){
+            if (spreadPrices.size() > 66000){
                 spreadPrices.removeFirst();
             }
 
