@@ -11,6 +11,7 @@ import ru.inhell.aida.ssa.VSSABoost;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -80,6 +81,8 @@ public class VSSAService {
 
     private Semaphore semaphore = new Semaphore(1);
 
+    private Executor executor = Executors.newWorkStealingPool();
+
     public void add(Trade trade){
         try {
             //lock
@@ -87,7 +90,7 @@ public class VSSAService {
 
             tradesBuffer.add(trade);
 
-            if (tradesBuffer.size() > window){
+            if (tradesBuffer.size() >= window){
                 double[] prices = getPrices(tradesBuffer);
 
                 for (double price : prices){
@@ -97,9 +100,9 @@ public class VSSAService {
                 tradesBuffer.clear();
 
                 if (loaded.get() && System.currentTimeMillis() - lastExecute.get() > execute && this.prices.size() > N) {
-                    forecast.set(execute());
-
                     lastExecute.set(System.currentTimeMillis());
+
+                    executor.execute(() -> forecast.set(execute()));
                 }
             }
 
@@ -117,12 +120,13 @@ public class VSSAService {
     private double[] getPrices(Deque<Trade> trades){
         List<Double> pricesD = new ArrayList<>();
         List<Trade> avg = new ArrayList<>();
+
         for (Iterator<Trade> it = trades.descendingIterator(); it.hasNext();){
             Trade t = it.next();
 
             avg.add(t);
 
-            if (avg.size() >= 55){
+            if (avg.size() >= window){
                 double priceSum = 0;
                 double volumeSum = 0;
 

@@ -8,8 +8,6 @@ import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
-import ru.inheaven.aida.happy.trading.util.BibleRandom;
-import ru.inheaven.aida.happy.trading.util.QuranRandom;
 import ru.inheaven.aida.happy.trading.util.TradeUtil;
 import rx.subjects.PublishSubject;
 
@@ -113,14 +111,10 @@ public class LevelStrategy extends BaseStrategy{
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(()-> {
             BigDecimal price = null;
 
-            while ((price = Math.abs(getForecast()) < 7 ? prices.pollFirst() : prices.pollLast()) != null){
+            while ((price = Math.abs(getForecast()) > 5 ? prices.pollLast() : prices.pollFirst()) != null){
                 actionLevel("schedule", price, null);
             }
         }, 5000, 10, TimeUnit.MILLISECONDS);
-
-        // 512 128 3 128
-
-        log.info("availableProcessors " + Runtime.getRuntime().availableProcessors());
 
         vssaService = new VSSAService(strategy.getSymbol(), null, 0.48, 11, 11, 512, 16, 64, 1000);
 
@@ -232,7 +226,9 @@ public class LevelStrategy extends BaseStrategy{
     @SuppressWarnings("Duplicates")
     private void closeByMarket(BigDecimal price, Date time){
         try {
-            getOrderMap().get(price.doubleValue(), BID, false).forEach((k,v) -> {
+            double sideSpread = getSideSpread(price).doubleValue();
+
+            getOrderMap().get(price.doubleValue() + sideSpread, BID, false).forEach((k,v) -> {
                 v.values().forEach(o -> {
                     if (o.getStatus().equals(OPEN) && time.getTime() - o.getOpen().getTime() > 1000){
                         o.setStatus(CLOSED);
@@ -244,7 +240,7 @@ public class LevelStrategy extends BaseStrategy{
                 });
             });
 
-            getOrderMap().get(price.doubleValue(), ASK, false).forEach((k,v) -> {
+            getOrderMap().get(price.doubleValue() - sideSpread, ASK, false).forEach((k,v) -> {
                 v.values().forEach(o -> {
                     if (o.getStatus().equals(OPEN) && time.getTime() - o.getOpen().getTime() > 1000){
                         o.setStatus(CLOSED);
@@ -277,14 +273,12 @@ public class LevelStrategy extends BaseStrategy{
                 return;
             }
 
+            lastAction.set(price);
+
             action(key, price, orderType, 0);
 
-            BigDecimal spread = depthAsk.get().subtract(depthBid.get()).abs();
-
-            action(key, price.add(spread), orderType, 1);
-            action(key, price.subtract(spread), orderType, -1);
-
-            lastAction.set(price);
+            action(key, price.add(getSideSpread(price)), orderType, 1);
+            action(key, price.subtract(getSideSpread(price)), orderType, -1);
         } catch (Exception e) {
             log.error("error actionLevel", e);
         }
@@ -323,7 +317,7 @@ public class LevelStrategy extends BaseStrategy{
         return BigDecimal.valueOf(stdDev.get());
     }
 
-    private BigDecimal spreadDiv = BigDecimal.valueOf(Math.sqrt(Math.PI*8));
+    private BigDecimal spreadDiv = BigDecimal.valueOf(Math.sqrt(Math.PI*2));
 
     protected BigDecimal getSpread(BigDecimal price){
         BigDecimal spread = ZERO;
@@ -369,31 +363,32 @@ public class LevelStrategy extends BaseStrategy{
         try {
             boolean balance = getSpotBalance();
 
-            boolean momentum = (balance == getForecast() > 0) && (Math.abs(getForecast()) > 5);
-
             BigDecimal spread = scale(getSpread(price));
 
             BigDecimal buyPrice = scale(balance ? price : price.subtract(spread));
             BigDecimal sellPrice = scale(balance ? price.add(spread) : price);
 
             if (!getOrderMap().contains(buyPrice, spread, BID) && !getOrderMap().contains(sellPrice, spread, ASK)){
-                double q1 = BibleRandom.nextDouble();
-                double q2 = QuranRandom.nextDouble();
-                double max = Math.max(q1, q2);
-                double min = Math.min(q1, q2);
+//                double q1 = BibleRandom.nextDouble();
+//                double q2 = QuranRandom.nextDouble();
+//                double max = Math.max(q1, q2);
+//                double min = Math.min(q1, q2);
 
-//                double max = random.nextGaussian()/2 + 2;
-//                double min = random.nextGaussian()/2 + 1;
-
-                if (momentum){
-                    max *= Math.PI;
-                    min *= Math.PI;
-                }
+                double max = random.nextGaussian()/2 + 2;
+                double min = random.nextGaussian()/2 + 1;
 
                 log.info("{} "  + key + " {} {} {} {}", strategy.getId(), price.setScale(3, HALF_EVEN), spread, min, max);
 
                 BigDecimal buyAmount = strategy.getLevelLot().multiply(BigDecimal.valueOf(balance ? max : min));
                 BigDecimal sellAmount = strategy.getLevelLot().multiply(BigDecimal.valueOf(balance ? min : max));
+
+                //momentum
+                if (getForecast() < -5){
+                    buyAmount = buyAmount.divide(BD_PI, 8, HALF_EVEN);
+                }
+                if (getForecast() > 5){
+                    sellAmount = sellAmount.divide(BD_PI, 8, HALF_EVEN);
+                }
 
                 //less
                 if (buyAmount.compareTo(BD_0_01) < 0){
@@ -460,7 +455,7 @@ public class LevelStrategy extends BaseStrategy{
             }
         });
 
-        tradeBuffer.buffer(66000).filter(b -> !b.isEmpty()).forEach(b -> {
+        tradeBuffer.buffer(10000).filter(b -> !b.isEmpty()).forEach(b -> {
             try {
                 lastAvgPrice.set(TradeUtil.avg(b));
             } catch (Exception e) {
@@ -518,7 +513,7 @@ public class LevelStrategy extends BaseStrategy{
 
             //spread
             spreadPrices.add(trade.getPrice().doubleValue());
-            if (spreadPrices.size() > 66000){
+            if (spreadPrices.size() > 10000){
                 spreadPrices.removeFirst();
             }
 
