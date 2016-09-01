@@ -146,12 +146,7 @@ public class BasicSSA {
 
     public void clear(){
         X.clear();
-        X = null;
-
         XI.clear();
-        XI = null;
-
         G.clear();
-        G = null;
     }
 }

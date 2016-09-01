@@ -126,10 +126,7 @@ public class VSSA {
         basicSSA.clear();
 
         R.clear();
-        R = null;
-
         Z.clear();
-        Z = null;
     }
 
     public int getRangeLength() {

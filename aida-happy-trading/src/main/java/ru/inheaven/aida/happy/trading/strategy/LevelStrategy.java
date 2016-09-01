@@ -116,7 +116,7 @@ public class LevelStrategy extends BaseStrategy{
             }
         }, 5000, 10, TimeUnit.MILLISECONDS);
 
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.48, 11, 11, 512, 16, 64, 1000);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.48, 11, 10, 500, 15, 55, 1000);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
             try {
@@ -504,7 +504,7 @@ public class LevelStrategy extends BaseStrategy{
 
                 tradeBuffer.onNext(trade);
 
-                vssaService.add(trade);
+                executor.execute(() -> vssaService.add(trade));
 
                 closeByMarketAsync(trade.getPrice(), trade.getOrigTime());
             }else{

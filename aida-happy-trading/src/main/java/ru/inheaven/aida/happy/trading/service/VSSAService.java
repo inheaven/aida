@@ -102,7 +102,13 @@ public class VSSAService {
                 if (loaded.get() && System.currentTimeMillis() - lastExecute.get() > execute && this.prices.size() > N) {
                     lastExecute.set(System.currentTimeMillis());
 
-                    executor.execute(() -> forecast.set(execute()));
+                    executor.execute(() -> {
+                        double f = execute();
+
+                        if (f != 0){
+                            forecast.set(f);
+                        }
+                    });
                 }
             }
 
@@ -171,15 +177,13 @@ public class VSSAService {
 
             executing.set(true);
 
-            double result = loaded.get() ? vssaBoost.execute(Doubles.toArray(prices)) : 0;
-
-            executing.set(false);
-
-            return result;
+            return loaded.get() ? vssaBoost.execute(Doubles.toArray(prices)) : 0;
         } catch (Exception e) {
             log.error("error execute", e);
 
             return 0;
+        }finally {
+            executing.set(false);
         }
     }
 
