@@ -161,9 +161,21 @@ public class VSSAService {
         }
     }
 
-    public double execute(){
+    private AtomicBoolean executing = new AtomicBoolean(false);
+
+    private double execute(){
         try {
-            return loaded.get() ? vssaBoost.execute(Doubles.toArray(prices)) : 0;
+            if (executing.get()){
+                return 0;
+            }
+
+            executing.set(true);
+
+            double result = loaded.get() ? vssaBoost.execute(Doubles.toArray(prices)) : 0;
+
+            executing.set(false);
+
+            return result;
         } catch (Exception e) {
             log.error("error execute", e);
 
