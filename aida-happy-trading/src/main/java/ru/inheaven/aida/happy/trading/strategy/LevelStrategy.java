@@ -406,6 +406,7 @@ public class LevelStrategy extends BaseStrategy{
 
                 double q1 = Math.sin(index.get()/(2*Math.PI)) + 1.07;
                 double q2 = Math.cos(index.get()/(2*Math.PI)) + 1.07;
+
                 double max = Math.max(q1, q2);
                 double min = Math.abs(getForecast()) < 11 ? Math.min(q1, q2) : 0;
 
