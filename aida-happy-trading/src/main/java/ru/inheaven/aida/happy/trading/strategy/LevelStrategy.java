@@ -9,11 +9,15 @@ import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
 import ru.inheaven.aida.happy.trading.util.TradeUtil;
+import rx.Observable;
 import rx.subjects.PublishSubject;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Deque;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -111,12 +115,15 @@ public class LevelStrategy extends BaseStrategy{
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(()-> {
             BigDecimal price = null;
 
-            while ((price = Math.abs(getForecast()) > 5 ? prices.pollLast() : prices.pollFirst()) != null){
+//            while ((price = Math.abs(getForecast()) > 5 ? prices.pollLast() : prices.pollFirst()) != null){
+//                actionLevel("schedule", price, null);
+//            }
+            while ((price = prices.pollFirst()) != null){
                 actionLevel("schedule", price, null);
             }
-        }, 5000, 10, TimeUnit.MILLISECONDS);
+        }, 5000, 20, TimeUnit.MILLISECONDS);
 
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.48, 11, 10, 500, 15, 55, 1000);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.382, 11, 22, 512, 8, 8, 1000);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
             try {
@@ -275,10 +282,13 @@ public class LevelStrategy extends BaseStrategy{
 
             lastAction.set(price);
 
-            action(key, price, orderType, 0);
-
-            action(key, price.add(getSideSpread(price)), orderType, 1);
-            action(key, price.subtract(getSideSpread(price)), orderType, -1);
+            if (getForecast() > 5){
+                action(key, price.add(getSideSpread(price)), orderType, 1);
+            }else if (getForecast() < -5){
+                action(key, price.subtract(getSideSpread(price)), orderType, -1);
+            }else{
+                action(key, price, orderType, 0);
+            }
         } catch (Exception e) {
             log.error("error actionLevel", e);
         }
@@ -308,6 +318,16 @@ public class LevelStrategy extends BaseStrategy{
     @Override
     protected double getForecast() {
         return vssaService.getForecast();
+    }
+
+    @Override
+    protected BigDecimal getAvgPrice() {
+        return lastAvgPrice.get();
+    }
+
+    @Override
+    protected Long getWindow() {
+        return window.get();
     }
 
     private StandardDeviation standardDeviation = new StandardDeviation(true);
@@ -359,6 +379,8 @@ public class LevelStrategy extends BaseStrategy{
     private AtomicReference<BigDecimal> lastBuyPrice = new AtomicReference<>(ZERO);
     private AtomicReference<BigDecimal> lastSellPrice = new AtomicReference<>(ZERO);
 
+    private AtomicLong index = new AtomicLong(0);
+
     private void action(String key, BigDecimal price, OrderType orderType, int priceLevel) {
         try {
             boolean balance = getSpotBalance();
@@ -373,9 +395,19 @@ public class LevelStrategy extends BaseStrategy{
 //                double q2 = QuranRandom.nextDouble();
 //                double max = Math.max(q1, q2);
 //                double min = Math.min(q1, q2);
+//
+//                if (Math.abs(getForecast()) > 5){
+//                    max *= 2;
+//                    min *= 2;
+//                }
 
-                double max = random.nextGaussian()/2 + 2;
-                double min = random.nextGaussian()/2 + 1;
+//                double max = random.nextGaussian()/2 + 2;
+//                double min = random.nextGaussian()/2 + 1;
+
+                double q1 = Math.sin(index.get()/(2*Math.PI)) + 1.07;
+                double q2 = Math.cos(index.get()/(2*Math.PI)) + 1.07;
+                double max = Math.max(q1, q2);
+                double min = Math.abs(getForecast()) < 11 ? Math.min(q1, q2) : 0;
 
                 log.info("{} "  + key + " {} {} {} {}", strategy.getId(), price.setScale(3, HALF_EVEN), spread, min, max);
 
@@ -383,12 +415,12 @@ public class LevelStrategy extends BaseStrategy{
                 BigDecimal sellAmount = strategy.getLevelLot().multiply(BigDecimal.valueOf(balance ? min : max));
 
                 //momentum
-                if (getForecast() < -5){
-                    buyAmount = buyAmount.divide(BD_PI, 8, HALF_EVEN);
-                }
-                if (getForecast() > 5){
-                    sellAmount = sellAmount.divide(BD_PI, 8, HALF_EVEN);
-                }
+//                if (getForecast() < -5){
+//                    buyAmount = buyAmount.divide(BD_PI, 8, HALF_EVEN);
+//                }
+//                if (getForecast() > 5){
+//                    sellAmount = sellAmount.divide(BD_PI, 8, HALF_EVEN);
+//                }
 
                 //less
                 if (buyAmount.compareTo(BD_0_01) < 0){
@@ -447,15 +479,15 @@ public class LevelStrategy extends BaseStrategy{
     private PublishSubject<Trade> tradeBuffer = PublishSubject.create();
 
     {
-        tradeBuffer.buffer(55).filter(b -> !b.isEmpty()).forEach(b -> {
-            try {
-                prices.add(TradeUtil.avg(b));
-            } catch (Exception e) {
-                log.error("error buffer 1", e);
-            }
-        });
+//        tradeBuffer.buffer(55).filter(b -> !b.isEmpty()).forEach(b -> {
+//            try {
+//                prices.add(TradeUtil.avg(b));
+//            } catch (Exception e) {
+//                log.error("error buffer 1", e);
+//            }
+//        });
 
-        tradeBuffer.buffer(10000).filter(b -> !b.isEmpty()).forEach(b -> {
+        tradeBuffer.buffer(10000, 50).filter(b -> !b.isEmpty()).forEach(b -> {
             try {
                 lastAvgPrice.set(TradeUtil.avg(b));
             } catch (Exception e) {
@@ -463,17 +495,14 @@ public class LevelStrategy extends BaseStrategy{
             }
         });
 
-        tradeBuffer.buffer(55).buffer(55, 1)
+        tradeBuffer.buffer(3000, 50)
                 .forEach(l -> {
                     try {
-                        List<Trade> list = new ArrayList<>();
-                        l.forEach(l1 -> l1.forEach(list::add));
+                        if (!l.isEmpty()) {
+                            Trade max = l.get(0);
+                            Trade min = l.get(0);
 
-                        if (!list.isEmpty()) {
-                            Trade max = list.get(0);
-                            Trade min = list.get(0);
-
-                            for (Trade t : list){
+                            for (Trade t : l){
                                 if (t.getPrice().compareTo(max.getPrice()) > 0){
                                     max = t;
                                 }else if (t.getPrice().compareTo(min.getPrice()) < 0){
@@ -496,6 +525,8 @@ public class LevelStrategy extends BaseStrategy{
 
     @Override
     protected void onTrade(Trade trade) {
+        index.incrementAndGet();
+
         try {
             (trade.getOrderType().equals(BID) ? tradeBid : tradeAsk).set(trade.getPrice());
 
@@ -536,8 +567,8 @@ public class LevelStrategy extends BaseStrategy{
                 lastTrade.get().subtract(ask).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(BD_0_01) < 0 &&
                 lastTrade.get().subtract(bid).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(BD_0_01) < 0) {
 
-            prices.add(ask);
-            prices.add(bid);
+//            prices.add(ask);
+//            prices.add(bid);
 
             depthSpread.set(ask.subtract(bid).abs());
             depthBid.set(bid);
@@ -547,9 +578,13 @@ public class LevelStrategy extends BaseStrategy{
 
     @Override
     protected void onRealTrade(Order order) {
-        if (order.getStatus().equals(CLOSED) && order.getAvgPrice().compareTo(ZERO) > 0){
-            prices.add(order.getAvgPrice());
-        }
+//        if (order.getStatus().equals(CLOSED) && order.getAvgPrice().compareTo(ZERO) > 0){
+//            prices.add(order.getAvgPrice());
+//        }
+    }
+
+    public static void main(String... args){
+        Observable.range(0, 100).buffer(55, 1).forEach(l -> System.out.println(Arrays.toString(l.toArray())));
     }
 }
 

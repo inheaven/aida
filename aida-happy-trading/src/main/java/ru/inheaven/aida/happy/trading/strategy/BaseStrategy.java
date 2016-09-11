@@ -576,6 +576,14 @@ public class BaseStrategy {
         return 0;
     }
 
+    protected BigDecimal getAvgPrice(){
+        return ZERO;
+    }
+
+    protected Long getWindow(){
+        return 0L;
+    }
+
     protected BigDecimal getStdDev(){
         return ZERO;
     }
@@ -592,7 +600,7 @@ public class BaseStrategy {
                 index.incrementAndGet();
             }
 
-            log.info("{} {} {}  {} {} {}  {} {} {} {} {}  {} {}  {} {} {} {} {} {} {} {}",
+            log.info("{} {} {} {} {} {}  {} {} {} {} {} {}  {} {}  {} {} {} {} {} {} {} {} {}",
                     index.get(),
                     o.getStrategyId(),
                     o.getStatus(),
@@ -600,6 +608,7 @@ public class BaseStrategy {
                     o.getAmount().setScale(3, HALF_EVEN),
                     o.getType(),
 
+                    scale(getAvgPrice()),
                     scale(buyPrice.get()),
                     scale(sellPrice.get().subtract(buyPrice.get())),
                     scale(buyVolume.get()),
@@ -609,6 +618,7 @@ public class BaseStrategy {
                     getStdDev().setScale(3, HALF_UP),
                     scale(o.getSpread()),
 
+                    getWindow(),
                     scale(userInfoService.getVolume("subtotal", strategy.getAccount().getId(), "BTC")),
                     scale(userInfoService.getVolume("subtotal", strategy.getAccount().getId(), "CNY")),
                     userInfoService.getVolume("total", strategy.getAccount().getId(), null),
