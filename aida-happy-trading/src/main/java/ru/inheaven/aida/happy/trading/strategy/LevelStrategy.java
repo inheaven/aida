@@ -114,26 +114,30 @@ public class LevelStrategy extends BaseStrategy{
         }
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(()-> {
-            BigDecimal lastPrice = prices.pollLast();
+            try {
+                BigDecimal lastPrice = prices.pollLast();
 
-            if (lastPrice != null) {
-                actionLevel("schedule", lastPrice, null);
+                if (lastPrice != null) {
+                    actionLevel("schedule", lastPrice, null);
 
-                boolean momentumLong = getForecast() > 5;
-                boolean momentumShort = getForecast() < -5;
+                    boolean momentumLong = getForecast() > 5;
+                    boolean momentumShort = getForecast() < -5;
 
-                while (true){
-                    BigDecimal price =  momentumLong || momentumShort ? prices.pollLast() : prices.getFirst();
+                    while (true){
+                        BigDecimal price =  momentumLong || momentumShort ? prices.pollLast() : prices.pollFirst();
 
-                    if (price == null){
-                        break;
-                    }
-
-                    if ((momentumLong && price.compareTo(lastPrice) > 0) || (momentumShort && price.compareTo(lastPrice) < 0)
-                            || (!momentumLong && !momentumShort)){
-                        actionLevel("schedule", price, null);
+                        if (price == null){
+                            break;
+                        }else if ((momentumLong && price.compareTo(lastPrice) > 0) || (momentumShort && price.compareTo(lastPrice) < 0)
+                                || (!momentumLong && !momentumShort)){
+                            actionLevel("schedule", price, null);
+                        }
                     }
                 }
+            } catch (Exception e) {
+                log.error("error action level executor", e);
+
+                throw e;
             }
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
