@@ -114,20 +114,27 @@ public class LevelStrategy extends BaseStrategy{
         }
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(()-> {
-            while (true){
-                BigDecimal price = null;
+            BigDecimal lastPrice = prices.pollLast();
 
-                if (Math.abs(getForecast()) > 5){
-                    price = prices.pollLast();
-                    prices.clear();
-                }else{
-                    price = prices.pollFirst();
+            if (lastPrice == null) {
+                return;
+            }
+
+            actionLevel("schedule", lastPrice, null);
+
+            boolean momentumLong = getForecast() > 5;
+            boolean momentumShort = getForecast() < -5;
+
+            while (true){
+                BigDecimal price =  momentumLong || momentumShort ? prices.pollLast() : prices.getFirst();
+
+                if (price == null){
+                    break;
                 }
 
-                if (price != null){
+                if ((momentumLong && price.compareTo(lastPrice) > 0) || (momentumShort && price.compareTo(lastPrice) < 0)
+                        || !momentumLong && !momentumShort ){
                     actionLevel("schedule", price, null);
-                }else {
-                    break;
                 }
             }
         }, 5000, 20, TimeUnit.MILLISECONDS);
