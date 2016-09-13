@@ -73,6 +73,7 @@ public class LevelStrategy extends BaseStrategy{
     private final static BigDecimal BD_5 = new BigDecimal(5);
     private final static BigDecimal BD_6 = new BigDecimal(6);
     private final static BigDecimal BD_8_45 = new BigDecimal("8.45");
+    private final static BigDecimal BD_11 = new BigDecimal(11);
     private final static BigDecimal BD_12 = new BigDecimal(12);
 
     private final static BigDecimal BD_TWO_PI = BigDecimal.valueOf(2*Math.PI);
@@ -113,17 +114,25 @@ public class LevelStrategy extends BaseStrategy{
         }
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(()-> {
-            BigDecimal price = null;
+            while (true){
+                BigDecimal price = null;
 
-//            while ((price = Math.abs(getForecast()) > 5 ? prices.pollLast() : prices.pollFirst()) != null){
-//                actionLevel("schedule", price, null);
-//            }
-            while ((price = prices.pollFirst()) != null){
-                actionLevel("schedule", price, null);
+                if (Math.abs(getForecast()) > 5){
+                    price = prices.pollLast();
+                    prices.clear();
+                }else{
+                    price = prices.pollFirst();
+                }
+
+                if (price != null){
+                    actionLevel("schedule", price, null);
+                }else {
+                    break;
+                }
             }
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.382, 11, 22, 512, 8, 8, 1000);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.45, 11, 100, 512, 5, 50, 1000);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
             try {
@@ -133,7 +142,7 @@ public class LevelStrategy extends BaseStrategy{
             } catch (Throwable e) {
                 log.error("vssaService ", e);
             }
-        }, 0, 10, TimeUnit.MINUTES);
+        }, 0, 60, TimeUnit.MINUTES);
 
 //        Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
 //            if (strategy.getName().contains("vssa")){
@@ -282,13 +291,7 @@ public class LevelStrategy extends BaseStrategy{
 
             lastAction.set(price);
 
-            if (getForecast() > 5){
-                action(key, price.add(getSideSpread(price)), orderType, 1);
-            }else if (getForecast() < -5){
-                action(key, price.subtract(getSideSpread(price)), orderType, -1);
-            }else{
-                action(key, price, orderType, 0);
-            }
+            action(key, price, orderType, 0);
         } catch (Exception e) {
             log.error("error actionLevel", e);
         }
@@ -401,14 +404,14 @@ public class LevelStrategy extends BaseStrategy{
 //                    min *= 2;
 //                }
 
-//                double max = random.nextGaussian()/2 + 2;
-//                double min = random.nextGaussian()/2 + 1;
+                double max = random.nextGaussian()/2 + 2;
+                double min = random.nextGaussian()/2 + 1;
 
-                double q1 = Math.sin(index.get()/(2*Math.PI)) + 1.07;
-                double q2 = Math.cos(index.get()/(2*Math.PI)) + 1.07;
-
-                double max = Math.max(q1, q2);
-                double min = Math.abs(getForecast()) < 11 ? Math.min(q1, q2) : 0;
+//                double q1 = Math.sin(index.get()/(2*Math.PI)) + 1.07;
+//                double q2 = Math.cos(index.get()/(2*Math.PI)) + 1.07;
+//
+//                double max = Math.max(q1, q2);
+//                double min = Math.min(q1, q2);
 
                 log.info("{} "  + key + " {} {} {} {}", strategy.getId(), price.setScale(3, HALF_EVEN), spread, min, max);
 
