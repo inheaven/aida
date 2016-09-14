@@ -104,7 +104,7 @@ public class VSSABoost {
         if (local == null) {
             //150*sin(2*3.14*x/150), x from 0 to 150
 
-            N = (int) (Math.abs((this.N/2)*Math.sin(4*Math.PI*index.incrementAndGet()/this.N)) + (this.N/2));
+            N = random.nextInt(this.N - 64) + 64;
             int L = random.nextInt(N/2 - M - 1) + M + 1;
             int P = random.nextInt(L - 1) + 1;
 
