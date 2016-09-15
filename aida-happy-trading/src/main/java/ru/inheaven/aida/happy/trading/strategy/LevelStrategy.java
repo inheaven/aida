@@ -90,6 +90,8 @@ public class LevelStrategy extends BaseStrategy{
     private VSSAService vssaService;
 
     private Deque<BigDecimal> prices = new ConcurrentLinkedDeque<>();
+    private Deque<BigDecimal> pricesDepthAsk = new ConcurrentLinkedDeque<>();
+    private Deque<BigDecimal> pricesDepthBid = new ConcurrentLinkedDeque<>();
 
     public LevelStrategy(StrategyService strategyService, Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                          DepthService depthService, UserInfoService userInfoService,  XChangeService xChangeService) {
@@ -118,10 +120,22 @@ public class LevelStrategy extends BaseStrategy{
                 BigDecimal lastPrice = prices.pollLast();
 
                 if (lastPrice != null) {
-                    actionLevel("schedule", lastPrice, null);
+                    actionLevel(lastPrice);
 
                     boolean momentumLong = getForecast() > 5;
                     boolean momentumShort = getForecast() < -5;
+
+                    if (momentumShort){
+                        while (true){
+                            BigDecimal depthBid = pricesDepthBid.pollLast();
+
+                            if (depthBid == null){
+                                break;
+                            }else {
+                                actionLevel(depthBid);
+                            }
+                        }
+                    }
 
                     while (true){
                         BigDecimal price =  momentumLong || momentumShort ? prices.pollLast() : prices.pollFirst();
@@ -130,7 +144,19 @@ public class LevelStrategy extends BaseStrategy{
                             break;
                         }else if ((momentumLong && price.compareTo(lastPrice) > 0) || (momentumShort && price.compareTo(lastPrice) < 0)
                                 || (!momentumLong && !momentumShort)){
-                            actionLevel("schedule", price, null);
+                            actionLevel(price);
+                        }
+                    }
+
+                    if (momentumLong){
+                        while (true){
+                            BigDecimal depthAsk = pricesDepthAsk.pollLast();
+
+                            if (depthAsk == null){
+                                break;
+                            }else {
+                                actionLevel(depthAsk);
+                            }
                         }
                     }
                 }
@@ -141,7 +167,7 @@ public class LevelStrategy extends BaseStrategy{
             }
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.45, 11, 100, 512, 5, 50, 1000);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.45, 11, 100, 512, 5, 25, 500);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
             try {
@@ -282,7 +308,7 @@ public class LevelStrategy extends BaseStrategy{
     }
 
     private void actionLevel(BigDecimal price){
-        actionLevel("subject", price, null);
+        actionLevel("schedule", price, null);
     }
 
     private AtomicReference<BigDecimal> lastAction = new AtomicReference<>(ZERO);
@@ -568,8 +594,6 @@ public class LevelStrategy extends BaseStrategy{
     }
 
     private AtomicReference<BigDecimal> depthSpread = new AtomicReference<>(BD_0_25);
-    private AtomicReference<BigDecimal> depthBid = new AtomicReference<>(ZERO);
-    private AtomicReference<BigDecimal> depthAsk = new AtomicReference<>(ZERO);
 
     @Override
     protected void onDepth(Depth depth) {
@@ -584,8 +608,9 @@ public class LevelStrategy extends BaseStrategy{
 //            prices.add(bid);
 
             depthSpread.set(ask.subtract(bid).abs());
-            depthBid.set(bid);
-            depthAsk.set(ask);
+
+            pricesDepthBid.add(bid);
+            pricesDepthAsk.add(ask);
         }
     }
 
