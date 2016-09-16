@@ -14,6 +14,7 @@ import rx.Subscription;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -226,10 +227,10 @@ public class BaseStrategy {
 
                     List<LimitOrder> openOrders = ts.getOpenOrders().getOpenOrders();
 
-                    if (openOrders.size() > 45){
-                        openOrders.sort((o1, o2) -> o1.getTimestamp().compareTo(o2.getTimestamp()));
+                    if (openOrders.size() > 50){
+                        openOrders.sort(Comparator.comparing(com.xeiam.xchange.dto.Order::getTimestamp));
 
-                        for (int i=0; i<=5; ++i){
+                        for (int i=0; i<=1; ++i){
                             try {
                                 LimitOrder l = openOrders.get(i);
 
@@ -248,7 +249,7 @@ public class BaseStrategy {
                         }
                     }
 
-                    BigDecimal range = getSpread(lastPrice.get()).multiply(BigDecimal.valueOf(20));
+                    BigDecimal range = getSpread(lastPrice.get()).multiply(BigDecimal.valueOf(10));
 
                     openOrders.forEach(l -> {
                         if (lastPrice.get() != null && l.getCurrencyPair().toString().equals(strategy.getSymbol()) &&

@@ -122,10 +122,7 @@ public class LevelStrategy extends BaseStrategy{
                 if (lastPrice != null) {
                     actionLevel(lastPrice);
 
-                    boolean momentumLong = getForecast() > 5;
-                    boolean momentumShort = getForecast() < -5;
-
-                    if (momentumShort){
+                    if (getForecast() < 0){
                         while (true){
                             BigDecimal depthBid = pricesDepthBid.pollLast();
 
@@ -136,6 +133,9 @@ public class LevelStrategy extends BaseStrategy{
                             }
                         }
                     }
+
+                    boolean momentumLong = getForecast() > 5;
+                    boolean momentumShort = getForecast() < -5;
 
                     while (true){
                         BigDecimal price =  momentumLong || momentumShort ? prices.pollLast() : prices.pollFirst();
@@ -148,7 +148,7 @@ public class LevelStrategy extends BaseStrategy{
                         }
                     }
 
-                    if (momentumLong){
+                    if (getForecast() > 0){
                         while (true){
                             BigDecimal depthAsk = pricesDepthAsk.pollLast();
 
