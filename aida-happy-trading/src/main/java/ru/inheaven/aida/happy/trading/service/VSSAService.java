@@ -137,7 +137,7 @@ public class VSSAService {
                 double volumeSum = 0;
 
                 for (Trade trade : avg){
-                    double tradeVolume = trade.getAmount().doubleValue();
+                    double tradeVolume = 1; //trade.getAmount().doubleValue();
 
                     priceSum += trade.getPrice().doubleValue()*tradeVolume;
 

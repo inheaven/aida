@@ -273,7 +273,7 @@ public class BaseStrategy {
                     log.error("error schedule cancel order -> ", e);
                 }
 
-            }, 0, 15, SECONDS);
+            }, 0, 60, SECONDS);
         }
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(
