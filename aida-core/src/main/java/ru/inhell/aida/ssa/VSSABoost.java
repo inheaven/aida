@@ -105,7 +105,7 @@ public class VSSABoost {
             //150*sin(2*3.14*x/150), x from 0 to 150
 
             N = random.nextInt(this.N - 64) + 64;
-            int L = random.nextInt(N/2 - M - 1) + M + 1;
+            int L = N/2; //random.nextInt(N/2 - M - 1) + M + 1;
             int P = random.nextInt(L - 1) + 1;
 
             vssa = new VSSA(N, L, P, M);
@@ -180,6 +180,10 @@ public class VSSABoost {
     }
 
     public double getTarget(double[] series, int start, int size){
+        return series[start + size - 1];
+    }
+
+    public double getTarget1(double[] series, int start, int size){
         double sum = 0;
 
         for (int i = start; i < start + size && i < series.length; ++i){

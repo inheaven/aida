@@ -53,7 +53,13 @@ public class VSSAService {
                 Deque<Trade> trades = new LinkedList<>();
 
                 for (long t = start; t < end; t += 1000){
-                    trades.addAll(tradeMapper.getLightTrades(symbol, orderType, new Date(t), new Date(t + 1000)));
+                    List<Trade> list = tradeMapper.getLightTrades(symbol, orderType, new Date(t), new Date(t + 1000));
+
+                    for (Trade trade : list){
+                        if (trades.isEmpty() || trades.getLast().getPrice().compareTo(trade.getPrice()) != 0){
+                            trades.add(trade);
+                        }
+                    }
                 }
 
                 double[] prices = getPrices(trades);
@@ -88,7 +94,9 @@ public class VSSAService {
             //lock
             semaphore.acquire();
 
-            tradesBuffer.add(trade);
+            if (tradesBuffer.isEmpty() || tradesBuffer.getLast().getPrice().compareTo(trade.getPrice()) != 0) {
+                tradesBuffer.add(trade);
+            }
 
             if (tradesBuffer.size() >= window){
                 double[] prices = getPrices(tradesBuffer);

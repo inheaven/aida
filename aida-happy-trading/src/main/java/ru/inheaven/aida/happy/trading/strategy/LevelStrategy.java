@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
-import ru.inheaven.aida.happy.trading.util.TradeUtil;
 import rx.Observable;
 import rx.subjects.PublishSubject;
 
@@ -167,7 +166,7 @@ public class LevelStrategy extends BaseStrategy{
             }
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 11, 100, 1024, 2, 50, 500);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 11, 30, 512, 8, 1, 1000);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
             try {
@@ -177,7 +176,7 @@ public class LevelStrategy extends BaseStrategy{
             } catch (Throwable e) {
                 log.error("vssaService ", e);
             }
-        }, 0, 60, TimeUnit.MINUTES);
+        }, 0, 10, TimeUnit.MINUTES);
 
 //        Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
 //            if (strategy.getName().contains("vssa")){
@@ -462,10 +461,10 @@ public class LevelStrategy extends BaseStrategy{
 //                }
 
                 //less
-                if (buyAmount.compareTo(BD_0_01) < 0){
+                if (buyAmount.compareTo(BD_0_01) < 0 || getForecast() < -9){
                     buyAmount = BD_0_01;
                 }
-                if (sellAmount.compareTo(BD_0_01) < 0){
+                if (sellAmount.compareTo(BD_0_01) < 0 || getForecast() > 9){
                     sellAmount = BD_0_01;
                 }
 
@@ -526,13 +525,13 @@ public class LevelStrategy extends BaseStrategy{
 //            }
 //        });
 
-        tradeBuffer.buffer(10000, 50).filter(b -> !b.isEmpty()).forEach(b -> {
-            try {
-                lastAvgPrice.set(TradeUtil.avg(b));
-            } catch (Exception e) {
-                log.error("error buffer 10", e);
-            }
-        });
+//        tradeBuffer.buffer(10000, 50).filter(b -> !b.isEmpty()).forEach(b -> {
+//            try {
+//                lastAvgPrice.set(TradeUtil.avg(b));
+//            } catch (Exception e) {
+//                log.error("error buffer 10", e);
+//            }
+//        });
 
         tradeBuffer.buffer(3000, 50)
                 .forEach(l -> {
@@ -562,6 +561,8 @@ public class LevelStrategy extends BaseStrategy{
     private AtomicReference<BigDecimal> tradeBid = new AtomicReference<>(ZERO);
     private AtomicReference<BigDecimal> tradeAsk = new AtomicReference<>(ZERO);
 
+    private Executor executorWSP = Executors.newWorkStealingPool();
+
     @Override
     protected void onTrade(Trade trade) {
         index.incrementAndGet();
@@ -574,7 +575,7 @@ public class LevelStrategy extends BaseStrategy{
 
                 tradeBuffer.onNext(trade);
 
-                executor.execute(() -> vssaService.add(trade));
+                executorWSP.execute(() -> vssaService.add(trade));
 
                 closeByMarketAsync(trade.getPrice(), trade.getOrigTime());
             }else{
