@@ -56,7 +56,7 @@ public class VSSABoost {
 
         Queue<VSSA> fitQueue = new ConcurrentLinkedQueue<>();
 
-        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()/2);
+        ExecutorService executor = Executors.newWorkStealingPool();
 
         Runnable boost = () -> {
             for (int v = 0; v < MAX_VSSA_ITERATION; v++){
@@ -70,7 +70,7 @@ public class VSSABoost {
 
         List<Future> futures = new ArrayList<>();
 
-        for (int p = 0; p < 3; ++p){
+        for (int p = 0; p < Runtime.getRuntime().availableProcessors()/2; ++p){
             futures.add(executor.submit(boost));
         }
 

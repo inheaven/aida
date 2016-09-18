@@ -234,7 +234,7 @@ public class LevelStrategy extends BaseStrategy{
             }
 
             //max profit
-            maxProfit.set(strategyService.isMaxProfit(strategy.getId()));
+//            maxProfit.set(strategyService.isMaxProfit(strategy.getId()));
         }, 5, 1, TimeUnit.SECONDS);
     }
 
