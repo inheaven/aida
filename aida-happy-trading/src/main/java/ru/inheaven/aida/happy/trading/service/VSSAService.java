@@ -94,9 +94,7 @@ public class VSSAService {
             //lock
             semaphore.acquire();
 
-            if (tradesBuffer.isEmpty() || tradesBuffer.getLast().getPrice().compareTo(trade.getPrice()) != 0) {
-                tradesBuffer.add(trade);
-            }
+            tradesBuffer.add(trade);
 
             if (tradesBuffer.size() >= window){
                 double[] prices = getPrices(tradesBuffer);
@@ -145,7 +143,7 @@ public class VSSAService {
                 double volumeSum = 0;
 
                 for (Trade trade : avg){
-                    double tradeVolume = 1; //trade.getAmount().doubleValue();
+                    double tradeVolume = trade.getAmount().doubleValue();
 
                     priceSum += trade.getPrice().doubleValue()*tradeVolume;
 

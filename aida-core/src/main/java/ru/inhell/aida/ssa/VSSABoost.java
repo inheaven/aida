@@ -62,7 +62,7 @@ public class VSSABoost {
             for (int v = 0; v < MAX_VSSA_ITERATION; v++){
                 boost(series, random, localQueue, fitQueue);
 
-                if (fitQueue.size() >= vssaCount){
+                if (fitQueue.size() >= vssaCount || !fitting.get()){
                     break;
                 }
             }
@@ -89,8 +89,6 @@ public class VSSABoost {
         for (int i = 0; i < vssaCount; ++i){
             queue.add(fitQueue.poll());
         }
-
-        fitQueue.clear();
 
         fitting.set(false);
     }

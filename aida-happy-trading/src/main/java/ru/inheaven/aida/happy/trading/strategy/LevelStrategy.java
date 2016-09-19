@@ -123,7 +123,7 @@ public class LevelStrategy extends BaseStrategy{
 
                     if (getForecast() < 0){
                         while (true){
-                            BigDecimal depthBid = pricesDepthBid.pollLast();
+                            BigDecimal depthBid = pricesDepthBid.pollFirst();
 
                             if (depthBid == null){
                                 break;
@@ -149,7 +149,7 @@ public class LevelStrategy extends BaseStrategy{
 
                     if (getForecast() > 0){
                         while (true){
-                            BigDecimal depthAsk = pricesDepthAsk.pollLast();
+                            BigDecimal depthAsk = pricesDepthAsk.pollFirst();
 
                             if (depthAsk == null){
                                 break;
@@ -166,7 +166,7 @@ public class LevelStrategy extends BaseStrategy{
             }
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 11, 30, 512, 8, 1, 1000);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 11, 30, 600, 10, 50, 1000);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
             try {
@@ -343,7 +343,7 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal price = lastAvgPrice.get().compareTo(ZERO) > 0 ? lastAvgPrice.get() : lastTrade.get();
 
             if (subtotalBtc.compareTo(ZERO) > 0 && price.compareTo(ZERO) > 0) {
-                balance.set(subtotalCny.divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(ONE) > 0);
+                balance.set(subtotalCny.divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(BD_2) > 0);
             }
 
             lastBalanceTime.set(System.currentTimeMillis());
@@ -584,7 +584,7 @@ public class LevelStrategy extends BaseStrategy{
 
             //spread
             spreadPrices.add(trade.getPrice().doubleValue());
-            if (spreadPrices.size() > 10000){
+            if (spreadPrices.size() > 8000){
                 spreadPrices.removeFirst();
             }
 
