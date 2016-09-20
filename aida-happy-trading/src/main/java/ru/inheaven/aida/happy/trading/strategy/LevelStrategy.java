@@ -400,8 +400,10 @@ public class LevelStrategy extends BaseStrategy{
 
             BigDecimal spread = scale(getSpread(price));
 
-            BigDecimal buyPrice = scale(balance ? price : price.subtract(spread));
-            BigDecimal sellPrice = scale(balance ? price.add(spread) : price);
+            BigDecimal priceF = scale(getForecast() > 0 ? price.add(getStep()) : price.subtract(getStep()));
+
+            BigDecimal buyPrice = scale(balance ? priceF : priceF.subtract(spread));
+            BigDecimal sellPrice = scale(balance ? priceF.add(spread) : priceF);
 
             if (!getOrderMap().contains(buyPrice, spread, BID) && !getOrderMap().contains(sellPrice, spread, ASK)){
 //                double q1 = BibleRandom.nextDouble();
@@ -560,7 +562,7 @@ public class LevelStrategy extends BaseStrategy{
 
             //spread
             spreadPrices.add(trade.getPrice().doubleValue());
-            if (spreadPrices.size() > 8000){
+            if (spreadPrices.size() > 10000){
                 spreadPrices.removeFirst();
             }
 
