@@ -204,6 +204,7 @@ public class BaseStrategy {
             try {
                 if (o.getStatus().equals(OPEN)) {
                     orderService.checkOrder(strategy.getAccount(), o);
+                    Thread.sleep(100);
                 }else if ((o.getStatus().equals(CANCELED) || o.getStatus().equals(CLOSED)) && (o.getClosed() == null ||
                         System.currentTimeMillis() - o.getClosed().getTime() > 60000)) {
                     onOrder(o);

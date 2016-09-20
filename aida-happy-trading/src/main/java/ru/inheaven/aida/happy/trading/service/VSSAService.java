@@ -47,7 +47,7 @@ public class VSSAService {
             try {
                 TradeMapper tradeMapper = Module.getInjector().getInstance(TradeMapper.class);
 
-                long start = (System.currentTimeMillis() - 10*1000*(N + M));
+                long start = (System.currentTimeMillis() - 100*1000*(N + M));
                 long end = System.currentTimeMillis();
 
                 Deque<Trade> trades = new LinkedList<>();

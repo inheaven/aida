@@ -142,7 +142,7 @@ public class LevelStrategy extends BaseStrategy{
             }
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.45, 11, 30, 500, 50, 5, 500);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.45, 11, 30, 500, 10, 500, 1000);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
             try {
