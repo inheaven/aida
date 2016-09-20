@@ -116,46 +116,36 @@ public class LevelStrategy extends BaseStrategy{
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(()-> {
             try {
-                BigDecimal lastPrice = prices.pollLast();
-
-                if (lastPrice != null) {
-                    actionLevel(lastPrice);
-
-                    if (getForecast() < 0){
-                        while (true){
-                            BigDecimal depthBid = pricesDepthBid.pollFirst();
-
-                            if (depthBid == null){
-                                break;
-                            }else {
-                                actionLevel(depthBid);
-                            }
-                        }
-                    }
-
-                    boolean momentumLong = getForecast() > 5;
-                    boolean momentumShort = getForecast() < -5;
-
+                if (getForecast() < 0){
                     while (true){
-                        BigDecimal price =  momentumLong || momentumShort ? prices.pollLast() : prices.pollFirst();
+                        BigDecimal depthBid = pricesDepthBid.poll();
 
-                        if (price == null){
+                        if (depthBid == null){
                             break;
-                        }else if ((momentumLong && price.compareTo(lastPrice) > 0) || (momentumShort && price.compareTo(lastPrice) < 0)
-                                || (!momentumLong && !momentumShort)){
-                            actionLevel(price);
+                        }else {
+                            actionLevel(depthBid);
                         }
                     }
+                }
 
-                    if (getForecast() > 0){
-                        while (true){
-                            BigDecimal depthAsk = pricesDepthAsk.pollFirst();
+                while (true){
+                    BigDecimal price =  prices.poll();
 
-                            if (depthAsk == null){
-                                break;
-                            }else {
-                                actionLevel(depthAsk);
-                            }
+                    if (price == null){
+                        break;
+                    }else {
+                        actionLevel(price);
+                    }
+                }
+
+                if (getForecast() > 0){
+                    while (true){
+                        BigDecimal depthAsk = pricesDepthAsk.poll();
+
+                        if (depthAsk == null){
+                            break;
+                        }else {
+                            actionLevel(depthAsk);
                         }
                     }
                 }
@@ -166,7 +156,7 @@ public class LevelStrategy extends BaseStrategy{
             }
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 11, 30, 600, 10, 50, 1000);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.45, 11, 30, 500, 50, 5, 500);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
             try {

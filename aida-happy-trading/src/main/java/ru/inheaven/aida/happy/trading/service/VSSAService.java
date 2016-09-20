@@ -56,9 +56,7 @@ public class VSSAService {
                     List<Trade> list = tradeMapper.getLightTrades(symbol, orderType, new Date(t), new Date(t + 1000));
 
                     for (Trade trade : list){
-                        if (trades.isEmpty() || trades.getLast().getPrice().compareTo(trade.getPrice()) != 0){
-                            trades.add(trade);
-                        }
+                        trades.add(trade);
                     }
                 }
 
