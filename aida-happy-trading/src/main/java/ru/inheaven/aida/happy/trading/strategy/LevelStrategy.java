@@ -89,8 +89,7 @@ public class LevelStrategy extends BaseStrategy{
     private VSSAService vssaService;
 
     private Deque<BigDecimal> prices = new ConcurrentLinkedDeque<>();
-    private Deque<BigDecimal> pricesDepthAsk = new ConcurrentLinkedDeque<>();
-    private Deque<BigDecimal> pricesDepthBid = new ConcurrentLinkedDeque<>();
+    private Deque<BigDecimal> pricesDepth = new ConcurrentLinkedDeque<>();
 
     public LevelStrategy(StrategyService strategyService, Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                          DepthService depthService, UserInfoService userInfoService,  XChangeService xChangeService) {
@@ -116,18 +115,6 @@ public class LevelStrategy extends BaseStrategy{
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(()-> {
             try {
-                if (getForecast() < 0){
-                    while (true){
-                        BigDecimal depthBid = pricesDepthBid.poll();
-
-                        if (depthBid == null){
-                            break;
-                        }else {
-                            actionLevel(depthBid);
-                        }
-                    }
-                }
-
                 while (true){
                     BigDecimal price =  prices.poll();
 
@@ -138,17 +125,16 @@ public class LevelStrategy extends BaseStrategy{
                     }
                 }
 
-                if (getForecast() > 0){
-                    while (true){
-                        BigDecimal depthAsk = pricesDepthAsk.poll();
+                while (true){
+                    BigDecimal price =  pricesDepth.poll();
 
-                        if (depthAsk == null){
-                            break;
-                        }else {
-                            actionLevel(depthAsk);
-                        }
+                    if (price == null){
+                        break;
+                    }else {
+                        actionLevel(price);
                     }
                 }
+
             } catch (Exception e) {
                 log.error("error action level executor", e);
 
@@ -600,8 +586,11 @@ public class LevelStrategy extends BaseStrategy{
 
             depthSpread.set(ask.subtract(bid).abs());
 
-            pricesDepthBid.add(bid);
-            pricesDepthAsk.add(ask);
+            if (getForecast() > 0){
+                pricesDepth.add(ask);
+            }else if (getForecast() < 0){
+                pricesDepth.add(bid);
+            }
         }
     }
 
