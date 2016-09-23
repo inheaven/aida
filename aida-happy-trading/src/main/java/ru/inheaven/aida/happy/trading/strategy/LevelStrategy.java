@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
+import ru.inheaven.aida.happy.trading.util.BibleRandom;
+import ru.inheaven.aida.happy.trading.util.QuranRandom;
 import ru.inheaven.aida.happy.trading.util.TradeUtil;
 import rx.Observable;
 import rx.subjects.PublishSubject;
@@ -131,7 +133,7 @@ public class LevelStrategy extends BaseStrategy{
             }
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.45, 11, 30, 500, 10, 500, 1000);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 11, 11, 512, 11, 11, 512);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
             try {
@@ -143,51 +145,6 @@ public class LevelStrategy extends BaseStrategy{
             }
         }, 0, 10, TimeUnit.MINUTES);
 
-//        Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
-//            if (strategy.getName().contains("vssa")){
-//                try {
-//                    forecast.set(vssaService.execute());
-//                } catch (Exception e) {
-//                    forecast.set(0);
-//
-//                    log.error("error forecast", e);
-//                }
-//            }else if (forecastPrices.size() > 10){
-//                try {
-//                    double[] prices = Doubles.toArray(forecastPrices);
-//
-//                    double[] pricesDelta = new double[prices.length - 1];
-//                    for (int i = 0; i < prices.length - 1; ++i){
-//                        pricesDelta[i] = prices[i+1]/prices[i] - 1;
-//                    }
-//
-//                    //f = p1/p0 - 1 -> p1 = (f + 1)*p0
-//                    ArimaProcess process = strategy.isLevelInverse()
-//                            ? ArimaFitter.fit(pricesDelta, 7, 5, 8)
-//                            : ArimaFitter.fit(pricesDelta, 7, 10, 3);
-//
-//                    double f = new DefaultArimaForecaster(process, pricesDelta).next();
-//
-//                    //
-//
-//                    if (!Double.isNaN(f)) {
-//                        if (Math.abs(f) < 0.5) {
-//                            forecast.set(prices[prices.length-1]*(f + 1));
-//                        }else{
-//                            forecast.set(prices[prices.length-1]*(0.5*Math.signum(f) + 1));
-//                        }
-//                    }else{
-//                        forecast.set(0);
-//                    }
-//
-//                } catch (Exception e) {
-//                    forecast.set(0);
-//
-//                    log.error("error forecast", e);
-//                }
-//            }
-//        }, 5, 60, TimeUnit.SECONDS);
-
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             try {
                 //stddev
@@ -197,36 +154,8 @@ public class LevelStrategy extends BaseStrategy{
 
                 log.error("error stdDev", e);
             }
-
-            //max profit
-//            maxProfit.set(strategyService.isMaxProfit(strategy.getId()));
         }, 5, 1, TimeUnit.SECONDS);
     }
-
-//    private void pushOrders(BigDecimal price){
-//        BigDecimal spread = ZERO;
-//        boolean inverse = strategy.isLevelInverse();
-//
-//        if (!isBidRefused()){
-//            getOrderMap().get(price.subtract(spread), BID).forEach((k,v) -> {
-//                v.values().forEach(o -> {
-//                    if (o.getStatus().equals(WAIT) && (isVol() || !inverse || !getOrderMap().containsAsk(o.getPositionId()))){
-//                        pushWaitOrder(o);
-//                    }
-//                });
-//            });
-//        }
-//
-//        if (!isAskRefused()){
-//            getOrderMap().get(price.add(spread), ASK).forEach((k,v) -> {
-//                v.values().forEach(o -> {
-//                    if (o.getStatus().equals(WAIT) && (isVol() || inverse || !getOrderMap().containsBid(o.getPositionId()))){
-//                        pushWaitOrder(o);
-//                    }
-//                });
-//            });
-//        }
-//    }
 
     private Executor executor = Executors.newCachedThreadPool();
     private AtomicReference<BigDecimal> lastMarket = new AtomicReference<>(ZERO);
@@ -385,29 +314,38 @@ public class LevelStrategy extends BaseStrategy{
 
     private void action(String key, BigDecimal price, OrderType orderType, int priceLevel) {
         try {
+            double forecast = getForecast();
+
             boolean balance = getSpotBalance();
-            boolean forecast = getForecast() > 0;
 
             BigDecimal spread = scale(getSpread(price));
 
-            BigDecimal priceF = scale(forecast ? price.add(getStep()) : price.subtract(getStep()));
+            BigDecimal priceF = scale(forecast > 0 ? price.add(getStep()) : price.subtract(getStep()));
 
-            BigDecimal buyPrice = scale(forecast ? priceF : priceF.subtract(spread));
-            BigDecimal sellPrice = scale(forecast ? priceF.add(spread) : priceF);
+            BigDecimal buyPrice = scale(forecast > 0 ? priceF : priceF.subtract(spread));
+            BigDecimal sellPrice = scale(forecast > 0 ? priceF.add(spread) : priceF);
 
             if (!getOrderMap().contains(buyPrice, spread, BID) && !getOrderMap().contains(sellPrice, spread, ASK)){
-//                double q1 = BibleRandom.nextDouble();
-//                double q2 = QuranRandom.nextDouble();
-//                double max = Math.max(q1, q2);
-//                double min = Math.min(q1, q2);
-//
-//                if (Math.abs(getForecast()) > 5){
-//                    max *= 2;
-//                    min *= 2;
-//                }
+                double q1 = BibleRandom.nextDouble();
+                double q2 = QuranRandom.nextDouble();
+                double max = Math.max(q1, q2);
+                double min = Math.min(q1, q2);
 
-                double max = random.nextGaussian()/2 + 2;
-                double min = random.nextGaussian()/2 + 1;
+
+                if (forecast > 0 == balance){
+                    double abs = Math.abs(forecast);
+
+                    if (abs > 9){
+                        max *= Math.PI;
+                        min *= Math.PI;
+                    }else if (abs > 5){
+                        max *= 2;
+                        min *= 2;
+                    }
+                }
+
+                //                double max = random.nextGaussian()/2 + 2;
+//                double min = random.nextGaussian()/2 + 1;
 
 //                double q1 = Math.sin(index.get()/(2*Math.PI)) + 1.07;
 //                double q2 = Math.cos(index.get()/(2*Math.PI)) + 1.07;
@@ -529,7 +467,7 @@ public class LevelStrategy extends BaseStrategy{
     private AtomicReference<BigDecimal> tradeBid = new AtomicReference<>(ZERO);
     private AtomicReference<BigDecimal> tradeAsk = new AtomicReference<>(ZERO);
 
-    private Executor executorWSP = Executors.newWorkStealingPool();
+    private Executor executorVSSA = Executors.newSingleThreadExecutor();
 
     @Override
     protected void onTrade(Trade trade) {
@@ -543,7 +481,7 @@ public class LevelStrategy extends BaseStrategy{
 
                 tradeBuffer.onNext(trade);
 
-                executorWSP.execute(() -> vssaService.add(trade));
+                executorVSSA.execute(() -> vssaService.add(trade));
 
                 closeByMarketAsync(trade.getPrice(), trade.getOrigTime());
             }else{
