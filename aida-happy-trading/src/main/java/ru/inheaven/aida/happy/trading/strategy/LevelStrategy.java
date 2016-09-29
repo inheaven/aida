@@ -335,10 +335,10 @@ public class LevelStrategy extends BaseStrategy{
                 if (forecast > 0 == balance){
                     double abs = Math.abs(forecast);
 
-                    if (abs > 9){
+                    if (abs > 7){
                         max *= Math.PI;
                         min *= Math.PI;
-                    }else if (abs > 5){
+                    }else if (abs > 3){
                         max *= 2;
                         min *= 2;
                     }
@@ -379,11 +379,11 @@ public class LevelStrategy extends BaseStrategy{
                 Order sellOrder = new Order(strategy, positionId, ASK, sellPrice, sellAmount.setScale(3, HALF_UP));
 
                 buyOrder.setSpread(spread);
-                buyOrder.setForecast(getForecast());
+                buyOrder.setForecast(forecast);
                 buyOrder.setBalance(balance);
 
                 sellOrder.setSpread(spread);
-                sellOrder.setForecast(getForecast());
+                sellOrder.setForecast(forecast);
                 sellOrder.setBalance(balance);
 
                 BigDecimal freeBtc = userInfoService.getVolume("free", strategy.getAccount().getId(), "BTC");
