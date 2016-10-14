@@ -128,10 +128,10 @@
             <artifactId>breeze_2.10</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.github.fommil.netlib</groupId>
-            <artifactId>all</artifactId>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>com.github.fommil.netlib</groupId>-->
+            <!--<artifactId>all</artifactId>-->
+        <!--</dependency>-->
     </dependencies>
 
     <build>

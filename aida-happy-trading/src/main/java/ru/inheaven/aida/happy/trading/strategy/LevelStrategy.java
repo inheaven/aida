@@ -93,6 +93,8 @@ public class LevelStrategy extends BaseStrategy{
 
     private Deque<BigDecimal> actionPrices = new ConcurrentLinkedDeque<>();
 
+    private BigDecimal sideSpread;
+
     public LevelStrategy(StrategyService strategyService, Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                          DepthService depthService, UserInfoService userInfoService,  XChangeService xChangeService) {
         super(strategy, orderService, orderMapper, tradeService, depthService, xChangeService);
@@ -155,6 +157,19 @@ public class LevelStrategy extends BaseStrategy{
                 log.error("error stdDev", e);
             }
         }, 5, 1, TimeUnit.SECONDS);
+
+        sideSpread = strategy.getLevelSideSpread();
+
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
+            try {
+                sideSpread = strategy.getLevelSideSpread().multiply(BigDecimal.valueOf(random.nextDouble() + 1));
+
+            } catch (Exception e) {
+                sideSpread = strategy.getLevelSideSpread();
+
+                log.error("error sideSpread", e);
+            }
+        }, 0, 10, TimeUnit.MINUTES);
     }
 
     private Executor executor = Executors.newCachedThreadPool();
@@ -290,12 +305,11 @@ public class LevelStrategy extends BaseStrategy{
     }
 
 
-    private BigDecimal getSideSpread(BigDecimal price){
-        BigDecimal sideSpread = strategy.getSymbolType() == null
-                ? strategy.getLevelSideSpread().multiply(price)
-                : strategy.getLevelSideSpread();
 
-        return sideSpread.compareTo(getStep()) > 0 ? sideSpread : getStep();
+    private BigDecimal getSideSpread(BigDecimal price){
+        BigDecimal sp = strategy.getSymbolType() == null ? sideSpread.multiply(price) : sideSpread;
+
+        return sp.compareTo(getStep()) > 0 ? sp : getStep();
     }
 
     private final static int[] prime = {101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179,
