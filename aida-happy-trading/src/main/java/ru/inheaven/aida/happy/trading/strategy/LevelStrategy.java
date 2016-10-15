@@ -8,8 +8,8 @@ import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
-import ru.inheaven.aida.happy.trading.util.BibleRandom;
 import ru.inheaven.aida.happy.trading.util.QuranRandom;
+import ru.inheaven.aida.happy.trading.util.TorahRandom;
 import ru.inheaven.aida.happy.trading.util.TradeUtil;
 import rx.Observable;
 import rx.subjects.PublishSubject;
@@ -135,7 +135,7 @@ public class LevelStrategy extends BaseStrategy{
             }
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 11, 11, 512, 11, 11, 512);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 11, 33, 512, 5, 50, 1000);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
             try {
@@ -145,7 +145,7 @@ public class LevelStrategy extends BaseStrategy{
             } catch (Throwable e) {
                 log.error("vssaService ", e);
             }
-        }, 0, 10, TimeUnit.MINUTES);
+        }, 0, 1, TimeUnit.HOURS);
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             try {
@@ -156,7 +156,7 @@ public class LevelStrategy extends BaseStrategy{
 
                 log.error("error stdDev", e);
             }
-        }, 5, 1, TimeUnit.SECONDS);
+        }, 5, 1, TimeUnit.MINUTES);
 
         sideSpread = strategy.getLevelSideSpread();
 
@@ -169,7 +169,7 @@ public class LevelStrategy extends BaseStrategy{
 
                 log.error("error sideSpread", e);
             }
-        }, 0, 10, TimeUnit.MINUTES);
+        }, 0, 1, TimeUnit.HOURS);
     }
 
     private Executor executor = Executors.newCachedThreadPool();
@@ -340,7 +340,7 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal sellPrice = scale(forecast > 0 ? priceF.add(spread) : priceF);
 
             if (!getOrderMap().contains(buyPrice, spread, BID) && !getOrderMap().contains(sellPrice, spread, ASK)){
-                double q1 = BibleRandom.nextDouble();
+                double q1 = TorahRandom.nextDouble();
                 double q2 = QuranRandom.nextDouble();
                 double max = Math.max(q1, q2);
                 double min = Math.min(q1, q2);
