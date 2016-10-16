@@ -29,7 +29,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.math.BigDecimal.*;
-import static java.math.RoundingMode.HALF_DOWN;
 import static java.math.RoundingMode.HALF_EVEN;
 import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CLOSED;
@@ -137,7 +136,7 @@ public class LevelStrategy extends BaseStrategy{
             }
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 11, 33, 512, 5, 50, 1000);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 22, 54, 365, 12, 4, 1000);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
             try {
@@ -315,13 +314,14 @@ public class LevelStrategy extends BaseStrategy{
         return sp.compareTo(getStep()) > 0 ? sp : getStep();
     }
 
-    private AtomicDouble avgAmount = new AtomicDouble(0.1);
-
     private BigDecimal getDSpread(BigDecimal price){
         BigDecimal total = userInfoService.getVolume("total", strategy.getAccount().getId(), null);
 
         if (total != null && total.compareTo(ZERO) > 0 && price != null && price.compareTo(ZERO) > 0){
-            return BigDecimal.valueOf(stdDev.get()*2*Math.PI*avgAmount.get()).divide(total.divide(price, 8, HALF_DOWN), 8, HALF_UP);
+            return BigDecimal.valueOf(stdDev.get()*2*Math.PI)
+                    .multiply(strategy.getLevelLot())
+                    .multiply(price)
+                    .divide(total, 8, HALF_EVEN);
         }
 
         return getSideSpread(price);
@@ -360,18 +360,21 @@ public class LevelStrategy extends BaseStrategy{
                 double max = Math.max(q1, q2);
                 double min = Math.min(q1, q2);
 
+                //shuffle
+                max = max * (random.nextDouble()/5 + 0.9);
+                min = min * (random.nextDouble()/5 + 0.9);
 
-                if (forecast > 0 == balance){
-                    double abs = Math.abs(forecast);
-
-                    if (abs > 7){
-                        max *= Math.PI;
-                        min *= Math.PI;
-                    }else if (abs > 3){
-                        max *= 2;
-                        min *= 2;
-                    }
-                }
+//                if (forecast > 0 == balance){
+//                    double abs = Math.abs(forecast);
+//
+//                    if (abs > 7){
+//                        max *= Math.PI;
+//                        min *= Math.PI;
+//                    }else if (abs > 3){
+//                        max *= 2;
+//                        min *= 2;
+//                    }
+//                }
 
                 //                double max = random.nextGaussian()/2 + 2;
 //                double min = random.nextGaussian()/2 + 1;
@@ -402,10 +405,6 @@ public class LevelStrategy extends BaseStrategy{
                 if (sellAmount.compareTo(BD_0_01) < 0 || getForecast() > 9){
                     sellAmount = BD_0_01;
                 }
-
-                //avg amount
-                avgAmount.set((avgAmount.get() + buyAmount.doubleValue())/2);
-                avgAmount.set((avgAmount.get() + sellAmount.doubleValue())/2);
 
                 Long positionId = positionIdGen.incrementAndGet();
                 Order buyOrder = new Order(strategy, positionId, BID, buyPrice, buyAmount.setScale(3, HALF_UP));
@@ -464,7 +463,7 @@ public class LevelStrategy extends BaseStrategy{
 //            }
 //        });
 
-        tradeBuffer.buffer(10000, 50).filter(b -> !b.isEmpty()).forEach(b -> {
+        tradeBuffer.buffer(4096, 8).filter(b -> !b.isEmpty()).forEach(b -> {
             try {
                 lastAvgPrice.set(TradeUtil.avg(b));
             } catch (Exception e) {
@@ -523,7 +522,7 @@ public class LevelStrategy extends BaseStrategy{
 
             //spread
             spreadPrices.add(trade.getPrice().doubleValue());
-            if (spreadPrices.size() > 512){
+            if (spreadPrices.size() > 4096){
                 spreadPrices.removeFirst();
             }
 
