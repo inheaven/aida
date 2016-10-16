@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.math.BigDecimal.*;
+import static java.math.RoundingMode.HALF_DOWN;
 import static java.math.RoundingMode.HALF_EVEN;
 import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CLOSED;
@@ -68,6 +69,7 @@ public class LevelStrategy extends BaseStrategy{
     private final static BigDecimal BD_1_33 = new BigDecimal("1.33");
 
     private final static BigDecimal BD_2 = new BigDecimal(2);
+    private final static BigDecimal BD_2_14 = new BigDecimal(Math.PI - 1);
     private final static BigDecimal BD_2_5 = new BigDecimal("2.5");
     private final static BigDecimal BD_3 = new BigDecimal(3);
     private final static BigDecimal BD_3_5 = new BigDecimal("3.5");
@@ -156,7 +158,7 @@ public class LevelStrategy extends BaseStrategy{
 
                 log.error("error stdDev", e);
             }
-        }, 5, 1, TimeUnit.MINUTES);
+        }, 5, 1, TimeUnit.SECONDS);
 
         sideSpread = strategy.getLevelSideSpread();
 
@@ -252,7 +254,7 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal price = lastAvgPrice.get().compareTo(ZERO) > 0 ? lastAvgPrice.get() : lastTrade.get();
 
             if (subtotalBtc.compareTo(ZERO) > 0 && price.compareTo(ZERO) > 0) {
-                balance.set(subtotalCny.divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(BD_2) > 0);
+                balance.set(subtotalCny.divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(BD_2_14) > 0);
             }
 
             lastBalanceTime.set(System.currentTimeMillis());
@@ -283,18 +285,19 @@ public class LevelStrategy extends BaseStrategy{
         return BigDecimal.valueOf(stdDev.get());
     }
 
-    private BigDecimal spreadDiv = BigDecimal.valueOf(Math.sqrt(Math.PI*2));
+    private BigDecimal spreadDiv = BigDecimal.valueOf(Math.sqrt(Math.PI*5));
 
     protected BigDecimal getSpread(BigDecimal price){
         BigDecimal spread = ZERO;
         BigDecimal sideSpread = getSideSpread(price);
 
         if (strategy.getSymbol().equals("BTC/CNY") || strategy.getSymbol().equals("LTC/CNY")){
-            BigDecimal stdDev = getStdDev();
-
-            if (stdDev != null){
-                spread = stdDev.divide(spreadDiv, 8, HALF_EVEN);
-            }
+//            BigDecimal stdDev = getStdDev();
+//
+//            if (stdDev != null){
+//                spread = stdDev.divide(spreadDiv, 8, HALF_EVEN);
+//            }
+            spread = getDSpread(price);
         }else {
             spread = strategy.getSymbolType() == null
                     ? strategy.getLevelSpread().multiply(price)
@@ -310,6 +313,18 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal sp = strategy.getSymbolType() == null ? sideSpread.multiply(price) : sideSpread;
 
         return sp.compareTo(getStep()) > 0 ? sp : getStep();
+    }
+
+    private AtomicDouble avgAmount = new AtomicDouble(0.1);
+
+    private BigDecimal getDSpread(BigDecimal price){
+        BigDecimal total = userInfoService.getVolume("total", strategy.getAccount().getId(), null);
+
+        if (total != null && total.compareTo(ZERO) > 0 && price != null && price.compareTo(ZERO) > 0){
+            return BigDecimal.valueOf(stdDev.get()*2*Math.PI*avgAmount.get()).divide(total.divide(price, 8, HALF_DOWN), 8, HALF_UP);
+        }
+
+        return getSideSpread(price);
     }
 
     private final static int[] prime = {101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179,
@@ -387,6 +402,10 @@ public class LevelStrategy extends BaseStrategy{
                 if (sellAmount.compareTo(BD_0_01) < 0 || getForecast() > 9){
                     sellAmount = BD_0_01;
                 }
+
+                //avg amount
+                avgAmount.set((avgAmount.get() + buyAmount.doubleValue())/2);
+                avgAmount.set((avgAmount.get() + sellAmount.doubleValue())/2);
 
                 Long positionId = positionIdGen.incrementAndGet();
                 Order buyOrder = new Order(strategy, positionId, BID, buyPrice, buyAmount.setScale(3, HALF_UP));
@@ -504,7 +523,7 @@ public class LevelStrategy extends BaseStrategy{
 
             //spread
             spreadPrices.add(trade.getPrice().doubleValue());
-            if (spreadPrices.size() > 10000){
+            if (spreadPrices.size() > 512){
                 spreadPrices.removeFirst();
             }
 

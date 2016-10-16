@@ -38,8 +38,6 @@ public class QuranRandom {
 
                 list.sort(Comparator.naturalOrder());
 
-                System.out.println(list);
-
                 double size = list.size();
 
                 for (String q : quranList) {

@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import quickfix.*;
 import ru.inheaven.aida.happy.trading.entity.Depth;
 import ru.inheaven.aida.happy.trading.entity.Order;
+import ru.inheaven.aida.happy.trading.entity.OrderType;
 import ru.inheaven.aida.happy.trading.entity.Trade;
 import ru.inheaven.aida.happy.trading.fix.OkcoinApplication;
 import ru.inheaven.aida.happy.trading.fix.fix44.OKCoinMessageFactory;
@@ -14,6 +15,10 @@ import rx.subjects.PublishSubject;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.security.SecureRandom;
+import java.util.Queue;
+import java.util.Random;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -31,6 +36,9 @@ public class FixService {
     private OkcoinApplication okcoinApplication;
 
     private Connector connector;
+
+    private Queue<Order> buyQueue = new ConcurrentLinkedQueue<>();
+    private Queue<Order> sellQueue = new ConcurrentLinkedQueue<>();
 
     @Inject
     public FixService(AccountMapper accountMapper) {
@@ -109,11 +117,25 @@ public class FixService {
         Secret Keyde1ab7d9-c34894b7-2e6931fa-60880
         IP地址 : 45.115.36.120
         */
+
+        Random random = new SecureRandom();
+
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
+            try {
+                Order order = (random.nextBoolean() ? buyQueue : sellQueue).poll();
+
+                if (order != null){
+                    internalPlaceOrder(order.getAccountId(), order);
+                }
+            } catch (Exception e) {
+                log.error("error queue place order", e);
+            }
+        },0, 150, TimeUnit.MILLISECONDS);
     }
 
 
     public void placeLimitOrder(Long accountId, Order order){
-        internalPlaceOrder(accountId, order); //todo account session id map
+        (order.getType().equals(OrderType.ASK) ? sellQueue : buyQueue).add(order);
     }
 
     private void internalPlaceOrder(Long accountId, Order order){
