@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import quickfix.*;
 import ru.inheaven.aida.happy.trading.entity.Depth;
 import ru.inheaven.aida.happy.trading.entity.Order;
-import ru.inheaven.aida.happy.trading.entity.OrderType;
 import ru.inheaven.aida.happy.trading.entity.Trade;
 import ru.inheaven.aida.happy.trading.fix.OkcoinApplication;
 import ru.inheaven.aida.happy.trading.fix.fix44.OKCoinMessageFactory;
@@ -15,9 +14,7 @@ import rx.subjects.PublishSubject;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.security.SecureRandom;
 import java.util.Queue;
-import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -37,8 +34,7 @@ public class FixService {
 
     private Connector connector;
 
-    private Queue<Order> buyQueue = new ConcurrentLinkedQueue<>();
-    private Queue<Order> sellQueue = new ConcurrentLinkedQueue<>();
+    private Queue<Order> orderQueue = new ConcurrentLinkedQueue<>();
 
     @Inject
     public FixService(AccountMapper accountMapper) {
@@ -118,11 +114,9 @@ public class FixService {
         IP地址 : 45.115.36.120
         */
 
-        Random random = new SecureRandom();
-
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             try {
-                Order order = (random.nextBoolean() ? buyQueue : sellQueue).poll();
+                Order order = orderQueue.poll();
 
                 if (order != null){
                     internalPlaceOrder(order.getAccountId(), order);
@@ -130,12 +124,12 @@ public class FixService {
             } catch (Exception e) {
                 log.error("error queue place order", e);
             }
-        },0, 150, TimeUnit.MILLISECONDS);
+        },0, 128, TimeUnit.MILLISECONDS);
     }
 
 
     public void placeLimitOrder(Long accountId, Order order){
-        (order.getType().equals(OrderType.ASK) ? sellQueue : buyQueue).add(order);
+        orderQueue.add(order);
     }
 
     private void internalPlaceOrder(Long accountId, Order order){

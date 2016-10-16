@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
-import ru.inheaven.aida.happy.trading.util.QuranRandom;
 import ru.inheaven.aida.happy.trading.util.TorahRandom;
 import ru.inheaven.aida.happy.trading.util.TradeUtil;
 import rx.Observable;
@@ -136,7 +135,7 @@ public class LevelStrategy extends BaseStrategy{
             }
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 22, 54, 365, 12, 4, 1000);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 22, 52, 365, 12, 4, 1000);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
             try {
@@ -356,13 +355,13 @@ public class LevelStrategy extends BaseStrategy{
 
             if (!getOrderMap().contains(buyPrice, spread, BID) && !getOrderMap().contains(sellPrice, spread, ASK)){
                 double q1 = TorahRandom.nextDouble();
-                double q2 = QuranRandom.nextDouble();
+                double q2 = TorahRandom.nextDouble();
                 double max = Math.max(q1, q2);
                 double min = Math.min(q1, q2);
 
                 //shuffle
-                max = max * (random.nextDouble()/5 + 0.9);
-                min = min * (random.nextDouble()/5 + 0.9);
+                max = max * (random.nextDouble()/33 + 1);
+                min = min * (random.nextDouble()/33 + 1);
 
 //                if (forecast > 0 == balance){
 //                    double abs = Math.abs(forecast);
@@ -421,15 +420,7 @@ public class LevelStrategy extends BaseStrategy{
                 BigDecimal freeBtc = userInfoService.getVolume("free", strategy.getAccount().getId(), "BTC");
                 BigDecimal freeCny = userInfoService.getVolume("free", strategy.getAccount().getId(), "CNY");
 
-                if (strategy.isLevelInverse()) {
-                    if (freeBtc.compareTo(sellAmount.multiply(BD_2)) > 0){
-                        createOrderSync(sellOrder);
-                    }
-
-                    if (freeCny.compareTo(buyAmount.multiply(buyPrice).multiply(BD_2)) > 0){
-                        createOrderSync(buyOrder);
-                    }
-                }else{
+                if (q1 > q2 == buyAmount.compareTo(sellAmount) > 0){
                     if (freeCny.compareTo(buyAmount.multiply(buyPrice).multiply(BD_2)) > 0){
                         createOrderSync(buyOrder);
                     }
@@ -463,7 +454,7 @@ public class LevelStrategy extends BaseStrategy{
 //            }
 //        });
 
-        tradeBuffer.buffer(4096, 8).filter(b -> !b.isEmpty()).forEach(b -> {
+        tradeBuffer.buffer(1460, 4).filter(b -> !b.isEmpty()).forEach(b -> {
             try {
                 lastAvgPrice.set(TradeUtil.avg(b));
             } catch (Exception e) {
@@ -522,7 +513,7 @@ public class LevelStrategy extends BaseStrategy{
 
             //spread
             spreadPrices.add(trade.getPrice().doubleValue());
-            if (spreadPrices.size() > 4096){
+            if (spreadPrices.size() > 1460){
                 spreadPrices.removeFirst();
             }
 
