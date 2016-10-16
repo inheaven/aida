@@ -428,7 +428,14 @@ public class LevelStrategy extends BaseStrategy{
                     if (freeBtc.compareTo(sellAmount.multiply(BD_2)) > 0){
                         createOrderSync(sellOrder);
                     }
+                }else{
+                    if (freeBtc.compareTo(sellAmount.multiply(BD_2)) > 0){
+                        createOrderSync(sellOrder);
+                    }
 
+                    if (freeCny.compareTo(buyAmount.multiply(buyPrice).multiply(BD_2)) > 0){
+                        createOrderSync(buyOrder);
+                    }
                 }
 
                 lastBuyPrice.set(buyPrice);
