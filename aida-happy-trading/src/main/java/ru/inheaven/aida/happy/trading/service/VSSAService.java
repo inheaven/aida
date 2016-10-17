@@ -61,6 +61,10 @@ public class VSSAService {
 
                 double[] prices = getPrices(trades);
 
+                for (int i = prices.length - N; i < prices.length; ++i){
+                    pricesExecute.add(prices[i]);
+                }
+
                 log.info("trades load " + trades.size());
 
                 vssaBoost.fit(prices);
