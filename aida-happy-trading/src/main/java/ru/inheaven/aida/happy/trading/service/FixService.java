@@ -114,22 +114,23 @@ public class FixService {
         IP地址 : 45.115.36.120
         */
 
-        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
-            try {
-                Order order = orderQueue.poll();
-
-                if (order != null){
-                    internalPlaceOrder(order.getAccountId(), order);
-                }
-            } catch (Exception e) {
-                log.error("error queue place order", e);
-            }
-        },0, 128, TimeUnit.MILLISECONDS);
+//        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
+//            try {
+//                Order order = orderQueue.poll();
+//
+//                if (order != null){
+//                    internalPlaceOrder(order.getAccountId(), order);
+//                }
+//            } catch (Exception e) {
+//                log.error("error queue place order", e);
+//            }
+//        },0, 128, TimeUnit.MILLISECONDS);
     }
 
 
     public void placeLimitOrder(Long accountId, Order order){
-        orderQueue.add(order);
+//        orderQueue.add(order);
+        internalPlaceOrder(accountId, order);
     }
 
     private void internalPlaceOrder(Long accountId, Order order){

@@ -135,7 +135,7 @@ public class LevelStrategy extends BaseStrategy{
             }
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 22, 52, 365, 12, 4, 1000);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 3, 100, 666, 12, 28, 1000);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
             try {
@@ -252,7 +252,7 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal price = lastAvgPrice.get().compareTo(ZERO) > 0 ? lastAvgPrice.get() : lastTrade.get();
 
             if (subtotalBtc.compareTo(ZERO) > 0 && price.compareTo(ZERO) > 0) {
-                balance.set(subtotalCny.divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(BD_2_14) > 0);
+                balance.set(subtotalCny.divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(BD_2) > 0);
             }
 
             lastBalanceTime.set(System.currentTimeMillis());
@@ -317,7 +317,7 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal total = userInfoService.getVolume("total", strategy.getAccount().getId(), null);
 
         if (total != null && total.compareTo(ZERO) > 0 && price != null && price.compareTo(ZERO) > 0){
-            return BigDecimal.valueOf(stdDev.get()*2*Math.PI)
+            return BigDecimal.valueOf(stdDev.get()*4*Math.PI)
                     .multiply(strategy.getLevelLot())
                     .multiply(price)
                     .divide(total, 8, HALF_EVEN);
@@ -417,25 +417,12 @@ public class LevelStrategy extends BaseStrategy{
                 sellOrder.setForecast(forecast);
                 sellOrder.setBalance(balance);
 
-                BigDecimal freeBtc = userInfoService.getVolume("free", strategy.getAccount().getId(), "BTC");
-                BigDecimal freeCny = userInfoService.getVolume("free", strategy.getAccount().getId(), "CNY");
-
                 if (q1 > q2 == buyAmount.compareTo(sellAmount) > 0){
-                    if (freeCny.compareTo(buyAmount.multiply(buyPrice).multiply(BD_2)) > 0){
-                        createOrderSync(buyOrder);
-                    }
-
-                    if (freeBtc.compareTo(sellAmount.multiply(BD_2)) > 0){
-                        createOrderSync(sellOrder);
-                    }
+                    createOrderSync(buyOrder);
+                    createOrderSync(sellOrder);
                 }else{
-                    if (freeBtc.compareTo(sellAmount.multiply(BD_2)) > 0){
-                        createOrderSync(sellOrder);
-                    }
-
-                    if (freeCny.compareTo(buyAmount.multiply(buyPrice).multiply(BD_2)) > 0){
-                        createOrderSync(buyOrder);
-                    }
+                    createOrderSync(sellOrder);
+                    createOrderSync(buyOrder);
                 }
 
                 lastBuyPrice.set(buyPrice);
@@ -461,7 +448,7 @@ public class LevelStrategy extends BaseStrategy{
 //            }
 //        });
 
-        tradeBuffer.buffer(1460, 4).filter(b -> !b.isEmpty()).forEach(b -> {
+        tradeBuffer.buffer(4380, 4).filter(b -> !b.isEmpty()).forEach(b -> {
             try {
                 lastAvgPrice.set(TradeUtil.avg(b));
             } catch (Exception e) {
@@ -520,7 +507,7 @@ public class LevelStrategy extends BaseStrategy{
 
             //spread
             spreadPrices.add(trade.getPrice().doubleValue());
-            if (spreadPrices.size() > 1460){
+            if (spreadPrices.size() > 4380){
                 spreadPrices.removeFirst();
             }
 

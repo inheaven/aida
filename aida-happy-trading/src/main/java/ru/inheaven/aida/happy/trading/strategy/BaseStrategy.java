@@ -685,11 +685,11 @@ public class BaseStrategy {
     }
 
     public boolean isBidRefused(){
-        return System.currentTimeMillis() - bidRefusedTime.get() < 1000;
+        return System.currentTimeMillis() - bidRefusedTime.get() < 125;
     }
 
     public boolean isAskRefused(){
-        return System.currentTimeMillis() - askRefusedTime.get() < 1000;
+        return System.currentTimeMillis() - askRefusedTime.get() < 125;
     }
 
     public AtomicReference<BigDecimal> getSellPrice() {

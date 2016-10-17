@@ -11,11 +11,9 @@ import ru.inhell.aida.ssa.VSSABoost;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author inheaven on 20.06.2016.
@@ -23,7 +21,8 @@ import java.util.concurrent.atomic.AtomicLong;
 public class VSSAService {
     private final Logger log = LoggerFactory.getLogger(VSSAService.class);
 
-    private Deque<Double> prices = new ConcurrentLinkedDeque<>();
+    private Deque<Double> pricesExecute = new ConcurrentLinkedDeque<>();
+    private Deque<Double> pricesFit = new ConcurrentLinkedDeque<>();
 
     private Deque<Trade> tradesBuffer = new ConcurrentLinkedDeque<>();
 
@@ -62,10 +61,6 @@ public class VSSAService {
 
                 double[] prices = getPrices(trades);
 
-                for (double price : prices){
-                    this.prices.add(price);
-                }
-
                 log.info("trades load " + trades.size());
 
                 vssaBoost.fit(prices);
@@ -75,53 +70,46 @@ public class VSSAService {
                 log.error("error trades load", e);
             }
         });
-    }
 
-    private AtomicLong index = new AtomicLong(0);
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
+            try {
+                if (loaded.get() && pricesExecute.size() >= N) {
+                    double f = execute();
+
+                    if (f != 0){
+                        forecast.set(f);
+                    }
+                }
+            } catch (Exception e) {
+                log.error("error schedule execute", e);
+            }
+        }, 0, execute, TimeUnit.MILLISECONDS);
+    }
 
     private AtomicDouble forecast = new AtomicDouble(0);
 
-    private AtomicLong lastExecute = new AtomicLong(System.currentTimeMillis());
-
-    private Semaphore semaphore = new Semaphore(1);
-
-    private Executor executor = Executors.newWorkStealingPool();
-
     public void add(Trade trade){
         try {
-            //lock
-            semaphore.acquire();
-
             tradesBuffer.add(trade);
 
             if (tradesBuffer.size() >= window){
                 double[] prices = getPrices(tradesBuffer);
 
                 for (double price : prices){
-                    this.prices.add(price);
+                    pricesFit.add(price);
+                    pricesExecute.add(price);
                 }
 
                 tradesBuffer.clear();
-
-                if (loaded.get() && System.currentTimeMillis() - lastExecute.get() > execute && this.prices.size() > N) {
-                    lastExecute.set(System.currentTimeMillis());
-
-                    executor.execute(() -> {
-                        double f = execute();
-
-                        if (f != 0){
-                            forecast.set(f);
-                        }
-                    });
-                }
             }
 
-            if (prices.size() > 10*N){
-                prices.removeFirst();
+            if (pricesExecute.size() > N){
+                pricesExecute.pollFirst();
             }
 
-            //release
-            semaphore.release();
+            if (pricesFit.size() > 100*N){
+                pricesFit.pollFirst();
+            }
         } catch (Exception e) {
             log.error("error add", e);
         }
@@ -167,7 +155,7 @@ public class VSSAService {
 
     public void fit(){
         if (loaded.get()) {
-            vssaBoost.fit(Doubles.toArray(prices));
+            vssaBoost.fit(Doubles.toArray(pricesFit));
         }
     }
 
@@ -181,7 +169,7 @@ public class VSSAService {
 
             executing.set(true);
 
-            return loaded.get() ? vssaBoost.execute(Doubles.toArray(prices)) : 0;
+            return loaded.get() ? vssaBoost.execute(Doubles.toArray(pricesExecute)) : 0;
         } catch (Exception e) {
             log.error("error execute", e);
 
@@ -197,22 +185,5 @@ public class VSSAService {
 
     public double getForecast(){
         return forecast.get();
-    }
-
-    public static void main(String[] args){
-        ConcurrentLinkedDeque<Double> test = new ConcurrentLinkedDeque<>();
-
-        test.add(1.0);
-        test.add(2.0);
-        test.add(3.0);
-
-        System.out.println(test);
-        System.out.println(test.getFirst());
-        System.out.println(test.getLast());
-
-        for (Iterator<Double> it = test.descendingIterator(); it.hasNext();){
-            System.out.println(it.next());
-        }
-
     }
 }

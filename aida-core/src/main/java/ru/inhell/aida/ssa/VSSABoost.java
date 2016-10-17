@@ -42,6 +42,8 @@ public class VSSABoost {
         M = m;
     }
 
+    private ExecutorService executor = Executors.newCachedThreadPool();
+
     public void fit(double[] series){
         if (fitting.get()){
             return;
@@ -56,22 +58,18 @@ public class VSSABoost {
 
         Queue<VSSA> fitQueue = new ConcurrentLinkedQueue<>();
 
-        ExecutorService executor = Executors.newWorkStealingPool();
-
-        Runnable boost = () -> {
-            for (int v = 0; v < MAX_VSSA_ITERATION; v++){
-                boost(series, random, localQueue, fitQueue);
-
-                if (fitQueue.size() >= vssaCount || !fitting.get()){
-                    break;
-                }
-            }
-        };
-
         List<Future> futures = new ArrayList<>();
 
         for (int p = 0; p < Runtime.getRuntime().availableProcessors()/2; ++p){
-            futures.add(executor.submit(boost));
+            futures.add(executor.submit(() -> {
+                for (int v = 0; v < MAX_VSSA_ITERATION; v++){
+                    boost(series, random, localQueue, fitQueue);
+
+                    if (fitQueue.size() >= vssaCount || !fitting.get()){
+                        break;
+                    }
+                }
+            }));
         }
 
         futures.forEach(f -> {
@@ -134,6 +132,10 @@ public class VSSABoost {
 
             if (Double.isNaN(forecast) || (int)Math.signum(test) != (int)Math.signum(forecast)){
                 error++;
+            }
+
+            if (fitQueue.size() >= vssaCount || !fitting.get()){
+                return;
             }
         }
 
