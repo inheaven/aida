@@ -1,5 +1,6 @@
 package ru.inheaven.aida.backtest;
 
+import com.google.common.primitives.Doubles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.ujmp.core.util.UJMPSettings;
@@ -81,7 +82,7 @@ public class VSSABoostSymTest {
             for (int f = 0; f < 100; ++f) {
                 long t = System.currentTimeMillis();
 
-                vssaBoost.fit(train);
+                vssaBoost.fit(Doubles.asList(train));
 
                 log.info("fit " + (System.currentTimeMillis() - t));
 

@@ -44,7 +44,7 @@ public class VSSABoost {
 
     private ExecutorService executor = Executors.newCachedThreadPool();
 
-    public void fit(double[] series){
+    public void fit(List<Double> series){
         if (fitting.get()){
             return;
         }
@@ -91,7 +91,7 @@ public class VSSABoost {
         fitting.set(false);
     }
 
-    private void boost(double[] series, Random random, Queue<VSSA> localQueue, Queue<VSSA> fitQueue) {
+    private void boost(List<Double> series, Random random, Queue<VSSA> localQueue, Queue<VSSA> fitQueue) {
         int N;
 
         VSSA vssa;
@@ -115,7 +115,7 @@ public class VSSABoost {
         int error = 0;
 
         for (int t = 0; t < trainCount; ++t){
-            int size = series.length - N - M;
+            int size = series.size() - N - M;
 
             if (size < 0) size = 0;
 
@@ -123,12 +123,14 @@ public class VSSABoost {
 
             double[] train = new double[N];
 
-            System.arraycopy(series, start, train, 0, N);
+            for (int i = 0; i < train.length; ++i){
+                train[i] = series.get(start + i);
+            }
 
             double[] forecasts = vssa.execute(train);
 
             double forecast = getTarget(forecasts, N, M) - forecasts[N - 1];
-            double test = getTarget(series, start + N, M) - series[start + N - 1];
+            double test = getTarget(series, start + N, M) - series.get(start + N - 1);
 
             if (Double.isNaN(forecast) || (int)Math.signum(test) != (int)Math.signum(forecast)){
                 error++;
@@ -177,6 +179,10 @@ public class VSSABoost {
         }
 
         return forecast;
+    }
+
+    public double getTarget(List<Double> series, int start, int size){
+        return series.get(start + size - 1);
     }
 
     public double getTarget(double[] series, int start, int size){

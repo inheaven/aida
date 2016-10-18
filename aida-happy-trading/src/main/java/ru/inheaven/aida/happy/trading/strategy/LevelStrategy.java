@@ -169,7 +169,7 @@ public class LevelStrategy extends BaseStrategy{
 
                 log.error("error sideSpread", e);
             }
-        }, 0, 1, TimeUnit.HOURS);
+        }, 0, 15, TimeUnit.MINUTES);
     }
 
     private Executor executor = Executors.newCachedThreadPool();
@@ -448,7 +448,7 @@ public class LevelStrategy extends BaseStrategy{
 //            }
 //        });
 
-        tradeBuffer.buffer(4380, 4).filter(b -> !b.isEmpty()).forEach(b -> {
+        tradeBuffer.buffer(10000, 28).filter(b -> !b.isEmpty()).forEach(b -> {
             try {
                 lastAvgPrice.set(TradeUtil.avg(b));
             } catch (Exception e) {
@@ -507,7 +507,7 @@ public class LevelStrategy extends BaseStrategy{
 
             //spread
             spreadPrices.add(trade.getPrice().doubleValue());
-            if (spreadPrices.size() > 4380){
+            if (spreadPrices.size() > 10000){
                 spreadPrices.removeFirst();
             }
 

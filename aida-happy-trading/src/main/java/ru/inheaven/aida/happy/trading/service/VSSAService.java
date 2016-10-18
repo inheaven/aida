@@ -59,10 +59,10 @@ public class VSSAService {
                     }
                 }
 
-                double[] prices = getPrices(trades);
+                List<Double> prices = getPrices(trades);
 
-                for (int i = prices.length - N; i < prices.length; ++i){
-                    pricesExecute.add(prices[i]);
+                for (int i = prices.size() - N; i < prices.size(); ++i){
+                    pricesExecute.add(prices.get(i));
                 }
 
                 log.info("trades load " + trades.size());
@@ -97,7 +97,7 @@ public class VSSAService {
             tradesBuffer.add(trade);
 
             if (tradesBuffer.size() >= window){
-                double[] prices = getPrices(tradesBuffer);
+                List<Double> prices = getPrices(tradesBuffer);
 
                 for (double price : prices){
                     pricesFit.add(price);
@@ -105,22 +105,22 @@ public class VSSAService {
                 }
 
                 tradesBuffer.clear();
-            }
 
-            if (pricesExecute.size() > N){
-                pricesExecute.pollFirst();
-            }
+                if (pricesExecute.size() > N){
+                    pricesExecute.pollFirst();
+                }
 
-            if (pricesFit.size() > 100*N){
-                pricesFit.pollFirst();
+                if (pricesFit.size() > 100*N){
+                    pricesFit.pollFirst();
+                }
             }
         } catch (Exception e) {
             log.error("error add", e);
         }
     }
 
-    private double[] getPrices(Deque<Trade> trades){
-        List<Double> pricesD = new ArrayList<>();
+    private List<Double> getPrices(Deque<Trade> trades){
+        List<Double> prices = new ArrayList<>();
         List<Trade> avg = new ArrayList<>();
 
         for (Iterator<Trade> it = trades.descendingIterator(); it.hasNext();){
@@ -141,17 +141,11 @@ public class VSSAService {
                 }
 
                 if (priceSum > 0 && volumeSum > 0) {
-                    pricesD.add(0, priceSum/volumeSum);
+                    prices.add(0, priceSum/volumeSum);
                 }
 
                 avg.clear();
             }
-        }
-
-        double[] prices = new double[pricesD.size()];
-
-        for (int i = 0; i < prices.length; ++i){
-            prices[i] = pricesD.get(i);
         }
 
         return prices;
@@ -159,7 +153,7 @@ public class VSSAService {
 
     public void fit(){
         if (loaded.get()) {
-            vssaBoost.fit(Doubles.toArray(pricesFit));
+            vssaBoost.fit(new ArrayList<>(pricesFit));
         }
     }
 
