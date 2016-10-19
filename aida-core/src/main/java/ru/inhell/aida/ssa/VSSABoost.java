@@ -63,7 +63,11 @@ public class VSSABoost {
         for (int p = 0; p < Runtime.getRuntime().availableProcessors()/2; ++p){
             futures.add(executor.submit(() -> {
                 for (int v = 0; v < MAX_VSSA_ITERATION; v++){
-                    boost(series, random, localQueue, fitQueue);
+                    try {
+                        boost(series, random, localQueue, fitQueue);
+                    } catch (Exception e) {
+                        log.error("error boost iteration", e);
+                    }
 
                     if (fitQueue.size() >= vssaCount || !fitting.get()){
                         break;
@@ -100,8 +104,8 @@ public class VSSABoost {
         if (local == null) {
             //150*sin(2*3.14*x/150), x from 0 to 150
 
-            N = random.nextInt(this.N - 64) + 64;
-            int L = N/2; //random.nextInt(N/2 - M - 1) + M + 1;
+            N = random.nextInt(this.N - 2*M - 4) + 2*M + 4;
+            int L = random.nextInt(N/2 - M - 1) + M + 1;
             int P = random.nextInt(L - 1) + 1;
 
             vssa = new VSSA(N, L, P, M);
