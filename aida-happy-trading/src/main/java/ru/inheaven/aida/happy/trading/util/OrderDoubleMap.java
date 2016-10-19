@@ -140,4 +140,8 @@ public class OrderDoubleMap {
     public ConcurrentNavigableMap<Double, Map<String, Order>> getAskMap() {
         return askMap;
     }
+
+    public ConcurrentHashMap<String, Order> getIdMap() {
+        return idMap;
+    }
 }

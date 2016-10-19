@@ -24,6 +24,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_EVEN;
@@ -385,6 +386,25 @@ public class BaseStrategy {
 
             return order;
         });
+    }
+
+    protected void cancelOrder50(){
+        List<String> openOrders = orderMap.getIdMap().values().stream()
+                .filter(o -> OPEN.equals(o.getStatus()))
+                .map(Order::getOrderId)
+                .collect(Collectors.toList());
+
+        if (openOrders.size() > 45){
+            openOrders.sort(Comparator.naturalOrder());
+
+            openOrders.subList(0, 5).forEach(id -> {
+                try {
+                    orderService.cancelOrder(strategy.getAccount(), orderMap.get(id));
+                } catch (Exception e) {
+                    log.error("error cancel order 50", e);
+                }
+            });
+        }
     }
 
     @SuppressWarnings("Duplicates")

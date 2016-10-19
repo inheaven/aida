@@ -124,7 +124,7 @@ public class FixService {
             } catch (Exception e) {
                 log.error("error queue place order", e);
             }
-        },0, 128, TimeUnit.MILLISECONDS);
+        },0, 250, TimeUnit.MILLISECONDS);
     }
 
 
