@@ -33,12 +33,15 @@ public class VSSAService {
 
     private long execute;
 
+    private int vssaCount;
+
     private AtomicBoolean loaded = new AtomicBoolean(false);
 
     public VSSAService(String symbol, OrderType orderType, double threshold, int vssaCount, int trainCount, int N, int M, int window, long execute) {
         this.N = N;
         this.window = window;
         this.execute = execute;
+        this.vssaCount = vssaCount;
 
         vssaBoost = new VSSABoost(threshold, vssaCount, trainCount, N, M);
 
@@ -183,5 +186,9 @@ public class VSSAService {
 
     public double getForecast(){
         return forecast.get();
+    }
+
+    public int getVssaCount() {
+        return vssaCount;
     }
 }

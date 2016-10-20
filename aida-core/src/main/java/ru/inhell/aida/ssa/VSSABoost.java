@@ -123,7 +123,7 @@ public class VSSABoost {
 
             if (size < 0) size = 0;
 
-            int start = random.nextInt(size + 1);
+            int start = random.nextInt(size);
 
             double[] train = new double[N];
 

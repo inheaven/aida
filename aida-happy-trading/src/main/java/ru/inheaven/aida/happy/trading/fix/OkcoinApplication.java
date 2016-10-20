@@ -161,7 +161,7 @@ public abstract class OkcoinApplication extends BaseApplication{
     }
 
     private SessionID nextSessionID(){
-        return sessionIds.get((int) (index.get() % sessionIds.size()));
+        return sessionIds.get((int) (index.incrementAndGet() % sessionIds.size()));
     }
 
     public void placeOrder(Order order) {

@@ -399,7 +399,10 @@ public class BaseStrategy {
 
             openOrders.subList(0, 5).forEach(id -> {
                 try {
-                    orderService.cancelOrder(strategy.getAccount(), orderMap.get(id));
+                    Order order = orderMap.get(id);
+                    order.setStatus(CANCELED);
+
+                    orderService.cancelOrder(strategy.getAccount(), order);
                 } catch (Exception e) {
                     log.error("error cancel order 50", e);
                 }

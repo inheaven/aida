@@ -59,6 +59,7 @@ public class LevelStrategy extends BaseStrategy{
     private final static BigDecimal BD_0_33 = new BigDecimal("0.33");
     private final static BigDecimal BD_0_66 = new BigDecimal("0.66");
     private final static BigDecimal BD_0_01 = new BigDecimal("0.01");
+    private final static BigDecimal BD_0_03 = new BigDecimal("0.03");
     private final static BigDecimal BD_0_04 = new BigDecimal("0.04");
     private final static BigDecimal BD_0_05 = new BigDecimal("0.05");
     private final static BigDecimal BD_0_001 = new BigDecimal("0.001");
@@ -355,10 +356,10 @@ public class LevelStrategy extends BaseStrategy{
 
             BigDecimal spread = scale(getSpread(price));
 
-            BigDecimal priceF = scale(forecast > 0 ? price.add(BD_0_04) : price.subtract(BD_0_04));
+//            BigDecimal priceF = scale(forecast > 0 ? price.add(BD_0_01) : price.subtract(BD_0_01));
 
-            BigDecimal buyPrice = scale(forecast > 0 ? priceF : priceF.subtract(spread));
-            BigDecimal sellPrice = scale(forecast > 0 ? priceF.add(spread) : priceF);
+            BigDecimal buyPrice = scale(forecast > 0 ? price : price.subtract(spread));
+            BigDecimal sellPrice = scale(forecast > 0 ? price.add(spread) : price);
 
             if (!getOrderMap().contains(buyPrice, spread, BID) && !getOrderMap().contains(sellPrice, spread, ASK)){
                 double q1 = TorahRandom.nextDouble();
@@ -405,10 +406,10 @@ public class LevelStrategy extends BaseStrategy{
 //                }
 
                 //less
-                if (buyAmount.compareTo(BD_0_01) < 0 || getForecast() < -9){
+                if (buyAmount.compareTo(BD_0_01) < 0){
                     buyAmount = BD_0_01;
                 }
-                if (sellAmount.compareTo(BD_0_01) < 0 || getForecast() > 9){
+                if (sellAmount.compareTo(BD_0_01) < 0){
                     sellAmount = BD_0_01;
                 }
 
