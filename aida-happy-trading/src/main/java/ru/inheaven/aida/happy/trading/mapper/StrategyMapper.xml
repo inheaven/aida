@@ -46,4 +46,9 @@
     <select id="selectStrategies" resultMap="strategy">
         select * from strategy
     </select>
+
+    <select id="selectStrategy" resultMap="strategy">
+        select * from strategy where id = #{id}
+    </select>
+
 </mapper>

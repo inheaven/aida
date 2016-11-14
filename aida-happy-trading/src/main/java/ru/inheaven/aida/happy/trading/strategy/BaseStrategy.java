@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
+import ru.inheaven.aida.happy.trading.mapper.StrategyMapper;
 import ru.inheaven.aida.happy.trading.service.*;
 import ru.inheaven.aida.happy.trading.util.OrderDoubleMap;
 import rx.Observable;
@@ -117,6 +118,11 @@ public class BaseStrategy {
         }else{
             volSuffix = "";
         }
+
+        //update strategy
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
+            BaseStrategy.this.strategy = Module.getInjector().getInstance(StrategyMapper.class).getStrategy(strategy.getId());
+        }, 1, 1, MINUTES);
     }
 
     public boolean isVol() {

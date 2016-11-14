@@ -121,7 +121,7 @@ public class VSSABoost {
         for (int t = 0; t < trainCount; ++t){
             int size = series.size() - N - M;
 
-            if (size < 0) size = 0;
+            if (size < 1) size = 1;
 
             int start = random.nextInt(size);
 
@@ -153,7 +153,7 @@ public class VSSABoost {
 
             log.info(fitQueue.size() + " " + trainError + " " + vssa.getName() + " " + vssa.getIndex());
         }else{
-            vssa.setIndex(vssa.getIndex() - 1);
+            vssa.setIndex(vssa.getIndex() - 2);
 
             if (vssa.getIndex() > 0){
                 fitQueue.add(vssa);

@@ -15,4 +15,8 @@ public class StrategyMapper extends BaseMapper<Strategy> {
     public List<Strategy> getStrategies(){
         return sqlSession().selectList("selectStrategies");
     }
+
+    public Strategy getStrategy(Long id){
+        return sqlSession().selectOne("selectStrategy", id);
+    }
 }
