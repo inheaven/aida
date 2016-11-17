@@ -121,7 +121,11 @@ public class BaseStrategy {
 
         //update strategy
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
-            BaseStrategy.this.strategy = Module.getInjector().getInstance(StrategyMapper.class).getStrategy(strategy.getId());
+            try {
+                BaseStrategy.this.strategy = Module.getInjector().getInstance(StrategyMapper.class).getStrategy(strategy.getId());
+            } catch (Exception e) {
+                log.error("error update strategy", e);
+            }
         }, 1, 1, MINUTES);
     }
 
@@ -284,54 +288,7 @@ public class BaseStrategy {
             }, 0, 60, SECONDS);
         }
 
-        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(
-                () -> orderMap.forEach((id, o) -> {
-                    try {
-                        if (lastPrice != null && lastPrice.get() != null && o.getStatus().equals(OPEN)) {
-                            boolean cancel = false;
-
-                            switch (o.getSymbol()) {
-//                                case "BTC/CNY":
-//                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("10"))  > 0) {
-//                                        cancel = true;
-//                                    }
-//                                    break;
-//                                case "LTC/CNY'":
-//                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("0.5")) > 0) {
-//                                        cancel = true;
-//                                    }
-//                                    break;
-                                case "BTC/USD":
-                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("1"))  > 0) {
-                                        cancel = true;
-                                    }
-                                    break;
-                                case "LTC/USD":
-                                    if (o.getPrice().subtract(lastPrice.get()).abs().compareTo(new BigDecimal("0.3")) > 0) {
-                                        cancel = true;
-                                    }
-                                    break;
-
-                                default:
-                                    cancel = lastPrice.get().subtract(o.getPrice()).abs().divide(o.getPrice(), 8, HALF_EVEN)
-                                            .compareTo(new BigDecimal("0.1")) > 0;
-                            }
-
-                            if (cancel) {
-                                orderService.cancelOrder(strategy.getAccount(), o);
-
-                                if (strategy.getSymbol().equals("BTC/CNY")){
-                                    o.setStatus(CANCELED);
-                                }else {
-                                    o.setStatus(WAIT);
-                                }
-                            }
-                        }
-                    } catch (Exception e) {
-                        log.error("error cancel order -> {}", o, e);
-                    }
-
-                }), 0, 10, SECONDS);
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(this::cancelOrder50, 0, 10, SECONDS);
 
         flying = true;
     }
@@ -652,7 +609,7 @@ public class BaseStrategy {
                     getWindow(),
                     scale(userInfoService.getVolume("subtotal", strategy.getAccount().getId(), "BTC")),
                     scale(userInfoService.getVolume("subtotal", strategy.getAccount().getId(), "CNY")),
-                    userInfoService.getVolume("total", strategy.getAccount().getId(), null),
+                    userInfoService.getVolume("net", strategy.getAccount().getId(), null),
                     getProfit().setScale(3, HALF_EVEN),
                     BigDecimal.valueOf(o.getForecast()).setScale(3, HALF_EVEN),
                     o.isBalance() ? "↑" : "↓",

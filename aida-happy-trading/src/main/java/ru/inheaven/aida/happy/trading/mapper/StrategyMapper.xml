@@ -47,7 +47,7 @@
         select * from strategy
     </select>
 
-    <select id="selectStrategy" resultMap="strategy">
+    <select id="selectStrategy" resultMap="strategy" parameterType="long">
         select * from strategy where id = #{id}
     </select>
 

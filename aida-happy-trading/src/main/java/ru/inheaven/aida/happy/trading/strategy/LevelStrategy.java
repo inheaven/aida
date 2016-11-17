@@ -92,8 +92,6 @@ public class LevelStrategy extends BaseStrategy{
 
     private Deque<BigDecimal> actionPrices = new ConcurrentLinkedDeque<>();
 
-    private BigDecimal sideSpread;
-
     public LevelStrategy(StrategyService strategyService, Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                          DepthService depthService, UserInfoService userInfoService,  XChangeService xChangeService) {
         super(strategy, orderService, orderMapper, tradeService, depthService, xChangeService);
@@ -161,19 +159,6 @@ public class LevelStrategy extends BaseStrategy{
                 log.error("error stdDev", e);
             }
         }, 5, 1, TimeUnit.SECONDS);
-
-        sideSpread = strategy.getLevelSideSpread();
-
-        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
-            try {
-                sideSpread = strategy.getLevelSideSpread().multiply(BigDecimal.valueOf(random.nextDouble() + 1));
-
-            } catch (Exception e) {
-                sideSpread = strategy.getLevelSideSpread();
-
-                log.error("error sideSpread", e);
-            }
-        }, 0, 1, TimeUnit.HOURS);
     }
 
     private Executor executor = Executors.newCachedThreadPool();
@@ -248,15 +233,16 @@ public class LevelStrategy extends BaseStrategy{
     private AtomicBoolean balance = new AtomicBoolean(true);
 
     protected boolean getSpotBalance(){
-        if (System.currentTimeMillis() - lastBalanceTime.get() >= window.get()){
+        if (System.currentTimeMillis() - lastBalanceTime.get() >= 5000){
             String[] symbol = getStrategy().getSymbol().split("/");
             BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", getStrategy().getAccount().getId(), symbol[0]);
             BigDecimal subtotalCny = userInfoService.getVolume("subtotal", getStrategy().getAccount().getId(), symbol[1]);
+            BigDecimal net = userInfoService.getVolume("net", getStrategy().getAccount().getId(), null);
 
             BigDecimal price = lastAvgPrice.get().compareTo(ZERO) > 0 ? lastAvgPrice.get() : lastTrade.get();
 
             if (subtotalBtc.compareTo(ZERO) > 0 && price.compareTo(ZERO) > 0) {
-                balance.set(subtotalCny.divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(BD_2) > 0);
+                balance.set(net.divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(ONE) > 0);
             }
 
             lastBalanceTime.set(System.currentTimeMillis());
@@ -312,7 +298,9 @@ public class LevelStrategy extends BaseStrategy{
 
 
     private BigDecimal getSideSpread(BigDecimal price){
-        BigDecimal sp = getStrategy().getSymbolType() == null ? sideSpread.multiply(price) : sideSpread;
+        BigDecimal sp = getStrategy().getSymbolType() == null
+                ? getStrategy().getLevelSideSpread().multiply(price)
+                : getStrategy().getLevelSideSpread();
 
         return sp.compareTo(getStep()) > 0 ? sp : getStep();
     }
@@ -321,7 +309,7 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal total = userInfoService.getVolume("total", getStrategy().getAccount().getId(), null);
 
         if (total != null && total.compareTo(ZERO) > 0 && price != null && price.compareTo(ZERO) > 0){
-            return BigDecimal.valueOf(stdDev.get()*8*Math.PI)
+            return BigDecimal.valueOf(stdDev.get()*10*Math.PI)
                     .multiply(getStrategy().getLevelLot())
                     .multiply(price)
                     .divide(total, 8, HALF_EVEN);
@@ -420,8 +408,6 @@ public class LevelStrategy extends BaseStrategy{
                 sellOrder.setSpread(spread);
                 sellOrder.setForecast(forecast);
                 sellOrder.setBalance(balance);
-
-                cancelOrder50();
 
                 //q1 > q2 == buyAmount.compareTo(sellAmount) > 0
 
