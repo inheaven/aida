@@ -17,10 +17,8 @@ import rx.subjects.Subject;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.math.BigDecimal;
-import java.security.SecureRandom;
 import java.util.Date;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -41,24 +39,23 @@ public class UserInfoService {
     private UserInfoMapper userInfoMapper;
     private UserInfoTotalMapper userInfoTotalMapper;
     private BroadcastService broadcastService;
+    private InfluxService influxService;
 
     private Subject<UserInfo, UserInfo> userInfoSubject = PublishSubject.create();
 
     private Map<String, BigDecimal> valueMap = new ConcurrentHashMap<>();
-    private Map<Long, UserInfoTotal> avgMap = new ConcurrentHashMap<>();
 
-    private Random random = new SecureRandom();
 
     @Inject
     public UserInfoService(AccountMapper accountMapper, XChangeService xChangeService, UserInfoMapper userInfoMapper,
                            UserInfoTotalMapper userInfoTotalMapper, TradeService tradeService, OrderService orderService,
-                           BroadcastService broadcastService) {
+                           BroadcastService broadcastService, InfluxService influxService) {
         this.xChangeService = xChangeService;
         this.userInfoMapper = userInfoMapper;
         this.userInfoTotalMapper = userInfoTotalMapper;
         this.broadcastService = broadcastService;
+        this.influxService = influxService;
 
-        //accountMapper.getAccounts(OKCOIN).forEach(this::startOkcoinUserInfoScheduler);
         accountMapper.getAccounts(OKCOIN_CN).forEach(this::startOkcoinUserInfoScheduler);
 
         tradeService.getTradeObservable()
@@ -70,6 +67,7 @@ public class UserInfoService {
                     }
                 });
 
+        //todo move to order service
         orderService.getClosedOrderObservable()
                 .filter(o -> o.getStatus().equals(CLOSED))
                 .subscribe(o -> {
@@ -92,19 +90,9 @@ public class UserInfoService {
                         log.error("on close volume -> {}", o);
                     }
                 });
-
-        //AVG
-//        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(()->{
-//            accountMapper.getAccounts(OKCOIN).forEach(a -> avgMap.put(a.getId(), userInfoTotalMapper.getAvgUserInfoTotal10(a.getId())));
-//            accountMapper.getAccounts(OKCOIN_CN).forEach(a -> avgMap.put(a.getId(), userInfoTotalMapper.getAvgUserInfoTotal10(a.getId())));
-//        }, 0, 1, TimeUnit.MINUTES);
     }
 
-    public UserInfoTotal getAvg(Long accountId){
-        return avgMap.get(accountId);
-    }
-
-    public void setVolume(String key, Long accountId, String currency, BigDecimal volume){
+    private void setVolume(String key, Long accountId, String currency, BigDecimal volume){
         valueMap.put("volume" + key + accountId + currency, volume);
     }
 
@@ -114,7 +102,7 @@ public class UserInfoService {
         return volume != null ? volume : ZERO;
     }
 
-    public void setPrice(ExchangeType exchangeType, String symbol, SymbolType symbolType, BigDecimal price){
+    private void setPrice(ExchangeType exchangeType, String symbol, SymbolType symbolType, BigDecimal price){
         valueMap.put("price" + exchangeType.name() + symbol + symbolType, price);
     }
 
@@ -133,10 +121,6 @@ public class UserInfoService {
                         .getPollingAccountService()).getUserInfo().getInfo().getFunds();
                 saveFunds(account.getId(), "BTC_SPOT", funds.getFree().get("btc"), funds.getFreezed().get("btc"));
                 saveFunds(account.getId(), "LTC_SPOT", funds.getFree().get("ltc"), funds.getFreezed().get("ltc"));
-
-//                setVolume("subtotal", account.getId(), "BTC", funds.getFree().get("btc").add(funds.getFreezed().get("btc")));
-//                setVolume("subtotal", account.getId(), "LTC", funds.getFree().get("ltc").add(funds.getFreezed().get("ltc")));
-
                 saveFunds(account.getId(), "ASSET", funds.getAsset().get("total"), funds.getAsset().get("net"));
 
                 switch (account.getExchangeType()){
@@ -150,16 +134,11 @@ public class UserInfoService {
                                 info.getInfo().getBtcFunds().getAccountRights());
 
                         saveFunds(account.getId(), "USD_SPOT", funds.getFree().get("usd"), funds.getFreezed().get("usd"));
-//                        setVolume("subtotal", account.getId(), "USD", funds.getFree().get("usd").add(funds.getFreezed().get("usd")));
-//                        setVolume("free_spot", account.getId(), null, funds.getFree().get("usd"));
                         break;
                     case OKCOIN_CN:
                         saveTotal(account, funds.getAsset().get("net"), null, null);
 
                         saveFunds(account.getId(), "CNY_SPOT", funds.getFree().get("cny"), funds.getFreezed().get("cny"));
-//                        setVolume("subtotal", account.getId(), "CNY", funds.getFree().get("cny").add(funds.getFreezed().get("cny")));
-//                        setVolume("free_spot", account.getId(), null, funds.getFree().get("cny"));
-
                         break;
                 }
             } catch (Exception e) {
@@ -190,6 +169,14 @@ public class UserInfoService {
                         setVolume("free", account.getId(), "CNY", funds.getFree().get("cny"));
                         break;
                 }
+
+                influxService.addAccountMetric(account.getId(),
+                        getPrice(account.getExchangeType(), "BTC/CNY", null),
+                        funds.getFree().get("btc"),
+                        funds.getFree().get("btc").add(funds.getFreezed().get("btc")),
+                        funds.getAsset().get("total"),
+                        funds.getAsset().get("net"));
+
             } catch (Exception e) {
                 log.error("error user info -> ", e);
             }

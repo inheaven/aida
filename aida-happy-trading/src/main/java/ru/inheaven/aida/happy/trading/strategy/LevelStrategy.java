@@ -8,12 +8,9 @@ import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
-import rx.Observable;
-import rx.subjects.PublishSubject;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Deque;
 import java.util.Objects;
@@ -25,7 +22,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static java.math.BigDecimal.*;
+import static java.math.BigDecimal.ONE;
+import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_EVEN;
 import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CLOSED;
@@ -44,47 +42,13 @@ public class LevelStrategy extends BaseStrategy{
     private UserInfoService userInfoService;
     private TradeService tradeService;
     private OrderService orderService;
+    private InfluxService influxService;
 
     private SecureRandom random = new SecureRandom();
 
     private static AtomicLong positionIdGen = new AtomicLong(System.nanoTime());
 
-    private final static BigDecimal BD_0_1 = new BigDecimal("0.1");
-    private final static BigDecimal BD_0_5 = new BigDecimal("0.5");
-    private final static BigDecimal BD_0_8 = new BigDecimal("0.8");
-    private final static BigDecimal BD_0_25 = new BigDecimal("0.25");
-    private final static BigDecimal BD_0_33 = new BigDecimal("0.33");
-    private final static BigDecimal BD_0_66 = new BigDecimal("0.66");
-    private final static BigDecimal BD_0_01 = new BigDecimal("0.01");
-    private final static BigDecimal BD_0_03 = new BigDecimal("0.03");
-    private final static BigDecimal BD_0_04 = new BigDecimal("0.04");
-    private final static BigDecimal BD_0_05 = new BigDecimal("0.05");
-    private final static BigDecimal BD_0_001 = new BigDecimal("0.001");
-    private final static BigDecimal BD_0_002 = new BigDecimal("0.002");
-    private final static BigDecimal BD_1_1 = new BigDecimal("1.1");
-    private final static BigDecimal BD_1_2 = new BigDecimal("1.2");
-    private final static BigDecimal BD_1_33 = new BigDecimal("1.33");
-
-    private final static BigDecimal BD_2 = new BigDecimal(2);
-    private final static BigDecimal BD_2_14 = new BigDecimal(Math.PI - 1);
-    private final static BigDecimal BD_2_5 = new BigDecimal("2.5");
-    private final static BigDecimal BD_3 = new BigDecimal(3);
-    private final static BigDecimal BD_3_5 = new BigDecimal("3.5");
-    private final static BigDecimal BD_4 = new BigDecimal(4);
-    private final static BigDecimal BD_5 = new BigDecimal(5);
-    private final static BigDecimal BD_6 = new BigDecimal(6);
-    private final static BigDecimal BD_8_45 = new BigDecimal("8.45");
-    private final static BigDecimal BD_11 = new BigDecimal(11);
-    private final static BigDecimal BD_12 = new BigDecimal(12);
-
-    private final static BigDecimal BD_TWO_PI = BigDecimal.valueOf(2*Math.PI);
-    private final static BigDecimal BD_SQRT_TWO_PI = new BigDecimal("2.506628274631000502415765284811");
-    private final static BigDecimal BD_TWO_SQRT_PI = new BigDecimal("3.5449077018110320545963349666823");
-
-    private final static BigDecimal BD_PI = new BigDecimal(Math.PI);
     private Deque<Double> spreadPrices = new ConcurrentLinkedDeque<>();
-
-    private AtomicBoolean maxProfit = new AtomicBoolean();
 
     private StrategyService strategyService;
 
@@ -100,19 +64,9 @@ public class LevelStrategy extends BaseStrategy{
         this.tradeService = tradeService;
         this.orderService = orderService;
         this.strategyService = strategyService;
+        this.influxService = Module.getInjector().getInstance(InfluxService.class);
 
-        if (strategy.getSymbolType() != null) {
-            userInfoService.createUserInfoObservable(strategy.getAccount().getId(), strategy.getSymbol().substring(0, 3))
-                    .filter(u -> u.getRiskRate() != null)
-                    .subscribe(u -> {
-                        if (u.getRiskRate().compareTo(BigDecimal.valueOf(10)) < 0){
-                            risk = TEN.divide(u.getRiskRate(), 8, HALF_EVEN).pow(3).setScale(2, HALF_EVEN);
-                        }else {
-                            risk = ONE;
-                        }
-                    });
-        }
-
+        //Action
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(()-> {
             try {
                 while (true){
@@ -131,6 +85,7 @@ public class LevelStrategy extends BaseStrategy{
             }
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
+        //VSSA
         vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 22, 10, 500, 5, 550, 1000);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
@@ -143,9 +98,9 @@ public class LevelStrategy extends BaseStrategy{
             }
         }, 0, 15, TimeUnit.MINUTES);
 
+        //Std Dev
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             try {
-                //stddev
                 stdDev.set(standardDeviation.evaluate(Doubles.toArray(spreadPrices)));
 
                 int size = spreadPrices.size();
@@ -159,15 +114,26 @@ public class LevelStrategy extends BaseStrategy{
                 log.error("error stdDev", e);
             }
         }, 5, 1, TimeUnit.SECONDS);
+
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
+            try {
+                influxService.addStrategyMetric(getStrategy().getId(), getStrategy().getLevelLot(),
+                        getSpread(lastTrade.get()), getStdDev(), getSpotBalance() ? 1d : -1d, getForecast());
+            } catch (Exception e) {
+                log.error("error add strategy metric");
+            }
+        }, 5, 1, TimeUnit.SECONDS);
     }
 
     private Executor executor = Executors.newCachedThreadPool();
-    private AtomicReference<BigDecimal> lastMarket = new AtomicReference<>(ZERO);
+
+    private AtomicLong lastCloseByMarketTime = new AtomicLong(System.currentTimeMillis());
 
     private void closeByMarketAsync(BigDecimal price, Date time){
-        if (lastMarket.get().compareTo(price) != 0) {
+        if (System.currentTimeMillis() - lastCloseByMarketTime.get() > 1000) {
             executor.execute(() -> closeByMarket(price, time));
-            lastMarket.set(price);
+
+            lastCloseByMarketTime.set(System.currentTimeMillis());
         }
     }
 
@@ -183,7 +149,6 @@ public class LevelStrategy extends BaseStrategy{
                         o.setClosed(new Date());
 
                         onOrder(o);
-//                        log.info("{} CLOSE by market {} {} {} {}", o.getStrategyId(), scale(o.getPrice()), price, o.getType(), time.getTime() - o.getOpen().getTime());
                     }
                 });
             });
@@ -195,7 +160,6 @@ public class LevelStrategy extends BaseStrategy{
                         o.setClosed(new Date());
 
                         onOrder(o);
-                        //log.info("{} CLOSE by market {} {} {} {}", o.getStrategyId(), scale(o.getPrice()), price, o.getType(), time.getTime() - o.getOpen().getTime());
                     }
                 });
             });
@@ -295,8 +259,6 @@ public class LevelStrategy extends BaseStrategy{
         return spread.compareTo(sideSpread) > 0 ? spread : sideSpread;
     }
 
-
-
     private BigDecimal getSideSpread(BigDecimal price){
         BigDecimal sp = getStrategy().getSymbolType() == null
                 ? getStrategy().getLevelSideSpread().multiply(price)
@@ -318,15 +280,6 @@ public class LevelStrategy extends BaseStrategy{
         return getSideSpread(price);
     }
 
-    private final static int[] prime = {101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179,
-            181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307,
-            311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439,
-            443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541, 547, 557, 563, 569, 571, 577, 587,
-            593, 599, 601, 607, 613, 617, 619, 631, 641, 643, 647, 653, 659, 661, 673, 677, 683, 691, 701, 709, 719, 727,
-            733, 739, 743, 751, 757, 761, 769, 773, 787, 797, 809, 811, 821, 823, 827, 829, 839, 853, 857, 859, 863, 877,
-            881, 883, 887, 907, 911, 919, 929, 937, 941, 947, 953, 967, 971, 977, 983, 991, 997};
-
-
     private AtomicReference<BigDecimal> lastBuyPrice = new AtomicReference<>(ZERO);
     private AtomicReference<BigDecimal> lastSellPrice = new AtomicReference<>(ZERO);
 
@@ -340,7 +293,7 @@ public class LevelStrategy extends BaseStrategy{
 
             BigDecimal spread = scale(getSpread(price));
 
-            BigDecimal priceF = scale(forecast > 0 ? price.add(BD_0_01) : price.subtract(BD_0_01));
+            BigDecimal priceF = scale(forecast > 0 ? price.add(Const.BD_0_01) : price.subtract(Const.BD_0_01));
 
             BigDecimal buyPrice = scale(forecast > 0 ? priceF : priceF.subtract(spread));
             BigDecimal sellPrice = scale(forecast > 0 ? priceF.add(spread) : priceF);
@@ -378,23 +331,15 @@ public class LevelStrategy extends BaseStrategy{
 
                 log.info("{} "  + key + " {} {} {} {}", getStrategy().getId(), price.setScale(3, HALF_EVEN), spread, min, max);
 
-                BigDecimal buyAmount = getStrategy().getLevelLot().multiply(BigDecimal.valueOf(balance ? max : min)).add(BD_0_01);
-                BigDecimal sellAmount = getStrategy().getLevelLot().multiply(BigDecimal.valueOf(balance ? min : max)).add(BD_0_01);
-
-                //momentum
-//                if (getForecast() < -5){
-//                    buyAmount = buyAmount.divide(BD_PI, 8, HALF_EVEN);
-//                }
-//                if (getForecast() > 5){
-//                    sellAmount = sellAmount.divide(BD_PI, 8, HALF_EVEN);
-//                }
+                BigDecimal buyAmount = getStrategy().getLevelLot().multiply(BigDecimal.valueOf(balance ? max : min)).add(Const.BD_0_01);
+                BigDecimal sellAmount = getStrategy().getLevelLot().multiply(BigDecimal.valueOf(balance ? min : max)).add(Const.BD_0_01);
 
                 //less
-                if (buyAmount.compareTo(BD_0_01) < 0){
-                    buyAmount = BD_0_01;
+                if (buyAmount.compareTo(Const.BD_0_01) < 0){
+                    buyAmount = Const.BD_0_01;
                 }
-                if (sellAmount.compareTo(BD_0_01) < 0){
-                    sellAmount = BD_0_01;
+                if (sellAmount.compareTo(Const.BD_0_01) < 0){
+                    sellAmount = Const.BD_0_01;
                 }
 
                 Long positionId = positionIdGen.incrementAndGet();
@@ -411,7 +356,7 @@ public class LevelStrategy extends BaseStrategy{
 
                 //q1 > q2 == buyAmount.compareTo(sellAmount) > 0
 
-                if (balance){
+                if (buyAmount.compareTo(sellAmount) > 0){
                     createOrderSync(buyOrder);
                     createOrderSync(sellOrder);
                 }else{
@@ -431,48 +376,6 @@ public class LevelStrategy extends BaseStrategy{
 
     private AtomicLong window = new AtomicLong(1000);
 
-    private PublishSubject<Trade> tradeBuffer = PublishSubject.create();
-
-    {
-//        tradeBuffer.buffer(55).filter(b -> !b.isEmpty()).forEach(b -> {
-//            try {
-//                prices.add(TradeUtil.avg(b));
-//            } catch (Exception e) {
-//                log.error("error buffer 1", e);
-//            }
-//        });
-
-//        tradeBuffer.buffer(7500, 50).filter(b -> !b.isEmpty()).forEach(b -> {
-//            try {
-//                lastAvgPrice.set(TradeUtil.avg(b));
-//            } catch (Exception e) {
-//                log.error("error buffer 10", e);
-//            }
-//        });
-
-//        tradeBuffer.buffer(3000, 50)
-//                .forEach(l -> {
-//                    try {
-//                        if (!l.isEmpty()) {
-//                            Trade max = l.get(0);
-//                            Trade min = l.get(0);
-//
-//                            for (Trade t : l){
-//                                if (t.getPrice().compareTo(max.getPrice()) > 0){
-//                                    max = t;
-//                                }else if (t.getPrice().compareTo(min.getPrice()) < 0){
-//                                    min = t;
-//                                }
-//                            }
-//
-//                            window.set(Math.abs(max.getCreated().getTime() - min.getCreated().getTime()));
-//                        }
-//                    } catch (Exception e) {
-//                        log.error("error buffer 60", e);
-//                    }
-//                });
-    }
-
     private AtomicReference<BigDecimal> lastTrade = new AtomicReference<>(ZERO);
 
     private AtomicReference<BigDecimal> tradeBid = new AtomicReference<>(ZERO);
@@ -487,10 +390,8 @@ public class LevelStrategy extends BaseStrategy{
         try {
             (trade.getOrderType().equals(BID) ? tradeBid : tradeAsk).set(trade.getPrice());
 
-            if (lastTrade.get().compareTo(ZERO) != 0 && lastTrade.get().subtract(trade.getPrice()).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(BD_0_01) < 0){
+            if (lastTrade.get().compareTo(ZERO) != 0 && lastTrade.get().subtract(trade.getPrice()).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(Const.BD_0_01) < 0){
                 actionPrices.add(trade.getPrice());
-
-                tradeBuffer.onNext(trade);
 
                 executorVSSA.execute(() -> vssaService.add(trade));
 
@@ -508,7 +409,7 @@ public class LevelStrategy extends BaseStrategy{
         }
     }
 
-    private AtomicReference<BigDecimal> depthSpread = new AtomicReference<>(BD_0_25);
+    private AtomicReference<BigDecimal> depthSpread = new AtomicReference<>(Const.BD_0_25);
 
     @Override
     protected void onDepth(Depth depth) {
@@ -516,8 +417,8 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal bid = depth.getBid();
 
         if (ask != null && bid != null && lastTrade.get().compareTo(ZERO) != 0 &&
-                lastTrade.get().subtract(ask).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(BD_0_01) < 0 &&
-                lastTrade.get().subtract(bid).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(BD_0_01) < 0) {
+                lastTrade.get().subtract(ask).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(Const.BD_0_01) < 0 &&
+                lastTrade.get().subtract(bid).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(Const.BD_0_01) < 0) {
             depthSpread.set(ask.subtract(bid).abs());
 
             if (getForecast() > 0){
@@ -535,8 +436,8 @@ public class LevelStrategy extends BaseStrategy{
         }
     }
 
-    public static void main(String... args){
-        Observable.range(0, 100).buffer(55, 1).forEach(l -> System.out.println(Arrays.toString(l.toArray())));
-    }
+//    public static void main(String... args){
+//        Observable.range(0, 100).buffer(55, 1).forEach(l -> System.out.println(Arrays.toString(l.toArray())));
+//    }
 }
 
