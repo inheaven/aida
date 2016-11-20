@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 public class Const {
 
     public final static BigDecimal BD_0_1 = new BigDecimal("0.1");
+    public final static BigDecimal BD_0_16 = new BigDecimal("0.16");
     public final static BigDecimal BD_0_5 = new BigDecimal("0.5");
     public final static BigDecimal BD_0_8 = new BigDecimal("0.8");
     public final static BigDecimal BD_0_25 = new BigDecimal("0.25");

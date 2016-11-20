@@ -86,7 +86,7 @@ public class LevelStrategy extends BaseStrategy{
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
         //VSSA
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 22, 10, 500, 5, 550, 1000);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 22, 10, 512, 8, 1024, 1000);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
             try {
@@ -205,8 +205,10 @@ public class LevelStrategy extends BaseStrategy{
 
             BigDecimal price = lastAvgPrice.get().compareTo(ZERO) > 0 ? lastAvgPrice.get() : lastTrade.get();
 
+            BigDecimal delta = BigDecimal.valueOf(getForecast() / vssaService.getVssaCount()).multiply(Const.BD_0_16).add(ONE);
+
             if (subtotalBtc.compareTo(ZERO) > 0 && price.compareTo(ZERO) > 0) {
-                balance.set(net.divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(ONE) > 0);
+                balance.set(net.multiply(delta).divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(ONE) > 0);
             }
 
             lastBalanceTime.set(System.currentTimeMillis());
@@ -268,13 +270,14 @@ public class LevelStrategy extends BaseStrategy{
     }
 
     private BigDecimal getDSpread(BigDecimal price){
-        BigDecimal total = userInfoService.getVolume("total", getStrategy().getAccount().getId(), null);
+        BigDecimal net = userInfoService.getVolume("net", getStrategy().getAccount().getId(), null);
 
-        if (total != null && total.compareTo(ZERO) > 0 && price != null && price.compareTo(ZERO) > 0){
-            return BigDecimal.valueOf(stdDev.get()*10*Math.PI)
+        if (net != null && net.compareTo(ZERO) > 0 && price != null && price.compareTo(ZERO) > 0){
+            return getStdDev()
+                    .multiply(Const.BD_PI.pow(2))
                     .multiply(getStrategy().getLevelLot())
                     .multiply(price)
-                    .divide(total, 8, HALF_EVEN);
+                    .divide(net, 8, HALF_EVEN);
         }
 
         return getSideSpread(price);
@@ -293,10 +296,10 @@ public class LevelStrategy extends BaseStrategy{
 
             BigDecimal spread = scale(getSpread(price));
 
-            BigDecimal priceF = scale(forecast > 0 ? price.add(Const.BD_0_01) : price.subtract(Const.BD_0_01));
+            BigDecimal priceF = scale(balance ? price.add(Const.BD_0_01) : price.subtract(Const.BD_0_01));
 
-            BigDecimal buyPrice = scale(forecast > 0 ? priceF : priceF.subtract(spread));
-            BigDecimal sellPrice = scale(forecast > 0 ? priceF.add(spread) : priceF);
+            BigDecimal buyPrice = scale(balance ? priceF : priceF.subtract(spread));
+            BigDecimal sellPrice = scale(balance ? priceF.add(spread) : priceF);
 
             if (!getOrderMap().contains(buyPrice, spread, BID) && !getOrderMap().contains(sellPrice, spread, ASK)){
 //                double q1 = QuranRandom.nextDouble();
