@@ -67,7 +67,7 @@ public class InfluxService {
     }
 
     public void addStrategyMetric(Long strategyId, BigDecimal lot, BigDecimal spread, BigDecimal stdDev, Double balance,
-                                  Double forecast){
+                                  Double forecast, BigDecimal shift){
         if (ping.get()){
             influxDB.write(DB_NAME, RETENTION_POLICY, Point.measurement("strategy")
                     .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
@@ -77,6 +77,7 @@ public class InfluxService {
                     .addField("std_dev", stdDev)
                     .addField("spot_balance", balance)
                     .addField("forecast", forecast)
+                    .addField("shift", shift)
                     .build());
         }
     }

@@ -18,7 +18,6 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -118,7 +117,8 @@ public class LevelStrategy extends BaseStrategy{
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             try {
                 influxService.addStrategyMetric(getStrategy().getId(), getStrategy().getLevelLot(),
-                        getSpread(lastTrade.get()), getStdDev(), getSpotBalance() ? 1d : -1d, getForecast());
+                        getSpread(lastTrade.get()), getStdDev(), getSpotBalance() ? 1d : -1d, getForecast(),
+                        getShift(lastTrade.get()));
             } catch (Exception e) {
                 log.error("error add strategy metric");
             }
@@ -193,28 +193,28 @@ public class LevelStrategy extends BaseStrategy{
         }
     }
 
-    private AtomicLong lastBalanceTime = new AtomicLong(System.currentTimeMillis());
-    private AtomicBoolean balance = new AtomicBoolean(true);
-
     protected boolean getSpotBalance(){
-        if (System.currentTimeMillis() - lastBalanceTime.get() >= 5000){
-            String[] symbol = getStrategy().getSymbol().split("/");
-            BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", getStrategy().getAccount().getId(), symbol[0]);
-            BigDecimal subtotalCny = userInfoService.getVolume("subtotal", getStrategy().getAccount().getId(), symbol[1]);
-            BigDecimal net = userInfoService.getVolume("net", getStrategy().getAccount().getId(), null);
+        BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", getStrategy().getAccount().getId(), "BTC");
+        BigDecimal net = userInfoService.getVolume("net", getStrategy().getAccount().getId(), null);
+        BigDecimal price = lastAvgPrice.get().compareTo(ZERO) > 0 ? lastAvgPrice.get() : lastTrade.get();
+        BigDecimal delta = BigDecimal.valueOf(getForecast() / vssaService.getVssaCount()).multiply(Const.BD_0_16).add(ONE);
 
-            BigDecimal price = lastAvgPrice.get().compareTo(ZERO) > 0 ? lastAvgPrice.get() : lastTrade.get();
-
-            BigDecimal delta = BigDecimal.valueOf(getForecast() / vssaService.getVssaCount()).multiply(Const.BD_0_16).add(ONE);
-
-            if (subtotalBtc.compareTo(ZERO) > 0 && price.compareTo(ZERO) > 0) {
-                balance.set(net.multiply(delta).divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(ONE) > 0);
-            }
-
-            lastBalanceTime.set(System.currentTimeMillis());
+        if (subtotalBtc.compareTo(ZERO) > 0 && price.compareTo(ZERO) > 0) {
+            return net.multiply(delta).divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(ONE) > 0;
         }
 
-        return balance.get();
+        return false;
+    }
+
+    private BigDecimal getDeltaP(){
+        BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", getStrategy().getAccount().getId(), "BTC");
+        BigDecimal net = userInfoService.getVolume("net", getStrategy().getAccount().getId(), null);
+
+        return ONE.subtract(subtotalBtc.multiply(lastTrade.get()).divide(net, 8, HALF_EVEN));
+    }
+
+    private BigDecimal getShift(BigDecimal price){
+        return scale(getSideSpread(price).multiply(getDeltaP()));
     }
 
     @Override
@@ -291,13 +291,9 @@ public class LevelStrategy extends BaseStrategy{
     private void action(String key, BigDecimal price, OrderType orderType, int priceLevel) {
         try {
             double forecast = getForecast();
-
             boolean balance = getSpotBalance();
-
             BigDecimal spread = scale(getSpread(price));
-
-            BigDecimal priceF = scale(balance ? price.add(Const.BD_0_01) : price.subtract(Const.BD_0_01));
-
+            BigDecimal priceF = scale(price.add(getShift(price)));
             BigDecimal buyPrice = scale(balance ? priceF : priceF.subtract(spread));
             BigDecimal sellPrice = scale(balance ? priceF.add(spread) : priceF);
 

@@ -66,6 +66,7 @@ public class VSSAService {
 
                 for (int i = prices.size() - N; i < prices.size(); ++i){
                     pricesExecute.add(prices.get(i));
+                    pricesFit.add(prices.get(i));
                 }
 
                 log.info("trades load " + trades.size());
