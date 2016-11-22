@@ -214,7 +214,7 @@ public class LevelStrategy extends BaseStrategy{
     }
 
     private BigDecimal getShift(BigDecimal price){
-        return scale(getSideSpread(price).multiply(getDeltaP()));
+        return getSideSpread(price).multiply(getDeltaP());
     }
 
     @Override
