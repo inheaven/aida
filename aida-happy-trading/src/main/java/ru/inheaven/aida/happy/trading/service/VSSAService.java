@@ -114,7 +114,7 @@ public class VSSAService {
                     pricesExecute.pollFirst();
                 }
 
-                if (pricesFit.size() > 100*N){
+                if (pricesFit.size() > 33*N){
                     pricesFit.pollFirst();
                 }
             }
