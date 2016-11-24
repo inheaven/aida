@@ -85,7 +85,7 @@ public class LevelStrategy extends BaseStrategy{
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
         //VSSA
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.42, 101, 10, 512, 8, 1024, 1000);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.4, 22, 10, 1024, 16, 1024, 1000);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
             try {
@@ -104,7 +104,7 @@ public class LevelStrategy extends BaseStrategy{
 
                 int size = spreadPrices.size();
 
-                for (int i = 0; i < size - 10240; ++i){
+                for (int i = 0; i < size - getStrategy().getLevelSize().intValue(); ++i){
                     spreadPrices.pollFirst();
                 }
             } catch (Exception e) {
@@ -197,7 +197,7 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", getStrategy().getAccount().getId(), "BTC");
         BigDecimal net = userInfoService.getVolume("net", getStrategy().getAccount().getId(), null);
         BigDecimal price = lastAvgPrice.get().compareTo(ZERO) > 0 ? lastAvgPrice.get() : lastTrade.get();
-        BigDecimal delta = BigDecimal.valueOf(getForecast() / vssaService.getVssaCount()).multiply(Const.BD_0_16).add(ONE);
+        BigDecimal delta = BigDecimal.valueOf(getForecast() / vssaService.getVssaCount()).multiply(Const.BD_0_33).add(ONE);
 
         if (subtotalBtc.compareTo(ZERO) > 0 && price.compareTo(ZERO) > 0) {
             return net.multiply(delta).divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(ONE) > 0;

@@ -14,6 +14,7 @@ import rx.subjects.PublishSubject;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author inheaven on 29.06.2015 23:49.
@@ -51,7 +52,15 @@ public class OrderService {
                 .publish();
         localClosedOrderObservable.connect();
 
-//        accountMapper.getAccounts(OKCOIN).forEach(a -> okcoinService.realFutureTrades(a.getApiKey(), a.getSecretKey()));
+        //order metric
+        orderObservable.buffer(1, TimeUnit.SECONDS)
+                .subscribe(l -> {
+                    //todo order stat
+
+
+                });
+
+
     }
 
     public ConnectableObservable<Order> getOrderObservable() {

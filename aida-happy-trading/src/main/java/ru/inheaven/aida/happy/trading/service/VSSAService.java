@@ -110,11 +110,11 @@ public class VSSAService {
 
                 tradesBuffer.clear();
 
-                if (pricesExecute.size() > N){
+                for (int i = 0; i < pricesExecute.size() - N; ++i){
                     pricesExecute.pollFirst();
                 }
 
-                if (pricesFit.size() > 33*N){
+                for (int i = 0; i < pricesFit.size() - 3*N; ++i){
                     pricesFit.pollFirst();
                 }
             }
@@ -137,11 +137,8 @@ public class VSSAService {
                 double volumeSum = 0;
 
                 for (Trade trade : avg){
-                    double tradeVolume = trade.getAmount().doubleValue();
-
-                    priceSum += trade.getPrice().doubleValue()*tradeVolume;
-
-                    volumeSum += tradeVolume;
+                    priceSum += trade.getPrice().doubleValue();
+                    volumeSum += 1;
                 }
 
                 if (priceSum > 0 && volumeSum > 0) {
@@ -150,6 +147,8 @@ public class VSSAService {
 
                 avg.clear();
             }
+
+            avg.clear();
         }
 
         return prices;

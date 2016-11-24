@@ -45,7 +45,7 @@ public class FixService {
 
                 {
                     Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
-                        if (System.currentTimeMillis() - time > 300000){
+                        if (System.currentTimeMillis() - time > 60000){
                             connector.stop();
 
                             try {
@@ -99,9 +99,18 @@ public class FixService {
             SessionSettings settings = new SessionSettings("okcoin_cn.cfg");
 
             connector = new ThreadedSocketInitiator(okcoinApplication,
-                    new MemoryStoreFactory(),
+                    new FileStoreFactory(settings),
                     settings,
-                    null, //todo market
+                    new FileLogFactory(settings){
+                        @Override
+                        public Log create(SessionID sessionId) {
+                            if ("8b8620cf-83ed-46d8-91e6-41e5eb65f44f".equalsIgnoreCase(sessionId.getSessionQualifier())){
+                                return null;
+                            }
+
+                            return super.create(sessionId);
+                        }
+                    },
                     new OKCoinMessageFactory());
             connector.start();
         } catch (Exception e) {
