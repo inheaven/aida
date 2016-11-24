@@ -14,7 +14,15 @@ import rx.subjects.PublishSubject;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.concurrent.TimeUnit;
+
+import static java.math.BigDecimal.ZERO;
+import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CLOSED;
+import static ru.inheaven.aida.happy.trading.entity.OrderStatus.OPEN;
+import static ru.inheaven.aida.happy.trading.entity.OrderType.ASK;
+import static ru.inheaven.aida.happy.trading.entity.OrderType.BID;
 
 /**
  * @author inheaven on 29.06.2015 23:49.
@@ -32,8 +40,8 @@ public class OrderService {
     private ConnectableObservable<Order> localClosedOrderObservable;
 
     @Inject
-    public OrderService(FixService fixService,XChangeService xChangeService,
-                        AccountMapper accountMapper, BroadcastService broadcastService) {
+    public OrderService(FixService fixService,XChangeService xChangeService, AccountMapper accountMapper,
+                        BroadcastService broadcastService, InfluxService influxService) {
 
         this.fixService = fixService;
         this.xChangeService = xChangeService;
@@ -53,13 +61,65 @@ public class OrderService {
         localClosedOrderObservable.connect();
 
         //order metric
-        orderObservable.buffer(1, TimeUnit.SECONDS)
-                .subscribe(l -> {
-                    //todo order stat
+        orderObservable
+                .filter(o -> o.getSymbol().equals("BTC/CNY"))
+                .buffer(1, TimeUnit.SECONDS)
+                .subscribe(orders -> {
+                    try {
+                        BigDecimal openAskPrice = ZERO;
+                        BigDecimal openAskVolume = ZERO;
+                        Integer openAskCount = 0;
 
+                        BigDecimal openBidPrice = ZERO;
+                        BigDecimal openBidVolume = ZERO;
+                        Integer openBidCount = 0;
 
+                        BigDecimal closedAskPrice = ZERO;
+                        BigDecimal closedAskVolume = ZERO;
+                        Integer closedAskCount = 0;
+
+                        BigDecimal closedBidPrice = ZERO;
+                        BigDecimal closedBidVolume = ZERO;
+                        Integer closedBidCount = 0;
+
+                        for (Order order : orders){
+                            if (order.getStatus().equals(OPEN) && order.getPrice() != null){
+                                if (order.getType().equals(ASK)){
+                                    openAskCount++;
+                                    openAskVolume = openAskVolume.add(order.getAmount());
+                                    openAskPrice = openAskPrice.add(order.getPrice().multiply(order.getAmount()));
+                                }else if (order.getType().equals(BID)){
+                                    openBidCount++;
+                                    openBidVolume = openBidVolume.add(order.getAmount());
+                                    openBidPrice = openBidPrice.add(order.getPrice().multiply(order.getAmount()));
+                                }
+                            }else if (order.getStatus().equals(CLOSED)){
+                                if (order.getType().equals(ASK)){
+                                    closedAskCount++;
+                                    closedAskVolume = closedAskVolume.add(order.getAmount());
+                                    closedAskPrice = closedAskPrice.add(order.getAvgPrice().multiply(order.getAmount()));
+                                }else if (order.getType().equals(BID)){
+                                    closedBidCount++;
+                                    closedBidVolume = closedBidVolume.add(order.getAmount());
+                                    closedBidPrice = closedBidPrice.add(order.getAvgPrice().multiply(order.getAmount()));
+                                }
+                            }
+                        }
+
+                        openAskPrice = openAskVolume.compareTo(ZERO) > 0 ? openAskPrice.divide(openAskVolume, 8, RoundingMode.HALF_EVEN) : null;
+                        openBidPrice = openBidVolume.compareTo(ZERO) > 0 ? openBidPrice.divide(openBidVolume, 8, RoundingMode.HALF_EVEN) : null;
+
+                        closedAskPrice = closedAskVolume.compareTo(ZERO) > 0 ? closedAskPrice.divide(closedAskVolume, 8, RoundingMode.HALF_EVEN) : null;
+                        closedBidPrice = closedBidVolume.compareTo(ZERO) > 0 ? closedBidPrice.divide(closedBidVolume, 8, RoundingMode.HALF_EVEN) : null;
+
+                        influxService.addOrderMetric(47L, openAskPrice, openAskVolume, openAskCount,
+                                openBidPrice, openBidVolume, openBidCount,
+                                closedAskPrice, closedAskVolume, closedAskCount,
+                                closedBidPrice, closedBidVolume, closedBidCount);
+                    } catch (Exception e) {
+                        log.error("error add order metric", e);
+                    }
                 });
-
 
     }
 

@@ -5,6 +5,7 @@ import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.inheaven.aida.happy.trading.entity.ExchangeType;
 
 import javax.inject.Singleton;
 import java.math.BigDecimal;
@@ -78,6 +79,47 @@ public class InfluxService {
                     .addField("spot_balance", balance)
                     .addField("forecast", forecast)
                     .addField("shift", shift)
+                    .build());
+        }
+    }
+
+    public void addOrderMetric(Long strategyId, BigDecimal openAskPrice, BigDecimal openAskVolume, Integer openAskCount,
+                               BigDecimal openBidPrice, BigDecimal openBidVolume, Integer openBidCount,
+                               BigDecimal closedAskPrice, BigDecimal closedAskVolume, Integer closedAskCount,
+                               BigDecimal closedBidPrice, BigDecimal closedBidVolume, Integer closedBidCount){
+        if (ping.get()){
+            influxDB.write(DB_NAME, RETENTION_POLICY, Point.measurement("order")
+                    .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+                    .tag("strategyId", strategyId.toString())
+                    .addField("open_ask_price", openAskPrice)
+                    .addField("open_ask_volume", openAskVolume)
+                    .addField("open_ask_count", openAskCount)
+                    .addField("open_bid_price", openBidPrice)
+                    .addField("open_bid_volume", openBidVolume)
+                    .addField("open_bid_count", openBidCount)
+                    .addField("closed_ask_price", closedAskPrice)
+                    .addField("closed_ask_volume", closedAskVolume)
+                    .addField("closed_ask_count", closedAskCount)
+                    .addField("closed_bid_price", closedBidPrice)
+                    .addField("closed_bid_volume", closedBidVolume)
+                    .addField("closed_bid_count", closedBidCount)
+                    .build());
+        }
+    }
+
+    public void addTradeMetric(ExchangeType exchangeType, String symbol, BigDecimal askPrice, BigDecimal askVolume, Integer askCount,
+                               BigDecimal bidPrice, BigDecimal bidVolume, Integer bidCount) {
+        if (ping.get()) {
+            influxDB.write(DB_NAME, RETENTION_POLICY, Point.measurement("trade")
+                    .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+                    .tag("exchangeType", exchangeType.name())
+                    .tag("symbol", symbol)
+                    .addField("ask_price", askPrice)
+                    .addField("ask_volume", askVolume)
+                    .addField("ask_count", askCount)
+                    .addField("bid_price", bidPrice)
+                    .addField("bid_volume", bidVolume)
+                    .addField("bid_count", bidCount)
                     .build());
         }
     }

@@ -1,5 +1,7 @@
 package ru.inheaven.aida.happy.trading.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.Trade;
 import ru.inheaven.aida.happy.trading.mapper.TradeMapper;
 import rx.Observable;
@@ -9,20 +11,26 @@ import rx.schedulers.Schedulers;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.math.BigDecimal;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.math.RoundingMode;
+import java.util.concurrent.TimeUnit;
+
+import static java.math.BigDecimal.ZERO;
+import static ru.inheaven.aida.happy.trading.entity.ExchangeType.OKCOIN_CN;
+import static ru.inheaven.aida.happy.trading.entity.OrderType.ASK;
+import static ru.inheaven.aida.happy.trading.entity.OrderType.BID;
 
 /**
  * @author inheaven on 002 02.07.15 16:45
  */
 @Singleton
 public class TradeService {
+    private Logger log = LoggerFactory.getLogger(TradeService.class);
+
     private Observable<Trade> tradeObservable;
 
-    private Map<String, BigDecimal> stdDevMap = new ConcurrentHashMap<>();
 
     @Inject
-    public TradeService(FixService fixService, TradeMapper tradeMapper, BroadcastService broadcastService) {
+    public TradeService(FixService fixService, TradeMapper tradeMapper, BroadcastService broadcastService, InfluxService influxService) {
         ConnectableObservable<Trade> tradeObservable = fixService.getTradeObservable()
                 .onBackpressureBuffer()
                 .observeOn(Schedulers.io())
@@ -34,60 +42,46 @@ public class TradeService {
 
         this.tradeObservable = tradeObservable.asObservable();
 
-//        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
-//            BigDecimal bid = tradeMapper.getTradeStdDevPtType("BTC/CNY", 50000, OrderType.BID);
-//            stdDevMap.put("bid", bid);
-//
-//            BigDecimal ask = tradeMapper.getTradeStdDevPtType("BTC/CNY", 50000, OrderType.ASK);
-//            stdDevMap.put("ask", ask);
-//
-//            stdDevMap.put("BTC/CNY_1", bid.add(ask).divide(TWO, RoundingMode.HALF_EVEN)); //44
-//            //stdDevMap.put("BTC/CNY_2", tradeMapper.getTradeStdDevPt("BTC/CNY", 8000)); //45
-////            stdDevMap.put("BTC/CNY_3", bid.add(ask).divide(TWO, RoundingMode.HALF_EVEN)); //46
-////            stdDevMap.put("BTC/CNY_4", tradeMapper.getTradeStdDevPt("BTC/CNY", 4000)); //47
-////            stdDevMap.put("BTC/CNY_5", tradeMapper.getTradeStdDevPt("BTC/CNY", 5000)); //48
-////            stdDevMap.put("BTC/CNY_6", tradeMapper.getTradeStdDevPt("BTC/CNY", 6000)); //49
-////            stdDevMap.put("BTC/CNY_7", tradeMapper.getTradeStdDevPt("BTC/CNY", 7000)); //50
-//
-//            stdDevMap.put("av_BTC/CNY_1", tradeMapper.getTradeAvgAmountPt("BTC/CNY", 100));
-////            stdDevMap.put("av_BTC/CNY_2", tradeMapper.getTradeAvgAmountPt("BTC/CNY", 10000));
-////            stdDevMap.put("av_BTC/CNY_3", tradeMapper.getTradeAvgAmountPt("BTC/CNY", 10500));
-////            stdDevMap.put("av_BTC/CNY_4", tradeMapper.getTradeAvgAmountPt("BTC/CNY", 23000));
-////            stdDevMap.put("av_BTC/CNY_5", tradeMapper.getTradeAvgAmountPt("BTC/CNY", 29000));
-////            stdDevMap.put("av_BTC/CNY_6", tradeMapper.getTradeAvgAmountPt("BTC/CNY", 31000));
-////            stdDevMap.put("av_BTC/CNY_7", tradeMapper.getTradeAvgAmountPt("BTC/CNY", 37000));
-//
-//            stdDevMap.put("ap_BTC/CNY_1", tradeMapper.getTradeAvgPricePt("BTC/CNY", 100));
-//
-//            stdDevMap.put("BTC/CNY", stdDevMap.get("BTC/CNY_1"));
-//            stdDevMap.put("av_BTC/CNY", stdDevMap.get("av_BTC/CNY_1"));
-//            stdDevMap.put("ap_BTC/CNY", stdDevMap.get("ap_BTC/CNY_1"));
-//        }, 0, 60, TimeUnit.SECONDS);
+        //trade metric
+        tradeObservable
+                .filter(t -> t.getExchangeType().equals(OKCOIN_CN))
+                .filter(t -> t.getSymbol().equals("BTC/CNY"))
+                .buffer(1, TimeUnit.SECONDS)
+                .subscribe(trades -> {
+                    try {
+                        BigDecimal askPrice = ZERO;
+                        BigDecimal askVolume = ZERO;
+                        Integer askCount = 0;
+
+                        BigDecimal bidPrice = ZERO;
+                        BigDecimal bidVolume = ZERO;
+                        Integer bidCount = 0;
+
+                        for (Trade trade : trades){
+                            if (trade.getOrderType().equals(ASK)){
+                                askCount++;
+                                askVolume = askVolume.add(trade.getAmount());
+                                askPrice = askPrice.add(trade.getPrice().multiply(trade.getAmount()));
+                            }else if (trade.getOrderType().equals(BID)){
+                                bidCount++;
+                                bidVolume = bidVolume.add(trade.getAmount());
+                                bidPrice = bidPrice.add(trade.getPrice().multiply(trade.getAmount()));
+                            }
+                        }
+
+                        askPrice = askVolume.compareTo(ZERO) > 0 ? askPrice.divide(askVolume, 8, RoundingMode.HALF_EVEN) : null;
+                        bidPrice = bidVolume.compareTo(ZERO) > 0 ? bidPrice.divide(bidVolume, 8, RoundingMode.HALF_EVEN) : null;
+
+                        influxService.addTradeMetric(OKCOIN_CN, "BTC/CNY", askPrice, askVolume, askCount,
+                                bidPrice, bidVolume, bidCount);
+                    } catch (Exception e) {
+                        log.error("error add trade metric", e);
+                    }
+
+                });
     }
 
     public Observable<Trade> getTradeObservable() {
         return tradeObservable;
-    }
-
-    public BigDecimal getValue(String key){
-        return stdDevMap.get(key);
-    }
-
-    public BigDecimal getStdDev(String symbol, String suffix){
-        BigDecimal value = stdDevMap.get(symbol + suffix);
-
-        return value != null ? value : stdDevMap.get(symbol);
-    }
-
-    public BigDecimal getAvgAmount(String symbol, String suffix){
-        BigDecimal value = stdDevMap.get("av_" + symbol + suffix);
-
-        return value != null ? value : stdDevMap.get("av_" + symbol);
-    }
-
-    public BigDecimal getAvgPrice(String symbol, String suffix){
-        BigDecimal value = stdDevMap.get("ap_" + symbol + suffix);
-
-        return value != null ? value : stdDevMap.get("ap_" + symbol);
     }
 }
