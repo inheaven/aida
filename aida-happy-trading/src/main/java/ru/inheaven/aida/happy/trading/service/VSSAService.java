@@ -49,18 +49,20 @@ public class VSSAService {
             try {
                 TradeMapper tradeMapper = Module.getInjector().getInstance(TradeMapper.class);
 
-                long start = (System.currentTimeMillis() - 100*1000*(N + M));
+                long start = System.currentTimeMillis() - 12*60*60*1000;
                 long end = System.currentTimeMillis();
 
                 Deque<Trade> trades = new LinkedList<>();
 
-                for (long t = start; t < end; t += 1000){
-                    List<Trade> list = tradeMapper.getLightTrades(symbol, orderType, new Date(t), new Date(t + 1000));
+                for (long t = start; t < end; t += 60000){
+                    List<Trade> list = tradeMapper.getLightTrades(symbol, orderType, new Date(t), new Date(t + 60000));
 
                     for (Trade trade : list){
                         trades.add(trade);
                     }
                 }
+
+                log.info("trades load " + trades.size());
 
                 List<Double> prices = getPrices(trades);
 
@@ -68,8 +70,6 @@ public class VSSAService {
                     pricesExecute.add(prices.get(i));
                     pricesFit.add(prices.get(i));
                 }
-
-                log.info("trades load " + trades.size());
 
                 vssaBoost.fit(prices);
 
@@ -125,31 +125,29 @@ public class VSSAService {
 
     private List<Double> getPrices(Deque<Trade> trades){
         List<Double> prices = new ArrayList<>();
-        List<Trade> avg = new ArrayList<>();
+        List<Trade> buf = new ArrayList<>();
 
         for (Iterator<Trade> it = trades.descendingIterator(); it.hasNext();){
             Trade t = it.next();
 
-            avg.add(t);
+            buf.add(t);
 
-            if (avg.size() >= window){
+            if (buf.size() >= window){
                 double priceSum = 0;
                 double volumeSum = 0;
 
-                for (Trade trade : avg){
+                for (Trade trade : buf){
                     priceSum += trade.getPrice().doubleValue();
-                    volumeSum += 1;
+                    volumeSum++;
                 }
 
-                if (priceSum > 0 && volumeSum > 0) {
-                    prices.add(0, priceSum/volumeSum);
-                }
+                prices.add(0, priceSum/volumeSum);
 
-                avg.clear();
+                buf.clear();
             }
-
-            avg.clear();
         }
+
+        buf.clear();
 
         return prices;
     }
