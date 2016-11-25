@@ -21,26 +21,22 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class VSSAService {
     private final Logger log = LoggerFactory.getLogger(VSSAService.class);
 
-    private Deque<Double> pricesExecute = new ConcurrentLinkedDeque<>();
-    private Deque<Double> pricesFit = new ConcurrentLinkedDeque<>();
-
-    private Deque<Trade> tradesBuffer = new ConcurrentLinkedDeque<>();
+    private Deque<Trade> trades = new ConcurrentLinkedDeque<>();
 
     private VSSABoost vssaBoost;
 
     private int window;
     private int N;
 
-    private long execute;
-
     private int vssaCount;
 
     private AtomicBoolean loaded = new AtomicBoolean(false);
 
+    private final static int MAX_TRADES_COUNT = 12*60*60*100;
+
     public VSSAService(String symbol, OrderType orderType, double threshold, int vssaCount, int trainCount, int N, int M, int window, long execute) {
         this.N = N;
         this.window = window;
-        this.execute = execute;
         this.vssaCount = vssaCount;
 
         vssaBoost = new VSSABoost(threshold, vssaCount, trainCount, N, M);
@@ -52,8 +48,6 @@ public class VSSAService {
                 long start = System.currentTimeMillis() - 12*60*60*1000;
                 long end = System.currentTimeMillis();
 
-                Deque<Trade> trades = new LinkedList<>();
-
                 for (long t = start; t < end; t += 60000){
                     List<Trade> list = tradeMapper.getLightTrades(symbol, orderType, new Date(t), new Date(t + 60000));
 
@@ -64,14 +58,7 @@ public class VSSAService {
 
                 log.info("trades load " + trades.size());
 
-                List<Double> prices = getPrices(trades);
-
-                for (int i = prices.size() - N; i < prices.size(); ++i){
-                    pricesExecute.add(prices.get(i));
-                    pricesFit.add(prices.get(i));
-                }
-
-                vssaBoost.fit(prices);
+                vssaBoost.fit(getPrices(trades, 100*N));
 
                 loaded.set(true);
             } catch (Exception e) {
@@ -81,11 +68,17 @@ public class VSSAService {
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             try {
-                if (loaded.get() && pricesExecute.size() >= N) {
+                if (loaded.get()) {
                     double f = execute();
 
                     if (f != 0){
                         forecast.set(f);
+                    }
+
+                    int size = trades.size();
+
+                    for (int i = 0; i < size - MAX_TRADES_COUNT; ++i){
+                        trades.pollFirst();
                     }
                 }
             } catch (Exception e) {
@@ -97,33 +90,10 @@ public class VSSAService {
     private AtomicDouble forecast = new AtomicDouble(0);
 
     public void add(Trade trade){
-        try {
-            tradesBuffer.add(trade);
-
-            if (tradesBuffer.size() >= window){
-                List<Double> prices = getPrices(tradesBuffer);
-
-                for (double price : prices){
-                    pricesFit.add(price);
-                    pricesExecute.add(price);
-                }
-
-                tradesBuffer.clear();
-
-                for (int i = 0; i < pricesExecute.size() - N; ++i){
-                    pricesExecute.pollFirst();
-                }
-
-                for (int i = 0; i < pricesFit.size() - 3*N; ++i){
-                    pricesFit.pollFirst();
-                }
-            }
-        } catch (Exception e) {
-            log.error("error add", e);
-        }
+        trades.add(trade);
     }
 
-    private List<Double> getPrices(Deque<Trade> trades){
+    private List<Double> getPrices(Deque<Trade> trades, int limit){
         List<Double> prices = new ArrayList<>();
         List<Trade> buf = new ArrayList<>();
 
@@ -144,6 +114,10 @@ public class VSSAService {
                 prices.add(0, priceSum/volumeSum);
 
                 buf.clear();
+
+                if (prices.size() > limit){
+                    break;
+                }
             }
         }
 
@@ -154,7 +128,7 @@ public class VSSAService {
 
     public void fit(){
         if (loaded.get()) {
-            vssaBoost.fit(new ArrayList<>(pricesFit));
+            vssaBoost.fit(new ArrayList<>(getPrices(trades, 100*N)));
         }
     }
 
@@ -168,7 +142,7 @@ public class VSSAService {
 
             executing.set(true);
 
-            return loaded.get() ? vssaBoost.execute(Doubles.toArray(pricesExecute)) : 0;
+            return loaded.get() ? vssaBoost.execute(Doubles.toArray(getPrices(trades, N))) : 0;
         } catch (Exception e) {
             log.error("error execute", e);
 

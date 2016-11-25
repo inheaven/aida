@@ -85,7 +85,7 @@ public class LevelStrategy extends BaseStrategy{
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
         //VSSA
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 11, 10, 512, 2, 1024, 1000);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 22, 10, 800, 10, 200, 1000);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
             try {
@@ -95,18 +95,18 @@ public class LevelStrategy extends BaseStrategy{
             } catch (Throwable e) {
                 log.error("vssaService ", e);
             }
-        }, 0, 1, TimeUnit.MINUTES);
+        }, 0, 5, TimeUnit.MINUTES);
 
         //Std Dev
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             try {
-                stdDev.set(standardDeviation.evaluate(Doubles.toArray(spreadPrices)));
-
                 int size = spreadPrices.size();
 
                 for (int i = 0; i < size - getStrategy().getLevelSize().intValue(); ++i){
                     spreadPrices.pollFirst();
                 }
+
+                stdDev.set(standardDeviation.evaluate(Doubles.toArray(spreadPrices)));
             } catch (Exception e) {
                 stdDev.set(0);
 
@@ -211,7 +211,7 @@ public class LevelStrategy extends BaseStrategy{
     }
 
     private BigDecimal getShift(BigDecimal price){
-        return getSideSpread(price).multiply(getDeltaP());
+        return getSpread(price).multiply(getDeltaP());
     }
 
     @Override
@@ -377,8 +377,6 @@ public class LevelStrategy extends BaseStrategy{
     private AtomicReference<BigDecimal> tradeBid = new AtomicReference<>(ZERO);
     private AtomicReference<BigDecimal> tradeAsk = new AtomicReference<>(ZERO);
 
-    private Executor executorVSSA = Executors.newSingleThreadExecutor();
-
     @Override
     protected void onTrade(Trade trade) {
         index.incrementAndGet();
@@ -389,7 +387,7 @@ public class LevelStrategy extends BaseStrategy{
             if (lastTrade.get().compareTo(ZERO) != 0 && lastTrade.get().subtract(trade.getPrice()).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(Const.BD_0_01) < 0){
                 actionPrices.add(trade.getPrice());
 
-                executorVSSA.execute(() -> vssaService.add(trade));
+                vssaService.add(trade);
 
                 closeByMarketAsync(trade.getPrice(), trade.getOrigTime());
             }else{
