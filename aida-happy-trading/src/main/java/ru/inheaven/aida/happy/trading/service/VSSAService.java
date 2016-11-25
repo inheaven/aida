@@ -125,7 +125,7 @@ public class VSSAService {
 
     public void fit(){
         if (loaded.get()) {
-            vssaBoost.fit(new ArrayList<>(getPrices(trades, 100*N)));
+            vssaBoost.fit(new ArrayList<>(getPrices(trades, (int) (2*Math.PI*N))));
         }
     }
 
