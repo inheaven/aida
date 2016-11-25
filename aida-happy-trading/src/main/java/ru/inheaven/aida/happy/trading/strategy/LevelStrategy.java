@@ -131,7 +131,7 @@ public class LevelStrategy extends BaseStrategy{
     private AtomicLong lastCloseByMarketTime = new AtomicLong(System.currentTimeMillis());
 
     private void closeByMarketAsync(BigDecimal price, Date time){
-        if (System.currentTimeMillis() - lastCloseByMarketTime.get() > 1000) {
+        if (System.currentTimeMillis() - lastCloseByMarketTime.get() > 5000) {
             executor.execute(() -> closeByMarket(price, time));
 
             lastCloseByMarketTime.set(System.currentTimeMillis());
@@ -416,19 +416,19 @@ public class LevelStrategy extends BaseStrategy{
                 lastTrade.get().subtract(bid).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(Const.BD_0_01) < 0) {
             depthSpread.set(ask.subtract(bid).abs());
 
-            if (getForecast() > 0){
-                actionPrices.add(ask);
-            }else if (getForecast() < 0){
-                actionPrices.add(bid);
-            }
+//            if (getForecast() > 0){
+//                actionPrices.add(ask);
+//            }else if (getForecast() < 0){
+//                actionPrices.add(bid);
+//            }
         }
     }
 
     @Override
     protected void onRealTrade(Order order) {
-        if (order.getStatus().equals(CLOSED) && order.getAvgPrice().compareTo(ZERO) > 0){
-            actionPrices.add(order.getAvgPrice());
-        }
+//        if (order.getStatus().equals(CLOSED) && order.getAvgPrice().compareTo(ZERO) > 0){
+//            actionPrices.add(order.getAvgPrice());
+//        }
     }
 
 //    public static void main(String... args){
