@@ -9,6 +9,7 @@ import ru.inheaven.aida.happy.trading.entity.Trade;
 import ru.inheaven.aida.happy.trading.mapper.TradeMapper;
 import ru.inhell.aida.ssa.VSSABoost;
 
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executors;
@@ -93,6 +94,8 @@ public class VSSAService {
         trades.add(trade);
     }
 
+    private Random random = new SecureRandom("vssa_service".getBytes());
+
     private List<Double> getPrices(Deque<Trade> trades, int limit){
         List<Double> prices = new ArrayList<>();
         List<Trade> buf = new ArrayList<>();
@@ -103,15 +106,7 @@ public class VSSAService {
             buf.add(t);
 
             if (buf.size() >= window){
-                double priceSum = 0;
-                double volumeSum = 0;
-
-                for (Trade trade : buf){
-                    priceSum += trade.getPrice().doubleValue();
-                    volumeSum++;
-                }
-
-                prices.add(0, priceSum/volumeSum);
+                prices.add(buf.get(random.nextInt(buf.size())).getPrice().doubleValue());
 
                 buf.clear();
 
@@ -122,6 +117,8 @@ public class VSSAService {
         }
 
         buf.clear();
+
+        Collections.reverse(prices);
 
         return prices;
     }
