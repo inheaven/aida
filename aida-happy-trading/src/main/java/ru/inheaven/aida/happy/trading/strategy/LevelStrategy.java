@@ -85,7 +85,7 @@ public class LevelStrategy extends BaseStrategy{
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
         //VSSA
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 22, 10, 512, 6, 500, 1000);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 1, 1, 256, 8, 1000, 1000);
 
         Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()).scheduleWithFixedDelay(() -> {
             try {
@@ -95,7 +95,7 @@ public class LevelStrategy extends BaseStrategy{
             } catch (Throwable e) {
                 log.error("vssaService ", e);
             }
-        }, 0, 5, TimeUnit.MINUTES);
+        }, 0, 15, TimeUnit.MINUTES);
 
         //Std Dev
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
@@ -148,7 +148,7 @@ public class LevelStrategy extends BaseStrategy{
             } catch (Exception e) {
                 log.error("error close market trade scheduler", e);
             }
-        }, 5, 1, TimeUnit.SECONDS);
+        }, 5, 1, TimeUnit.MINUTES);
     }
 
     @SuppressWarnings("Duplicates")
@@ -156,7 +156,7 @@ public class LevelStrategy extends BaseStrategy{
         try {
             double sideSpread = getSideSpread(price).doubleValue();
 
-            getOrderMap().get(price.doubleValue() + sideSpread, BID, false).forEach((k,v) -> {
+            getOrderMap().get(price.doubleValue(), BID, false).forEach((k,v) -> {
                 v.values().forEach(o -> {
                     if (o.getStatus().equals(OPEN) && time.getTime() - o.getOpen().getTime() > 1000){
                         o.setStatus(CLOSED);
@@ -167,7 +167,7 @@ public class LevelStrategy extends BaseStrategy{
                 });
             });
 
-            getOrderMap().get(price.doubleValue() - sideSpread, ASK, false).forEach((k,v) -> {
+            getOrderMap().get(price.doubleValue(), ASK, false).forEach((k,v) -> {
                 v.values().forEach(o -> {
                     if (o.getStatus().equals(OPEN) && time.getTime() - o.getOpen().getTime() > 1000){
                         o.setStatus(CLOSED);
@@ -211,7 +211,8 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", getStrategy().getAccount().getId(), "BTC");
         BigDecimal net = userInfoService.getVolume("net", getStrategy().getAccount().getId(), null);
         BigDecimal price = lastAvgPrice.get().compareTo(ZERO) > 0 ? lastAvgPrice.get() : lastTrade.get();
-        BigDecimal delta = BigDecimal.valueOf(getForecast() / vssaService.getVssaCount()).multiply(Const.BD_0_16).add(ONE);
+        //BigDecimal delta = BigDecimal.valueOf(getForecast() / vssaService.getVssaCount()).multiply(Const.BD_0_16).add(ONE);
+        BigDecimal delta = ONE;
 
         return subtotalBtc.compareTo(ZERO) > 0 && price.compareTo(ZERO) > 0 &&
                 net.multiply(delta).divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(ONE) > 0;
@@ -225,7 +226,7 @@ public class LevelStrategy extends BaseStrategy{
     }
 
     private BigDecimal getShift(BigDecimal price){
-        return getSideSpread(price).multiply(getDeltaP());
+        return getSpread(price).multiply(getDeltaP());
     }
 
     @Override
@@ -309,12 +310,12 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal sellPrice = scale(balance ? priceF.add(spread) : priceF);
 
             if (!getOrderMap().contains(buyPrice, spread, BID) && !getOrderMap().contains(sellPrice, spread, ASK)){
-//                double q1 = TorahRandom.nextDouble();
-//                double q2 = TorahRandom.nextDouble();
+//                double q1 = QuranRandom.nextDouble();
+//                double q2 = QuranRandom.nextDouble();
 //                double max = Math.max(q1, q2);
 //                double min = Math.min(q1, q2);
-//
-//                //shuffle
+////
+////                //shuffle
 //                max = max * (random.nextDouble()/33 + 1);
 //                min = min * (random.nextDouble()/33 + 1);
 
@@ -429,19 +430,19 @@ public class LevelStrategy extends BaseStrategy{
                 lastTrade.get().subtract(bid).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(Const.BD_0_01) < 0) {
             depthSpread.set(ask.subtract(bid).abs());
 
-//            if (getForecast() > 0){
-//                actionPrices.add(ask);
-//            }else if (getForecast() < 0){
-//                actionPrices.add(bid);
-//            }
+            if (getSpotBalance()){
+                actionPrices.add(ask);
+            }else if (getForecast() < 0){
+                actionPrices.add(bid);
+            }
         }
     }
 
     @Override
     protected void onRealTrade(Order order) {
-//        if (order.getStatus().equals(CLOSED) && order.getAvgPrice().compareTo(ZERO) > 0){
-//            actionPrices.add(order.getAvgPrice());
-//        }
+        if (order.getStatus().equals(CLOSED) && order.getAvgPrice().compareTo(ZERO) > 0){
+            actionPrices.add(order.getAvgPrice());
+        }
     }
 
 //    public static void main(String... args){

@@ -99,7 +99,7 @@ public class FixService {
             SessionSettings settings = new SessionSettings("okcoin_cn.cfg");
 
             connector = new ThreadedSocketInitiator(okcoinApplication,
-                    new FileStoreFactory(settings),
+                    new MemoryStoreFactory(),
                     settings,
                     new FileLogFactory(settings){
                         @Override

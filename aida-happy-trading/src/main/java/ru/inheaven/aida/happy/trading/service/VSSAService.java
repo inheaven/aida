@@ -59,7 +59,11 @@ public class VSSAService {
 
                 log.info("trades load " + trades.size());
 
-                vssaBoost.fit(getPrices(trades, 100*N));
+                List<Double> prices = getPrices(trades, (int) (2*Math.PI*N));
+
+                if (prices.size() >= (int) (2*Math.PI*N)) {
+                    vssaBoost.fit(prices);
+                }
 
                 loaded.set(true);
             } catch (Exception e) {

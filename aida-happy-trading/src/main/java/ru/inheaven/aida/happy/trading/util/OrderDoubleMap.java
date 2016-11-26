@@ -4,7 +4,10 @@ import ru.inheaven.aida.happy.trading.entity.Order;
 import ru.inheaven.aida.happy.trading.entity.OrderType;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -34,12 +37,7 @@ public class OrderDoubleMap {
 
         Double price = order.getPrice().doubleValue();
 
-        Map<String, Order> subMap = map.get(price);
-
-        if (subMap == null){
-            subMap = new ConcurrentHashMap<>();
-            map.put(price, subMap);
-        }
+        Map<String, Order> subMap = map.computeIfAbsent(price, k -> new ConcurrentHashMap<>());
 
         subMap.put(order.getOrderId(), order);
 
@@ -113,27 +111,15 @@ public class OrderDoubleMap {
         return get(price, type, true);
     }
 
-
-
     public boolean contains(Double price, Double spread, OrderType type){
-        if (type.equals(BID)){
-            Double ask = askMap.floorKey(price);
-
-            if (ask != null){
-                return true;
-            }
-        }else{
-            Double bid = bidMap.ceilingKey(price);
-
-            if (bid != null){
-                return true;
-            }
-        }
-
-        Double low = (type.equals(BID) ? bidMap: askMap).floorKey(price);;
-        Double high = (type.equals(BID) ? bidMap : askMap).ceilingKey(price);
+        Double low = getMap(type).floorKey(price);
+        Double high = getMap(type).ceilingKey(price);;
 
         return (low != null && price - low <= spread) || (high != null && high - price <= spread);
+    }
+
+    private ConcurrentNavigableMap<Double, Map<String, Order>> getMap(OrderType type){
+        return type.equals(BID) ? bidMap : askMap;
     }
 
     public boolean contains(BigDecimal price, BigDecimal spread, OrderType type){
