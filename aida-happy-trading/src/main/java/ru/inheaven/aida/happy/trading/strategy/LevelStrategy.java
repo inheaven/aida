@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.service.*;
+import ru.inheaven.aida.happy.trading.util.QuranRandom;
+import ru.inheaven.aida.happy.trading.util.TorahRandom;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
@@ -303,17 +305,18 @@ public class LevelStrategy extends BaseStrategy{
         try {
             double forecast = getForecast();
             boolean balance = getSpotBalance();
-            BigDecimal spread = scale(getSpread(price));
-            BigDecimal priceF = scale(price.add(getShift(price)));
-            BigDecimal buyPrice = scale(balance ? priceF : priceF.subtract(spread));
-            BigDecimal sellPrice = scale(balance ? priceF.add(spread) : priceF);
 
-            if ((balance && !getOrderMap().contains(buyPrice, spread, BID))
-                    || (!balance && !getOrderMap().contains(sellPrice, spread, ASK))){
-//                double q1 = QuranRandom.nextDouble();
-//                double q2 = QuranRandom.nextDouble();
-//                double max = Math.max(q1, q2);
-//                double min = Math.min(q1, q2);
+            BigDecimal spread = getSpread(price);
+            BigDecimal priceF = price.add(getShift(price));
+
+            BigDecimal buyPrice = scale(priceF);
+            BigDecimal sellPrice = scale(priceF.add(spread));
+
+            if (!getOrderMap().contains(buyPrice, spread, BID) && !getOrderMap().contains(sellPrice, spread, ASK)){
+                double q1 = TorahRandom.nextDouble();
+                double q2 = QuranRandom.nextDouble();
+                double max = Math.max(q1, q2);
+                double min = Math.min(q1, q2);
 ////
 ////                //shuffle
 //                max = max * (random.nextDouble()/33 + 1);
@@ -331,8 +334,8 @@ public class LevelStrategy extends BaseStrategy{
 //                    }
 //                }
 
-                double max = random.nextGaussian()/2 + 2;
-                double min = random.nextGaussian()/2 + 1;
+//                double max = random.nextGaussian()/2 + 2;
+//                double min = random.nextGaussian()/2 + 1;
 
 //                double q1 = Math.sin(index.get()/(2*Math.PI)) + 1.07;
 //                double q2 = Math.cos(index.get()/(2*Math.PI)) + 1.07;
