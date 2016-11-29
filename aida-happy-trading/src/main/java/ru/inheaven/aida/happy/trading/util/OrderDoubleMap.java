@@ -113,9 +113,14 @@ public class OrderDoubleMap {
 
     public boolean contains(Double price, Double spread, OrderType type){
         Double low = getMap(type).floorKey(price);
-        Double high = getMap(type).ceilingKey(price);;
 
-        return (low != null && price - low <= spread) || (high != null && high - price <= spread);
+        if (low != null && price - low <= spread){
+            return true;
+        }
+
+        Double high = getMap(type).ceilingKey(price);
+
+        return high != null && high - price <= spread;
     }
 
     private ConcurrentNavigableMap<Double, Map<String, Order>> getMap(OrderType type){

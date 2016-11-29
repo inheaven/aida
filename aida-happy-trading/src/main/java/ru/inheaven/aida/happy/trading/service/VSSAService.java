@@ -61,7 +61,7 @@ public class VSSAService {
 
                 List<Double> prices = getPrices(trades, (int) (2*Math.PI*N));
 
-                if (prices.size() >= (int) (2*Math.PI*N)) {
+                if (prices.size() >= N) {
                     vssaBoost.fit(prices);
                 }
 

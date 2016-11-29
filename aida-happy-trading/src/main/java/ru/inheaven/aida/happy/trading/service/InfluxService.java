@@ -53,7 +53,8 @@ public class InfluxService {
         }
     }
 
-    public void addAccountMetric(Long accountId, BigDecimal price, BigDecimal free, BigDecimal subtotal, BigDecimal total, BigDecimal net){
+    public void addAccountMetric(Long accountId, BigDecimal price, BigDecimal free, BigDecimal subtotal, BigDecimal total, BigDecimal net,
+                                 BigDecimal openBid, BigDecimal openAsk){
         if (ping.get()) {
             influxDB.write(DB_NAME, RETENTION_POLICY, Point.measurement("account")
                     .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
@@ -63,6 +64,8 @@ public class InfluxService {
                     .addField("subtotal", subtotal)
                     .addField("total", total)
                     .addField("net", net)
+                    .addField("open_bid", openBid)
+                    .addField("open_ask", openAsk)
                     .build());
         }
     }

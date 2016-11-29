@@ -175,7 +175,9 @@ public class UserInfoService {
                         funds.getFree().get("btc"),
                         funds.getFree().get("btc").add(funds.getFreezed().get("btc")),
                         funds.getAsset().get("total"),
-                        funds.getAsset().get("net"));
+                        funds.getAsset().get("net"),
+                        funds.getFreezed().get("cny"),
+                        funds.getFreezed().get("btc"));
 
             } catch (Exception e) {
                 log.error("error user info -> ", e);
