@@ -132,7 +132,7 @@ public abstract class OkcoinApplication extends BaseApplication{
     }
 
     private Long getAccountId(SessionID sessionID) {
-        return 8L; //todo account id
+        return 1L;
     }
 
     @Override

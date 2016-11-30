@@ -19,6 +19,7 @@ import javax.inject.Singleton;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -27,6 +28,8 @@ import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
 import static ru.inheaven.aida.happy.trading.entity.ExchangeType.OKCOIN_CN;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CLOSED;
+import static ru.inheaven.aida.happy.trading.entity.OrderType.ASK;
+import static ru.inheaven.aida.happy.trading.entity.OrderType.BID;
 
 /**
  * @author inheaven on 19.07.2015 17:15.
@@ -88,6 +91,37 @@ public class UserInfoService {
                         }
                     } catch (Exception e) {
                         log.error("on close volume -> {}", o);
+                    }
+                });
+
+        Set<String> closed = ConcurrentHashMap.newKeySet();
+
+        //accountId
+        orderService.getOrderObservable()
+                .filter(o -> "BTC/CNY".equals(o.getSymbol()) && CLOSED.equals(o.getStatus()))
+                .subscribe(o -> {
+                    try {
+                        if (!closed.contains(o.getOrderId())) {
+                            if (BID.equals(o.getType())){
+                                setVolume("subtotal", 1L, "BTC", getVolume("subtotal", 1L, "BTC")
+                                        .add(o.getAmount()));
+                                setVolume("subtotal", 1L, "CNY", getVolume("subtotal", 1L, "CNY")
+                                        .subtract(o.getAmount().multiply(o.getAvgPrice())));
+                            }else if (ASK.equals(o.getType())){
+                                setVolume("subtotal", 1L, "BTC", getVolume("subtotal", 1L, "BTC")
+                                        .subtract(o.getAmount()));
+                                setVolume("subtotal", 1L, "CNY", getVolume("subtotal", 1L, "CNY")
+                                        .add(o.getAmount().multiply(o.getAvgPrice())));
+                            }
+
+                            closed.add(o.getOrderId());
+
+                            if (closed.size() > 10000){
+                                closed.clear();
+                            }
+                        }
+                    } catch (Exception e) {
+                        log.error("error update volume", e);
                     }
                 });
     }

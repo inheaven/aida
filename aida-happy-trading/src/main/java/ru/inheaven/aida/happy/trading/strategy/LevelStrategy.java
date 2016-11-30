@@ -319,8 +319,8 @@ public class LevelStrategy extends BaseStrategy{
                 double min = Math.min(q1, q2);
 ////
 ////                //shuffle
-//                max = max * (random.nextDouble()/33 + 1);
-//                min = min * (random.nextDouble()/33 + 1);
+                max = max * (random.nextDouble()/33 + 1);
+                min = min * (random.nextDouble()/33 + 1);
 
 //                if (forecast > 0 == balance){
 //                    double abs = Math.abs(forecast);
