@@ -13,6 +13,14 @@ public class ExperienceTest {
         long count;
     }
 
+    class Experience2 {
+        String a;
+        String b;
+
+        long[] aTrueHashCode;
+        long[] bTrueHashCode;
+    }
+
     Map<String, Experience> map = new HashMap<>();
 
     void addExperience(long t, String e){
