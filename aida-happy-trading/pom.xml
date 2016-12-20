@@ -13,8 +13,8 @@
     <packaging>war</packaging>
 
     <properties>
-        <wicket7.version>7.1.0</wicket7.version>
-        <wicketstuff.version>7.1.0</wicketstuff.version>
+        <wicket7.version>7.5.0</wicket7.version>
+        <wicketstuff.version>7.5.0</wicketstuff.version>
     </properties>
 
     <dependencies>
@@ -110,6 +110,10 @@
         <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.inject.extensions</groupId>
+            <artifactId>guice-multibindings</artifactId>
         </dependency>
 
         <dependency>

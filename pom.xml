@@ -293,13 +293,13 @@
             <dependency>
                 <groupId>org.mybatis</groupId>
                 <artifactId>mybatis</artifactId>
-                <version>3.3.0</version>
+                <version>3.4.1</version>
             </dependency>
 
             <dependency>
                 <groupId>org.mybatis</groupId>
                 <artifactId>mybatis-guice</artifactId>
-                <version>3.6</version>
+                <version>3.8</version>
             </dependency>
 
             <!--Hibernate-->
@@ -390,7 +390,12 @@
             <dependency>
                 <groupId>com.google.inject</groupId>
                 <artifactId>guice</artifactId>
-                <version>4.0</version>
+                <version>4.1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.inject.extensions</groupId>
+                <artifactId>guice-multibindings</artifactId>
+                <version>4.1.0</version>
             </dependency>
 
             <dependency>
@@ -426,7 +431,7 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>18.0</version>
+                <version>20.0</version>
             </dependency>
 
             <dependency>
@@ -485,7 +490,7 @@
             <dependency>
                 <groupId>io.reactivex</groupId>
                 <artifactId>rxjava</artifactId>
-                <version>1.1.6</version>
+                <version>1.2.4</version>
             </dependency>
             <dependency>
                 <groupId>io.reactivex</groupId>
@@ -571,12 +576,12 @@
             <dependency>
                 <groupId>org.quickfixj</groupId>
                 <artifactId>quickfixj-core</artifactId>
-                <version>1.6.2</version>
+                <version>1.6.3</version>
             </dependency>
             <dependency>
                 <groupId>org.quickfixj</groupId>
                 <artifactId>quickfixj-messages-fix44</artifactId>
-                <version>1.6.2</version>
+                <version>1.6.3</version>
             </dependency>
            <!-- <dependency>
                 <groupId>org.quickfixj</groupId>
