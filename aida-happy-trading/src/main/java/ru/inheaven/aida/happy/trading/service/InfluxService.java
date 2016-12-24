@@ -9,6 +9,11 @@ import ru.inheaven.aida.happy.trading.entity.ExchangeType;
 
 import javax.inject.Singleton;
 import java.math.BigDecimal;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Base64;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
