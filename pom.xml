@@ -104,6 +104,7 @@
         <module>aida-coin</module>
         <module>aida-happy-trading</module>
         <module>aida-backtest</module>
+        <module>aida-happy-mining</module>
     </modules>
 
     <dependencyManagement>
