@@ -6,7 +6,7 @@
     </appender>
 
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>/opt/log/mining.log</file>
+        <file>/opt/log/accumulation.log</file>
         <append>true</append>
         <encoder>
             <pattern>%n %d{HH:mm:ss.SSS} %level %msg</pattern>

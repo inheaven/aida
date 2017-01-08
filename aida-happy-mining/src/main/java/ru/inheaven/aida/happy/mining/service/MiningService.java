@@ -46,7 +46,7 @@ public class MiningService {
 
                     log.info("withdraw {}", id);
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 log.error("error", e);
             }
 

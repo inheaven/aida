@@ -105,6 +105,7 @@
         <module>aida-happy-trading</module>
         <module>aida-backtest</module>
         <module>aida-happy-mining</module>
+        <module>aida-happy-accumulation</module>
     </modules>
 
     <dependencyManagement>
