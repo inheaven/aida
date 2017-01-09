@@ -65,10 +65,11 @@ public class AccumulationService {
                 BigDecimal profit = current.subtract(balance);
 
                 if (profit.compareTo(ACCUMULATION_MIN.multiply(ticker.getLast())) > 0){
-                    BigDecimal withdraw = profit.multiply(ACCUMULATION_PERCENT).divide(ticker.getLast(), 8, RoundingMode.HALF_EVEN);
+                    BigDecimal withdraw = profit.multiply(ACCUMULATION_PERCENT);
 
                     OKCoinWithdraw okCoinWithdraw = ((OkCoinAccountServiceRaw)exchange.getPollingAccountService())
-                            .withdraw(null, "btc_cny","1HgYheSg64weQ177ZtKY9Tx75g9tAj89Y5",withdraw);
+                            .withdraw(null, "btc_cny","1HgYheSg64weQ177ZtKY9Tx75g9tAj89Y5",
+                                    withdraw.divide(ticker.getLast(), 8, RoundingMode.HALF_EVEN));
 
                     log.info("withdraw {} {}", withdraw, okCoinWithdraw);
 
