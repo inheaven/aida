@@ -43,43 +43,46 @@ public class AccumulationService {
         }});
 
         try {
-            Balance cny = exchange.getPollingAccountService().getAccountInfo().getWallet().getBalance(Currency.CNY);
-            log.info("init {}", cny.toString());
+            Ticker ticker = exchange.getPollingMarketDataService().getTicker(CurrencyPair.BTC_CNY);
+            log.info(ticker.toString());
 
-            balance = cny.getAvailable().add(cny.getFrozen());
+            balance = ((OkCoinAccountServiceRaw)exchange.getPollingAccountService()).getUserInfo().getInfo().getFunds().getAsset().get("net");
+            log.info("balance {}", balance);
 
-            ((OkCoinAccountServiceRaw)exchange.getPollingAccountService()).withdraw(null, "btc_cny",
+            OKCoinWithdraw withdraw =  ((OkCoinAccountServiceRaw)exchange.getPollingAccountService()).withdraw(null, "btc_cny",
                     "1HgYheSg64weQ177ZtKY9Tx75g9tAj89Y5",
                     new BigDecimal("0.01"));
+
+            log.info(withdraw.toString());
         } catch (Exception e) {
             log.error("error init", e);
         }
 
-        if (balance != null){
-            Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
-                try {
-                    Balance cny = exchange.getPollingAccountService().getAccountInfo().getWallet().getBalance(Currency.CNY);
-                    log.info(cny.toString());
-
-                    Ticker ticker = exchange.getPollingMarketDataService().getTicker(CurrencyPair.BTC_CNY);
-                    log.info(ticker.toString());
-
-                    BigDecimal profit = balance.subtract(cny.getAvailable().add(cny.getFrozen()));
-
-                    if (profit.compareTo(ACCUMULATION_MIN.multiply(ticker.getLast())) > 0){
-                        OKCoinWithdraw withdraw = ((OkCoinAccountServiceRaw)exchange.getPollingAccountService()).withdraw(null, "btc_cny",
-                                "1HgYheSg64weQ177ZtKY9Tx75g9tAj89Y5",
-                                profit.multiply(ACCUMULATION_PERCENT).divide(ticker.getLast(), 8, RoundingMode.HALF_EVEN));
-
-                        log.info("withdraw {}", withdraw.toString());
-
-                        balance = cny.getAvailable().add(cny.getFrozen());
-                    }
-                } catch (Exception e) {
-                    log.error("error", e);
-                }
-            }, 0, 1, TimeUnit.DAYS);
-        }
+//        if (balance != null){
+//            Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
+//                try {
+//                    Ticker ticker = exchange.getPollingMarketDataService().getTicker(CurrencyPair.BTC_CNY);
+//                    log.info(ticker.toString());
+//
+//                    BigDecimal current =((OkCoinAccountServiceRaw)exchange.getPollingAccountService()).getUserInfo().getInfo().getFunds().getAsset().get("net");;
+//                    log.info("current {}", current);
+//
+//                    BigDecimal profit = current.subtract(balance);
+//
+//                    if (profit.compareTo(ACCUMULATION_MIN.multiply(ticker.getLast())) > 0){
+//                        OKCoinWithdraw withdraw = ((OkCoinAccountServiceRaw)exchange.getPollingAccountService()).withdraw(null, "btc_cny",
+//                                "1HgYheSg64weQ177ZtKY9Tx75g9tAj89Y5",
+//                                profit.multiply(ACCUMULATION_PERCENT).divide(ticker.getLast(), 8, RoundingMode.HALF_EVEN));
+//
+//                        log.info("withdraw {}", withdraw.toString());
+//
+//                        balance = current;
+//                    }
+//                } catch (Exception e) {
+//                    log.error("error", e);
+//                }
+//            }, 0, 1, TimeUnit.HOURS);
+//        }
     }
 
     public static void main(String[] args) {
