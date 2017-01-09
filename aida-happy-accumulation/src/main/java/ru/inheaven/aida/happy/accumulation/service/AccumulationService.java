@@ -28,7 +28,7 @@ public class AccumulationService {
     Logger log = LoggerFactory.getLogger(AccumulationService.class);
 
     private BigDecimal ACCUMULATION_MIN = new BigDecimal("0.01");
-    private BigDecimal ACCUMULATION_PERCENT = new BigDecimal("0.15");
+    private BigDecimal ACCUMULATION_PERCENT = new BigDecimal("0.5");
 
     private BigDecimal balance = null;
 
@@ -48,41 +48,35 @@ public class AccumulationService {
 
             balance = ((OkCoinAccountServiceRaw)exchange.getPollingAccountService()).getUserInfo().getInfo().getFunds().getAsset().get("net");
             log.info("balance {}", balance);
-
-            OKCoinWithdraw withdraw =  ((OkCoinAccountServiceRaw)exchange.getPollingAccountService()).withdraw(null, "btc_cny",
-                    "1HgYheSg64weQ177ZtKY9Tx75g9tAj89Y5",
-                    new BigDecimal("0.01"));
-
-            log.info(withdraw.toString());
         } catch (Exception e) {
             log.error("error init", e);
+
+            throw new RuntimeException(e);
         }
 
-//        if (balance != null){
-//            Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
-//                try {
-//                    Ticker ticker = exchange.getPollingMarketDataService().getTicker(CurrencyPair.BTC_CNY);
-//                    log.info(ticker.toString());
-//
-//                    BigDecimal current =((OkCoinAccountServiceRaw)exchange.getPollingAccountService()).getUserInfo().getInfo().getFunds().getAsset().get("net");;
-//                    log.info("current {}", current);
-//
-//                    BigDecimal profit = current.subtract(balance);
-//
-//                    if (profit.compareTo(ACCUMULATION_MIN.multiply(ticker.getLast())) > 0){
-//                        OKCoinWithdraw withdraw = ((OkCoinAccountServiceRaw)exchange.getPollingAccountService()).withdraw(null, "btc_cny",
-//                                "1HgYheSg64weQ177ZtKY9Tx75g9tAj89Y5",
-//                                profit.multiply(ACCUMULATION_PERCENT).divide(ticker.getLast(), 8, RoundingMode.HALF_EVEN));
-//
-//                        log.info("withdraw {}", withdraw.toString());
-//
-//                        balance = current;
-//                    }
-//                } catch (Exception e) {
-//                    log.error("error", e);
-//                }
-//            }, 0, 1, TimeUnit.HOURS);
-//        }
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
+            try {
+                Ticker ticker = exchange.getPollingMarketDataService().getTicker(CurrencyPair.BTC_CNY);
+                log.info(ticker.toString());
+
+                BigDecimal current =((OkCoinAccountServiceRaw)exchange.getPollingAccountService()).getUserInfo().getInfo().getFunds().getAsset().get("net");;
+                log.info("current {}", current);
+
+                BigDecimal profit = current.subtract(balance);
+
+                if (profit.compareTo(ACCUMULATION_MIN.multiply(ticker.getLast())) > 0){
+                    OKCoinWithdraw withdraw = ((OkCoinAccountServiceRaw)exchange.getPollingAccountService()).withdraw(null, "btc_cny",
+                            "1HgYheSg64weQ177ZtKY9Tx75g9tAj89Y5",
+                            profit.multiply(ACCUMULATION_PERCENT).divide(ticker.getLast(), 8, RoundingMode.HALF_EVEN));
+
+                    log.info("withdraw {}", withdraw.toString());
+
+                    balance = current;
+                }
+            } catch (Exception e) {
+                log.error("error", e);
+            }
+        }, 0, 1, TimeUnit.HOURS);
     }
 
     public static void main(String[] args) {
