@@ -214,7 +214,7 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal delta = BigDecimal.valueOf(getForecast() / vssaService.getVssaCount()).multiply(Const.BD_0_16).add(ONE);
 
         return subtotalBtc.compareTo(ZERO) > 0 && price.compareTo(ZERO) > 0 &&
-                net.multiply(delta).divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(Const.BD_0_5) > 0;
+                net.multiply(delta).divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(Const.BD_2) > 0;
     }
 
     private BigDecimal getDeltaP(){
