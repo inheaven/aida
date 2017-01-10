@@ -24,6 +24,7 @@ import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_EVEN;
 import static java.math.RoundingMode.HALF_UP;
+import static ru.inheaven.aida.happy.trading.entity.Const.BD_2;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CLOSED;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.OPEN;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.ASK;
@@ -54,6 +55,8 @@ public class LevelStrategy extends BaseStrategy{
 
     private Deque<BigDecimal> actionPrices = new ConcurrentLinkedDeque<>();
     private Deque<Trade> closedMarketTrades = new ConcurrentLinkedDeque<>();
+
+    private BigDecimal BALANCE = BD_2;
 
     public LevelStrategy(StrategyService strategyService, Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                          DepthService depthService, UserInfoService userInfoService,  XChangeService xChangeService) {
@@ -214,7 +217,7 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal delta = BigDecimal.valueOf(getForecast() / vssaService.getVssaCount()).multiply(Const.BD_0_16).add(ONE);
 
         return subtotalBtc.compareTo(ZERO) > 0 && price.compareTo(ZERO) > 0 &&
-                net.multiply(delta).divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(Const.BD_2) > 0;
+                net.multiply(delta).divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(BALANCE) > 0;
     }
 
     private BigDecimal getDeltaP(){
@@ -288,7 +291,8 @@ public class LevelStrategy extends BaseStrategy{
                     .multiply(Const.BD_PI).multiply(getStrategy().getLevelSpread())
                     .multiply(getStrategy().getLevelLot())
                     .multiply(price)
-                    .divide(net, 8, HALF_EVEN);
+                    .divide(net, 8, HALF_EVEN)
+                    .multiply(BALANCE);
         }
 
         return getSideSpread(price);
