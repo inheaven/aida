@@ -1,5 +1,6 @@
 package ru.inheaven.aida.happy.trading.strategy;
 
+import com.google.common.collect.EvictingQueue;
 import com.google.common.primitives.Doubles;
 import com.google.common.util.concurrent.AtomicDouble;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
@@ -7,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
+import ru.inheaven.aida.happy.trading.mapper.StrategyMapper;
 import ru.inheaven.aida.happy.trading.service.*;
 
 import java.math.BigDecimal;
@@ -56,7 +58,8 @@ public class LevelStrategy extends BaseStrategy{
     private Deque<BigDecimal> actionPrices = new ConcurrentLinkedDeque<>();
     private Deque<Trade> closedMarketTrades = new ConcurrentLinkedDeque<>();
 
-    private BigDecimal BALANCE = BD_2;
+    private EvictingQueue<BigDecimal> nets = EvictingQueue.create(1440);
+    private EvictingQueue<BigDecimal> prices = EvictingQueue.create(1440);
 
     public LevelStrategy(StrategyService strategyService, Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                          DepthService depthService, UserInfoService userInfoService,  XChangeService xChangeService) {
@@ -117,6 +120,7 @@ public class LevelStrategy extends BaseStrategy{
             }
         }, 5, 1, TimeUnit.SECONDS);
 
+        //metrics
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             try {
                 influxService.addStrategyMetric(getStrategy().getId(), getStrategy().getLevelLot(),
@@ -127,6 +131,7 @@ public class LevelStrategy extends BaseStrategy{
             }
         }, 5, 1, TimeUnit.SECONDS);
 
+        //market price
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() ->{
             try {
                 Trade maxTrade = closedMarketTrades.peek();
@@ -152,13 +157,32 @@ public class LevelStrategy extends BaseStrategy{
                 log.error("error close market trade scheduler", e);
             }
         }, 5, 1, TimeUnit.MINUTES);
+
+        //swan defence
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
+            BigDecimal net = userInfoService.getVolume("net", getStrategy().getAccount().getId(), null);
+            BigDecimal price = lastAvgPrice.get().compareTo(ZERO) > 0 ? lastAvgPrice.get() : lastTrade.get();
+
+            if (net.compareTo(ZERO) > 0 && price.compareTo(ZERO) > 0){
+                nets.add(net);
+                prices.add(price);
+            }
+
+            BigDecimal netSwan = nets.element().subtract(net).divide(net, 8, HALF_EVEN);
+            BigDecimal priceSwan = prices.element().subtract(price).divide(price, 8, HALF_EVEN);
+
+            if (netSwan.compareTo(Const.BD_0_1) > 0 || netSwan.subtract(priceSwan).compareTo(Const.BD_0_05) > 0){
+                getStrategy().setActive(false);
+                Module.getInjector().getInstance(StrategyMapper.class).save(getStrategy());
+
+                log.error("Swan detected {} {}", netSwan, priceSwan);
+            }
+        },5, 1, TimeUnit.MINUTES);
     }
 
     @SuppressWarnings("Duplicates")
     private void closeByMarket(BigDecimal price, Date time){
         try {
-            double sideSpread = getSideSpread(price).doubleValue();
-
             getOrderMap().get(price.doubleValue(), BID, false).forEach((k,v) -> {
                 v.values().forEach(o -> {
                     if (o.getStatus().equals(OPEN) && time.getTime() - o.getOpen().getTime() > 1000){
@@ -217,7 +241,7 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal delta = BigDecimal.valueOf(getForecast() / vssaService.getVssaCount()).multiply(Const.BD_0_16).add(ONE);
 
         return subtotalBtc.compareTo(ZERO) > 0 && price.compareTo(ZERO) > 0 &&
-                net.multiply(delta).divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(BALANCE) > 0;
+                net.multiply(delta).divide(subtotalBtc.multiply(price).multiply(BD_2), 8, HALF_EVEN).compareTo(ONE) > 0;
     }
 
     private BigDecimal getDeltaP(){
@@ -291,8 +315,7 @@ public class LevelStrategy extends BaseStrategy{
                     .multiply(Const.BD_PI).multiply(getStrategy().getLevelSpread())
                     .multiply(getStrategy().getLevelLot())
                     .multiply(price)
-                    .divide(net, 8, HALF_EVEN)
-                    .multiply(BALANCE);
+                    .divide(net, 8, HALF_EVEN);
         }
 
         return getSideSpread(price);
@@ -305,6 +328,10 @@ public class LevelStrategy extends BaseStrategy{
 
     private void action(String key, BigDecimal price, OrderType orderType, int priceLevel) {
         try {
+            if (!getStrategy().isActive()){
+                return;
+            }
+
             double forecast = getForecast();
             boolean balance = getSpotBalance();
 
@@ -451,7 +478,19 @@ public class LevelStrategy extends BaseStrategy{
     }
 
 //    public static void main(String... args){
-//        Observable.range(0, 100).buffer(55, 1).forEach(l -> System.out.println(Arrays.toString(l.toArray())));
+//        EvictingQueue<Integer> queue = EvictingQueue.create(3);
+//
+//        queue.add(1);
+//        queue.add(2);
+//        queue.add(3);
+//
+//        System.out.println(queue);
+//        System.out.println(queue.element());
+//
+//        queue.add(4);
+//
+//        System.out.println(queue);
+//        System.out.println(queue.element());
 //    }
 }
 
