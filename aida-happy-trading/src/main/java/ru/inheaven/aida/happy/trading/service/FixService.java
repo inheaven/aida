@@ -45,7 +45,7 @@ public class FixService {
 
                 {
                     Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
-                        if (System.currentTimeMillis() - time > 60000){
+                        if (System.currentTimeMillis() - time > 600000){
                             connector.stop();
 
                             try {
