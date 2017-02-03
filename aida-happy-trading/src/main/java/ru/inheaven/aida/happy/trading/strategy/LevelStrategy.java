@@ -336,7 +336,7 @@ public class LevelStrategy extends BaseStrategy{
             boolean balance = getSpotBalance();
 
             BigDecimal spread = getSpread(price);
-            BigDecimal priceF = price.add(getShift(price));
+            BigDecimal priceF = price;//.add(getShift(price));
 
             BigDecimal buyPrice = scale(priceF);
             BigDecimal sellPrice = scale(priceF.add(spread));
