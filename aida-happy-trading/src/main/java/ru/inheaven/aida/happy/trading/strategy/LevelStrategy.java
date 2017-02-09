@@ -94,7 +94,7 @@ public class LevelStrategy extends BaseStrategy{
 
         //VSSA
         vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 100, 10, 400, 10, 300, 1000);
-
+;
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             try {
                 if (vssaService.isLoaded()) {
@@ -250,7 +250,7 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", getStrategy().getAccount().getId(), "BTC");
         BigDecimal net = userInfoService.getVolume("net", getStrategy().getAccount().getId(), null);
 
-        return ONE.subtract(subtotalBtc.multiply(lastTrade.get()).divide(net, 8, HALF_EVEN));
+        return ONE.subtract(subtotalBtc.multiply(lastTrade.get()).multiply(BD_2).divide(net, 8, HALF_EVEN));
     }
 
     private BigDecimal getShift(BigDecimal price){
@@ -338,10 +338,10 @@ public class LevelStrategy extends BaseStrategy{
             boolean balance = getSpotBalance();
 
             BigDecimal spread = getSpread(price);
-            BigDecimal priceF = price.add(getStep());
+            BigDecimal priceF = price.add(getShift(price));
 
-            BigDecimal buyPrice = scale(balance ? priceF : priceF.subtract(spread));
-            BigDecimal sellPrice = scale(balance ? priceF.add(spread) : priceF);
+            BigDecimal buyPrice = scale(priceF);
+            BigDecimal sellPrice = scale(priceF.add(spread));
 
             if (!getOrderMap().contains(buyPrice, spread, BID) && !getOrderMap().contains(sellPrice, spread, ASK)){
                 double q1 = TorahRandom.nextDouble();
