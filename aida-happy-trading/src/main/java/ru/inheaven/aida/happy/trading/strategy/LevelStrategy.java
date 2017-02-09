@@ -10,6 +10,8 @@ import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
 import ru.inheaven.aida.happy.trading.mapper.StrategyMapper;
 import ru.inheaven.aida.happy.trading.service.*;
+import ru.inheaven.aida.happy.trading.util.QuranRandom;
+import ru.inheaven.aida.happy.trading.util.TorahRandom;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
@@ -91,7 +93,7 @@ public class LevelStrategy extends BaseStrategy{
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
         //VSSA
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 100, 10, 400, 10, 100, 1000);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 100, 10, 400, 10, 300, 1000);
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             try {
@@ -336,20 +338,20 @@ public class LevelStrategy extends BaseStrategy{
             boolean balance = getSpotBalance();
 
             BigDecimal spread = getSpread(price);
-            BigDecimal priceF = price;//.add(getShift(price));
+            BigDecimal priceF = price.add(getStep());
 
-            BigDecimal buyPrice = scale(priceF);
-            BigDecimal sellPrice = scale(priceF.add(spread));
+            BigDecimal buyPrice = scale(balance ? priceF : priceF.subtract(spread));
+            BigDecimal sellPrice = scale(balance ? priceF.add(spread) : priceF);
 
             if (!getOrderMap().contains(buyPrice, spread, BID) && !getOrderMap().contains(sellPrice, spread, ASK)){
-//                double q1 = TorahRandom.nextDouble();
-//                double q2 = QuranRandom.nextDouble();
-//                double max = Math.max(q1, q2);
-//                double min = Math.min(q1, q2);
+                double q1 = TorahRandom.nextDouble();
+                double q2 = QuranRandom.nextDouble();
+                double max = Math.max(q1, q2);
+                double min = Math.min(q1, q2);
 //////
 //////                //shuffle
-//                max = max * (random.nextDouble()/33 + 1);
-//                min = min * (random.nextDouble()/33 + 1);
+                max = max * (random.nextDouble()/33 + 1);
+                min = min * (random.nextDouble()/33 + 1);
 
 //                if (forecast > 0 == balance){
 //                    double abs = Math.abs(forecast);
@@ -363,8 +365,8 @@ public class LevelStrategy extends BaseStrategy{
 //                    }
 //                }
 
-                double max = (random.nextGaussian()/2 + 2)/Math.PI;
-                double min = (random.nextGaussian()/2 + 1)/Math.PI;
+//                double max = (random.nextGaussian()/2 + 2)/Math.PI;
+//                double min = (random.nextGaussian()/2 + 1)/Math.PI;
 
 //                double q1 = Math.sin(index.get()/(2*Math.PI)) + 1.07;
 //                double q2 = Math.cos(index.get()/(2*Math.PI)) + 1.07;
