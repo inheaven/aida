@@ -88,10 +88,10 @@ public class FixService {
                         marketSessionId = sessionId;
 
                         requestLiveTrades(sessionId, "BTC/CNY");
-                        requestOrderBook(sessionId, "BTC/CNY");
-
-                        requestLiveTrades(sessionId, "LTC/CNY");
-                        requestOrderBook(sessionId, "LTC/CNY");
+//                        requestOrderBook(sessionId, "BTC/CNY");
+//
+//                        requestLiveTrades(sessionId, "LTC/CNY");
+//                        requestOrderBook(sessionId, "LTC/CNY");
                     }
                 }
             };
