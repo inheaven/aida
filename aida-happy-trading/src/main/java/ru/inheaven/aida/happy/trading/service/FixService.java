@@ -84,7 +84,7 @@ public class FixService {
                 }
 
                 private void request(SessionID sessionId){
-                    if ("8b8620cf-83ed-46d8-91e6-41e5eb65f44f".equalsIgnoreCase(sessionId.getSessionQualifier())){
+                    if ("030af393-e14a-4069-a8c0-6955f11d1cab".equalsIgnoreCase(sessionId.getSessionQualifier())){
                         marketSessionId = sessionId;
 
                         requestLiveTrades(sessionId, "BTC/CNY");
@@ -104,9 +104,9 @@ public class FixService {
                     new FileLogFactory(settings){
                         @Override
                         public Log create(SessionID sessionId) {
-                            if ("8b8620cf-83ed-46d8-91e6-41e5eb65f44f".equalsIgnoreCase(sessionId.getSessionQualifier())){
-                                return null;
-                            }
+//                            if ("8b8620cf-83ed-46d8-91e6-41e5eb65f44f".equalsIgnoreCase(sessionId.getSessionQualifier())){
+//                                return null;
+//                            }
 
                             return super.create(sessionId);
                         }
