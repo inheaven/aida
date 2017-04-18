@@ -13,8 +13,8 @@
     <packaging>war</packaging>
 
     <properties>
-        <wicket7.version>7.5.0</wicket7.version>
-        <wicketstuff.version>7.5.0</wicketstuff.version>
+        <wicket7.version>7.6.0</wicket7.version>
+        <wicketstuff.version>7.6.0</wicketstuff.version>
     </properties>
 
     <dependencies>

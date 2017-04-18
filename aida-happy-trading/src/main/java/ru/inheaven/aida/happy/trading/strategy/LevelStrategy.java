@@ -93,7 +93,7 @@ public class LevelStrategy extends BaseStrategy{
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
         //VSSA
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.45, 100, 10, 400, 20, 4000, 1000);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 10, 100, 512, 32, 4096, 1000);
 ;
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             try {
@@ -125,9 +125,11 @@ public class LevelStrategy extends BaseStrategy{
         //metrics
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             try {
-                influxService.addStrategyMetric(getStrategy().getId(), getStrategy().getLevelLot(),
-                        getSpread(lastTrade.get()), getStdDev(), getSpotBalance() ? 1d : -1d, getForecast(),
-                        getShift(lastTrade.get()));
+                if (lastTrade.get().compareTo(ZERO) > 0) {
+                    influxService.addStrategyMetric(getStrategy().getId(), getStrategy().getLevelLot(),
+                            getSpread(lastTrade.get()), getStdDev(), getSpotBalance() ? 1d : -1d, getForecast(),
+                            getShift(lastTrade.get()));
+                }
             } catch (Exception e) {
                 log.error("error add strategy metric");
             }
