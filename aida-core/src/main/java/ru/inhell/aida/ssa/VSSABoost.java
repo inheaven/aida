@@ -121,9 +121,7 @@ public class VSSABoost {
         for (int t = 0; t < trainCount; ++t){
             int size = series.size() - N - M;
 
-            if (size < 1) size = 1;
-
-            int start = random.nextInt(size);
+            int start = size > 0 ? random.nextInt(size) : 0;
 
             double[] train = new double[N];
 

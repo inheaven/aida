@@ -46,7 +46,7 @@ public class VSSAService {
             try {
                 TradeMapper tradeMapper = Module.getInjector().getInstance(TradeMapper.class);
 
-                long start = System.currentTimeMillis() - 14*24*60*60*1000;
+                long start = System.currentTimeMillis() - (long)30*24*60*60*1000;
                 long end = System.currentTimeMillis();
 
                 for (long t = start; t < end; t += 60000){
