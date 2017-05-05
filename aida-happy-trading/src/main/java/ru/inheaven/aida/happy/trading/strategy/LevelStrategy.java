@@ -93,7 +93,7 @@ public class LevelStrategy extends BaseStrategy{
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
         //VSSA
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 10, 100, 512, 32, 1024, 1000);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 100, 10, 300, 10, 256, 1000);
 ;
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             try {
