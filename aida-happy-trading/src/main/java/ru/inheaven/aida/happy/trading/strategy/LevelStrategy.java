@@ -93,7 +93,7 @@ public class LevelStrategy extends BaseStrategy{
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
         //VSSA
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 100, 10, 300, 10, 256, 1000);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 100, 10, 400, 10, 100, 1000);
 ;
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             try {
@@ -242,7 +242,7 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", getStrategy().getAccount().getId(), "BTC");
         BigDecimal net = userInfoService.getVolume("net", getStrategy().getAccount().getId(), null);
         BigDecimal price = lastAvgPrice.get().compareTo(ZERO) > 0 ? lastAvgPrice.get() : lastTrade.get();
-        BigDecimal delta = BigDecimal.valueOf(getForecast() / vssaService.getVssaCount()).multiply(Const.BD_0_5).add(ONE);
+        BigDecimal delta = BigDecimal.valueOf(getForecast() / vssaService.getVssaCount()).multiply(Const.BD_0_16).add(ONE);
 
         return subtotalBtc.compareTo(ZERO) > 0 && price.compareTo(ZERO) > 0 &&
                 net.multiply(delta).divide(subtotalBtc.multiply(price).multiply(BD_2), 8, HALF_EVEN).compareTo(ONE) > 0;
