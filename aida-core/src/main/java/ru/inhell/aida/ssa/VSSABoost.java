@@ -166,6 +166,8 @@ public class VSSABoost {
     public double execute(double[] series){
         int forecast = 0;
 
+        int index = 0;
+
         for (VSSA vssa : queue){
             int N = vssa.getRangeLength();
 
@@ -178,6 +180,10 @@ public class VSSABoost {
             double[] forecasts = vssa.execute(seriesF);
 
             forecast += Math.signum(getTarget(forecasts, N, M) - forecasts[N - 1]);
+
+            if (++index > vssaCount){
+                break;
+            }
         }
 
         return forecast;

@@ -93,7 +93,7 @@ public class LevelStrategy extends BaseStrategy{
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
         //VSSA
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.4, 100, 10, 300, 1, 200, 1000);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 100, 10, 300, 10, 1000, 1000);
 ;
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             try {
@@ -242,7 +242,7 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", getStrategy().getAccount().getId(), "BTC");
         BigDecimal net = userInfoService.getVolume("net", getStrategy().getAccount().getId(), null);
         BigDecimal price = lastAvgPrice.get().compareTo(ZERO) > 0 ? lastAvgPrice.get() : lastTrade.get();
-        BigDecimal delta = BigDecimal.valueOf(getForecast() / vssaService.getVssaCount()).multiply(Const.BD_0_16).add(ONE);
+        BigDecimal delta = BigDecimal.valueOf(getForecast() / vssaService.getVssaCount()).multiply(Const.BD_0_33).add(ONE);
 
         return subtotalBtc.compareTo(ZERO) > 0 && price.compareTo(ZERO) > 0 &&
                 net.multiply(delta).divide(subtotalBtc.multiply(price).multiply(BD_2), 8, HALF_EVEN).compareTo(ONE) > 0;
@@ -256,7 +256,7 @@ public class LevelStrategy extends BaseStrategy{
     }
 
     private BigDecimal getShift(BigDecimal price){
-        return getSpread(price).multiply(getDeltaP());
+        return getSideSpread(price).multiply(getDeltaP());
     }
 
     @Override
@@ -436,7 +436,7 @@ public class LevelStrategy extends BaseStrategy{
             (trade.getOrderType().equals(BID) ? tradeBid : tradeAsk).set(trade.getPrice());
 
             if (lastTrade.get().compareTo(ZERO) != 0 && lastTrade.get().subtract(trade.getPrice()).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(Const.BD_0_01) < 0){
-                actionPrices.add(trade.getPrice());
+//                actionPrices.add(trade.getPrice());
 
                 vssaService.add(trade);
 
@@ -466,19 +466,21 @@ public class LevelStrategy extends BaseStrategy{
                 lastTrade.get().subtract(bid).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(Const.BD_0_01) < 0) {
             depthSpread.set(ask.subtract(bid).abs());
 
-            if (getSpotBalance()){
-                actionPrices.add(ask);
-            }else if (getForecast() < 0){
-                actionPrices.add(bid);
-            }
+//            if (getSpotBalance()){
+//                actionPrices.add(ask);
+//            }else if (getForecast() < 0){
+//                actionPrices.add(bid);
+//            }
+
+            actionPrices.add(getSpotBalance() ? ask : bid);
         }
     }
 
     @Override
     protected void onRealTrade(Order order) {
-        if (order.getStatus().equals(CLOSED) && order.getAvgPrice().compareTo(ZERO) > 0){
-            actionPrices.add(order.getAvgPrice());
-        }
+//        if (order.getStatus().equals(CLOSED) && order.getAvgPrice().compareTo(ZERO) > 0){
+//            actionPrices.add(order.getAvgPrice());
+//        }
     }
 
 //    public static void main(String... args){

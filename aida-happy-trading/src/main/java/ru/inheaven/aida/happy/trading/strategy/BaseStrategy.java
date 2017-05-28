@@ -261,6 +261,8 @@ public class BaseStrategy {
                         }
                     }
 
+                    //grant all privileges on aida.* to 'aida'@'93.92.219.204' identified by 'aida';
+
                     BigDecimal range = getSpread(lastPrice.get()).multiply(BigDecimal.valueOf(10));
 
                     openOrders.forEach(l -> {
