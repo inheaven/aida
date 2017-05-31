@@ -42,7 +42,7 @@ public class VSSABoost {
         M = m;
     }
 
-    private ExecutorService executor = Executors.newCachedThreadPool();
+    private ExecutorService executor = Executors.newWorkStealingPool();
 
     public void fit(List<Double> series){
         if (fitting.get()){
@@ -60,7 +60,7 @@ public class VSSABoost {
 
         List<Future> futures = new ArrayList<>();
 
-        for (int p = 0; p < Runtime.getRuntime().availableProcessors()/2; ++p){
+        for (int p = 0; p < Runtime.getRuntime().availableProcessors()-1; ++p){
             futures.add(executor.submit(() -> {
                 for (int v = 0; v < MAX_VSSA_ITERATION; v++){
                     try {

