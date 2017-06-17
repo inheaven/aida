@@ -63,6 +63,8 @@ public class LevelStrategy extends BaseStrategy{
     private EvictingQueue<BigDecimal> nets = EvictingQueue.create(1440);
     private EvictingQueue<BigDecimal> prices = EvictingQueue.create(1440);
 
+    private double forecastK;
+
     public LevelStrategy(StrategyService strategyService, Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                          DepthService depthService, UserInfoService userInfoService,  XChangeService xChangeService) {
         super(strategy, orderService, orderMapper, tradeService, depthService, xChangeService);
@@ -93,8 +95,10 @@ public class LevelStrategy extends BaseStrategy{
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
         //VSSA
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 100, 10, 500, 10, 1000, 1000);
-;
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 11, 100, 500, 10, 1000, 1000);
+
+        forecastK = 10;
+
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             try {
                 if (vssaService.isLoaded()) {
@@ -261,7 +265,7 @@ public class LevelStrategy extends BaseStrategy{
 
     @Override
     protected double getForecast() {
-        return vssaService.getForecast();
+        return vssaService.getForecast()*forecastK;
     }
 
     @Override
@@ -340,16 +344,16 @@ public class LevelStrategy extends BaseStrategy{
             boolean balance = getSpotBalance();
 
             BigDecimal spread = getSpread(price);
-            BigDecimal priceF = price.add(getShift(price).multiply(BigDecimal.valueOf(random.nextDouble())));
+            BigDecimal priceF = price.add(getShift(price));
 
             BigDecimal buyPrice = scale(priceF);
             BigDecimal sellPrice = scale(priceF.add(spread));
 
             if (!getOrderMap().contains(buyPrice, spread, BID) && !getOrderMap().contains(sellPrice, spread, ASK)){
-//                double q1 = TorahRandom.nextDouble();
-//                double q2 = QuranRandom.nextDouble();
-//                double max = Math.max(q1, q2);
-//                double min = Math.min(q1, q2);
+                double q1 = TorahRandom.nextDouble();
+                double q2 = QuranRandom.nextDouble();
+                double max = Math.max(q1, q2);
+                double min = Math.min(q1, q2);
 //////
 //////                //shuffle
 //                max = max * (random.nextDouble()/33 + 1);
@@ -367,8 +371,8 @@ public class LevelStrategy extends BaseStrategy{
 //                    }
 //                }
 
-                double max = (random.nextGaussian()/2 + 2)/Math.PI;
-                double min = (random.nextGaussian()/2 + 1)/Math.PI;
+//                double max = (random.nextGaussian()/2 + 2)/Math.PI;
+//                double min = (random.nextGaussian()/2 + 1)/Math.PI;
 
 //                double q1 = Math.sin(index.get()/(2*Math.PI)) + 1.07;
 //                double q2 = Math.cos(index.get()/(2*Math.PI)) + 1.07;
@@ -434,7 +438,7 @@ public class LevelStrategy extends BaseStrategy{
             (trade.getOrderType().equals(BID) ? tradeBid : tradeAsk).set(trade.getPrice());
 
             if (lastTrade.get().compareTo(ZERO) != 0 && lastTrade.get().subtract(trade.getPrice()).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(Const.BD_0_01) < 0){
-                actionPrices.add(trade.getPrice());
+                //actionPrices.add(trade.getPrice());
 
                 vssaService.add(trade);
 
@@ -464,19 +468,20 @@ public class LevelStrategy extends BaseStrategy{
                 lastTrade.get().subtract(bid).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(Const.BD_0_01) < 0) {
             depthSpread.set(ask.subtract(bid).abs());
 
-            if (getSpotBalance()){
-                actionPrices.add(ask);
-            }else if (getForecast() < 0){
-                actionPrices.add(bid);
-            }
+//            if (getSpotBalance()){
+//                actionPrices.add(ask);
+//            }else if (getForecast() < 0){
+//                actionPrices.add(bid);
+//            }
+            actionPrices.add(bid.add(ask).divide(BD_2, 8, HALF_EVEN));
         }
     }
 
     @Override
     protected void onRealTrade(Order order) {
-        if (order.getStatus().equals(CLOSED) && order.getAvgPrice().compareTo(ZERO) > 0){
-            actionPrices.add(order.getAvgPrice());
-        }
+//        if (order.getStatus().equals(CLOSED) && order.getAvgPrice().compareTo(ZERO) > 0){
+//            actionPrices.add(order.getAvgPrice());
+//        }
     }
 
 //    public static void main(String... args){
