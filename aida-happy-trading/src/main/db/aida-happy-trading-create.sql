@@ -60,7 +60,6 @@ CREATE TABLE `order`
 
   KEY `key_closed` (closed),
   KEY `key_type` (type),
-  KEY `key_closed` (closed),
   KEY `key_status` (status),
   UNIQUE KEY `key_order_id` (order_id),
   KEY `key_strategy_id` (strategy_id),

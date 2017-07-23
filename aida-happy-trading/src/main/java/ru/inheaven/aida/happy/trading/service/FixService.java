@@ -76,10 +76,9 @@ public class FixService {
                     time = System.currentTimeMillis();
 
                     tradePublishSubject.onNext(trade);
-                }
 
-                //433cd272-ea87-4a1b-abca-86a0dcf9d8c4
-                //FF88239821A6EA2E8D11D3E7A2789431
+                    System.out.println(trade);
+                }
 
                 //Fut
                 // 8ff1dce3-8cd5-4a3f-bd79-288fd0d665b1
@@ -91,11 +90,11 @@ public class FixService {
                 }
 
                 private void request(SessionID sessionId){
-                    if ("030af393-e14a-4069-a8c0-6955f11d1cab".equalsIgnoreCase(sessionId.getSessionQualifier())){
+                    if ("433cd272-ea87-4a1b-abca-86a0dcf9d8c4".equalsIgnoreCase(sessionId.getSessionQualifier())){
                         marketSessionId = sessionId;
 
-                        requestLiveTrades(sessionId, "BTC/CNY");
-                        requestOrderBook(sessionId, "BTC/CNY");
+                        requestLiveTrades(sessionId, "BTC/USD");
+                        requestOrderBook(sessionId, "BTC/USD");
 //
 //                        requestLiveTrades(sessionId, "LTC/CNY");
 //                        requestOrderBook(sessionId, "LTC/CNY");

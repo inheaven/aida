@@ -29,7 +29,7 @@ public abstract class OkcoinApplication extends BaseApplication{
     private AtomicLong index = new AtomicLong(0);
 
     protected ExchangeType getExchangeType(SessionID sessionID){
-        return ExchangeType.OKCOIN_CN;
+        return ExchangeType.OKCOIN;
     }
 
     public void requestMarketData(SessionID sessionID, String mdReqId, String symbol, char subscriptionRequestType, int marketDepth,

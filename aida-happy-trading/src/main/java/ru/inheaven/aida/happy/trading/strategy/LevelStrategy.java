@@ -167,25 +167,25 @@ public class LevelStrategy extends BaseStrategy{
         }, 5, 1, TimeUnit.MINUTES);
 
         //swan defence
-        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
-            BigDecimal net = userInfoService.getVolume("net", getStrategy().getAccount().getId(), null);
-            BigDecimal price = lastTrade.get();
-
-            if (net.compareTo(ZERO) > 0 && price.compareTo(ZERO) > 0){
-                nets.add(net);
-                prices.add(price);
-            }
-
-            BigDecimal netSwan = nets.element().subtract(net).divide(net, 8, HALF_EVEN);
-            BigDecimal priceSwan = prices.element().subtract(price).divide(price, 8, HALF_EVEN);
-
-            if (netSwan.compareTo(Const.BD_0_1) > 0 || netSwan.subtract(priceSwan).compareTo(Const.BD_0_05) > 0){
-                getStrategy().setActive(false);
-                Module.getInjector().getInstance(StrategyMapper.class).save(getStrategy());
-
-                log.error("Swan detected {} {}", netSwan, priceSwan);
-            }
-        },5, 1, TimeUnit.MINUTES);
+//        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
+//            BigDecimal net = userInfoService.getVolume("net", getStrategy().getAccount().getId(), null);
+//            BigDecimal price = lastTrade.get();
+//
+//            if (net.compareTo(ZERO) > 0 && price.compareTo(ZERO) > 0){
+//                nets.add(net);
+//                prices.add(price);
+//            }
+//
+//            BigDecimal netSwan = nets.element().subtract(net).divide(net, 8, HALF_EVEN);
+//            BigDecimal priceSwan = prices.element().subtract(price).divide(price, 8, HALF_EVEN);
+//
+//            if (netSwan.compareTo(Const.BD_0_25) > 0 || netSwan.subtract(priceSwan).compareTo(Const.BD_0_1) > 0){
+//                getStrategy().setActive(false);
+//                Module.getInjector().getInstance(StrategyMapper.class).save(getStrategy());
+//
+//                log.error("Swan detected {} {}", netSwan, priceSwan);
+//            }
+//        },5, 1, TimeUnit.MINUTES);
     }
 
     @SuppressWarnings("Duplicates")
@@ -246,21 +246,21 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", getStrategy().getAccount().getId(), "BTC");
         BigDecimal net = userInfoService.getVolume("net", getStrategy().getAccount().getId(), null);
         BigDecimal price = lastTrade.get();
-        //BigDecimal delta = BigDecimal.valueOf(getForecast() / vssaService.getVssaCount()).multiply(Const.BD_0_5).add(ONE);
+        BigDecimal delta = BigDecimal.valueOf(getForecast() / vssaService.getVssaCount()).multiply(Const.BD_0_16).add(ONE);
 
         return subtotalBtc.compareTo(ZERO) > 0 && price.compareTo(ZERO) > 0 &&
-                net.divide(subtotalBtc.multiply(price).multiply(BD_2), 8, HALF_EVEN).compareTo(ONE) > 0;
+                net.multiply(delta).divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(ONE) > 0;
     }
 
     private BigDecimal getDeltaP(){
         BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", getStrategy().getAccount().getId(), "BTC");
         BigDecimal net = userInfoService.getVolume("net", getStrategy().getAccount().getId(), null);
 
-        return ONE.subtract(subtotalBtc.multiply(lastTrade.get()).multiply(BD_2).divide(net, 8, HALF_EVEN));
+        return ONE.subtract(subtotalBtc.multiply(lastTrade.get()).divide(net, 8, HALF_EVEN));
     }
 
     private BigDecimal getShift(BigDecimal price){
-        return getSideSpread(price).multiply(getDeltaP());
+        return getSpread(price).multiply(getDeltaP());
     }
 
     @Override
@@ -288,21 +288,9 @@ public class LevelStrategy extends BaseStrategy{
     private BigDecimal spreadDiv = BigDecimal.valueOf(Math.sqrt(Math.PI*5));
 
     protected BigDecimal getSpread(BigDecimal price){
-        BigDecimal spread = ZERO;
         BigDecimal sideSpread = getSideSpread(price);
 
-        if (getStrategy().getSymbol().equals("BTC/CNY") || getStrategy().getSymbol().equals("LTC/CNY")){
-//            BigDecimal stdDev = getStdDev();
-//
-//            if (stdDev != null){
-//                spread = stdDev.divide(spreadDiv, 8, HALF_EVEN);
-//            }
-            spread = getDSpread(price);
-        }else {
-            spread = getStrategy().getSymbolType() == null
-                    ? getStrategy().getLevelSpread().multiply(price)
-                    : getStrategy().getLevelSpread();
-        }
+        BigDecimal spread = getDSpread(price);
 
         return spread.compareTo(sideSpread) > 0 ? spread : sideSpread;
     }
@@ -350,10 +338,10 @@ public class LevelStrategy extends BaseStrategy{
             BigDecimal sellPrice = scale(priceF.add(spread));
 
             if (!getOrderMap().contains(buyPrice, spread, BID) && !getOrderMap().contains(sellPrice, spread, ASK)){
-                double q1 = TorahRandom.nextDouble();
-                double q2 = QuranRandom.nextDouble();
-                double max = Math.max(q1, q2);
-                double min = Math.min(q1, q2);
+//                double q1 = TorahRandom.nextDouble();
+//                double q2 = QuranRandom.nextDouble();
+//                double max = Math.max(q1, q2);
+//                double min = Math.min(q1, q2);
 //////
 //////                //shuffle
 //                max = max * (random.nextDouble()/33 + 1);
@@ -371,8 +359,8 @@ public class LevelStrategy extends BaseStrategy{
 //                    }
 //                }
 
-//                double max = (random.nextGaussian()/2 + 2)/Math.PI;
-//                double min = (random.nextGaussian()/2 + 1)/Math.PI;
+                double max = (random.nextGaussian()/2 + 2)/Math.PI;
+                double min = (random.nextGaussian()/2 + 1)/Math.PI;
 
 //                double q1 = Math.sin(index.get()/(2*Math.PI)) + 1.07;
 //                double q2 = Math.cos(index.get()/(2*Math.PI)) + 1.07;
@@ -438,7 +426,7 @@ public class LevelStrategy extends BaseStrategy{
             (trade.getOrderType().equals(BID) ? tradeBid : tradeAsk).set(trade.getPrice());
 
             if (lastTrade.get().compareTo(ZERO) != 0 && lastTrade.get().subtract(trade.getPrice()).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(Const.BD_0_01) < 0){
-                //actionPrices.add(trade.getPrice());
+                actionPrices.add(trade.getPrice());
 
                 vssaService.add(trade);
 
@@ -468,20 +456,19 @@ public class LevelStrategy extends BaseStrategy{
                 lastTrade.get().subtract(bid).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(Const.BD_0_01) < 0) {
             depthSpread.set(ask.subtract(bid).abs());
 
-//            if (getSpotBalance()){
-//                actionPrices.add(ask);
-//            }else if (getForecast() < 0){
-//                actionPrices.add(bid);
-//            }
-            actionPrices.add(bid.add(ask).divide(BD_2, 8, HALF_EVEN));
+            if (getSpotBalance()){
+                actionPrices.add(ask);
+            }else if (getForecast() < 0){
+                actionPrices.add(bid);
+            }
         }
     }
 
     @Override
     protected void onRealTrade(Order order) {
-//        if (order.getStatus().equals(CLOSED) && order.getAvgPrice().compareTo(ZERO) > 0){
-//            actionPrices.add(order.getAvgPrice());
-//        }
+        if (order.getStatus().equals(CLOSED) && order.getAvgPrice().compareTo(ZERO) > 0){
+            actionPrices.add(order.getAvgPrice());
+        }
     }
 
 //    public static void main(String... args){

@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 @Singleton
 public class InfluxService {
-    private final static String DB_NAME = "corets";
+    private final static String DB_NAME = "aida";
     private final static String RETENTION_POLICY = "autogen";
 
     private Logger log = LoggerFactory.getLogger(InfluxService.class);
@@ -49,7 +49,7 @@ public class InfluxService {
 
     private void connect(){
         try {
-            influxDB = InfluxDBFactory.connect("http://corets.ru:8086", "corets", "corets");
+            influxDB = InfluxDBFactory.connect("http://localhost:8086", "corets", "corets");
             influxDB.enableBatch(100, 1, TimeUnit.SECONDS);
 
             ping.set(true);
