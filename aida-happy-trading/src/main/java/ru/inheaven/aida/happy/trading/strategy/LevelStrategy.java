@@ -95,7 +95,7 @@ public class LevelStrategy extends BaseStrategy{
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
         //VSSA
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 11, 100, 500, 10, 1000, 1000);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 11, 100, 500, 10, 1, 1000);
 
         forecastK = 10;
 

@@ -15,6 +15,7 @@ import java.math.RoundingMode;
 import java.util.concurrent.TimeUnit;
 
 import static java.math.BigDecimal.ZERO;
+import static ru.inheaven.aida.happy.trading.entity.ExchangeType.OKCOIN;
 import static ru.inheaven.aida.happy.trading.entity.ExchangeType.OKCOIN_CN;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.ASK;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.BID;
@@ -44,7 +45,7 @@ public class TradeService {
 
         //trade metric
         tradeObservable
-                .filter(t -> t.getExchangeType().equals(OKCOIN_CN))
+                .filter(t -> t.getExchangeType().equals(OKCOIN))
                 .filter(t -> t.getSymbol().equals("BTC/USD"))
                 .buffer(1, TimeUnit.SECONDS)
                 .subscribe(trades -> {
@@ -72,7 +73,7 @@ public class TradeService {
                         askPrice = askVolume.compareTo(ZERO) > 0 ? askPrice.divide(askVolume, 8, RoundingMode.HALF_EVEN) : null;
                         bidPrice = bidVolume.compareTo(ZERO) > 0 ? bidPrice.divide(bidVolume, 8, RoundingMode.HALF_EVEN) : null;
 
-                        influxService.addTradeMetric(OKCOIN_CN, "BTC/USD", askPrice, askVolume, askCount,
+                        influxService.addTradeMetric(OKCOIN, "BTC/USD", askPrice, askVolume, askCount,
                                 bidPrice, bidVolume, bidCount);
                     } catch (Exception e) {
                         log.error("error add trade metric", e);
