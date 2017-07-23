@@ -62,7 +62,7 @@ public class OrderService {
 
         //order metric
         orderObservable
-                .filter(o -> o.getSymbol().equals("BTC/CNY"))
+                .filter(o -> o.getSymbol().equals("BTC/USD"))
                 .buffer(1, TimeUnit.SECONDS)
                 .subscribe(orders -> {
                     try {
@@ -112,7 +112,7 @@ public class OrderService {
                         closedAskPrice = closedAskVolume.compareTo(ZERO) > 0 ? closedAskPrice.divide(closedAskVolume, 8, RoundingMode.HALF_EVEN) : null;
                         closedBidPrice = closedBidVolume.compareTo(ZERO) > 0 ? closedBidPrice.divide(closedBidVolume, 8, RoundingMode.HALF_EVEN) : null;
 
-                        influxService.addOrderMetric(47L, openAskPrice, openAskVolume, openAskCount,
+                        influxService.addOrderMetric(1L, openAskPrice, openAskVolume, openAskCount,
                                 openBidPrice, openBidVolume, openBidCount,
                                 closedAskPrice, closedAskVolume, closedAskCount,
                                 closedBidPrice, closedBidVolume, closedBidCount);

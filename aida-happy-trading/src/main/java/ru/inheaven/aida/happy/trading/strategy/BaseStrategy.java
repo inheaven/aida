@@ -610,7 +610,7 @@ public class BaseStrategy {
 
                     getWindow(),
                     scale(userInfoService.getVolume("subtotal", strategy.getAccount().getId(), "BTC")),
-                    scale(userInfoService.getVolume("subtotal", strategy.getAccount().getId(), "CNY")),
+                    scale(userInfoService.getVolume("subtotal", strategy.getAccount().getId(), "USD")),
                     userInfoService.getVolume("net", strategy.getAccount().getId(), null),
                     getProfit().setScale(3, HALF_EVEN),
                     BigDecimal.valueOf(o.getForecast()).setScale(3, HALF_EVEN),

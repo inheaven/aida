@@ -45,7 +45,7 @@ public class TradeService {
         //trade metric
         tradeObservable
                 .filter(t -> t.getExchangeType().equals(OKCOIN_CN))
-                .filter(t -> t.getSymbol().equals("BTC/CNY"))
+                .filter(t -> t.getSymbol().equals("BTC/USD"))
                 .buffer(1, TimeUnit.SECONDS)
                 .subscribe(trades -> {
                     try {
@@ -72,7 +72,7 @@ public class TradeService {
                         askPrice = askVolume.compareTo(ZERO) > 0 ? askPrice.divide(askVolume, 8, RoundingMode.HALF_EVEN) : null;
                         bidPrice = bidVolume.compareTo(ZERO) > 0 ? bidPrice.divide(bidVolume, 8, RoundingMode.HALF_EVEN) : null;
 
-                        influxService.addTradeMetric(OKCOIN_CN, "BTC/CNY", askPrice, askVolume, askCount,
+                        influxService.addTradeMetric(OKCOIN_CN, "BTC/USD", askPrice, askVolume, askCount,
                                 bidPrice, bidVolume, bidCount);
                     } catch (Exception e) {
                         log.error("error add trade metric", e);

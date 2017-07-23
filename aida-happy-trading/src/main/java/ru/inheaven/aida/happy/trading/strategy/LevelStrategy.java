@@ -135,7 +135,7 @@ public class LevelStrategy extends BaseStrategy{
                             getShift(lastTrade.get()));
                 }
             } catch (Exception e) {
-                log.error("error add strategy metric");
+                log.error("error add strategy metric", e);
             }
         }, 5, 1, TimeUnit.SECONDS);
 

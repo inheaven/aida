@@ -76,8 +76,6 @@ public class FixService {
                     time = System.currentTimeMillis();
 
                     tradePublishSubject.onNext(trade);
-
-                    System.out.println(trade);
                 }
 
                 //Fut

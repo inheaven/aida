@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
+import static ru.inheaven.aida.happy.trading.entity.ExchangeType.OKCOIN;
 import static ru.inheaven.aida.happy.trading.entity.ExchangeType.OKCOIN_CN;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CLOSED;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.ASK;
@@ -59,7 +60,7 @@ public class UserInfoService {
         this.broadcastService = broadcastService;
         this.influxService = influxService;
 
-        accountMapper.getAccounts(OKCOIN_CN).forEach(this::startOkcoinUserInfoScheduler);
+        accountMapper.getAccounts(OKCOIN).forEach(this::startOkcoinUserInfoScheduler);
 
         tradeService.getTradeObservable()
                 .subscribe(t -> {
@@ -159,13 +160,12 @@ public class UserInfoService {
 
                 switch (account.getExchangeType()){
                     case OKCOIN:
-                        OkCoinFuturesUserInfoCross info = ((OkCoinAccountServiceRaw) xChangeService.getExchange(account)
-                                .getPollingAccountService()).getFutureUserInfo();
-                        saveFunds(account.getId(), "BTC", info.getInfo().getBtcFunds());
-                        saveFunds(account.getId(), "LTC", info.getInfo().getLtcFunds());
+//                        OkCoinFuturesUserInfoCross info = ((OkCoinAccountServiceRaw) xChangeService.getExchange(account)
+//                                .getPollingAccountService()).getFutureUserInfo();
+//                        saveFunds(account.getId(), "BTC", info.getInfo().getBtcFunds());
+//                        saveFunds(account.getId(), "LTC", info.getInfo().getLtcFunds());
 
-                        saveTotal(account, funds.getAsset().get("net"), info.getInfo().getLtcFunds().getAccountRights(),
-                                info.getInfo().getBtcFunds().getAccountRights());
+                        saveTotal(account, funds.getAsset().get("net"), null, null);
 
                         saveFunds(account.getId(), "USD_SPOT", funds.getFree().get("usd"), funds.getFreezed().get("usd"));
                         break;
@@ -205,12 +205,12 @@ public class UserInfoService {
                 }
 
                 influxService.addAccountMetric(account.getId(),
-                        getPrice(account.getExchangeType(), "BTC/CNY", null),
+                        getPrice(account.getExchangeType(), "BTC/USD", null),
                         funds.getFree().get("btc"),
                         funds.getFree().get("btc").add(funds.getFreezed().get("btc")),
                         funds.getAsset().get("total"),
                         funds.getAsset().get("net"),
-                        funds.getFreezed().get("cny"),
+                        funds.getFreezed().get("usd"),
                         funds.getFreezed().get("btc"));
 
             } catch (Exception e) {
