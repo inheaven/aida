@@ -15,6 +15,7 @@ public class Const {
     public final static BigDecimal BD_0_33 = new BigDecimal("0.33");
     public final static BigDecimal BD_0_66 = new BigDecimal("0.66");
     public final static BigDecimal BD_0_01 = new BigDecimal("0.01");
+    public final static BigDecimal BD_0_02 = new BigDecimal("0.01");
     public final static BigDecimal BD_0_03 = new BigDecimal("0.03");
     public final static BigDecimal BD_0_04 = new BigDecimal("0.04");
     public final static BigDecimal BD_0_05 = new BigDecimal("0.05");

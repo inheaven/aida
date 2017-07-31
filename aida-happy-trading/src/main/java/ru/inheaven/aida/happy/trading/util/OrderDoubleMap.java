@@ -28,7 +28,7 @@ public class OrderDoubleMap {
     private ConcurrentSkipListSet<Long> bidPositionMap = new ConcurrentSkipListSet<>();
     private ConcurrentSkipListSet<Long> askPositionMap = new ConcurrentSkipListSet<>();
 
-    private final static double DELTA = 0.1;
+    private final static double DELTA = 0.01;
 
     public void put(Order order){
         idMap.put(order.getOrderId(), order);
@@ -112,15 +112,15 @@ public class OrderDoubleMap {
     }
 
     public boolean contains(Double price, Double spread, OrderType type){
-        Double low = getMap(type).floorKey(price);
+        Double min = getMap(type).floorKey(price);
 
-        if (low != null && price - low <= spread){
+        if (min != null && price - min <= spread){
             return true;
         }
 
-        Double high = getMap(type).ceilingKey(price);
+        Double max = getMap(type).ceilingKey(price);
 
-        return high != null && high - price <= spread;
+        return max != null && max - price <= spread;
     }
 
     private ConcurrentNavigableMap<Double, Map<String, Order>> getMap(OrderType type){

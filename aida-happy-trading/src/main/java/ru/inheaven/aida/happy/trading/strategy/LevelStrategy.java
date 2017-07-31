@@ -28,6 +28,7 @@ import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_EVEN;
 import static java.math.RoundingMode.HALF_UP;
+import static ru.inheaven.aida.happy.trading.entity.Const.BD_0_1;
 import static ru.inheaven.aida.happy.trading.entity.Const.BD_2;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CLOSED;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.OPEN;
@@ -95,9 +96,9 @@ public class LevelStrategy extends BaseStrategy{
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
         //VSSA
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 11, 100, 500, 10, 1, 1000);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.33, 3, 100, 256, 8, 64, 1000);
 
-        forecastK = 10;
+        forecastK = 33;
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             try {
@@ -246,7 +247,7 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", getStrategy().getAccount().getId(), "BTC");
         BigDecimal net = userInfoService.getVolume("net", getStrategy().getAccount().getId(), null);
         BigDecimal price = lastTrade.get();
-        BigDecimal delta = BigDecimal.valueOf(getForecast() / vssaService.getVssaCount()).multiply(Const.BD_0_16).add(ONE);
+        BigDecimal delta = BigDecimal.valueOf(getForecast() / vssaService.getVssaCount()).multiply(Const.BD_0_33).add(ONE);
 
         return subtotalBtc.compareTo(ZERO) > 0 && price.compareTo(ZERO) > 0 &&
                 net.multiply(delta).divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(ONE) > 0;
@@ -288,19 +289,23 @@ public class LevelStrategy extends BaseStrategy{
     private BigDecimal spreadDiv = BigDecimal.valueOf(Math.sqrt(Math.PI*5));
 
     protected BigDecimal getSpread(BigDecimal price){
-        BigDecimal sideSpread = getSideSpread(price);
+//        BigDecimal sideSpread = getSideSpread(price);
+//
+//        BigDecimal spread = getDSpread(price);
+//
+//        return spread.compareTo(sideSpread) > 0 ? spread : sideSpread;
 
-        BigDecimal spread = getDSpread(price);
-
-        return spread.compareTo(sideSpread) > 0 ? spread : sideSpread;
+        return getStrategy().getLevelSideSpread();
     }
 
     private BigDecimal getSideSpread(BigDecimal price){
-        BigDecimal sp = getStrategy().getSymbolType() == null
-                ? getStrategy().getLevelSideSpread().multiply(price)
-                : getStrategy().getLevelSideSpread();
+//        BigDecimal sp = getStrategy().getSymbolType() == null
+//                ? getStrategy().getLevelSideSpread().multiply(price)
+//                : getStrategy().getLevelSideSpread();
+//
+//        return sp.compareTo(getStep()) > 0 ? sp : getStep();
 
-        return sp.compareTo(getStep()) > 0 ? sp : getStep();
+        return getStrategy().getLevelSideSpread();
     }
 
     private BigDecimal getDSpread(BigDecimal price){
@@ -332,41 +337,14 @@ public class LevelStrategy extends BaseStrategy{
             boolean balance = getSpotBalance();
 
             BigDecimal spread = getSpread(price);
-            BigDecimal priceF = price.add(getShift(price));
 
-            BigDecimal buyPrice = scale(priceF);
-            BigDecimal sellPrice = scale(priceF.add(spread));
+            BigDecimal buyPrice = scale(price);
+            BigDecimal sellPrice = scale(price.add(spread));
 
-            if (!getOrderMap().contains(buyPrice, spread, BID) && !getOrderMap().contains(sellPrice, spread, ASK)){
-//                double q1 = TorahRandom.nextDouble();
-//                double q2 = QuranRandom.nextDouble();
-//                double max = Math.max(q1, q2);
-//                double min = Math.min(q1, q2);
-//////
-//////                //shuffle
-//                max = max * (random.nextDouble()/33 + 1);
-//                min = min * (random.nextDouble()/33 + 1);
-
-//                if (forecast > 0 == balance){
-//                    double abs = Math.abs(forecast);
-//
-//                    if (abs > 7){
-//                        max *= Math.PI;
-//                        min *= Math.PI;
-//                    }else if (abs > 3){
-//                        max *= 2;
-//                        min *= 2;
-//                    }
-//                }
-
+            if (!getOrderMap().contains(buyPrice, spread, BID) && !getOrderMap().contains(sellPrice, spread, ASK)
+                    && !getOrderMap().contains(buyPrice, spread, ASK) && !getOrderMap().contains(sellPrice, spread, BID)){
                 double max = (random.nextGaussian()/2 + 2)/Math.PI;
-                double min = (random.nextGaussian()/2 + 1)/Math.PI;
-
-//                double q1 = Math.sin(index.get()/(2*Math.PI)) + 1.07;
-//                double q2 = Math.cos(index.get()/(2*Math.PI)) + 1.07;
-//
-//                double max = Math.max(q1, q2);
-//                double min = Math.min(q1, q2);
+                double min = 0;
 
                 log.info("{} "  + key + " {} {} {} {}", getStrategy().getId(), price.setScale(3, HALF_EVEN), spread, min, max);
 
@@ -425,15 +403,22 @@ public class LevelStrategy extends BaseStrategy{
         try {
             (trade.getOrderType().equals(BID) ? tradeBid : tradeAsk).set(trade.getPrice());
 
-            if (lastTrade.get().compareTo(ZERO) != 0 && lastTrade.get().subtract(trade.getPrice()).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(Const.BD_0_01) < 0){
+//            if (lastTrade.get().compareTo(ZERO) != 0 && lastTrade.get().subtract(trade.getPrice()).abs().divide(lastTrade.get(), 8, HALF_EVEN).compareTo(Const.BD_0_02) < 0){
                 actionPrices.add(trade.getPrice());
+
+                BigDecimal spread = getSpread(trade.getPrice());
+
+                for (int i = 0; i < 100; ++i){
+                    actionPrices.add(trade.getPrice().add(spread.multiply(BigDecimal.valueOf(random.nextDouble()))));
+                    actionPrices.add(trade.getPrice().subtract(spread.multiply(BigDecimal.valueOf(random.nextDouble()))));
+                }
 
                 vssaService.add(trade);
 
                 closedMarketTrades.add(trade);
-            }else{
-                log.warn("trade price diff 1% {} {} {}", trade.getPrice(), trade.getSymbol(), Objects.toString(trade.getSymbolType(), ""));
-            }
+//            }else{
+//                log.warn("trade price diff 2% {} {} {}", trade.getPrice(), trade.getSymbol(), Objects.toString(trade.getSymbolType(), ""));
+//            }
 
             //spread
             spreadPrices.add(trade.getPrice().doubleValue());

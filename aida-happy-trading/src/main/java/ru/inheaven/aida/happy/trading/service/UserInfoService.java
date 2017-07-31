@@ -95,36 +95,36 @@ public class UserInfoService {
                     }
                 });
 
-//        Set<String> closed = ConcurrentHashMap.newKeySet();
+        Set<String> closed = ConcurrentHashMap.newKeySet();
 //
 //        //accountId
-//        orderService.getOrderObservable()
-//                .filter(o -> "BTC/CNY".equals(o.getSymbol()) && CLOSED.equals(o.getStatus()))
-//                .subscribe(o -> {
-//                    try {
-//                        if (!closed.contains(o.getOrderId())) {
-//                            if (BID.equals(o.getType())){
-//                                setVolume("subtotal", 1L, "BTC", getVolume("subtotal", 1L, "BTC")
-//                                        .add(o.getAmount()));
-//                                setVolume("subtotal", 1L, "CNY", getVolume("subtotal", 1L, "CNY")
-//                                        .subtract(o.getAmount().multiply(o.getAvgPrice())));
-//                            }else if (ASK.equals(o.getType())){
-//                                setVolume("subtotal", 1L, "BTC", getVolume("subtotal", 1L, "BTC")
-//                                        .subtract(o.getAmount()));
-//                                setVolume("subtotal", 1L, "CNY", getVolume("subtotal", 1L, "CNY")
-//                                        .add(o.getAmount().multiply(o.getAvgPrice())));
-//                            }
-//
-//                            closed.add(o.getOrderId());
-//
-//                            if (closed.size() > 10000){
-//                                closed.clear();
-//                            }
-//                        }
-//                    } catch (Exception e) {
-//                        log.error("error update volume", e);
-//                    }
-//                });
+        orderService.getOrderObservable()
+                .filter(o -> "BTC/CNY".equals(o.getSymbol()) && CLOSED.equals(o.getStatus()))
+                .subscribe(o -> {
+                    try {
+                        if (!closed.contains(o.getOrderId())) {
+                            if (BID.equals(o.getType())){
+                                setVolume("subtotal", 1L, "BTC", getVolume("subtotal", 1L, "BTC")
+                                        .add(o.getAmount()));
+                                setVolume("subtotal", 1L, "CNY", getVolume("subtotal", 1L, "USD")
+                                        .subtract(o.getAmount().multiply(o.getAvgPrice())));
+                            }else if (ASK.equals(o.getType())){
+                                setVolume("subtotal", 1L, "BTC", getVolume("subtotal", 1L, "BTC")
+                                        .subtract(o.getAmount()));
+                                setVolume("subtotal", 1L, "CNY", getVolume("subtotal", 1L, "USD")
+                                        .add(o.getAmount().multiply(o.getAvgPrice())));
+                            }
+
+                            closed.add(o.getOrderId());
+
+                            if (closed.size() > 10000){
+                                closed.clear();
+                            }
+                        }
+                    } catch (Exception e) {
+                        log.error("error update volume", e);
+                    }
+                });
     }
 
     private void setVolume(String key, Long accountId, String currency, BigDecimal volume){

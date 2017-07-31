@@ -232,7 +232,7 @@ public class BaseStrategy {
 
         }), 0, 1, MINUTES);
 
-        if (strategy.getSymbol().equals("BTC/CNY") || strategy.getSymbol().equals("LTC/CNY")){
+        if (strategy.getSymbol().equals("BTC/USD") || strategy.getSymbol().equals("LTC/USD")){
             Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
                 try {
                     PollingTradeService ts = xChangeService.getExchange(strategy.getAccount()).getPollingTradeService();
