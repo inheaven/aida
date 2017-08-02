@@ -64,8 +64,6 @@ public class LevelStrategy extends BaseStrategy{
     private EvictingQueue<BigDecimal> nets = EvictingQueue.create(1440);
     private EvictingQueue<BigDecimal> prices = EvictingQueue.create(1440);
 
-    private double forecastK;
-
     public LevelStrategy(StrategyService strategyService, Strategy strategy, OrderService orderService, OrderMapper orderMapper, TradeService tradeService,
                          DepthService depthService, UserInfoService userInfoService,  XChangeService xChangeService) {
         super(strategy, orderService, orderMapper, tradeService, depthService, xChangeService);
@@ -96,9 +94,7 @@ public class LevelStrategy extends BaseStrategy{
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
         //VSSA
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.33, 3, 100, 256, 8, 64, 1000);
-
-        forecastK = 33;
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 22, 100, 365, 7, 120, 1000);
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             try {
@@ -247,7 +243,7 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", getStrategy().getAccount().getId(), "BTC");
         BigDecimal net = userInfoService.getVolume("net", getStrategy().getAccount().getId(), null);
         BigDecimal price = lastTrade.get();
-        BigDecimal delta = BigDecimal.valueOf(getForecast() / vssaService.getVssaCount()).multiply(Const.BD_0_33).add(ONE);
+        BigDecimal delta = BigDecimal.valueOf(vssaService.getForecast() / vssaService.getVssaCount()).multiply(Const.BD_0_33).add(ONE);
 
         return subtotalBtc.compareTo(ZERO) > 0 && price.compareTo(ZERO) > 0 &&
                 net.multiply(delta).divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(ONE) > 0;
@@ -266,7 +262,7 @@ public class LevelStrategy extends BaseStrategy{
 
     @Override
     protected double getForecast() {
-        return vssaService.getForecast()*forecastK;
+        return 100*vssaService.getForecast()/vssaService.getVssaCount();
     }
 
     @Override

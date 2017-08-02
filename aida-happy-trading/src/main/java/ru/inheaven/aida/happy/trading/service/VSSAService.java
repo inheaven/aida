@@ -100,7 +100,7 @@ public class VSSAService {
 
     private Random random = new SecureRandom("vssa_service".getBytes());
 
-    private List<Double> getPrices2(Deque<Trade> trades, int limit){
+    private List<Double> getPrices(Deque<Trade> trades, int limit){
         List<Double> prices = new ArrayList<>();
         List<Trade> buf = new ArrayList<>();
 
@@ -127,41 +127,41 @@ public class VSSAService {
         return prices;
     }
 
-    private List<Double> getPrices(Deque<Trade> trades, int limit){
-        List<Double> prices = new ArrayList<>();
-        List<Trade> avg = new ArrayList<>();
-
-        for (Iterator<Trade> it = trades.descendingIterator(); it.hasNext();){
-            Trade t = it.next();
-
-            avg.add(t);
-
-            if (avg.size() >= window){
-                double priceSum = 0;
-                double volumeSum = 0;
-
-                for (Trade trade : avg){
-                    double tradeVolume = trade.getAmount().doubleValue();
-
-                    priceSum += trade.getPrice().doubleValue()*tradeVolume;
-
-                    volumeSum += tradeVolume;
-                }
-
-                if (priceSum > 0 && volumeSum > 0) {
-                    prices.add(0, priceSum/volumeSum);
-                }
-
-                avg.clear();
-
-                if (prices.size() > limit){
-                    break;
-                }
-            }
-        }
-
-        return prices;
-    }
+//    private List<Double> getPrices(Deque<Trade> trades, int limit){
+//        List<Double> prices = new ArrayList<>();
+//        List<Trade> avg = new ArrayList<>();
+//
+//        for (Iterator<Trade> it = trades.descendingIterator(); it.hasNext();){
+//            Trade t = it.next();
+//
+//            avg.add(t);
+//
+//            if (avg.size() >= window){
+//                double priceSum = 0;
+//                double volumeSum = 0;
+//
+//                for (Trade trade : avg){
+//                    double tradeVolume = trade.getAmount().doubleValue();
+//
+//                    priceSum += trade.getPrice().doubleValue()*tradeVolume;
+//
+//                    volumeSum += tradeVolume;
+//                }
+//
+//                if (priceSum > 0 && volumeSum > 0) {
+//                    prices.add(0, priceSum/volumeSum);
+//                }
+//
+//                avg.clear();
+//
+//                if (prices.size() > limit){
+//                    break;
+//                }
+//            }
+//        }
+//
+//        return prices;
+//    }
 
     public void fit(){
         if (loaded.get()) {
