@@ -106,12 +106,12 @@ public class UserInfoService {
                             if (BID.equals(o.getType())){
                                 setVolume("subtotal", 1L, "BTC", getVolume("subtotal", 1L, "BTC")
                                         .add(o.getAmount()));
-                                setVolume("subtotal", 1L, "CNY", getVolume("subtotal", 1L, "USD")
+                                setVolume("subtotal", 1L, "USD", getVolume("subtotal", 1L, "USD")
                                         .subtract(o.getAmount().multiply(o.getAvgPrice())));
                             }else if (ASK.equals(o.getType())){
                                 setVolume("subtotal", 1L, "BTC", getVolume("subtotal", 1L, "BTC")
                                         .subtract(o.getAmount()));
-                                setVolume("subtotal", 1L, "CNY", getVolume("subtotal", 1L, "USD")
+                                setVolume("subtotal", 1L, "USD", getVolume("subtotal", 1L, "USD")
                                         .add(o.getAmount().multiply(o.getAvgPrice())));
                             }
 
