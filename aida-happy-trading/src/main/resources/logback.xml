@@ -30,7 +30,7 @@
         </encoder>
     </appender>
 
-    <logger name="ru.inhell.aida.ssa" level="INFO">
+    <logger name="ru.inhell.aida.ssa" level="DEBUG">
         <appender-ref ref="FILE" />
     </logger>
 

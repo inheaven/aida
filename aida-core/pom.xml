@@ -49,12 +49,23 @@
 
         <dependency>
             <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-complete</artifactId>
+            <artifactId>ujmp-core</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.ojalgo</groupId>
-            <artifactId>ojalgo</artifactId>
+            <groupId>org.ujmp</groupId>
+            <artifactId>ujmp-ojalgo</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ujmp</groupId>
+            <artifactId>ujmp-mtj</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.googlecode.matrix-toolkits-java</groupId>
+            <artifactId>mtj</artifactId>
+            <version>1.0.4</version>
         </dependency>
 
         <dependency>

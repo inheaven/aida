@@ -688,7 +688,7 @@
             <dependency>
                 <groupId>org.ojalgo</groupId>
                 <artifactId>ojalgo</artifactId>
-                <version>39.0</version>
+                <version>31.0</version>
             </dependency>
 
             <!--InfluxDB-->
