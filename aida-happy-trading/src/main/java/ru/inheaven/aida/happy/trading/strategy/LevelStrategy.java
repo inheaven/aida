@@ -95,7 +95,7 @@ public class LevelStrategy extends BaseStrategy{
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
         //VSSA
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.5, 11, 100, 1024, 8, 8, 1000);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.33, 11, 10, 1024, 8, 16, 1000);
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             try {
@@ -341,7 +341,7 @@ public class LevelStrategy extends BaseStrategy{
             if (!getOrderMap().contains(buyPrice, spread, BID) && !getOrderMap().contains(sellPrice, spread, ASK)
                     && !getOrderMap().contains(buyPrice, spread, ASK) && !getOrderMap().contains(sellPrice, spread, BID)){
                 double max = (random.nextGaussian()/2 + 2)/Math.PI;
-                double min = 0;
+                double min = (random.nextGaussian()/2 + 1)/Math.PI;
 
                 log.info("{} "  + key + " {} {} {} {}", getStrategy().getId(), price.setScale(3, HALF_EVEN), spread, min, max);
 

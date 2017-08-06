@@ -100,59 +100,19 @@ public class VSSAService {
 
     private Random random = new SecureRandom("vssa_service".getBytes());
 
-    private List<Double> getPrices(Deque<Trade> trades, int limit){
-        List<Double> prices = new ArrayList<>();
-        List<Trade> buf = new ArrayList<>();
-
-        for (Iterator<Trade> it = trades.descendingIterator(); it.hasNext();){
-            Trade t = it.next();
-
-            buf.add(t);
-
-            if (buf.size() >= window){
-                prices.add(buf.get(random.nextInt(buf.size())).getPrice().doubleValue());
-
-                buf.clear();
-
-                if (prices.size() > limit){
-                    break;
-                }
-            }
-        }
-
-        buf.clear();
-
-        Collections.reverse(prices);
-
-        return prices;
-    }
-
 //    private List<Double> getPrices(Deque<Trade> trades, int limit){
 //        List<Double> prices = new ArrayList<>();
-//        List<Trade> avg = new ArrayList<>();
+//        List<Trade> buf = new ArrayList<>();
 //
 //        for (Iterator<Trade> it = trades.descendingIterator(); it.hasNext();){
 //            Trade t = it.next();
 //
-//            avg.add(t);
+//            buf.add(t);
 //
-//            if (avg.size() >= window){
-//                double priceSum = 0;
-//                double volumeSum = 0;
+//            if (buf.size() >= window){
+//                prices.add(buf.get(random.nextInt(buf.size())).getPrice().doubleValue());
 //
-//                for (Trade trade : avg){
-//                    double tradeVolume = trade.getAmount().doubleValue();
-//
-//                    priceSum += trade.getPrice().doubleValue()*tradeVolume;
-//
-//                    volumeSum += tradeVolume;
-//                }
-//
-//                if (priceSum > 0 && volumeSum > 0) {
-//                    prices.add(0, priceSum/volumeSum);
-//                }
-//
-//                avg.clear();
+//                buf.clear();
 //
 //                if (prices.size() > limit){
 //                    break;
@@ -160,8 +120,48 @@ public class VSSAService {
 //            }
 //        }
 //
+//        buf.clear();
+//
+//        Collections.reverse(prices);
+//
 //        return prices;
 //    }
+
+    private List<Double> getPrices(Deque<Trade> trades, int limit){
+        List<Double> prices = new ArrayList<>();
+        List<Trade> avg = new ArrayList<>();
+
+        for (Iterator<Trade> it = trades.descendingIterator(); it.hasNext();){
+            Trade t = it.next();
+
+            avg.add(t);
+
+            if (avg.size() >= window){
+                double priceSum = 0;
+                double volumeSum = 0;
+
+                for (Trade trade : avg){
+                    double tradeVolume = 1; //trade.getAmount().doubleValue();
+
+                    priceSum += trade.getPrice().doubleValue()*tradeVolume;
+
+                    volumeSum += tradeVolume;
+                }
+
+                if (priceSum > 0 && volumeSum > 0) {
+                    prices.add(0, priceSum/volumeSum);
+                }
+
+                avg.clear();
+
+                if (prices.size() > limit){
+                    break;
+                }
+            }
+        }
+
+        return prices;
+    }
 
     public void fit(){
         if (loaded.get()) {
