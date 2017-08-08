@@ -95,7 +95,7 @@ public class LevelStrategy extends BaseStrategy{
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
         //VSSA
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.33, 11, 10, 1024, 8, 16, 1000);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.1, 11, 10, 256, 8, 16, 1000);
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             try {
@@ -244,7 +244,7 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", getStrategy().getAccount().getId(), "BTC");
         BigDecimal net = userInfoService.getVolume("net", getStrategy().getAccount().getId(), null);
         BigDecimal price = lastTrade.get();
-        BigDecimal delta = BigDecimal.valueOf(vssaService.getForecast() / vssaService.getVssaCount()).multiply(Const.BD_0_33).add(ONE);
+        BigDecimal delta = BigDecimal.valueOf(vssaService.getForecast() / vssaService.getVssaCount()).multiply(ONE).add(ONE);
 
         return subtotalBtc.compareTo(ZERO) > 0 && price.compareTo(ZERO) > 0 &&
                 net.multiply(delta).divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(ONE) > 0;
@@ -324,6 +324,10 @@ public class LevelStrategy extends BaseStrategy{
 
     private AtomicLong index = new AtomicLong(0);
 
+//    ZAIF
+//    key: d707744c-15a7-409e-854b-ab55f8f6c66a
+//    secret: 6356cf76-7a1a-4190-9fbc-32c929fe5fc6
+
     private void action(String key, BigDecimal price, OrderType orderType, int priceLevel) {
         try {
             if (!getStrategy().isActive()){
@@ -340,13 +344,13 @@ public class LevelStrategy extends BaseStrategy{
 
             if (!getOrderMap().contains(buyPrice, spread, BID) && !getOrderMap().contains(sellPrice, spread, ASK)
                     && !getOrderMap().contains(buyPrice, spread, ASK) && !getOrderMap().contains(sellPrice, spread, BID)){
-                double max = (random.nextGaussian()/2 + 2)/Math.PI;
-                double min = (random.nextGaussian()/2 + 1)/Math.PI;
+                double max = 2;
+                double min = 1;
 
                 log.info("{} "  + key + " {} {} {} {}", getStrategy().getId(), price.setScale(3, HALF_EVEN), spread, min, max);
 
-                BigDecimal buyAmount = getStrategy().getLevelLot().multiply(BigDecimal.valueOf(balance ? max : min)).add(Const.BD_0_01);
-                BigDecimal sellAmount = getStrategy().getLevelLot().multiply(BigDecimal.valueOf(balance ? min : max)).add(Const.BD_0_01);
+                BigDecimal buyAmount = getStrategy().getLevelLot().multiply(BigDecimal.valueOf(balance ? max : min));
+                BigDecimal sellAmount = getStrategy().getLevelLot().multiply(BigDecimal.valueOf(balance ? min : max));
 
                 //less
                 if (buyAmount.compareTo(Const.BD_0_01) < 0){
@@ -428,7 +432,7 @@ public class LevelStrategy extends BaseStrategy{
 
             BigDecimal step = ask.subtract(bid).abs().divide(TEN, 8, HALF_EVEN);
 
-            for (int i = 0; i < 30; ++i){
+            for (int i = 0; i < 10; ++i){
                 if (getSpotBalance()){
                     actionPrices.add(bid.add(step.multiply(BigDecimal.valueOf(i))));
                 }else{
