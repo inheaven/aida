@@ -8,29 +8,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inheaven.aida.happy.trading.entity.*;
 import ru.inheaven.aida.happy.trading.mapper.OrderMapper;
-import ru.inheaven.aida.happy.trading.mapper.StrategyMapper;
 import ru.inheaven.aida.happy.trading.service.*;
-import ru.inheaven.aida.happy.trading.util.QuranRandom;
-import ru.inheaven.aida.happy.trading.util.TorahRandom;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.Date;
 import java.util.Deque;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static java.math.BigDecimal.ONE;
-import static java.math.BigDecimal.TEN;
-import static java.math.BigDecimal.ZERO;
+import static java.math.BigDecimal.*;
 import static java.math.RoundingMode.HALF_EVEN;
 import static java.math.RoundingMode.HALF_UP;
-import static ru.inheaven.aida.happy.trading.entity.Const.BD_0_1;
-import static ru.inheaven.aida.happy.trading.entity.Const.BD_2;
+import static ru.inheaven.aida.happy.trading.entity.Const.BD_0_01;
+import static ru.inheaven.aida.happy.trading.entity.Const.BD_0_16;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.CLOSED;
 import static ru.inheaven.aida.happy.trading.entity.OrderStatus.OPEN;
 import static ru.inheaven.aida.happy.trading.entity.OrderType.ASK;
@@ -95,7 +89,7 @@ public class LevelStrategy extends BaseStrategy{
         }, 5000, 20, TimeUnit.MILLISECONDS);
 
         //VSSA
-        vssaService = new VSSAService(strategy.getSymbol(), null, 0.1, 11, 10, 256, 8, 16, 1000);
+        vssaService = new VSSAService(strategy.getSymbol(), null, 0.33, 22, 100, 365, 7, 256, 1000);
 
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
             try {
@@ -244,7 +238,7 @@ public class LevelStrategy extends BaseStrategy{
         BigDecimal subtotalBtc = userInfoService.getVolume("subtotal", getStrategy().getAccount().getId(), "BTC");
         BigDecimal net = userInfoService.getVolume("net", getStrategy().getAccount().getId(), null);
         BigDecimal price = lastTrade.get();
-        BigDecimal delta = BigDecimal.valueOf(vssaService.getForecast() / vssaService.getVssaCount()).multiply(ONE).add(ONE);
+        BigDecimal delta = BigDecimal.valueOf(vssaService.getForecast() / vssaService.getVssaCount()).multiply(BD_0_16).add(ONE);
 
         return subtotalBtc.compareTo(ZERO) > 0 && price.compareTo(ZERO) > 0 &&
                 net.multiply(delta).divide(subtotalBtc.multiply(price), 8, HALF_EVEN).compareTo(ONE) > 0;
@@ -292,7 +286,7 @@ public class LevelStrategy extends BaseStrategy{
 //
 //        return spread.compareTo(sideSpread) > 0 ? spread : sideSpread;
 
-        return getStrategy().getLevelSideSpread();
+        return price.multiply(BD_0_01);
     }
 
     private BigDecimal getSideSpread(BigDecimal price){
@@ -323,10 +317,6 @@ public class LevelStrategy extends BaseStrategy{
     private AtomicReference<BigDecimal> lastSellPrice = new AtomicReference<>(ZERO);
 
     private AtomicLong index = new AtomicLong(0);
-
-//    ZAIF
-//    key: d707744c-15a7-409e-854b-ab55f8f6c66a
-//    secret: 6356cf76-7a1a-4190-9fbc-32c929fe5fc6
 
     private void action(String key, BigDecimal price, OrderType orderType, int priceLevel) {
         try {
