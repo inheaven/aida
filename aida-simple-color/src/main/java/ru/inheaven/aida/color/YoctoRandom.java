@@ -8,6 +8,7 @@ import java.security.SecureRandom;
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.time.LocalDateTime;
 
 /**
  * @author Anatoly Ivanov
@@ -24,9 +25,13 @@ public class YoctoRandom {
             YColorLed led2 = YColorLed.FindColorLed("YRGBLED1-018C9.colorLed2");
 
             Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
-                int r = random.nextInt(255);
-                int g = random.nextInt(255);
-                int b = random.nextInt(255);
+                int hour = LocalDateTime.now().getHour();
+
+                int c = hour > 8 ? 255 : 64;
+
+                int r = random.nextInt(c);
+                int g = random.nextInt(c);
+                int b = random.nextInt(c);
 
                 try {
                     led1.setRgbColor(((r & 0x0ff) << 16) | ((g & 0x0ff) << 8) | (b & 0x0ff));
