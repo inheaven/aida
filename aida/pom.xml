@@ -1,0 +1,368 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>ru.inheaven</groupId>
+    <artifactId>aida</artifactId>
+    <packaging>pom</packaging>
+    <version>1.0-SNAPSHOT</version>
+
+    <name>AIDA</name>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.test.skip>true</maven.test.skip>
+    </properties>
+
+    <repositories>
+        <!--<repository>
+            <id>wicketstuff-core-releases</id>
+            <url>https://oss.sonatype.org/content/repositories/releases</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>-->
+        <repository>
+            <id>bintray</id>
+            <url>https://jcenter.bintray.com</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <modules>
+        <module>aida-common</module>
+        <module>aida-account</module>        
+        <module>aida-stat</module>
+        <module>aida-wallet</module>
+        <module>aida-zaif</module>
+        <module>aida-db</module>
+        <module>aida-okex</module>
+        <module>aida-okex-storage</module>
+        <module>aida-huobi</module>
+        <module>aida-bittrex</module>
+        <module>aida-color</module>
+        <module>aida-vssa</module>
+        <module>aida-svet</module>
+        <module>aida-android</module>
+        <module>aida-sensor</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <!--AIDA-->
+            <dependency>
+                <groupId>ru.inheaven</groupId>
+                <artifactId>aida-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.inheaven</groupId>
+                <artifactId>aida-account</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!--BITCOINJ-->
+            <dependency>
+                <groupId>org.bitcoinj</groupId>
+                <artifactId>bitcoinj-core</artifactId>
+                <version>0.14.4</version>
+            </dependency>
+
+            <!--WICKET-->
+            <dependency>
+                <groupId>org.apache.wicket</groupId>
+                <artifactId>wicket-core</artifactId>
+                <version>7.5.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.wicket</groupId>
+                <artifactId>wicket-datetime</artifactId>
+                <version>7.5.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.wicket</groupId>
+                <artifactId>wicket-ioc</artifactId>
+                <version>7.5.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.wicket</groupId>
+                <artifactId>wicket-guice</artifactId>
+                <version>7.5.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.wicket</groupId>
+                <artifactId>wicket-native-websocket-core</artifactId>
+                <version>7.5.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.wicket</groupId>
+                <artifactId>wicket-native-websocket-javax</artifactId>
+                <version>7.5.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.wicket</groupId>
+                <artifactId>wicket-extensions</artifactId>
+                <version>7.5.0</version>
+            </dependency>
+
+            <!--WICKET STUFF-->
+
+            <!--WICKET BOOTSTRAP-->
+            <dependency>
+                <groupId>de.agilecoders.wicket</groupId>
+                <artifactId>wicket-bootstrap-core</artifactId>
+                <version>2.0.0-M2</version>
+            </dependency>
+
+            <dependency>
+                <groupId>de.agilecoders.wicket</groupId>
+                <artifactId>wicket-bootstrap-themes</artifactId>
+                <version>2.0.0-M2</version>
+            </dependency>
+
+            <!--MYBATIS-->
+            <dependency>
+                <groupId>org.mybatis</groupId>
+                <artifactId>mybatis</artifactId>
+                <version>3.4.4</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mybatis</groupId>
+                <artifactId>mybatis-guice</artifactId>
+                <version>3.9</version>
+            </dependency>
+
+            <!--MySQL-->
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>5.1.43</version>
+            </dependency>
+
+            <!--TEST-->
+            <dependency>
+                <groupId>org.testng</groupId>
+                <artifactId>testng</artifactId>
+                <version>6.10</version>
+            </dependency>
+
+            <!--LOG-->
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>1.7.24</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-simple</artifactId>
+                <version>RELEASE</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>1.2.3</version>
+            </dependency>
+
+            <!--GOOGLE-->
+            <dependency>
+                <groupId>com.google.inject</groupId>
+                <artifactId>guice</artifactId>
+                <version>4.1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.inject.extensions</groupId>
+                <artifactId>guice-multibindings</artifactId>
+                <version>4.1.0</version>
+            </dependency>
+
+
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>23.0</version>
+            </dependency>
+
+            <!--JAVAX-->
+            <dependency>
+                <groupId>javax</groupId>
+                <artifactId>javaee-api</artifactId>
+                <version>7.0</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.servlet</groupId>
+                <artifactId>javax.servlet-api</artifactId>
+                <version>3.1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.websocket</groupId>
+                <artifactId>javax.websocket-api</artifactId>
+                <version>1.1</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.ws.rs</groupId>
+                <artifactId>javax.ws.rs-api</artifactId>
+                <version>RELEASE</version>
+            </dependency>
+
+            <!-- RxJava-->
+            <dependency>
+                <groupId>io.reactivex</groupId>
+                <artifactId>rxjava</artifactId>
+                <version>1.2.4</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.reactivex.rxjava2</groupId>
+                <artifactId>rxjava</artifactId>
+                <version>2.1.14</version>
+            </dependency>
+
+            <!--TYRUS-->
+            <dependency>
+                <groupId>org.glassfish.tyrus</groupId>
+                <artifactId>tyrus-client</artifactId>
+                <version>1.13.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.tyrus</groupId>
+                <artifactId>tyrus-container-jdk-client</artifactId>
+                <version>1.13.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.tyrus</groupId>
+                <artifactId>tyrus-container-grizzly-client</artifactId>
+                <version>1.13.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.tyrus.ext</groupId>
+                <artifactId>tyrus-extension-deflate</artifactId>
+                <version>1.13.1</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>2.9.2</version>
+            </dependency>
+
+            <!--InfluxDB-->
+            <dependency>
+                <groupId>org.influxdb</groupId>
+                <artifactId>influxdb-java</artifactId>
+                <version>2.7</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.okio</groupId>
+                <artifactId>okio</artifactId>
+                <version>1.11.0</version>
+            </dependency>
+
+            <!--QuickFixJ-->
+            <dependency>
+                <groupId>org.quickfixj</groupId>
+                <artifactId>quickfixj-core</artifactId>
+                <version>1.6.4</version>
+            </dependency>
+            <dependency>
+                <groupId>org.quickfixj</groupId>
+                <artifactId>quickfixj-messages-fix44</artifactId>
+                <version>1.6.4</version>
+            </dependency>
+
+            <!--UJMP-->
+            <dependency>
+                <groupId>org.ujmp</groupId>
+                <artifactId>ujmp-core</artifactId>
+                <version>0.3.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.ujmp</groupId>
+                <artifactId>ujmp-mtj</artifactId>
+                <version>0.3.0</version>
+            </dependency>
+
+            <!--Cassandra-->
+            <dependency>
+                <groupId>com.datastax.cassandra</groupId>
+                <artifactId>cassandra-driver-core</artifactId>
+                <version>3.6.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.datastax.cassandra</groupId>
+                <artifactId>cassandra-driver-mapping</artifactId>
+                <version>3.6.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.datastax.cassandra</groupId>
+                <artifactId>cassandra-driver-extras</artifactId>
+                <version>3.6.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.glassfish.jersey.containers</groupId>
+                <artifactId>jersey-container-jdk-http</artifactId>
+                <version>RELEASE</version>
+            </dependency>
+
+            <!--XCHANGE-->
+            <dependency>
+                <groupId>org.knowm.xchange</groupId>
+                <artifactId>xchange-core</artifactId>
+                <version>LATEST</version>
+            </dependency>
+            <dependency>
+                <groupId>org.knowm.xchange</groupId>
+                <artifactId>xchange-okcoin</artifactId>
+                <version>LATEST</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <resources>
+            <resource>
+                <filtering>false</filtering>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**</include>
+                </includes>
+                <excludes>
+                    <exclude>**/*.java</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <filtering>true</filtering>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**</include>
+                </includes>
+            </resource>
+        </resources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <showDeprecation>true</showDeprecation>
+                    <showWarnings>true</showWarnings>
+                    <fork>true</fork>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
