@@ -38,8 +38,10 @@ public class YoctoRandom {
                 int b = random.nextInt(c);
 
                 try {
-                    led1.setRgbColor(((r & 0x0ff) << 16) | ((g & 0x0ff) << 8) | (b & 0x0ff));
-                    led2.setRgbColor(((r & 0x0ff) << 16) | ((g & 0x0ff) << 8) | (b & 0x0ff));
+                    int rgbColor = ((r & 0x0ff) << 16) | ((g & 0x0ff) << 8) | (b & 0x0ff);
+
+                    led1.setRgbColor(rgbColor);
+                    led2.setRgbColor(rgbColor);
                 } catch (YAPI_Exception e) {
                     e.printStackTrace();
                 }
