@@ -25,7 +25,13 @@ public class YoctoRandom {
             YColorLed led2 = YColorLed.FindColorLed("YRGBLED1-018C9.colorLed2");
 
             Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
-                int hour = LocalDateTime.now().getHour();
+                LocalDateTime localDateTime = LocalDateTime.now();
+
+                if (localDateTime.getMinute() % 10 != 0 || localDateTime.getSecond() != 0){
+                    return;
+                }
+
+                int hour = localDateTime.getHour();
 
                 int c = hour > 8 && hour < 23 ? 255 : 64;
 
@@ -39,7 +45,7 @@ public class YoctoRandom {
                 } catch (YAPI_Exception e) {
                     e.printStackTrace();
                 }
-            }, 0, 10, TimeUnit.MINUTES);
+            }, 0, 1, TimeUnit.SECONDS);
         } catch (YAPI_Exception e) {
             e.printStackTrace();
         }

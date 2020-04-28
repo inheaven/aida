@@ -5,10 +5,10 @@ import com.yoctopuce.YoctoAPI.YAPI_Exception;
 import com.yoctopuce.YoctoAPI.YColorLed;
 
 import java.security.SecureRandom;
+import java.time.LocalDateTime;
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.time.LocalDateTime;
 
 /**
  * @author Anatoly Ivanov
@@ -27,7 +27,7 @@ public class YoctoRandom {
             Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
                 int hour = LocalDateTime.now().getHour();
 
-                int c = hour > 8 ? 255 : 64;
+                int c = hour > 8 && hour < 23 ? 256 : 32;
 
                 int r = random.nextInt(c);
                 int g = random.nextInt(c);
