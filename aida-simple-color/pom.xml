@@ -12,7 +12,7 @@
         <dependency>
             <groupId>com.yoctopuce.java</groupId>
             <artifactId>yoctolib</artifactId>
-            <version>LATEST</version>
+            <version>1.10.39263</version>
         </dependency>
     </dependencies>
 
@@ -22,6 +22,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
