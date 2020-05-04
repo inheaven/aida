@@ -110,7 +110,9 @@ public class YoctoRandom {
                 .post(RequestBody.create(json.toString(), JSON))
                 .build();
 
-        ELASTIC.newCall(request).execute();
+        try(Response response = ELASTIC.newCall(request).execute()) {
+            response.code();
+        }
 
         return num;
     }
