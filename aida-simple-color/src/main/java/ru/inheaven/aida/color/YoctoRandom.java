@@ -89,11 +89,7 @@ public class YoctoRandom {
                     throw new RuntimeException(id + " " + res);
                 }
 
-                int num = res.getJSONObject("result").getJSONObject("random").getJSONArray("data").getInt(0);
-
-                putInt(num);
-
-                return num;
+                return putInt(res.getJSONObject("result").getJSONObject("random").getJSONArray("data").getInt(0));
             }
 
         } catch (Exception e) {
@@ -103,17 +99,19 @@ public class YoctoRandom {
         return 0;
     }
 
-    private static void putInt(int num) throws IOException {
+    private static int putInt(int num) throws IOException {
         JSONObject json = new JSONObject();
 
         json.put("data", num);
         json.put("timestamp", LocalDateTime.now(ZoneId.of("UTC")).toString());
 
         Request request = new Request.Builder()
-                .url("http://aida:9200/aida-simple-color/_doc")
+                .url("http://aida:9200/aida/_doc")
                 .post(RequestBody.create(json.toString(), JSON))
                 .build();
 
         ELASTIC.newCall(request).execute();
+
+        return num;
     }
 }
