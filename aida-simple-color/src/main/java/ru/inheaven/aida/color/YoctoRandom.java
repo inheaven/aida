@@ -6,7 +6,9 @@ import com.yoctopuce.YoctoAPI.YColorLed;
 import okhttp3.*;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -19,9 +21,11 @@ public class YoctoRandom {
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private static final String URL = "https://api.random.org/json-rpc/2/invoke";
 
-    private static final OkHttpClient CLIENT = new OkHttpClient();
+    private static final OkHttpClient RANDOM = new OkHttpClient();
 
-    public static void main(String[] args) {
+    private static final OkHttpClient ELASTIC = new OkHttpClient();
+
+    public static void main(String[] args) throws IOException {
         try {
             YAPI.RegisterHub("127.0.0.1");
 
@@ -78,14 +82,18 @@ public class YoctoRandom {
                     .post(RequestBody.create(json.toString(), JSON))
                     .build();
 
-            try (Response response = CLIENT.newCall(request).execute()) {
+            try (Response response = RANDOM.newCall(request).execute()) {
                 JSONObject res = new JSONObject(Objects.requireNonNull(response.body()).string());
 
                 if (res.getLong("id") != id){
                     throw new RuntimeException(id + " " + res);
                 }
 
-                return res.getJSONObject("result").getJSONObject("random").getJSONArray("data").getInt(0);
+                int num = res.getJSONObject("result").getJSONObject("random").getJSONArray("data").getInt(0);
+
+                putInt(num);
+
+                return num;
             }
 
         } catch (Exception e) {
@@ -93,5 +101,19 @@ public class YoctoRandom {
         }
 
         return 0;
+    }
+
+    private static void putInt(int num) throws IOException {
+        JSONObject json = new JSONObject();
+
+        json.put("data", num);
+        json.put("timestamp", LocalDateTime.now(ZoneId.of("UTC")).toString());
+
+        Request request = new Request.Builder()
+                .url("http://aida:9200/aida-simple-color/_doc")
+                .post(RequestBody.create(json.toString(), JSON))
+                .build();
+
+        ELASTIC.newCall(request).execute();
     }
 }
