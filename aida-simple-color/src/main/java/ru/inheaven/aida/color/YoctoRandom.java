@@ -36,7 +36,7 @@ public class YoctoRandom {
                 LocalDateTime localDateTime = LocalDateTime.now();
 
                 if ((localDateTime.getMinute() + 1) % 10 == 0 && localDateTime.getSecond() == 59){
-                    int c = localDateTime.getHour() > 8 && localDateTime.getHour() < 23 ? 255 : 32;
+                    int c = localDateTime.getHour() > 6 && localDateTime.getHour() < 23 ? 255 : 32;
 
                     try {
                         int r = nextInt(c);
@@ -52,8 +52,8 @@ public class YoctoRandom {
                     }
                 }
             }, 0, 1, TimeUnit.SECONDS);
-        } catch (YAPI_Exception e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            System.err.println(LocalDateTime.now().toString() + " " + e.getLocalizedMessage());
         }
     }
 
@@ -93,7 +93,7 @@ public class YoctoRandom {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(LocalDateTime.now().toString() + " " + e.getLocalizedMessage());
         }
 
         return 0;
