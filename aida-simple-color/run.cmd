@@ -1,0 +1,1 @@
+java -cp target/*;target/lib/* ru.inheaven.aida.color.YoctoRandom
