@@ -126,7 +126,7 @@ public class YoctoRandom {
 
         json.put("data0", ints[0]);
         json.put("data1", ints[1]);
-        json.put("data2", ints[1]);
+        json.put("data2", ints[2]);
         json.put("timestamp", LocalDateTime.now(ZoneId.of("UTC")).toString());
 
         Request request = new Request.Builder()
