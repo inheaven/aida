@@ -107,6 +107,7 @@
         <module>aida-happy-mining</module>
         <module>aida-happy-accumulation</module>
         <module>aida-vk</module>
+        <module>aida-roof</module>
     </modules>
 
     <dependencyManagement>

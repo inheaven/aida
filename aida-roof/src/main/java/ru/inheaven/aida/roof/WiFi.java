@@ -1,13 +1,11 @@
-package ru.inheaven.aida.color;
+package ru.inheaven.aida.roof;
 
-import com.yoctopuce.YoctoAPI.YAPI;
-import com.yoctopuce.YoctoAPI.YAPI_Exception;
-import com.yoctopuce.YoctoAPI.YColorLed;
 import okhttp3.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.net.Socket;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Objects;
@@ -15,10 +13,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @author Anatoly Ivanov
- * 23.04.2020 1:58 PM
+ * @author Anatoly A. Ivanov
+ * 31.12.2017 22:58
  */
-public class YoctoRandom {
+public class WiFi {
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private static final String URL = "https://api.random.org/json-rpc/2/invoke";
 
@@ -28,41 +26,89 @@ public class YoctoRandom {
 
     private static boolean start = false;
 
-    public static void main(String[] args) throws IOException {
+
+    public static void main(String args[]) {
         startColor();
+    }
+
+    private static byte[] getMessage(byte category, byte channel, byte value) {
+        byte[] result = new byte[12];
+
+        result[0] = (byte) 85;
+        result[1] = (byte) 43;
+        result[2] = (byte) 20;
+        result[3] = (byte) -64;
+        result[4] = (byte) 2;
+        result[5] = (byte) 1;
+        result[6] = category;
+        result[7] = channel;
+        result[8] = value;
+        result[9] = (byte) (result[8] + result[7] + result[6] + result[5] + result[4]);
+        result[10] = (byte) -86;
+        result[11] = (byte) -86;
+
+        return result;
+    }
+
+    public static byte[] getPower(boolean powerState){
+        return getMessage((byte) 2, (byte) 18, powerState ? (byte) -85 : (byte) -87);
+    }
+
+    public static byte[] getR(byte value){
+        return getMessage((byte) 8, (byte) 24, value);
+    }
+
+    public static byte[] getG(byte value){
+        return getMessage((byte) 8, (byte) 25, value);
+    }
+
+
+    public static byte[] getB(byte value) {
+        return getMessage((byte) 8, (byte) 32, value);
+    }
+
+    public static byte[] setRGBBrightness(byte value) {
+        return getMessage((byte) 8, (byte) 35, value);
+    }
+
+
+    public static byte[] getRgbHue(float hue){
+        int value = ((97 - Math.round(96.0f * hue)) + 43) % 96;
+        if (value == 0) {
+            value = 96;
+        }
+
+        return getMessage((byte) 1, (byte) 1, (byte) value);
+    }
+
+    public static byte[] getW(int value) {
+        return getMessage((byte) 8, (byte)33, (byte) value);
     }
 
     private static void startColor() {
         try {
-            YAPI.RegisterHub("127.0.0.1");
-
-            YColorLed led1 = YColorLed.FindColorLed("YRGBLED1-018C9.colorLed1");
-            YColorLed led2 = YColorLed.FindColorLed("YRGBLED1-018C9.colorLed2");
-                        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+            Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
                 LocalDateTime localDateTime = LocalDateTime.now();
 
-                if (((localDateTime.getMinute() + 1) % 10 == 0 && localDateTime.getSecond() == 59) || !start){
-                    //int c = localDateTime.getHour() > 6 && localDateTime.getHour() < 23  ? 255 : 32;
-int c = 255;
+                if (((localDateTime.getMinute() + 1) % 3 == 0 && localDateTime.getSecond() == 59) || !start){
+                    int c = localDateTime.getHour() > 6 && localDateTime.getHour() < 23  ? 255 : 32;
 
-                    try {
+                    try (Socket s = new Socket("192.168.0.104", 8899)){
                         int[] ints = nextInts(c);
 
                         if (ints == null){
                             return;
                         }
 
-                        int r = ints[0];
-                        int g = ints[1];
-                        int b = ints[2];
-
-                        int rgbColor = ((r & 0x0ff) << 16) | ((g & 0x0ff) << 8) | (b & 0x0ff);
-
-                        led1.setRgbColor(rgbColor);
-                        led2.setRgbColor(rgbColor);
+                        s.getOutputStream().write(getR((byte) ints[0]));
+                        s.getOutputStream().flush();
+                        s.getOutputStream().write(getG((byte) ints[1]));
+                        s.getOutputStream().flush();
+                        s.getOutputStream().write(getB((byte) ints[2]));
+                        s.getOutputStream().flush();
 
                         start = true;
-                    } catch (YAPI_Exception e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
@@ -70,6 +116,32 @@ int c = 255;
         } catch (Exception e) {
             System.err.println(LocalDateTime.now().toString() + " " + e.getLocalizedMessage());
         }
+    }
+
+    private static float getHue(int red, int green, int blue) {
+
+        float min = Math.min(Math.min(red, green), blue);
+        float max = Math.max(Math.max(red, green), blue);
+
+        if (min == max) {
+            return 0;
+        }
+
+        float hue = 0f;
+        if (max == red) {
+            hue = (green - blue) / (max - min);
+
+        } else if (max == green) {
+            hue = 2f + (blue - red) / (max - min);
+
+        } else {
+            hue = 4f + (red - green) / (max - min);
+        }
+
+        hue = hue * 60;
+        if (hue < 0) hue = hue + 360;
+
+        return hue;
     }
 
     private static int[] nextInts(int bound){
