@@ -22,17 +22,23 @@ public class YoctoRandom {
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private static final String URL = "https://api.random.org/json-rpc/2/invoke";
 
-    private static final OkHttpClient RANDOM = new OkHttpClient();
+    private static final OkHttpClient RANDOM = new OkHttpClient.Builder()
+            .connectTimeout(1, TimeUnit.MINUTES)
+            .readTimeout(1, TimeUnit.MINUTES)
+            .build();
 
     private static final OkHttpClient ELASTIC = new OkHttpClient();
 
     private static boolean start = false;
 
     public static void main(String[] args) throws IOException {
-        startColor();
+//        startColor();
+        nextInts(255);
     }
 
     private static void startColor() {
+
+
         try {
             YAPI.RegisterHub("127.0.0.1");
 
@@ -42,8 +48,8 @@ public class YoctoRandom {
                 LocalDateTime localDateTime = LocalDateTime.now();
 
                 if (((localDateTime.getMinute() + 1) % 10 == 0 && localDateTime.getSecond() == 59) || !start){
-                    //int c = localDateTime.getHour() > 6 && localDateTime.getHour() < 23  ? 255 : 32;
-int c = 255;
+                    int c = localDateTime.getHour() > 6 && localDateTime.getHour() < 23  ? 255 : 32;
+//int c = 255;
 
                     try {
                         int[] ints = nextInts(c);
@@ -106,6 +112,8 @@ int c = 255;
 
                 JSONArray data = res.getJSONObject("result").getJSONObject("random").getJSONArray("data");
 
+
+
                 int[] ints = new int[3];
 
                 ints[0] = data.getInt(0);
@@ -116,7 +124,7 @@ int c = 255;
             }
 
         } catch (Exception e) {
-            System.err.println(LocalDateTime.now().toString() + " " + e.getLocalizedMessage());
+            System.err.println(LocalDateTime.now().toString() + " " + e);
         }
 
         return null;
@@ -131,7 +139,7 @@ int c = 255;
         json.put("timestamp", LocalDateTime.now(ZoneId.of("UTC")).toString());
 
         Request request = new Request.Builder()
-                .url("http://aida:9200/aida/_doc")
+                .url("http://aira1:9200/aida/_doc")
                 .post(RequestBody.create(json.toString(), JSON))
                 .build();
 

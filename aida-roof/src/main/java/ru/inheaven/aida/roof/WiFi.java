@@ -1,6 +1,5 @@
 package ru.inheaven.aida.roof;
 
-import okhttp3.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -90,7 +89,7 @@ public class WiFi {
             Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
                 LocalDateTime localDateTime = LocalDateTime.now();
 
-                if (((localDateTime.getMinute() + 1) % 3 == 0 && localDateTime.getSecond() == 59) || !start){
+                if (((localDateTime.getMinute() + 1) % 7 == 0 && localDateTime.getSecond() == 59) || !start){
                     int c = localDateTime.getHour() > 6 && localDateTime.getHour() < 23  ? 255 : 32;
 
                     try (Socket s = new Socket("192.168.0.104", 8899)){
